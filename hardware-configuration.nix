@@ -8,28 +8,27 @@
     [ <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "ahci" "usb_storage" "sd_mod" "sdhci_pci" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "ahci" "usbhid" "sd_mod" ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/ishamael/root";
+    { device = "/dev/disk/by-uuid/e18c2803-ffa4-4f87-9bf7-8c2f78a93b66";
       fsType = "btrfs";
-      options = [ "ssd" ];
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-partlabel/ishamael-boot";
+    { device = "/dev/disk/by-uuid/3A2B-E173";
       fsType = "vfat";
     };
 
-  fileSystems."/var/lib/docker" =
-    { device = "/dev/ishamael/root";
-      fsType = "btrfs";
-      options = [ "subvol=@docker" ];
-    };
-
-  swapDevices = [ {device = "/dev/disk/by-label/ishamael-swap"; } ];
+  swapDevices =
+    [ { device = "/dev/disk/by-uuid/0054e431-08ed-4811-8c4b-e6437eeaef2f"; }
+      { device = "/dev/zram2"; }
+      { device = "/dev/zram1"; }
+      { device = "/dev/zram0"; }
+      { device = "/dev/zram3"; }
+    ];
 
   nix.maxJobs = 4;
 }

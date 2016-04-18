@@ -1,22 +1,15 @@
-# -*- nix -*-
-{ config, lib, pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
-  networking.hostName = "demandred";
-  networking.hostId = "6e6740ba";
-
-  imports = [
-    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
-    ./hardware/intel.nix
-    ./partitions/uefi.nix
-    ./partitions/unencrypted.nix
-    ./roles/workstation.nix
-  ];
-
-}
-
- # Device: 
-          #./devices/chromebook.nix
+  # Copy this template to a file called configuration.nix 
+  # and set the devices hostname and hostid
+  networking.hostName = "example";
+  networking.hostId = "12345";
+ 
+  # Uncomment configs for this device and its roles
+  imports =
+    [ # Device: 
+        #./devices/chromebook.nix
         #./devices/desktop.nix
         #./devices/homeserver.nix
         #./devices/netbook.nix
@@ -29,3 +22,5 @@
         #./roles/vultr-vps.nix
         #./roles/workstation.nix
         #./roles/workstation-extra.nix
+    ];
+}
