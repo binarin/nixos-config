@@ -10,9 +10,10 @@
     ./hardware/intel.nix
     ./partitions/uefi.nix
     ./partitions/unencrypted.nix
-    ./roles/workstation.nix
-  ];
 
+    ./roles/workstation.nix
+    ./roles/openvpn-client.nix
+  ];
 }
 
  # Device: 
