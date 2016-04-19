@@ -40,7 +40,8 @@
     gnumake
     gnupg1orig
     gnupg
-    # libreoffice
+    kde5.quasselClient
+    libreoffice
     manpages
     mc
     mu
