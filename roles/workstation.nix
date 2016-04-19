@@ -24,6 +24,8 @@
     bridge-utils
     chromium
     cryptsetup
+    gnome3.dconf
+    gnome3.dconf-editor
     debootstrap
     dmenu
     dmidecode
@@ -41,6 +43,7 @@
     gnupg1orig
     gnupg
     kde5.quasselClient
+    keychain
     libreoffice
     manpages
     mc
