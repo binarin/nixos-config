@@ -14,63 +14,73 @@
   # Set your time zone.
   time.timeZone = "Europe/Moscow";
 
-  # List packages installed in system profile. To search by name, run:
-  # $ nix-env -qaP | grep wget
-  environment.systemPackages = with pkgs; [
-    # Some music
-    audacious
-    # strings
-    binutils
-    bridge-utils
-    chromium
-    cryptsetup
-    gnome3.dconf
-    gnome3.dconf-editor
-    debootstrap
-    dmenu
-    dmidecode
-    emacs25pre
-    erlang
-    file
-    firefox
-    gitAndTools.gitFull
-    gmrun
-    haskellPackages.xmobar
-    haskellPackages.yeganesh
-    iptables
-    isyncUnstable
-    gnumake
-    gnupg1orig
-    gnupg
-    kde5.quasselClient
-    keychain
-    libreoffice
-    manpages
-    mc
-    mu
-    nmap
-    openssl
-    parallel
-    pavucontrol
-    pciutils
-    psmisc
-    python
-    rxvt_unicode
-    screen
-    skype
-    sudo
-    tcpdump
-    tmux
-    usbutils
-    which
-    wget
-    wmctrl
-    workrave
-    xclip
-    xlsfonts
-    xscreensaver
-    zsh
-  ];
+  environment.systemPackages = with pkgs; let
+    desktopPackages = [
+      workrave
+    ];
+    developmentPackages = [
+      gcc
+      wireshark
+    ];
+    otherPackages = [
+      # Some music
+      audacious
+      # strings
+      binutils
+      bridge-utils
+      chromium
+      conkeror
+      cryptsetup
+      gnome3.dconf
+      gnome3.dconf-editor
+      debootstrap
+      dmenu
+      dmidecode
+      dpkg
+      dropbox
+      emacs25pre
+      # erlang
+      file
+      firefox
+      gitAndTools.gitFull
+      gmrun
+      haskellPackages.xmobar
+      haskellPackages.yeganesh
+      iptables
+      isyncUnstable
+      gnumake
+      gnupg1orig
+      gnupg
+      kde5.quasselClient
+      keychain
+      libreoffice
+      manpages
+      mc
+      mu
+      nmap
+      openssl
+      parallel
+      pavucontrol
+      pciutils
+      psmisc
+      python
+      rxvt_unicode
+      screen
+      skype
+      sudo
+      tcpdump
+      tmux
+      usbutils
+      vagrant
+      which
+      wget
+      wmctrl
+      xclip
+      xlsfonts
+      xscreensaver
+      zsh
+    ];
+  in otherPackages ++ desktopPackages ++ developmentPackages;
 
   nixpkgs.config = {
 
