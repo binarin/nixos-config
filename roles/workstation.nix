@@ -16,6 +16,7 @@
 
   environment.systemPackages = with pkgs; let
     desktopPackages = [
+      keepass
       workrave
     ];
     developmentPackages = [
@@ -199,12 +200,21 @@
    services.xserver = {
     config = ''
 Section "InputClass"
-	Identifier "CirqueTouchpad"
+	Identifier "CirqueTouchpad1"
 	MatchProduct "GlidePoint"
 	Option "SwapAxes" "True"
 	Option "Emulate3Buttons" "True" 
 	Option "InvertY" "True"
 EndSection
+
+Section "InputClass"
+	Identifier "CirqueTouchpad2"
+        MatchUSBID "0488:0280"
+	Option "SwapAxes" "True"
+	Option "Emulate3Buttons" "True"
+	Option "InvertY" "True"
+EndSection
+
     '';
     enable = true;
     layout = "us,ru";

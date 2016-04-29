@@ -1,0 +1,32 @@
+# -*- nix -*-
+{ config, lib, pkgs, ... }:
+
+{
+  networking.hostName = "ishamael";
+  networking.hostId = "eaaf6687";
+
+  imports = [
+    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
+    ./hardware/intel.nix
+    ./partitions/uefi.nix
+    ./partitions/ishamael-crypt.nix
+
+    ./roles/workstation.nix
+    ./roles/openvpn-client.nix
+  ];
+}
+
+ # Device: 
+          #./devices/chromebook.nix
+        #./devices/desktop.nix
+        #./devices/homeserver.nix
+        #./devices/netbook.nix
+        #./devices/vultr-768.nix
+      # Roles:
+        #./roles/build-client.nix
+        #./roles/common.nix
+        #./roles/java-development.nix
+        #./roles/steam-machine.nix
+        #./roles/vultr-vps.nix
+        #./roles/workstation.nix
+        #./roles/workstation-extra.nix
