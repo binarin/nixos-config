@@ -18,10 +18,21 @@
     desktopPackages = [
       keepass
       workrave
+      geeqie
+      twmn
     ];
     developmentPackages = [
       gcc
       wireshark
+      nix-repl
+      oraclejdk8
+      wireshark-gtk
+      mosh
+    ];
+    utilityPackages = [
+      openssl
+      unzip
+      zip
     ];
     otherPackages = [
       # Some music
@@ -38,7 +49,7 @@
       dmenu
       dmidecode
       dpkg
-      dropbox
+      dropbox-cli
       emacs25pre
       # erlang
       file
