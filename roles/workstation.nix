@@ -1,9 +1,14 @@
 { config, pkgs, ... }:
 
 {
+  nix.useSandbox = true;
+
   boot.kernel.sysctl."vm.swappiness" = 1;
 
   networking.networkmanager.enable = true;
+  networking.extraHosts = ''
+    127.0.0.1 ${config.networking.hostName}
+  '';
 
   # Select internationalisation properties.
   i18n = {
@@ -16,18 +21,28 @@
 
   environment.systemPackages = with pkgs; let
     desktopPackages = [
-      keepass
-      workrave
+      evince
       geeqie
+      keepass
+      playerctl
       twmn
+      workrave
+      xorg.xbacklight
+      xorg.xev
     ];
     developmentPackages = [
+      ant
       gcc
       wireshark
-      nix-repl
       oraclejdk8
       wireshark-gtk
       mosh
+      git-review
+      tightvnc
+    ];
+    nixDevPackages = [
+      nix-repl
+      nox
     ];
     utilityPackages = [
       openssl
@@ -88,11 +103,10 @@
       wget
       wmctrl
       xclip
-      xlsfonts
       xscreensaver
       zsh
     ];
-  in otherPackages ++ desktopPackages ++ developmentPackages;
+  in otherPackages ++ desktopPackages ++ developmentPackages ++ nixDevPackages;
 
   nixpkgs.config = {
 
@@ -101,6 +115,8 @@
     firefox = {
      enableGoogleTalkPlugin = true;
      enableAdobeFlash = true;
+     jre = true;
+     enableDjvu = true;
     };
 
     chromium = {
@@ -161,7 +177,7 @@
               done
             )
           '';
-        }); 
+        });
         setxkbmap = super.pkgs.lib.overrideDerivation super.xorg.setxkbmap (old: {
           postInstall =
             ''
@@ -214,7 +230,7 @@ Section "InputClass"
 	Identifier "CirqueTouchpad1"
 	MatchProduct "GlidePoint"
 	Option "SwapAxes" "True"
-	Option "Emulate3Buttons" "True" 
+	Option "Emulate3Buttons" "True"
 	Option "InvertY" "True"
 EndSection
 
@@ -241,7 +257,7 @@ EndSection
       enable = true;
       enableContribAndExtras = true;
     };
-    
+
     windowManager.default = "xmonad";
     desktopManager.xterm.enable = false;
     desktopManager.default = "none";
@@ -269,11 +285,11 @@ EndSection
       description = "Alexey Lebedeff";
       uid = 1000;
       isNormalUser = true;
-      shell = "/run/current-system/sw/bin/zsh";    
+      shell = "/run/current-system/sw/bin/zsh";
       extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" ];
     };
     root = {
-      shell = "/run/current-system/sw/bin/zsh";    
+      shell = "/run/current-system/sw/bin/zsh";
       subUidRanges = [ { startUid = 100001; count = 65534; } ];
       subGidRanges = [ { startGid = 1001; count = 999; } ];
     };

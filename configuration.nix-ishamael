@@ -12,6 +12,7 @@
     ./partitions/ishamael-crypt.nix
 
     ./roles/workstation.nix
+    ./roles/bluetooth.nix
     ./roles/openvpn-client.nix
   ];
 }
