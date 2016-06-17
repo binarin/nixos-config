@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 {
-  nix.useSandbox = true;
+  nix.useChroot = true;
 
   boot.kernel.sysctl."vm.swappiness" = 1;
 
