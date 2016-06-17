@@ -5,8 +5,8 @@
 
   fileSystems."/" =
     { device = "/dev/ishamael/root";
-      fsType = "btrfs";
-      options = [ "ssd" ];
+      fsType = "ext4";
+      options = [ "noatime" "discard" ];
     };
 
   fileSystems."/boot" =
