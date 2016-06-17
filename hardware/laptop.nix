@@ -1,0 +1,5 @@
+{pkgs, ...}:
+{
+  powerManagement.enable = true;
+  
+}

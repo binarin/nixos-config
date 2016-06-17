@@ -8,6 +8,7 @@
   imports = [
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/intel.nix
+    ./hardware/laptop.nix
     ./partitions/uefi.nix
     ./partitions/ishamael-crypt.nix
 
