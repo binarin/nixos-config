@@ -24,6 +24,7 @@
       evince
       geeqie
       keepass
+      mplayer
       playerctl
       twmn
       workrave
@@ -32,27 +33,33 @@
     ];
     developmentPackages = [
       ant
+      checkbashism
       gcc
-      wireshark
-      oraclejdk8
-      wireshark-gtk
-      mosh
+      ghc
       git-review
+      gitAndTools.gitFull
+      libxslt # xsltproc - for building rabbitmq
+      mosh
+      oraclejdk8
+      quilt
+      subversion
       tightvnc
+      wireshark
+      wireshark-gtk
     ];
     nixDevPackages = [
       nix-repl
       nox
     ];
     utilityPackages = [
+      bind # for dig
       openssl
       unzip
+      whois
       zip
     ];
     otherPackages = [
-      # Some music
       audacious
-      # strings
       binutils
       bridge-utils
       chromium
@@ -60,24 +67,22 @@
       cryptsetup
       gnome3.dconf
       gnome3.dconf-editor
-      debootstrap
+      # debootstrap
       dmenu
       dmidecode
       dpkg
       dropbox-cli
       emacs25pre
-      # erlang
+      erlang
       file
       firefox
-      gitAndTools.gitFull
       gmrun
       haskellPackages.xmobar
       haskellPackages.yeganesh
       iptables
       isyncUnstable
       gnumake
-      gnupg1orig
-      gnupg
+      gnupg21
       kde5.quasselClient
       keychain
       libreoffice
@@ -98,7 +103,7 @@
       tcpdump
       tmux
       usbutils
-      vagrant
+      # vagrant
       which
       wget
       wmctrl
@@ -106,7 +111,7 @@
       xscreensaver
       zsh
     ];
-  in otherPackages ++ desktopPackages ++ developmentPackages ++ nixDevPackages;
+  in otherPackages ++ desktopPackages ++ developmentPackages ++ nixDevPackages ++ utilityPackages;
 
   nixpkgs.config = {
 
@@ -115,7 +120,7 @@
     firefox = {
      enableGoogleTalkPlugin = true;
      enableAdobeFlash = true;
-     jre = true;
+     # jre = true;
      enableDjvu = true;
     };
 
@@ -196,12 +201,17 @@
     enableFontDir = true;
     enableGhostscriptFonts = true;
     fonts = with pkgs; [
-      mplus-outline-fonts
-      terminus_font
       corefonts
+      google-fonts
       inconsolata
+      liberation_ttf
+      mplus-outline-fonts
+      noto-fonts
+      powerline-fonts
+      terminus_font
       ubuntu_font_family
       unifont
+      vistafonts
     ];
   };
 
