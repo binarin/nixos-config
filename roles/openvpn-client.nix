@@ -7,6 +7,8 @@
                                       (import ../vpn/udp-to-naberius.nix { inherit config; });
       udp-to-mirantis = pkgs.lib.mkIf (config.networking.hostName == "ishamael")
                                       (import ../vpn/udp-to-mirantis.nix { inherit pkgs; });
+      udp-to-airvpn = pkgs.lib.mkIf (config.networking.hostName == "ishamael")
+                                      (import ../vpn/udp-to-airvpn.nix { inherit config; });
     };
   };
 }

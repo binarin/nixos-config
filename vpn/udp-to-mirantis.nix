@@ -1,4 +1,4 @@
-{pkgs}:
+{pkgs, ...}:
 
 {
   up = "${pkgs.update-resolv-conf}/libexec/openvpn/update-resolv-conf";

@@ -21,11 +21,13 @@
 
   environment.systemPackages = with pkgs; let
     desktopPackages = [
+      libnotify
       evince
       geeqie
       keepass
       mplayer
       playerctl
+      slack
       twmn
       workrave
       xorg.xbacklight
@@ -42,6 +44,7 @@
       mosh
       oraclejdk8
       quilt
+      stack
       subversion
       tightvnc
       wireshark
@@ -53,7 +56,11 @@
     ];
     utilityPackages = [
       bind # for dig
+      iftop
+      nethogs
+      lsof
       openssl
+      p7zip
       unzip
       whois
       zip
@@ -67,7 +74,6 @@
       cryptsetup
       gnome3.dconf
       gnome3.dconf-editor
-      # debootstrap
       dmenu
       dmidecode
       dpkg
@@ -103,7 +109,6 @@
       tcpdump
       tmux
       usbutils
-      # vagrant
       which
       wget
       wmctrl
@@ -120,7 +125,7 @@
     firefox = {
      enableGoogleTalkPlugin = true;
      enableAdobeFlash = true;
-     # jre = true;
+     jre = true;
      enableDjvu = true;
     };
 
@@ -130,6 +135,7 @@
     };
 
     packageOverrides = super: {
+      # docker = pkgs.callPackage ./docker-bin.nix {};
       xorg = super.xorg // rec {
         xkeyboard_config_dvp = super.pkgs.lib.overrideDerivation super.xorg.xkeyboardconfig (old: {
           patches = [
@@ -222,6 +228,8 @@
 
   # List services that you want to enable:
 
+  services.gnome3.gvfs.enable = true;
+  
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
   services.openssh.permitRootLogin = "yes";
@@ -261,6 +269,10 @@ EndSection
     synaptics = {
       enable = true;
       twoFingerScroll = true;
+      tapButtons = true;
+      fingersMap = [0 0 0];
+      buttonsMap = [0 0 0];
+      
     };
 
     windowManager.xmonad = {
