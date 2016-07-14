@@ -1,1 +1,1 @@
-configuration.nix-ishamael
+configuration.nix-demandred

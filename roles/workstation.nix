@@ -1,6 +1,11 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, bleeding, ... }:
 
 {
+  imports = [
+    ../packages/bleeding-edge.nix
+    ../roles/emacs.nix
+  ];
+
   nix.useChroot = true;
 
   boot.kernel.sysctl."vm.swappiness" = 1;
@@ -16,45 +21,63 @@
     consoleKeyMap = "dvp";
     defaultLocale = "ru_RU.UTF-8";
   };
+
   # Set your time zone.
   time.timeZone = "Europe/Moscow";
 
-  environment.systemPackages = with pkgs; let
-    desktopPackages = [
+  environment.systemPackages = let
+    bleedingEdgePackages = with config.bleeding.pkgs; [
+       gitAndTools.gitFull
+       gitAndTools.diff-so-fancy
+       slack
+       viber
+       stack
+       ghc
+       audacious
+       firefox
+       chromium
+       erlang
+       platinum-searcher
+    ];
+    desktopPackages = with pkgs; [
+      stalonetray
       libnotify
       evince
       geeqie
       keepass
       mplayer
       playerctl
-      slack
       twmn
       workrave
       xorg.xbacklight
       xorg.xev
+      xlsfonts # required for changing font-size in rxvt
     ];
-    developmentPackages = [
+    developmentPackages = with pkgs; [
       ant
+      autoconf
+      automake
       checkbashism
       gcc
-      ghc
       git-review
-      gitAndTools.gitFull
       libxslt # xsltproc - for building rabbitmq
       mosh
+      gdb
+      gnum4
+      ncurses
       oraclejdk8
       quilt
-      stack
       subversion
       tightvnc
       wireshark
       wireshark-gtk
     ];
-    nixDevPackages = [
+    nixDevPackages = with pkgs; [
       nix-repl
       nox
     ];
-    utilityPackages = [
+    utilityPackages = with pkgs; [
+      vim
       bind # for dig
       iftop
       nethogs
@@ -64,12 +87,13 @@
       unzip
       whois
       zip
+      elinks
     ];
-    otherPackages = [
-      audacious
+    otherPackages = with pkgs; [
+      youtube-dl
       binutils
+      gnuplot
       bridge-utils
-      chromium
       conkeror
       cryptsetup
       gnome3.dconf
@@ -78,10 +102,8 @@
       dmidecode
       dpkg
       dropbox-cli
-      emacs25pre
-      erlang
+      yandex-disk
       file
-      firefox
       gmrun
       haskellPackages.xmobar
       haskellPackages.yeganesh
@@ -116,10 +138,14 @@
       xscreensaver
       zsh
     ];
-  in otherPackages ++ desktopPackages ++ developmentPackages ++ nixDevPackages ++ utilityPackages;
+  in otherPackages ++
+     desktopPackages ++
+     developmentPackages ++
+     nixDevPackages ++
+     utilityPackages ++
+     bleedingEdgePackages;
 
   nixpkgs.config = {
-
     allowUnfree = true;
 
     firefox = {
@@ -217,6 +243,7 @@
       terminus_font
       ubuntu_font_family
       unifont
+      iosevka
       vistafonts
     ];
   };
@@ -242,7 +269,7 @@
   services.printing.enable = true;
   services.printing.drivers = [ pkgs.hplip ];
 
-   services.xserver = {
+  services.xserver = {
     config = ''
 Section "InputClass"
 	Identifier "CirqueTouchpad1"
@@ -272,7 +299,6 @@ EndSection
       tapButtons = true;
       fingersMap = [0 0 0];
       buttonsMap = [0 0 0];
-      
     };
 
     windowManager.xmonad = {
