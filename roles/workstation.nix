@@ -27,31 +27,33 @@
 
   environment.systemPackages = let
     bleedingEdgePackages = with config.bleeding.pkgs; [
-       gitAndTools.gitFull
-       gitAndTools.diff-so-fancy
-       slack
-       viber
-       stack
-       ghc
-       audacious
-       firefox
-       chromium
-       erlang
-       platinum-searcher
+      audacious
+      chromium
+      erlang
+      firefox
+      ghc
+      gitAndTools.diff-so-fancy
+      gitAndTools.gitFull
+      platinum-searcher
+      rxvt_unicode-with-plugins
+      slack
+      stack
+      tdesktop
+      tmux
+      viber
     ];
     desktopPackages = with pkgs; [
-      stalonetray
-      libnotify
       evince
       geeqie
       keepass
+      libnotify
       mplayer
       playerctl
+      stalonetray
       twmn
       workrave
       xorg.xbacklight
       xorg.xev
-      xlsfonts # required for changing font-size in rxvt
     ];
     developmentPackages = with pkgs; [
       ant
@@ -124,12 +126,10 @@
       pciutils
       psmisc
       python
-      rxvt_unicode
       screen
       skype
       sudo
       tcpdump
-      tmux
       usbutils
       which
       wget
@@ -245,6 +245,8 @@
       unifont
       iosevka
       vistafonts
+      source-code-pro
+      fira-code
     ];
   };
 
