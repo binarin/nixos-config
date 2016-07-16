@@ -27,6 +27,7 @@
 
   environment.systemPackages = let
     bleedingEdgePackages = with config.bleeding.pkgs; [
+      yandex-disk
       audacious
       chromium
       erlang
@@ -104,7 +105,6 @@
       dmidecode
       dpkg
       dropbox-cli
-      yandex-disk
       file
       gmrun
       haskellPackages.xmobar
