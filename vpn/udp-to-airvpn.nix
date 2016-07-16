@@ -1,6 +1,7 @@
 {config, ...}:
 
 {
+  autoStart = false;
   config = ''
     client
     dev tun
