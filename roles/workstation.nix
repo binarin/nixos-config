@@ -40,10 +40,11 @@
       slack
       stack
       tdesktop
-      tmux
+      tmux.bin
       viber
     ];
     desktopPackages = with pkgs; [
+      icewm # something to run in Xephyr
       evince
       geeqie
       keepass
@@ -336,7 +337,7 @@ EndSection
       uid = 1000;
       isNormalUser = true;
       shell = "/run/current-system/sw/bin/zsh";
-      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" ];
+      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" "dialout" ];
     };
     root = {
       shell = "/run/current-system/sw/bin/zsh";
