@@ -337,7 +337,7 @@ EndSection
       uid = 1000;
       isNormalUser = true;
       shell = "/run/current-system/sw/bin/zsh";
-      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" "dialout" ];
+      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" "dialout" "vboxusers" ];
     };
     root = {
       shell = "/run/current-system/sw/bin/zsh";
@@ -353,14 +353,8 @@ EndSection
 
   virtualisation = {
     docker.enable = true;
-    libvirtd.enable = true;
-    lxc.enable = true;
-    lxc.defaultConfig = ''
-      lxc.network.type = veth
-      lxc.network.link = virbr0
-      lxc.network.flags = up
-      lxc.aa_profile = unconfined
-    '';
+    docker.extraOptions = "--insecure-registry=192.168.99.100:31500";
+    virtualbox.host.enable = true;
   };
 
   zramSwap = {
