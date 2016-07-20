@@ -81,6 +81,9 @@
       nox
     ];
     utilityPackages = with pkgs; [
+      sox
+      telnet
+      htop
       vim
       bind # for dig
       iftop
