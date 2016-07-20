@@ -38,6 +38,7 @@ let
     yasnippet
     zenburn-theme
     zoom-frm
+    elpy
   ]);
 in
 {
