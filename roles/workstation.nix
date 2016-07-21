@@ -260,8 +260,8 @@
   };
 
   # List services that you want to enable:
-
   services.gnome3.gvfs.enable = true;
+  services.dbus.enable = true;
   
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
