@@ -37,13 +37,13 @@
       gitAndTools.gitFull
       platinum-searcher
       rxvt_unicode-with-plugins
-      slack
       stack
       tdesktop
       tmux.bin
       viber
     ];
     desktopPackages = with pkgs; [
+      slack
       icewm # something to run in Xephyr
       evince
       geeqie
