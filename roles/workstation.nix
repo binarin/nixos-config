@@ -354,10 +354,13 @@ EndSection
     wheelNeedsPassword = false;
   };
 
+  networking.firewall.checkReversePath = false; # I want my DHCP for VM's
+
   virtualisation = {
     docker.enable = true;
-    docker.extraOptions = "--insecure-registry=192.168.99.100:31500";
-    virtualbox.host.enable = true;
+    libvirtd.enable = true;
+    # docker.extraOptions = "--insecure-registry=192.168.99.100:31500";
+    # virtualbox.host.enable = true;
   };
 
   zramSwap = {
