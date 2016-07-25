@@ -27,6 +27,7 @@ let
     mu4e-maildirs-extension
     nix-mode
     paredit
+    pdf-tools
     projectile
     pt
     request

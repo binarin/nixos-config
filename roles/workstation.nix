@@ -79,6 +79,7 @@
     nixDevPackages = with pkgs; [
       nix-repl
       nox
+      patchelf
     ];
     utilityPackages = with pkgs; [
       sox
