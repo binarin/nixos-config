@@ -90,6 +90,7 @@
       iftop
       nethogs
       lsof
+      unrar
       openssl
       p7zip
       unzip
