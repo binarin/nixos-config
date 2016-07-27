@@ -9,6 +9,7 @@ let
   };
   gen = with config.bleeding.pkgs; emacsPackagesNgGen emacs;
   emacs-with-packages = gen.emacsWithPackages (p: with p; [
+    emacs-source-directory
     anaphora
     auto-complete eproject popup auto-highlight-symbol # edts deps
     dash

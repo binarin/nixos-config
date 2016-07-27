@@ -27,6 +27,7 @@
 
   environment.systemPackages = let
     bleedingEdgePackages = with config.bleeding.pkgs; [
+      arduino
       yandex-disk
       audacious
       chromium
@@ -39,8 +40,9 @@
       rxvt_unicode-with-plugins
       stack
       tdesktop
-      tmux.bin
+      tmux
       viber
+      dropbox-cli
     ];
     desktopPackages = with pkgs; [
       slack
@@ -110,7 +112,6 @@
       dmenu
       dmidecode
       dpkg
-      dropbox-cli
       file
       gmrun
       haskellPackages.xmobar
