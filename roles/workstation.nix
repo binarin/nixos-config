@@ -84,6 +84,7 @@
       patchelf
     ];
     utilityPackages = with pkgs; [
+      texLiveFull
       sox
       telnet
       htop
@@ -240,6 +241,7 @@
     enableFontDir = true;
     enableGhostscriptFonts = true;
     fonts = with pkgs; [
+      font-awesome-ttf
       corefonts
       google-fonts
       inconsolata
