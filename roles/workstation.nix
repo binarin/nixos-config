@@ -31,6 +31,7 @@
       yandex-disk
       audacious
       chromium
+      elixir
       erlang
       firefox
       ghc
