@@ -25,13 +25,19 @@ let
     helm-dash
     helm-projectile
     highlight-parentheses
-    htmlize
+    # htmlize upstream repo is lost forever
+    (pkgs.stdenv.lib.overrideDerivation htmlize (oldAttrs: {
+      src = pkgs.fetchurl {
+        url = "https://raw.githubusercontent.com/abo-abo/htmlize/363444135b671c6f4373cdacad162f0409dda2d8/htmlize.el";
+        sha256 = "1j2h3zjrykqb5ypk2mbv3c9cxmnf6jc6q4in73cqfvb30n8gnh79";
+      };
+    }))
     (pkgs.stdenv.lib.overrideDerivation intero (oldAttrs: {
       src = pkgs.fetchFromGitHub {
         owner = "commercialhaskell";
         repo = "intero";
-        rev = "2f0e0ef576dc9bf65bc8bec6a43f6f133faaa64f";
-        sha256 = "1m26pp4ii38ml86ca9jpi1cm0r561k07z639ls72m1k3pzs22yp0";
+        rev = "54d222d02b5ebb8d4c968e70d8721fa95d7d9071";
+        sha256 = "0qy0pcz3pivl1193dggfir09gw9rc9a1w1xp3iq80hnyama07zhw";
       };
     }))
     key-chord
@@ -52,8 +58,13 @@ let
     yaml-mode
     yasnippet
     zenburn-theme
-    zoom-frm
-
+    # zoom-frm
+    (pkgs.stdenv.lib.overrideDerivation zoom-frm (oldAttrs: {
+      src = pkgs.fetchurl {
+        url = "https://raw.githubusercontent.com/emacsmirror/zoom-frm/fb92370ec6ed52c09b903ac3d1eed944c1d0621e/zoom-frm.el";
+        sha256 = "1whpd97yjby5zbcr4fcn0nxhqvn6k3jn8k2d15i6ss579kziwdqn";
+      };
+    }))
   ]);
 in
 {
