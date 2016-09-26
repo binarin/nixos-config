@@ -10,6 +10,8 @@
 
   boot.kernel.sysctl."vm.swappiness" = 1;
 
+  boot.kernelPackages = config.bleeding.pkgs.linuxPackages_latest;
+
   networking.networkmanager.enable = true;
   networking.extraHosts = ''
     127.0.0.1 ${config.networking.hostName}
@@ -28,9 +30,9 @@
   environment.systemPackages = let
     bleedingEdgePackages = with config.bleeding.pkgs; [
       arduino
-      yandex-disk
       audacious
       chromium
+      dropbox-cli
       elixir
       erlang
       firefox
@@ -39,14 +41,15 @@
       gitAndTools.gitFull
       platinum-searcher
       rxvt_unicode-with-plugins
+      slack
       stack
+      syncthing
       tdesktop
       tmux
       viber
-      dropbox-cli
+      yandex-disk
     ];
     desktopPackages = with pkgs; [
-      slack
       icewm # something to run in Xephyr
       evince
       geeqie
@@ -81,26 +84,31 @@
     ];
     nixDevPackages = with pkgs; [
       nix-repl
+      nix-prefetch-zip
       nox
       patchelf
     ];
     utilityPackages = with pkgs; [
-      texLiveFull
-      sox
-      telnet
-      htop
-      vim
+      apg
       bind # for dig
+      elinks
+      htop
       iftop
-      nethogs
       lsof
-      unrar
+      nethogs
       openssl
       p7zip
+      rtorrent
+      sox
+      telnet
+      texLiveFull
+      unrar
       unzip
+      vim
+      virtmanager
+      virt-viewer
       whois
       zip
-      elinks
     ];
     otherPackages = with pkgs; [
       youtube-dl
