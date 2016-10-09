@@ -1,12 +1,13 @@
 {config, pkgs, ...}:
 
 let
-  emacs = with config.bleeding.pkgs; emacs25.override {
-    withGTK3 = true;
-    withGTK2 = false;
-    withXwidgets = true;
-    inherit (pkgs) imagemagick webkitgtk24x gtk3;
-  };
+  emacs = config.bleeding.pkgs.emacs25;
+  # with config.bleeding.pkgs; emacs25.override {
+  #   withGTK3 = true;
+  #   withGTK2 = false;
+  #   withXwidgets = true;
+  #   inherit (pkgs) imagemagick webkitgtk24x gtk3;
+  # };
   gen = with config.bleeding.pkgs; emacsPackagesNgGen emacs;
   emacs-with-packages = gen.emacsWithPackages (p: with p; [
     alchemist

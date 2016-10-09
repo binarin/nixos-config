@@ -6,11 +6,11 @@
     ../roles/emacs.nix
   ];
 
-  nix.useChroot = true;
+  nix.useSandbox = true;
 
   boot.kernel.sysctl."vm.swappiness" = 1;
 
-  boot.kernelPackages = config.bleeding.pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   networking.networkmanager.enable = true;
   networking.extraHosts = ''
@@ -29,53 +29,52 @@
 
   environment.systemPackages = let
     bleedingEdgePackages = with config.bleeding.pkgs; [
-      arduino
+      stack
+      # yandex-disk
+    ];
+    desktopPackages = with pkgs; [
       audacious
       chromium
-      dropbox-cli
-      elixir
-      erlang
+      icewm # something to run in Xephyr
+      evince
       firefox
+      geeqie
       ghc
       gitAndTools.diff-so-fancy
       gitAndTools.gitFull
-      platinum-searcher
-      rxvt_unicode-with-plugins
-      slack
-      stack
-      syncthing
-      tdesktop
-      tmux
-      viber
-      yandex-disk
-    ];
-    desktopPackages = with pkgs; [
-      icewm # something to run in Xephyr
-      evince
-      geeqie
       keepass
       libnotify
       mplayer
       playerctl
-      stalonetray
+      rxvt_unicode-with-plugins
+      slack
+      stalonetray # something to make viber happy
+      tdesktop
       twmn
+      viber
       workrave
       xorg.xbacklight
       xorg.xev
     ];
     developmentPackages = with pkgs; [
       ant
+      arduino
       autoconf
       automake
       checkbashism
+      elixir
+      erlang
       gcc
       git-review
+      libvirt # for `vagrant plugin install vagrant-libvirt`
       libxslt # xsltproc - for building rabbitmq
       mosh
       gdb
       gnum4
       ncurses
       oraclejdk8
+      pkgconfig
+      python35Packages.virtualenv
       quilt
       subversion
       tightvnc
@@ -91,22 +90,28 @@
     utilityPackages = with pkgs; [
       apg
       bind # for dig
+      dropbox-cli
       elinks
       htop
       iftop
       lsof
       nethogs
+      nfs-utils # for vagrant
       openssl
       p7zip
+      platinum-searcher
       rtorrent
       sox
+      syncthing
       telnet
-      texLiveFull
+      texlive.combined.scheme-full
+      tmux
       unrar
       unzip
+      vagrant
       vim
-      virtmanager
       virt-viewer
+      virtmanager
       whois
       zip
     ];
@@ -130,7 +135,7 @@
       isyncUnstable
       gnumake
       gnupg21
-      kde5.quasselClient
+      quasselClient
       keychain
       libreoffice
       manpages
@@ -252,7 +257,7 @@
     fonts = with pkgs; [
       font-awesome-ttf
       corefonts
-      google-fonts
+      config.bleeding.pkgs.google-fonts
       inconsolata
       liberation_ttf
       mplus-outline-fonts
@@ -282,7 +287,7 @@
   services.openssh.permitRootLogin = "yes";
 
   services.cron.enable = true;
-
+  # services.dnsmasq.enable = true;
   services.locate.enable = true;
 
   # Enable CUPS to print documents.
@@ -329,8 +334,6 @@ EndSection
     windowManager.default = "xmonad";
     desktopManager.xterm.enable = false;
     desktopManager.default = "none";
-
-    startOpenSSHAgent = true;
 
     displayManager = {
       lightdm = {
@@ -384,6 +387,7 @@ EndSection
   # The NixOS release to be compatible with for stateful data such as databases.
   system.stateVersion = "16.03";
 
+  programs.ssh.startAgent = true;
   programs.zsh.enable = true;
   programs.bash.enableCompletion = true;
 }

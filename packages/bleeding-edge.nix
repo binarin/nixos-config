@@ -4,9 +4,9 @@ let
   master-nixpkgs-checkout = pkgs.fetchFromGitHub {
     owner = "NixOS";
     repo = "nixpkgs";
-    name = "nixpkgs-master-2016-09-19";
-    rev = "ca24eb57125f673b19214c63415e4585148ca211";
-    sha256 = "17jagx3j16z79p6fjm3nj5cjkarjx70wc2amr3cnj3gy92lz2rw0";
+    name = "nixpkgs-master-2016-10-04";
+    rev = "94e87bd79bd04bc54efef21b93c8bbf5ffec40e8";
+    sha256 = "1wimgbxrzadkjp5mk8ngcdbj2mljqhj69wk6b92ba8qqsc3p4ps7";
   };
 #  master-nixpkgs-checkout = /home/binarin/personal-workspace/nixpkgs;
   master-nixpkgs = import master-nixpkgs-checkout {inherit (config.nixpkgs) config;};
