@@ -378,6 +378,7 @@ EndSection
 
   virtualisation = {
     docker.enable = true;
+    docker.storageDriver = "devicemapper";
     libvirtd.enable = true;
     # docker.extraOptions = "--insecure-registry=192.168.99.100:31500";
     # virtualbox.host.enable = true;
