@@ -287,6 +287,7 @@
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
   services.openssh.permitRootLogin = "yes";
+  services.openssh.forwardX11 = true;
 
   services.cron.enable = true;
   # services.dnsmasq.enable = true;
