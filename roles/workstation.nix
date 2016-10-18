@@ -92,7 +92,9 @@
       bind # for dig
       dropbox-cli
       elinks
+      fzf
       htop
+      httpie
       iftop
       lsof
       nethogs
