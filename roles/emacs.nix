@@ -15,10 +15,11 @@ let
     auctex
     auto-complete  # edts dep
     auto-highlight-symbol # edts dep
+    cider
     dash
+    editorconfig
     elisp-slime-nav
     elpy
-    emacs-source-directory
     eproject  # edts dep
     erlang
     evil
@@ -41,6 +42,7 @@ let
     pt
     request
     s
+    slime
     smart-mode-line
     undo-tree
     ws-butler
