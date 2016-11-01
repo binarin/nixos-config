@@ -76,6 +76,7 @@
       pkgconfig
       python35Packages.virtualenv
       quilt
+      sbcl
       subversion
       tightvnc
       wireshark
