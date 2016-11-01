@@ -283,6 +283,7 @@
 
   # List services that you want to enable:
   services.gnome3.gvfs.enable = true;
+  services.gnome3.at-spi2-core.enable = true; # https://github.com/NixOS/nixpkgs/issues/16327
   services.dbus.enable = true;
   
   # Enable the OpenSSH daemon.
