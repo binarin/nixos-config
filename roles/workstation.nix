@@ -29,6 +29,7 @@
 
   environment.systemPackages = let
     bleedingEdgePackages = with config.bleeding.pkgs; [
+      firefox
       stack
       # yandex-disk
     ];
@@ -37,7 +38,6 @@
       chromium
       icewm # something to run in Xephyr
       evince
-      firefox
       geeqie
       ghc
       gitAndTools.diff-so-fancy
