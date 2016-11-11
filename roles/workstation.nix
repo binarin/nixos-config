@@ -1,6 +1,7 @@
 { config, pkgs, lib, bleeding, ... }:
 
 {
+  # powerManagement.enable = true;
   imports = [
     ../packages/bleeding-edge.nix
     ../roles/emacs.nix
@@ -11,11 +12,30 @@
   boot.kernel.sysctl."vm.swappiness" = 1;
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelModules = [ "fuse" ];
 
   networking.networkmanager.enable = true;
+
   networking.extraHosts = ''
     127.0.0.1 ${config.networking.hostName}
   '';
+
+  networking.nat.enable = true;
+  networking.nat.internalInterfaces = ["lxc0"];
+  networking.nat.externalInterface = "enp3s0";
+
+  networking.bridges = {
+    lxc0 = {
+      interfaces = [];
+    };
+  };
+
+  networking.interfaces = {
+    lxc0 = {
+      ipAddress = "10.10.30.1";
+      prefixLength = 24;
+    };
+  };
 
   # Select internationalisation properties.
   i18n = {
@@ -186,7 +206,6 @@
     };
 
     packageOverrides = super: {
-      # docker = pkgs.callPackage ./docker-bin.nix {};
       xorg = super.xorg // rec {
         xkeyboard_config_dvp = super.pkgs.lib.overrideDerivation super.xorg.xkeyboardconfig (old: {
           patches = [
@@ -376,14 +395,20 @@ EndSection
     wheelNeedsPassword = false;
   };
 
+  networking.firewall.enable = true;
   networking.firewall.checkReversePath = false; # I want my DHCP for VM's
 
   virtualisation = {
+    lxc.enable = true;
+    lxc.defaultConfig = ''
+      lxc.network.type = veth
+      lcx.network.link = lxc0
+    '';
+
     docker.enable = true;
     docker.storageDriver = "devicemapper";
+
     libvirtd.enable = true;
-    # docker.extraOptions = "--insecure-registry=192.168.99.100:31500";
-    # virtualbox.host.enable = true;
   };
 
   zramSwap = {
@@ -391,7 +416,7 @@ EndSection
   };
 
   # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "16.03";
+  system.stateVersion = "16.09";
 
   programs.ssh.startAgent = true;
   programs.zsh.enable = true;
