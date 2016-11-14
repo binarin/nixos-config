@@ -171,6 +171,7 @@
       pciutils
       psmisc
       python
+      rpm
       screen
       skype
       sudo
