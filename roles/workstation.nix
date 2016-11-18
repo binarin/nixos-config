@@ -62,11 +62,13 @@
       ghc
       gitAndTools.diff-so-fancy
       gitAndTools.gitFull
+      gitg
       keepass
       libnotify
       mplayer
       playerctl
       rxvt_unicode-with-plugins
+      shutter
       slack
       stalonetray # something to make viber happy
       tdesktop
@@ -85,12 +87,13 @@
       elixir
       erlang
       gcc
+      gdb
       git-review
+      gnum4
       libvirt # for `vagrant plugin install vagrant-libvirt`
       libxslt # xsltproc - for building rabbitmq
       mosh
-      gdb
-      gnum4
+      nodejs
       ncurses
       oraclejdk8
       pkgconfig
@@ -99,6 +102,7 @@
       sbcl
       subversion
       tightvnc
+      travis
       wireshark
       wireshark-gtk
     ];
@@ -114,6 +118,7 @@
       dropbox-cli
       elinks
       fzf
+      jekyll
       htop
       httpie
       iftop
@@ -157,6 +162,7 @@
       iptables
       isyncUnstable
       gnumake
+      gnupg1orig # some scripts expect this version
       gnupg21
       quasselClient
       keychain
