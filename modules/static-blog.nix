@@ -9,7 +9,7 @@ let
       cat <<"EOF" > $out/bin/blog-builder
       #!${pkgs.bash}/bin/bash
       set -euo pipefail
-      if [[ ! -f /home/jekyll/blog ]]; then
+      if [[ ! -d /home/jekyll/blog ]]; then
         ${pkgs.git}/bin/git clone https://github.com/binarin/blog /home/jekyll/blog
       fi
       ${pkgs.git}/bin/git -C /home/jekyll/blog fetch origin
