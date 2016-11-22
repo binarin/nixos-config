@@ -7,5 +7,6 @@
         ../modules/static-blog.nix
       ];
       virtualisation.docker.enable = true;
+      services.fail2ban.enable = true;
     };
 }
