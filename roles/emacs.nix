@@ -35,13 +35,7 @@ let
     magit
     mu4e-maildirs-extension
     nix-mode
-    (config.bleeding.pkgs.stdenv.lib.overrideDerivation org (oldAttrs: rec {
-      name = "org-9.0.1";
-      src = pkgs.fetchurl {
-        url = "http://orgmode.org/${name}.tar.gz";
-        sha256 = "1xxnp54360qwbi03376dkd3pcjd4c5j0qqlxnq3wanwmkb7qfq0b";
-      };
-    }))
+    org-plus-contrib
     paredit
     pdf-tools
     popup  # edts dep

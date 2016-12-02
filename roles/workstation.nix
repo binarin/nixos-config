@@ -51,12 +51,14 @@
     bleedingEdgePackages = with config.bleeding.pkgs; [
       firefox
       stack
+      haskellPackages.threadscope
       # yandex-disk
     ];
     desktopPackages = with pkgs; [
       audacious
       chromium
       icewm # something to run in Xephyr
+      ebook_tools
       evince
       geeqie
       ghc
@@ -86,6 +88,7 @@
       checkbashism
       elixir
       erlang
+      fakeroot
       gcc
       gdb
       git-review
@@ -109,6 +112,7 @@
     nixDevPackages = with pkgs; [
       nix-repl
       nix-prefetch-zip
+      nixops
       nox
       patchelf
     ];
