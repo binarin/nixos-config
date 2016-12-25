@@ -24,6 +24,7 @@ let
     erlang
     evil
     f
+    geiser
     helm
     helm-dash
     helm-projectile
