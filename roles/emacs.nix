@@ -41,6 +41,7 @@ let
     popup  # edts dep
     projectile
     pt
+    puppet-mode
     request
     s
     slime
