@@ -432,4 +432,8 @@ EndSection
   programs.ssh.startAgent = true;
   programs.zsh.enable = true;
   programs.bash.enableCompletion = true;
+
+  # ghcjs
+  nix.trustedBinaryCaches = [ "https://nixcache.reflex-frp.org" ];
+  nix.binaryCachePublicKeys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
 }
