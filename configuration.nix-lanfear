@@ -1,0 +1,16 @@
+# -*- nix -*-
+{ config, lib, pkgs, ... }:
+
+{
+  networking.hostName = "lanfear";
+  networking.hostId = "2d75caa8";
+
+  imports = [
+    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
+    ./hardware/intel.nix
+    ./partitions/unencrypted-uefi-ext4.nix
+    ./partitions/secondary-hdd-in-my-home.nix
+    ./roles/workstation.nix
+    ./roles/openvpn-client.nix
+  ];
+}
