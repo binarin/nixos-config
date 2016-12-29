@@ -12,6 +12,7 @@
     lsof
     mc
     mosh
+    netcat
     nethogs
     nix-repl
     nmap

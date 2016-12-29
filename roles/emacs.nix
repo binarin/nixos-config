@@ -24,6 +24,7 @@ let
     erlang
     evil
     f
+    geiser
     helm
     helm-dash
     helm-projectile
@@ -41,6 +42,7 @@ let
     popup  # edts dep
     projectile
     pt
+    puppet-mode
     request
     s
     slime
