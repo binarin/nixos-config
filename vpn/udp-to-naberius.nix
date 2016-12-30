@@ -3,9 +3,11 @@
 {
   config = ''
     client
-    dev tun
+    cipher AES-128-CBC
+    dev ovpn-naberius
+    dev-type tun
     proto udp
-    remote naberius.binarin.ru 1194
+    remote binarin.ru 2149
     resolv-retry infinite
     nobind
     user nobody
