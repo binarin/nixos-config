@@ -77,7 +77,7 @@ in {
         refresh_pattern ^gopher:	1440	0%	1440
         refresh_pattern -i (/cgi-bin/|\?) 0	0%	0
         refresh_pattern .		0	20%	4320
-   '';
+      '';
 
       networking.firewall.enable = true;
       networking.firewall.logRefusedConnections = false;
