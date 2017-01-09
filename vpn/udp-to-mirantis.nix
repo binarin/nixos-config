@@ -1,5 +1,5 @@
-{pkgs, ...}:
-
+{config, pkgs, ...}:
+pkgs.lib.mkIf (builtins.pathExists "/root/.openvpn/udp-to-mirantis.key")
 {
   up = "${pkgs.update-resolv-conf}/libexec/openvpn/update-resolv-conf";
   down = "${pkgs.update-resolv-conf}/libexec/openvpn/update-resolv-conf";
