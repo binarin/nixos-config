@@ -1,5 +1,5 @@
-{config, ...}:
-
+{config, pkgs, ...}:
+pkgs.lib.mkIf (builtins.pathExists "/root/.openvpn/${config.networking.hostName}-to-naberius-udp-server.key")
 {
   config = ''
     client

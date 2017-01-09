@@ -3,8 +3,7 @@
 {
   services.openvpn = {
     servers = {
-      udp-to-naberius = pkgs.lib.mkIf (config.networking.hostName == "demandred" || config.networking.hostName == "ishamael")
-                                      (import ../vpn/udp-to-naberius.nix { inherit config; });
+      udp-to-naberius = import ../vpn/udp-to-naberius.nix { inherit config; inherit pkgs; };
       udp-to-mirantis = pkgs.lib.mkIf (config.networking.hostName == "ishamael")
                                       (import ../vpn/udp-to-mirantis.nix { inherit pkgs; });
       udp-to-airvpn = pkgs.lib.mkIf (config.networking.hostName == "ishamael")
