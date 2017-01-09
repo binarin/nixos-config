@@ -5,10 +5,8 @@
   imports = [
     ../packages/bleeding-edge.nix
     ../roles/emacs.nix
-    ../modules/squid.nix
   ];
 
-  services.squid.enable = true;
   nix.useSandbox = true;
 
   boot.kernel.sysctl."vm.swappiness" = 1;
@@ -438,4 +436,33 @@ EndSection
   # ghcjs
   nix.trustedBinaryCaches = [ "https://nixcache.reflex-frp.org" ];
   nix.binaryCachePublicKeys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
+
+  systemd.services."binarin-org-sync" = let
+    script = pkgs.writeScript "binarin-org-sync" ''
+      #!${pkgs.bash}/bin/bash
+      set -euo pipefail
+      export NIX_REMOTE=daemon
+      export NIX_PATH=nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos/nixpkgs:nixos-config=/etc/nixos/configuration.nix:/nix/var/nix/profiles/per-user/root/channels
+      if [[ -f /home/binarin/org/push.sh ]]; then
+        exec /home/binarin/org/push.sh
+      fi
+    '';
+  in {
+    description = "Syncs org-mode files via git";
+    path = [ pkgs.gitAndTools.gitFull pkgs.wget pkgs.nix pkgs.bash pkgs.nettools ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "binarin";
+      ExecStart = script;
+    };
+  };
+  systemd.timers."binarin-org-sync" = {
+    description = "Periodically updates org-mode files via git";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "1min";
+      OnUnitActiveSec = "15min";
+    };
+  };
+
 }
