@@ -5,8 +5,10 @@
   imports = [
     ../packages/bleeding-edge.nix
     ../roles/emacs.nix
+    ../modules/squid.nix
   ];
 
+  services.squid.enable = true;
   nix.useSandbox = true;
 
   boot.kernel.sysctl."vm.swappiness" = 1;

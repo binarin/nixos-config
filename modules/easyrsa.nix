@@ -137,9 +137,10 @@ let
       configFile = writeText "openvpn-easyrsa-${name}.config" (renderConfig configValues);
     in {
       description = "OpenVPN/easyrsa server instance '${name}'";
-      after = [ "network.target" "${easyrsaJobName name}.service" ];
+      after = [ "${easyrsaJobName name}.service" ];
       requires = [ "${easyrsaJobName name}.service" ];
       wantedBy = [ "multi-user.target" ];
+      before = [ "network-interfaces.target" ];
 
       path = [ pkgs.iptables pkgs.iproute pkgs.nettools ];
 
