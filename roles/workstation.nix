@@ -7,6 +7,8 @@
     ../roles/emacs.nix
   ];
 
+  # services.teamviewer.enable = true;
+
   nix.useSandbox = true;
 
   boot.kernel.sysctl."vm.swappiness" = 1;
