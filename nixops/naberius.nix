@@ -83,6 +83,7 @@ in {
       networking.firewall.logRefusedConnections = false;
       networking.firewall.extraCommands = ''
         ip46tables -A nixos-fw -i ${vpnIface} -p tcp --dport 3128 -j nixos-fw-accept
+        ip46tables -A nixos-fw -i ${vpnIface} -p tcp --dport 4242 -j nixos-fw-accept
       '';
 
       services.openvpn-easyrsa.servers.test = {
@@ -129,6 +130,11 @@ in {
            };
          };
       };
+   };
+
+   services.quassel = {
+     enable = true;
+     interfaces = ["10.10.10.1"];
    };
  };
 }
