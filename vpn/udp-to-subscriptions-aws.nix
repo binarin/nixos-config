@@ -12,7 +12,7 @@ ca /root/.openvpn/subscriptions-aws-ca.crt
 cert /root/.openvpn/subscriptions-aws.crt
 key /root/.openvpn/subscriptions-aws.key
 tls-client
-tls-auth /root/.openvpn/subscriptinos-aws.tls-key 1
+tls-auth /root/.openvpn/subscriptions-aws.tls-key 1
 auth MD5
 cipher BF-CBC
 ns-cert-type server
