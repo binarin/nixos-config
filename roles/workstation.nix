@@ -10,6 +10,10 @@
   # services.teamviewer.enable = true;
 
   nix.useSandbox = true;
+  nix.extraOptions = ''
+    gc-keep-outputs = true
+    gc-keep-derivations = true
+  '';
 
   boot.kernel.sysctl."vm.swappiness" = 1;
 
@@ -54,7 +58,8 @@
       firefox
       stack
       haskellPackages.threadscope
-      # yandex-disk
+      viber
+      yandex-disk
     ];
     desktopPackages = with pkgs; [
       audacious
@@ -77,7 +82,6 @@
       stalonetray # something to make viber happy
       tdesktop
       twmn
-      viber
       workrave
       xorg.xbacklight
       xorg.xev
