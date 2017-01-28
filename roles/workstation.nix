@@ -64,9 +64,10 @@
     desktopPackages = with pkgs; [
       audacious
       chromium
-      icewm # something to run in Xephyr
+      dunst
       ebook_tools
       evince
+      icewm # something to run in Xephyr
       geeqie
       ghc
       gitAndTools.diff-so-fancy
@@ -82,13 +83,13 @@
       slack
       stalonetray # something to make viber happy
       tdesktop
-      twmn
       workrave
       xorg.xbacklight
       xorg.xev
     ];
     developmentPackages = with pkgs; [
       ant
+      apitrace
       arduino
       autoconf
       automake
