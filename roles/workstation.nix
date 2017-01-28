@@ -72,6 +72,7 @@
       gitAndTools.diff-so-fancy
       gitAndTools.gitFull
       gitg
+      glxinfo
       keepass
       libnotify
       mplayer
@@ -223,6 +224,9 @@
     };
 
     packageOverrides = super: {
+      # mesa_noglu = super.mesa_noglu.override {
+      #   enableTextureFloats = true;
+      # };
       xorg = super.xorg // rec {
         xkeyboard_config_dvp = super.pkgs.lib.overrideDerivation super.xorg.xkeyboardconfig (old: {
           patches = [
@@ -312,6 +316,19 @@
     ];
   };
 
+  hardware.opengl = let
+    custom-mesa = pkgs.mesa_noglu.override {
+      enableTextureFloats = true;
+    };
+  in {
+    enable = true;
+    package = pkgs.buildEnv {
+      name = "opengl-hack";
+      # NOTE: Forces open source S2TC rather than S3TC
+      paths = [ custom-mesa custom-mesa.drivers pkgs.libtxc_dxtn_s2tc ];
+    };
+  };
+
   hardware.pulseaudio = {
     enable = true;
     package = pkgs.pulseaudioFull;
@@ -336,6 +353,7 @@
   services.printing.drivers = [ pkgs.hplip ];
 
   services.xserver = {
+    # videoDrivers = [ "ati_unfree" "ati" "noveau" "intel" "vesa" "vmware" "modesetting"];
     config = ''
 Section "InputClass"
 	Identifier "CirqueTouchpad1"
