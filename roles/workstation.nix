@@ -378,7 +378,7 @@ EndSection
     enable = true;
     layout = "us,ru";
     xkbVariant = "dvp,dvp";
-    xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle";
+    xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,ctrl:ralt_rctrl";
 
     synaptics = {
       enable = true;
