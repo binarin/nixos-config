@@ -19,6 +19,7 @@ let
     dash
     editorconfig
     elisp-slime-nav
+    elm-mode
     elpy
     eproject  # edts dep
     erlang

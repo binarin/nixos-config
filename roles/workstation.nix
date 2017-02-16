@@ -101,6 +101,7 @@
       gdb
       git-review
       gnum4
+      libosinfo # osinfo-query
       libvirt # for `vagrant plugin install vagrant-libvirt`
       libxslt # xsltproc - for building rabbitmq
       mosh
@@ -109,6 +110,7 @@
       oraclejdk8
       pkgconfig
       python35Packages.virtualenv
+      python35Packages.ipython
       quilt
       sbcl
       subversion
