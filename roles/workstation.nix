@@ -55,11 +55,6 @@
 
   environment.systemPackages = let
     bleedingEdgePackages = with config.bleeding.pkgs; [
-      firefox
-      stack
-      haskellPackages.threadscope
-      viber
-      yandex-disk
     ];
     desktopPackages = with pkgs; [
       audacious
@@ -68,6 +63,8 @@
       ebook_tools
       evince
       icewm # something to run in Xephyr
+      imagemagickBig
+      firefox
       geeqie
       ghc
       gitAndTools.diff-so-fancy
@@ -81,11 +78,15 @@
       rxvt_unicode-with-plugins
       shutter
       slack
+      stack
       stalonetray # something to make viber happy
+      torbrowser
       tdesktop
+      viber
       workrave
       xorg.xbacklight
       xorg.xev
+      yandex-disk
     ];
     developmentPackages = with pkgs; [
       ant
@@ -121,7 +122,7 @@
     ];
     nixDevPackages = with pkgs; [
       nix-repl
-      nix-prefetch-zip
+      # nix-prefetch-zip
       nixops
       nox
       patchelf
@@ -302,6 +303,7 @@
   services.gnome3.gvfs.enable = true;
   services.gnome3.at-spi2-core.enable = true; # https://github.com/NixOS/nixpkgs/issues/16327
   services.dbus.enable = true;
+  services.dbus.packages = [ pkgs.gnome3.dconf ];
   
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
