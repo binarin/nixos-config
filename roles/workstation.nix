@@ -227,61 +227,22 @@
     };
 
     packageOverrides = super: {
-      # mesa_noglu = super.mesa_noglu.override {
-      #   enableTextureFloats = true;
-      # };
       xorg = super.xorg // rec {
         xkeyboard_config_dvp = super.pkgs.lib.overrideDerivation super.xorg.xkeyboardconfig (old: {
-          patches = [
-            (builtins.toFile "ru-dvp.patch" ''
-                --- xkeyboard-config-2.16-orig/symbols/ru       2014-12-11 01:56:38.000000000 +0300
-                +++ xkeyboard-config-2.16/symbols/ru    2016-04-15 14:27:25.075214654 +0300
-                @@ -719,3 +719,24 @@
-                     key <TLDE> { [  bracketright,  bracketleft  ] };
-                     key <BKSL> { [   Cyrillic_io,  Cyrillic_IO  ] };
-                 };
-                +partial default alphanumeric_keys
-                +xkb_symbols "dvp" {
-                +    include "ru(common)"
-                +
-                +    name[Group1]= "Russia";
-                +
-                +    key <AE01> {        [       numerosign, percent   ]       };
-                +    key <AE02> {        [       quotedbl,   7         ]       };
-                +    key <AE03> {        [       question,   5         ]       };
-                +    key <AE04> {        [       slash,      3         ]       };
-                +    key <AE05> {        [       parenleft,  1         ]       };
-                +    key <AE06> {        [       equal,      9         ]       };
-                +    key <AE07> {        [       asterisk,   0         ]       };
-                +    key <AE08> {        [       parenright, 2         ]       };
-                +    key <AE09> {        [       plus,       4         ]       };
-                +    key <AE10> {        [       minus,      6         ]       };
-                +    key <AE11> {        [       exclam,     8         ]       };
-                +    key <AE12> {        [       semicolon,  colon     ]       };
-                +    key <AB10> {        [       period,     comma     ]       };
-                +    key <BKSL> {        [       backslash,  bar       ]       };
-                +};
-              '')
-          ];
+          patches = [ ./xkb.patch ];
         });
         xorgserver = super.pkgs.lib.overrideDerivation super.xorg.xorgserver (old: {
-          postInstall = ''
-            rm -fr $out/share/X11/xkb/compiled
-            ln -s /var/tmp $out/share/X11/xkb/compiled
-            wrapProgram $out/bin/Xephyr \
-              --set XKB_BINDIR "${xkbcomp}/bin" \
-              --add-flags "-xkbdir ${xkeyboard_config_dvp}/share/X11/xkb"
-            wrapProgram $out/bin/Xvfb \
-              --set XKB_BINDIR "${xkbcomp}/bin" \
-              --set XORG_DRI_DRIVER_PATH ${super.mesa}/lib/dri \
-              --add-flags "-xkbdir ${xkeyboard_config_dvp}/share/X11/xkb"
-            ( # assert() keeps runtime reference xorgserver-dev in xf86-video-intel and others
-              cd "$dev"
-              for f in include/xorg/*.h; do # */
-                sed "1i#line 1 \"${old.name}/$f\"" -i "$f"
-              done
-            )
-          '';
+          configureFlags = [
+            "--enable-kdrive"             # not built by default
+            "--enable-xephyr"
+            "--enable-xcsecurity"         # enable SECURITY extension
+            "--with-default-font-path="   # there were only paths containing "${prefix}",
+                                          # and there are no fonts in this package anyway
+            "--with-xkb-bin-directory=${xkbcomp}/bin"
+            "--with-xkb-path=${xkeyboard_config_dvp}/share/X11/xkb"
+            "--with-xkb-output=$out/share/X11/xkb/compiled"
+            "--enable-glamor"
+          ];
         });
         setxkbmap = super.pkgs.lib.overrideDerivation super.xorg.setxkbmap (old: {
           postInstall =
@@ -377,6 +338,7 @@ EndSection
     '';
     enable = true;
     layout = "us,ru";
+    # xkbDir ="${pkgs.xorg.xkeyboard_config_dvp}/share/X11/xkb"; # not enough - we still need to inject patched xkbcomp to xorgserver (see above)
     xkbVariant = "dvp,dvp";
     xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,ctrl:ralt_rctrl";
 
