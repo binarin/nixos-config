@@ -4,9 +4,9 @@ let
   emacs = with config.bleeding.pkgs; emacs25.override {
     withGTK3 = true;
     withGTK2 = false;
-    withXwidgets = true;
+    # withXwidgets = true;
     withCsrc = true;
-    inherit (pkgs) imagemagick webkitgtk24x gtk3;
+    inherit (pkgs) imagemagick gtk3; # webkitgtk24x;
   };
   gen = with config.bleeding.pkgs; emacsPackagesNgGen emacs;
   emacs-with-packages = gen.emacsWithPackages (p: with p; [
