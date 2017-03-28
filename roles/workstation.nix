@@ -4,6 +4,7 @@
   # powerManagement.enable = true;
   imports = [
     ../packages/bleeding-edge.nix
+    ../packages/desktop-nagger.nix
     ../roles/emacs.nix
   ];
 
@@ -59,6 +60,7 @@
     desktopPackages = with pkgs; [
       audacious
       chromium
+      desktop-nagger
       dunst
       ebook_tools
       evince
