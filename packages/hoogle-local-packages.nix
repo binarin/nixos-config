@@ -1,0 +1,24 @@
+haskellPackages: with haskellPackages; [
+aeson
+array
+attoparsec
+base
+bytestring
+cassava
+containers
+data-default
+dependent-sum
+distributive
+GLFW-b
+JuicyPixels
+lens
+linear
+mtl
+OpenGLRaw
+QuickCheck
+quickcheck-instances
+raw-strings-qq
+stm
+text
+vector
+]

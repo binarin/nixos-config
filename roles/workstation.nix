@@ -5,6 +5,7 @@
   imports = [
     ../packages/bleeding-edge.nix
     ../packages/desktop-nagger.nix
+    ../packages/haskell-packages.nix
     ../roles/emacs.nix
   ];
 
