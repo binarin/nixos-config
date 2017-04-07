@@ -17,6 +17,7 @@ let
     auto-highlight-symbol # edts dep
     cider
     dash
+    easy-escape
     editorconfig
     elisp-slime-nav
     elm-mode
@@ -26,6 +27,7 @@ let
     evil
     f
     geiser
+    go-mode flycheck-gometalinter company-go
     helm
     helm-dash
     helm-projectile
@@ -35,6 +37,7 @@ let
     key-chord
     keyfreq
     magit
+    markdown-mode
     mu4e-maildirs-extension
     nix-mode
     org-plus-contrib
