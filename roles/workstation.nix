@@ -69,7 +69,6 @@
       imagemagickBig
       firefox
       geeqie
-      ghc
       gitAndTools.diff-so-fancy
       gitAndTools.gitFull
       gitg
@@ -99,12 +98,13 @@
       automake
       checkbashism
       elixir
-      erlang
+      erlangR19
       fakeroot
       gcc
       gdb
       git-review
       gnum4
+      go_1_7
       libosinfo # osinfo-query
       libvirt # for `vagrant plugin install vagrant-libvirt`
       libxslt # xsltproc - for building rabbitmq

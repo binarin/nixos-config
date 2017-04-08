@@ -28,6 +28,7 @@ let
     f
     geiser
     go-mode flycheck-gometalinter company-go
+    ghc-mod
     helm
     helm-dash
     helm-projectile

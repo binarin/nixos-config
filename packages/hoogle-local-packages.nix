@@ -9,6 +9,7 @@ containers
 data-default
 dependent-sum
 distributive
+ghc-mod
 GLFW-b
 JuicyPixels
 lens
@@ -18,6 +19,7 @@ OpenGLRaw
 QuickCheck
 quickcheck-instances
 raw-strings-qq
+reflex
 stm
 text
 vector
