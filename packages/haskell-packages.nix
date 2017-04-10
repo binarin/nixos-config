@@ -32,12 +32,15 @@
         name = "ghc80";
         paths = with haskell802Packages; [
           (ghcWithHoogle (import ./hoogle-local-packages.nix))
+          alex
           cabal-install
           cabal2nix
           ghc-core
           ghc-mod
           hlint
           hasktags
+          happy
+          stylish-haskell
         ];
       };
 

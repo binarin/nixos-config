@@ -21,6 +21,7 @@ quickcheck-instances
 raw-strings-qq
 reflex
 stm
+template-haskell
 text
 vector
 ]

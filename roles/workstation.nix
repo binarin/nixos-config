@@ -59,6 +59,9 @@
     bleedingEdgePackages = with config.bleeding.pkgs; [
     ];
     desktopPackages = with pkgs; [
+      aspell
+      aspellDicts.ru
+      aspellDicts.en
       audacious
       chromium
       desktop-nagger

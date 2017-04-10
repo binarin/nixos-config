@@ -16,6 +16,7 @@ let
     auto-complete  # edts dep
     auto-highlight-symbol # edts dep
     cider
+    company
     dash
     easy-escape
     editorconfig
@@ -29,6 +30,7 @@ let
     geiser
     go-mode flycheck-gometalinter company-go
     ghc-mod
+    haskell-mode
     helm
     helm-dash
     helm-projectile
@@ -52,6 +54,7 @@ let
     s
     slime
     smart-mode-line
+    structured-haskell-mode
     undo-tree
     ws-butler
     yaml-mode
