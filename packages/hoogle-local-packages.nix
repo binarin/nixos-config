@@ -18,6 +18,7 @@ filepath
 ghc-mod
 GLFW-b
 hashable
+hnix
 http-streams
 io-streams
 JuicyPixels

@@ -1,0 +1,14 @@
+# -*- nix -*-
+{ config, pkgs, ... }:
+
+{
+  networking.hostName = "amon";
+  networking.hostId = "ef633c75";
+
+  imports = [
+    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
+    ./hardware/hp-microserver.nix
+    ./partitions/unencrypted-grub-with-separate-boot.nix
+    ./roles/server.nix
+  ];
+}
