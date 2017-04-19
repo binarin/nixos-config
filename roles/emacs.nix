@@ -71,6 +71,7 @@ in
     [
       emacs-with-packages
     ] ++ (with pkgs; [
+      xprintidle-ng
       sqlite # for helm-dash
     ]);
 }
