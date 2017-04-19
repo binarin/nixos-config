@@ -24,6 +24,7 @@ io-streams
 JuicyPixels
 lens
 linear
+memoize
 mtl
 OpenGLRaw
 optparse-applicative
