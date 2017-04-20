@@ -16,6 +16,7 @@ let
     auto-complete  # edts dep
     auto-highlight-symbol # edts dep
     cider
+    circe
     company
     dash
     easy-escape
