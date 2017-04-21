@@ -454,7 +454,7 @@ EndSection
     '';
   in {
     description = "Automatically commit and push (to per-machine wip branches) in some important directories";
-    path = [ pkgs.gitAndTools.gitFull pkgs.xprintidle-ng ];
+    path = [ pkgs.gitAndTools.gitFull pkgs.xprintidle-ng pkgs.bash pkgs.nettools ];
     serviceConfig = {
       Type = "oneshot";
       User = "binarin";
