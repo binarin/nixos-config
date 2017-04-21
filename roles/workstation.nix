@@ -441,6 +441,9 @@ EndSection
       #!${pkgs.bash}/bin/bash
       set -euxo pipefail
       dirs="/etc/nixos /home/binarin/.rc"
+
+      DISPLAY=:0 xprintidle-ng
+
       for dir in $dirs; do
         if [[ -d "$dir" ]]; then
           cd "$dir"
