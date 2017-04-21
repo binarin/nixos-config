@@ -436,6 +436,33 @@ EndSection
   nix.trustedBinaryCaches = [ "https://nixcache.reflex-frp.org" ];
   nix.binaryCachePublicKeys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
 
+  systemd.services."binarin-auto-commit-wip" = let
+    script = pkgs.writeScript "binarin-auto-commit-wip" ''
+      #!${pkgs.bash}/bin/bash
+      set -euxo pipefail
+      dirs="/etc/nixos /home/binarin/.rc"
+      for dir in $dirs; do
+        if [[ -d "$dir" ]]; then
+          cd "$dir"
+          if [[ ! -z $(git status --porcelain) ]]; then
+             git add .
+             git commit -m "WIP $(date -R)"
+             git push -f origin HEAD:refs/heads/wip-$(hostname)
+          fi
+        fi
+      done
+    '';
+  in {
+    description = "Automatically commit and push (to per-machine wip branches) in some important directories";
+    path = [ pkgs.gitAndTools.gitFull pkgs.xprintidle-ng ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "binarin";
+      ExecStart = script;
+    };
+  };
+
+
   systemd.services."binarin-org-sync" = let
     script = pkgs.writeScript "binarin-org-sync" ''
       #!${pkgs.bash}/bin/bash
