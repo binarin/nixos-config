@@ -148,7 +148,9 @@
       nfs-utils # for vagrant
       openssl
       p7zip
+      pdftk
       platinum-searcher
+      ripgrep
       rtorrent
       sox
       syncthing
