@@ -439,10 +439,14 @@ EndSection
   systemd.services."binarin-auto-commit-wip" = let
     script = pkgs.writeScript "binarin-auto-commit-wip" ''
       #!${pkgs.bash}/bin/bash
-      set -euxo pipefail
+      set -euo pipefail
       dirs="/etc/nixos /home/binarin/.rc"
 
-      DISPLAY=:0 xprintidle-ng
+      if [[ $(DISPLAY=:0 xprintidle-ng) -lt $((3600*1000)) ]]; then
+        exit 0
+      fi
+
+      set -x
 
       for dir in $dirs; do
         if [[ -d "$dir" ]]; then
@@ -462,6 +466,14 @@ EndSection
       Type = "oneshot";
       User = "binarin";
       ExecStart = script;
+    };
+  };
+  systemd.timers."binarin-auto-commit-wip" = {
+    description = "Periodically auto-commits/pushes to WIP branch some important repos";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "15min";
+      OnUnitActiveSec = "30min";
     };
   };
 
