@@ -100,7 +100,7 @@
       autoconf
       automake
       checkbashism
-      elixir
+      (elixir.override {erlang = erlangR19; rebar = rebar.override {erlang = erlangR19;};})
       erlangR19
       fakeroot
       gcc
