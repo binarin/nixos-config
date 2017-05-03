@@ -90,6 +90,7 @@
       viber
       workrave
       xorg.xbacklight
+      xorg.xdpyinfo
       xorg.xev
       yandex-disk
     ];
