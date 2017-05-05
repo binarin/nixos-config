@@ -57,6 +57,7 @@ let
     smart-mode-line
     structured-haskell-mode
     undo-tree
+    web-mode
     ws-butler
     yaml-mode
     yasnippet
