@@ -18,6 +18,7 @@ let
     cider
     circe
     company
+    counsel
     dash
     easy-escape
     editorconfig
@@ -38,6 +39,7 @@ let
     highlight-parentheses
     htmlize
     intero
+    ivy-hydra
     key-chord
     keyfreq
     magit
