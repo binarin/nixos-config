@@ -155,6 +155,7 @@
       rtorrent
       sox
       syncthing
+      sysstat
       telnet
       texlive.combined.scheme-full
       tmux
