@@ -23,7 +23,7 @@ let
     editorconfig
     elisp-slime-nav
     elm-mode
-    elpy
+    # elpy
     eproject  # edts dep
     erlang
     evil
@@ -56,6 +56,7 @@ let
     slime
     smart-mode-line
     structured-haskell-mode
+    symbol-overlay
     undo-tree
     web-mode
     ws-butler
