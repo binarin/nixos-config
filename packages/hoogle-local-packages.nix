@@ -17,6 +17,7 @@ errors
 filepath
 ghc-mod
 GLFW-b
+hakyll
 hashable
 hnix
 http-streams
@@ -28,6 +29,7 @@ memoize
 mtl
 OpenGLRaw
 optparse-applicative
+pandoc
 QuickCheck
 quickcheck-instances
 raw-strings-qq
