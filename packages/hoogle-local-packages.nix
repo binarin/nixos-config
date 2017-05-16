@@ -39,6 +39,7 @@ template-haskell
 temporary
 text
 text-regex-replace
+uniplate
 unordered-containers
 vector
 ]
