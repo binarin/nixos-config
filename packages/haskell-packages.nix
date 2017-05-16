@@ -21,6 +21,7 @@
         let pkg = self.callPackage; in
         let reflex-src = import ./haskell-reflex-frp.nix {inherit (pkgs) fetchFromGitHub; }; in
         rec {
+          clay = dontCheck clay;
           reflex = pkg reflex-src.reflex {};
           mkDerivation = args: super.mkDerivation (args // {
             enableLibraryProfiling = libProf;

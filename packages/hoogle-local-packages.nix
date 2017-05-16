@@ -7,6 +7,7 @@ attoparsec
 base
 bytestring
 cassava
+clay
 containers
 data-default
 data-fix
@@ -20,6 +21,7 @@ GLFW-b
 hakyll
 hashable
 hnix
+hspec
 http-streams
 io-streams
 JuicyPixels
