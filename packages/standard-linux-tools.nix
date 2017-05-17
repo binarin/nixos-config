@@ -20,6 +20,7 @@
     htop
     httpie
     iftop
+    iotop
     iptables
     libosinfo # osinfo-query
     lsof
