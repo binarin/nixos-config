@@ -1,5 +1,9 @@
 {...}:
 {
+  imports = [
+    ../packages/standard-linux-tools.nix
+  ];
+
   time.timeZone = "Europe/Moscow";
   services.openssh.enable = true;
   services.openssh.permitRootLogin = "yes";

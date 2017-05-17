@@ -6,6 +6,7 @@
     ../packages/bleeding-edge.nix
     ../packages/desktop-nagger.nix
     ../packages/haskell-packages.nix
+    ../packages/standard-linux-tools.nix
     ../roles/emacs.nix
   ];
 
@@ -72,8 +73,6 @@
       imagemagickBig
       firefox
       geeqie
-      gitAndTools.diff-so-fancy
-      gitAndTools.gitFull
       gitg
       glxinfo
       keepass
@@ -105,14 +104,10 @@
       erlangR19
       fakeroot
       gcc
-      gdb
       git-review
-      gnum4
       go_1_7
-      libosinfo # osinfo-query
       libvirt # for `vagrant plugin install vagrant-libvirt`
       libxslt # xsltproc - for building rabbitmq
-      mosh
       nodejs
       ncurses
       oraclejdk8
@@ -124,96 +119,47 @@
       subversion
       tightvnc
       travis
-      wireshark
       wireshark-gtk
     ];
     nixDevPackages = with pkgs; [
       nix-repl
       # nix-prefetch-zip
       nixops
-      nox
       patchelf
     ];
     utilityPackages = with pkgs; [
-      apg
-      bind # for dig
       dropbox-cli
-      elinks
-      fzf
       jekyll
-      htop
-      httpie
-      iftop
-      lsof
-      nethogs
       nfs-utils # for vagrant
-      openssl
-      p7zip
       pdftk
-      platinum-searcher
-      ripgrep
-      rtorrent
-      sox
       syncthing
-      sysstat
-      telnet
       texlive.combined.scheme-full
-      tmux
-      unrar
-      unzip
       vagrant
-      vim
       virt-viewer
       virtmanager
-      whois
-      zip
     ];
     otherPackages = with pkgs; [
       youtube-dl
-      binutils
       gnuplot
-      bridge-utils
       conkeror
-      cryptsetup
       gnome3.dconf
       gnome3.dconf-editor
       dmenu
       dmidecode
-      dpkg
-      file
       gmrun
       haskellPackages.xmobar
       haskellPackages.yeganesh
-      iptables
       isyncUnstable
-      gnumake
-      gnupg1orig # some scripts expect this version
-      gnupg21
       quasselClient
       keychain
       libreoffice
-      manpages
-      mc
       mu
-      nmap
-      openssl
-      parallel
       pavucontrol
-      pciutils
-      psmisc
       python
-      rpm
-      screen
       skype
-      sudo
-      tcpdump
-      usbutils
-      which
-      wget
       wmctrl
       xclip
       xscreensaver
-      zsh
     ];
   in otherPackages ++
      desktopPackages ++

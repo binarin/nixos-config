@@ -1,0 +1,60 @@
+{pkgs, ...}:
+{
+  environment.systemPackages = with pkgs; [
+    apg
+    bind # for dig
+    binutils
+    bridge-utils
+    cryptsetup
+    dpkg
+    elinks
+    file
+    fzf
+    gdb
+    gitAndTools.diff-so-fancy
+    gitAndTools.gitFull
+    gnum4
+    gnumake
+    gnupg1orig # some scripts expect this version
+    gnupg21
+    htop
+    httpie
+    iftop
+    iptables
+    libosinfo # osinfo-query
+    lsof
+    manpages
+    mc
+    mosh
+    nethogs
+    nmap
+    nox
+    openssl
+    openssl
+    p7zip
+    parallel
+    pciutils
+    platinum-searcher
+    psmisc
+    ripgrep
+    rpm
+    rtorrent
+    screen
+    sox
+    sudo
+    sysstat
+    tcpdump
+    telnet
+    tmux
+    unrar
+    unzip
+    usbutils
+    vim
+    wget
+    which
+    whois
+    wireshark-cli
+    zip
+    zsh
+  ];
+}
