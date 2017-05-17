@@ -11,4 +11,10 @@
     ./partitions/unencrypted-grub-with-separate-boot.nix
     ./roles/server.nix
   ];
+
+  services.hydra = {
+    enable = true;
+    hydraURL = "http://127.0.0.1:3000/";
+    notificationSender = "hydra@amon.binarin.ru";
+  };
 }
