@@ -2,6 +2,7 @@
 {
   imports = [
     ../packages/standard-linux-tools.nix
+    ../modules/outgoing-email.nix
   ];
 
   time.timeZone = "Europe/Moscow";
