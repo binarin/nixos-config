@@ -1,0 +1,6 @@
+[submodule "nixpkgs"]
+	path = nixpkgs
+	url = https://github.com/nixos/nixpkgs
+[submodule "nixpkgs-master"]
+	path = nixpkgs-master
+	url = https://github.com/nixos/nixpkgs

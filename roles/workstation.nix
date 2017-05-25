@@ -57,7 +57,7 @@
   time.timeZone = "Europe/Moscow";
 
   environment.systemPackages = let
-    bleedingEdgePackages = with config.bleeding.pkgs; [
+    bleedingEdgePackages = with pkgs.bleeding; [
     ];
     desktopPackages = with pkgs; [
       aspell
@@ -221,7 +221,7 @@
     fonts = with pkgs; [
       font-awesome-ttf
       corefonts
-      config.bleeding.pkgs.google-fonts
+      google-fonts
       inconsolata
       liberation_ttf
       mplus-outline-fonts
