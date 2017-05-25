@@ -454,4 +454,13 @@ EndSection
     };
   };
 
+  security.pam.loginLimits = [
+    {
+      domain = "*";
+      type = "-";
+      item = "nofile";
+      value = "131072";
+    }
+  ];
+
 }
