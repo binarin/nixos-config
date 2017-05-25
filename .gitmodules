@@ -3,4 +3,4 @@
 	url = https://github.com/nixos/nixpkgs
 [submodule "nixpkgs-master"]
 	path = nixpkgs-master
-	url = https://github.com/nixos/nixpkgs
+	url = https://github.com/binarin/nixpkgs
