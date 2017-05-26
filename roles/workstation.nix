@@ -388,7 +388,7 @@ EndSection
     script = pkgs.writeScript "binarin-auto-commit-wip" ''
       #!${pkgs.bash}/bin/bash
       set -euo pipefail
-      dirs="/etc/nixos /home/binarin/.rc"
+      dirs="/etc/nixos /etc/nixos/nixpkgs-master /home/binarin/.rc"
 
       if [[ $(DISPLAY=:0 xprintidle-ng) -lt $((3600*1000)) ]]; then
         exit 0
