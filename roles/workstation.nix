@@ -10,8 +10,6 @@
     ../roles/emacs.nix
   ];
 
-  # services.teamviewer.enable = true;
-
   nix.useSandbox = true;
   nix.extraOptions = ''
     gc-keep-outputs = true
