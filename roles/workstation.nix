@@ -68,13 +68,17 @@
       desktop-nagger
       dunst
       ebook_tools
+      electrum
       evince
       icewm # something to run in Xephyr
       imagemagickBig
       firefox
       geeqie
+      gimp-with-plugins
       gitg
       glxinfo
+      google-chrome-beta
+      google-chrome-dev
       keepass
       libnotify
       mplayer
@@ -87,6 +91,7 @@
       torbrowser
       tdesktop
       viber
+      wineFull
       workrave
       xorg.xbacklight
       xorg.xdpyinfo

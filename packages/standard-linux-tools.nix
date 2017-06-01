@@ -22,6 +22,7 @@
     iftop
     iotop
     iptables
+    jq
     libosinfo # osinfo-query
     lsof
     manpages
@@ -41,6 +42,7 @@
     rpm
     rtorrent
     screen
+    socat
     sox
     sudo
     sysstat
