@@ -27,16 +27,20 @@ io-streams
 JuicyPixels
 lens
 linear
+logging
 memoize
 mtl
 OpenGLRaw
 optparse-applicative
+optparse-text
 pandoc
 QuickCheck
 quickcheck-instances
 raw-strings-qq
 reflex
+sqlite-simple
 stm
+structured-haskell-mode
 template-haskell
 temporary
 text
@@ -44,4 +48,6 @@ text-regex-replace
 uniplate
 unordered-containers
 vector
+webdriver
+wreq
 ]
