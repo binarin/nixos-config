@@ -10,6 +10,7 @@
     ../roles/emacs.nix
   ];
 
+  boot.supportedFilesystems = [ "exfat" ];
   nix.useSandbox = true;
   nix.extraOptions = ''
     gc-keep-outputs = true
