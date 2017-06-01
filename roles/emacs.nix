@@ -57,7 +57,27 @@ let
     s
     slime
     smart-mode-line
-    structured-haskell-mode
+    (callPackage ({ fetchFromGitHub, fetchurl, lib, melpaBuild }:
+    melpaBuild {
+        pname = "shm";
+        version = "20170523";
+        src = fetchFromGitHub {
+          owner = "chrisdone";
+          repo = "structured-haskell-mode";
+          rev = "bd08a0b2297667e2ac7896e3b480033ae5721d4d";
+          sha256 = "14rl739z19ns31h9fj48sx9ppca4g4mqkc7ccpacagwwf55m259c";
+        };
+        recipeFile = fetchurl {
+          url = "https://raw.githubusercontent.com/milkypostman/melpa/68a2fddb7e000487f022b3827a7de9808ae73e2a/recipes/shm";
+          sha256 = "1qmp8cc83dcz25xbyqd4987i0d8ywvh16wq2wfs4km3ia8a2vi3c";
+          name = "shm";
+        };
+        packageRequires = [];
+        meta = {
+          homepage = "https://melpa.org/#/shm";
+          license = lib.licenses.free;
+        };
+      }) {})
     symbol-overlay
     undo-tree
     web-mode
