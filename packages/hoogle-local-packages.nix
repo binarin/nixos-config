@@ -11,9 +11,11 @@ clay
 containers
 data-default
 data-fix
+Decimal
 dependent-sum
 directory
 distributive
+doctest
 errors
 filepath
 ghc-mod
@@ -34,6 +36,7 @@ OpenGLRaw
 optparse-applicative
 optparse-text
 pandoc
+pcre-heavy
 QuickCheck
 quickcheck-instances
 raw-strings-qq
@@ -45,6 +48,7 @@ template-haskell
 temporary
 text
 text-regex-replace
+text-show
 uniplate
 unordered-containers
 vector
