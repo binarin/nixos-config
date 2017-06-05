@@ -81,6 +81,7 @@
       google-chrome-dev
       keepass
       libnotify
+      lightdm # for dm-tool
       mplayer
       playerctl
       rxvt_unicode-with-plugins
@@ -327,6 +328,9 @@ EndSection
     windowManager.default = "xmonad";
     desktopManager.xterm.enable = false;
     desktopManager.default = "none";
+
+    desktopManager.gnome3.enable = true;
+    libinput.enable = false;
 
     displayManager = {
       lightdm = {
