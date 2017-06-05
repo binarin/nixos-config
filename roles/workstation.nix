@@ -3,6 +3,7 @@
 {
   # powerManagement.enable = true;
   imports = [
+    ../packages/nixpkgs-from-submodule.nix
     ../packages/bleeding-edge.nix
     ../packages/desktop-nagger.nix
     ../packages/haskell-packages.nix
