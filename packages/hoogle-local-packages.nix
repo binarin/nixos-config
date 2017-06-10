@@ -6,6 +6,7 @@ async
 attoparsec
 base
 bytestring
+cabal-doctest
 cassava
 clay
 containers
@@ -16,12 +17,16 @@ dependent-sum
 directory
 distributive
 doctest
+doctest-discover
+encoding
 errors
+file-embed
 filepath
 ghc-mod
 GLFW-b
 hakyll
 hashable
+HaXml
 hnix
 hspec
 http-streams
@@ -41,6 +46,7 @@ QuickCheck
 quickcheck-instances
 raw-strings-qq
 reflex
+regex-compat
 sqlite-simple
 stm
 structured-haskell-mode
