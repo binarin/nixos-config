@@ -6,6 +6,7 @@
     binutils
     bridge-utils
     cryptsetup
+    darcs
     dpkg
     elinks
     file
@@ -20,6 +21,7 @@
     htop
     httpie
     iftop
+    inotify-tools
     iotop
     iptables
     jq
