@@ -5,6 +5,7 @@ array
 async
 attoparsec
 base
+brick
 bytestring
 cabal-doctest
 cassava
@@ -29,6 +30,7 @@ hashable
 HaXml
 hnix
 hspec
+hspec-expectations-pretty-diff
 http-streams
 io-streams
 JuicyPixels
@@ -53,11 +55,13 @@ structured-haskell-mode
 template-haskell
 temporary
 text
+text-icu
 text-regex-replace
 text-show
 uniplate
 unordered-containers
 vector
+vty
 webdriver
 wreq
 ]
