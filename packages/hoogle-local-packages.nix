@@ -58,6 +58,7 @@ text
 text-icu
 text-regex-replace
 text-show
+threepenny-gui
 uniplate
 unordered-containers
 vector
