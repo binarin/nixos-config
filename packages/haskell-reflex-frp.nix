@@ -2,7 +2,7 @@
   reflex = fetchFromGitHub {
     owner = "reflex-frp";
     repo = "reflex";
-    rev = "0cb3ffcb0544b46e7d6dab01ff07642ce8bbadef"; # 2017-04-04
-    sha256 = "1hyh6f2i4jq3adafml3n3ailkz7fal6fxzlcjkrq16dijcc92zn6";
+    rev = "13e71e89772880778b8a1f292f689ae30ed1520a"; # 2017-06-02
+    sha256 = "0896zss5q6h3mj14rvzv92xy0dgn9ljhkjd7797qis3kwibs5ik7";
   };
 }
