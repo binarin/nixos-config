@@ -39,9 +39,10 @@
           cabal2nix
           ghc-core
           ghc-mod
-          hlint
           hasktags
           happy
+          hlint
+          hpack
           stylish-haskell
         ];
       };
