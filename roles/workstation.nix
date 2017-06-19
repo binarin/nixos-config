@@ -65,6 +65,7 @@
       aspellDicts.en
       audacious
       chromium
+      compton
       desktop-nagger
       dunst
       ebook_tools
@@ -83,6 +84,7 @@
       libnotify
       lightdm # for dm-tool
       mplayer
+      oblogout
       playerctl
       rxvt_unicode-with-plugins
       shutter
