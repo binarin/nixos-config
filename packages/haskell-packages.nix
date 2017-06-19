@@ -8,6 +8,11 @@
       pkgs.ghc80ProfEnv
     ];
     nixpkgs.config.packageOverrides = super: rec {
+      haskellPackages = super.haskellPackages.override {
+        overrides = self: super: {
+          ghc-syb-utils = pkgs.haskell.lib.dontCheck super.ghc-syb-utils;
+        };
+      };
       haskell802Packages = super.haskell.packages.ghc802.override {
         overrides = myHaskellPackages false;
       };
