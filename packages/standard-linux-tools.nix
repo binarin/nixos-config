@@ -43,6 +43,7 @@
     ripgrep
     rpm
     rtorrent
+    rxvt_unicode
     screen
     socat
     sox
