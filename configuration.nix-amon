@@ -8,7 +8,7 @@
   imports = [
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/hp-microserver.nix
-    ./partitions/unencrypted-grub-with-separate-boot.nix
+    ./partitions/unencrypted-grub-with-separate-boot-4-hdd.nix
     ./roles/server.nix
   ];
 
