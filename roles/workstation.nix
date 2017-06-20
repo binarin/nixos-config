@@ -58,6 +58,7 @@
 
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      wineFull
     ];
     desktopPackages = with pkgs; [
       aspell
@@ -83,6 +84,7 @@
       keepass
       libnotify
       lightdm # for dm-tool
+      lightlocker
       mplayer
       oblogout
       playerctl
@@ -94,7 +96,7 @@
       torbrowser
       tdesktop
       viber
-      wineFull
+      # wineFull
       workrave
       xorg.xbacklight
       xorg.xdpyinfo
@@ -251,6 +253,7 @@
     };
   in {
     enable = true;
+    driSupport32Bit = true;
     package = pkgs.buildEnv {
       name = "opengl-hack";
       # NOTE: Forces open source S2TC rather than S3TC
