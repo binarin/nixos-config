@@ -2,6 +2,7 @@
 {
   imports = [
     ../packages/standard-linux-tools.nix
+    ../packages/nixpkgs-from-submodule.nix
     ../modules/outgoing-email.nix
   ];
 
