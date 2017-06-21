@@ -58,7 +58,10 @@
 
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      google-chrome-beta
+      google-chrome-dev
       wineFull
+      winetricks
     ];
     desktopPackages = with pkgs; [
       aspell
@@ -79,8 +82,6 @@
       gimp-with-plugins
       gitg
       glxinfo
-      google-chrome-beta
-      google-chrome-dev
       keepass
       libnotify
       lightdm # for dm-tool
@@ -88,7 +89,6 @@
       mplayer
       oblogout
       playerctl
-      rxvt_unicode-with-plugins
       shutter
       slack
       stack
