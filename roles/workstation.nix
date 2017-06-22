@@ -58,6 +58,7 @@
 
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      dosbox
       google-chrome-beta
       google-chrome-dev
       wineFull
@@ -76,7 +77,9 @@
       electrum
       evince
       icewm # something to run in Xephyr
+      icoutils
       imagemagickBig
+      innoextract # for GOG games
       firefox
       geeqie
       gimp-with-plugins
