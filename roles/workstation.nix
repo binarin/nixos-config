@@ -251,6 +251,7 @@
     };
   in {
     enable = true;
+    driSupport32Bit = true;
     package = pkgs.buildEnv {
       name = "opengl-hack";
       # NOTE: Forces open source S2TC rather than S3TC
