@@ -86,7 +86,6 @@
       mplayer
       oblogout
       playerctl
-      rxvt_unicode-with-plugins
       shutter
       slack
       stack

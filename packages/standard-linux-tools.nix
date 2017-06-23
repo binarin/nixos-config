@@ -43,7 +43,7 @@
     ripgrep
     rpm
     rtorrent
-    rxvt_unicode
+    rxvt_unicode-with-plugins # I need it everywhere for terminfo entries. better way is to install only minimal rxvt on servers, but I don't care enough about space savings.
     screen
     socat
     sox
