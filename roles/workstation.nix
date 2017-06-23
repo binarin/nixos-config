@@ -58,6 +58,11 @@
 
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      dosbox
+      google-chrome-beta
+      google-chrome-dev
+      wineFull
+      winetricks
     ];
     desktopPackages = with pkgs; [
       aspell
@@ -72,17 +77,18 @@
       electrum
       evince
       icewm # something to run in Xephyr
+      icoutils
       imagemagickBig
+      innoextract # for GOG games
       firefox
       geeqie
       gimp-with-plugins
       gitg
       glxinfo
-      google-chrome-beta
-      google-chrome-dev
       keepass
       libnotify
       lightdm # for dm-tool
+      lightlocker
       mplayer
       oblogout
       playerctl
@@ -93,7 +99,7 @@
       torbrowser
       tdesktop
       viber
-      wineFull
+      # wineFull
       workrave
       xorg.xbacklight
       xorg.xdpyinfo
