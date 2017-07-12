@@ -51,6 +51,7 @@
     sysstat
     tcpdump
     telnet
+    tiptop
     tmux
     unrar
     unzip
