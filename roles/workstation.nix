@@ -71,7 +71,6 @@
       aspellDicts.en
       audacious
       chromium
-      compton
       desktop-nagger
       dunst
       ebook_tools
@@ -511,4 +510,9 @@ EndSection
       value = "131072";
     }
   ];
+
+  services.compton = {
+    enable = true;
+    vSync = "opengl-swc";
+  };
 }
