@@ -7,6 +7,7 @@
     ../packages/bleeding-edge.nix
     ../packages/desktop-nagger.nix
     ../packages/haskell-packages.nix
+    ../packages/python-packages.nix
     ../packages/standard-linux-tools.nix
     ../roles/emacs.nix
   ];
@@ -168,7 +169,6 @@
       libreoffice
       mu
       pavucontrol
-      python
       skype
       wmctrl
       xclip
