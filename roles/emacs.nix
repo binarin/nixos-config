@@ -36,6 +36,7 @@ let
     helm
     helm-dash
     helm-projectile
+    helpful
     highlight-parentheses
     htmlize
     intero
