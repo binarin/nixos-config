@@ -36,7 +36,7 @@ let
     helm
     helm-dash
     helm-projectile
-    helpful
+    (melpaPackages.helpful.override {elisp-refs = melpaPackages.elisp-refs; })
     highlight-parentheses
     htmlize
     intero
