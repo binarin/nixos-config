@@ -401,6 +401,21 @@ EndSection
 
   programs.ssh.startAgent = true;
   programs.zsh.enable = true;
+  programs.zsh.ohMyZsh = {
+    enable = true;
+    plugins = [
+      "autojump"
+      "cabal"
+      "coloredman"
+      "compleat"
+      "cpanm"
+      "deb"
+      "debian"
+      "git"
+      "perl"
+    ];
+    theme = "nebirhos";
+  };
   programs.bash.enableCompletion = true;
 
   # ghcjs
