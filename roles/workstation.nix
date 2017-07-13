@@ -57,6 +57,8 @@
   # Set your time zone.
   time.timeZone = "Europe/Moscow";
 
+  standard-linux-tools.wireshark-package = pkgs.wireshark-gtk;
+
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
       dosbox
@@ -132,7 +134,6 @@
       subversion
       tightvnc
       travis
-      wireshark-gtk
     ];
     nixDevPackages = with pkgs; [
       nix-repl
