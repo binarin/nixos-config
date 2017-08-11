@@ -65,4 +65,7 @@ vector
 vty
 webdriver
 wreq
+X11
+xmonad
+xmonad-contrib
 ]
