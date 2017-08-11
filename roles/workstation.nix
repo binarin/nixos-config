@@ -55,7 +55,7 @@
   };
 
   # Set your time zone.
-  time.timeZone = "Europe/Moscow";
+  time.timeZone = "Europe/Amsterdam";
 
   standard-linux-tools.wireshark-package = pkgs.wireshark-gtk;
 
