@@ -531,4 +531,28 @@ EndSection
     enable = true;
     vSync = "opengl-swc";
   };
+
+  services.udev = let
+    xrandrScript = pkgs.writeScript "xrandr-auto.sh" ''
+        exec > /dev/null 2>&1
+        set -euxo pipefail
+
+        xrandr=${pkgs.xorg.xrandr}/bin/xrandr
+        xmonad=${pkgs.xmonad-with-packages}/bin/xmonad
+
+        $xrandr
+        HDMI_STATUS=$(< /sys/class/drm/card0/card0-HDMI-A-1/status)
+        if [[ connected == $HDMI_STATUS ]]; then
+            $xrandr --output HDMI-1 --auto --primary --right-of eDP-1
+        else
+            $xrandr --output HDMI-1 --off
+        fi
+        $xmonad --restart
+        $xrandr
+    '';
+  in {
+    extraRules = ''
+      KERNEL=="card0", SUBSYSTEM=="drm", ACTION=="change", ENV{DISPLAY}=":0", ENV{XAUTHORITY}="/home/binarin/.Xauthority", RUN+="${pkgs.bash}/bin/bash ${xrandrScript}"
+    '';
+  };
 }
