@@ -74,6 +74,7 @@
       audacious
       chromium
       desktop-nagger
+      dia
       dunst
       ebook_tools
       electrum
