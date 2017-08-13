@@ -39,6 +39,7 @@ linear
 logging
 memoize
 mtl
+opaleye
 OpenGLRaw
 optparse-applicative
 optparse-text
@@ -49,6 +50,7 @@ quickcheck-instances
 raw-strings-qq
 reflex
 regex-compat
+safe-exceptions
 sqlite-simple
 stm
 structured-haskell-mode
