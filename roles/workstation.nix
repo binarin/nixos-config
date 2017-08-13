@@ -555,6 +555,7 @@ EndSection
     extraRules = ''
       KERNEL=="card0", SUBSYSTEM=="drm", ACTION=="change", ENV{DISPLAY}=":0", ENV{XAUTHORITY}="/home/binarin/.Xauthority", RUN+="${pkgs.bash}/bin/bash ${xrandrScript}"
     '';
+  };
   services.postgresql = {
     enable = true;
     initialScript = pkgs.writeText "postgres-init" ''
