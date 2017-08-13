@@ -554,5 +554,19 @@ EndSection
     extraRules = ''
       KERNEL=="card0", SUBSYSTEM=="drm", ACTION=="change", ENV{DISPLAY}=":0", ENV{XAUTHORITY}="/home/binarin/.Xauthority", RUN+="${pkgs.bash}/bin/bash ${xrandrScript}"
     '';
+  services.postgresql = {
+    enable = true;
+    initialScript = pkgs.writeText "postgres-init" ''
+      create user binarin with
+        unencrypted password 'aoeuaoeu'
+        ;
+      create database toshl with
+        owner = binarin
+        encoding = UTF8
+        lc_collate = "ru_RU.UTF-8"
+        lc_ctype = "ru_RU.UTF-8"
+        ;
+
+    '';
   };
 }
