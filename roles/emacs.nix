@@ -41,6 +41,7 @@ let
     htmlize
     intero
     ivy-hydra
+    jabber
     key-chord
     keyfreq
     magit
