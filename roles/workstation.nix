@@ -255,6 +255,11 @@ in {
     ];
   };
 
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+
   hardware.opengl = let
     custom-mesa = pkgs.mesa_noglu.override {
       enableTextureFloats = true;
