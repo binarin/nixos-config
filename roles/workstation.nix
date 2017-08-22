@@ -127,6 +127,7 @@ in {
       go_1_7
       libvirt # for `vagrant plugin install vagrant-libvirt`
       libxslt # xsltproc - for building rabbitmq
+      mysql
       nodejs
       ncurses
       oraclejdk8
