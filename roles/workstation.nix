@@ -1,6 +1,8 @@
 { config, pkgs, lib, bleeding, ... }:
 
-{
+let
+  taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
+in {
   # powerManagement.enable = true;
   imports = [
     ../packages/nixpkgs-from-submodule.nix
@@ -98,7 +100,8 @@
       shutter
       slack
       stack
-      stalonetray # something to make viber happy
+      stalonetray
+      taffybarWithPackages
       torbrowser
       tdesktop
       viber
@@ -536,19 +539,23 @@ EndSection
   services.udev = let
     xrandrScript = pkgs.writeScript "xrandr-auto.sh" ''
         exec > /dev/null 2>&1
-        set -euxo pipefail
+        set -uxo pipefail
 
         xrandr=${pkgs.xorg.xrandr}/bin/xrandr
         xmonad=${pkgs.xmonad-with-packages}/bin/xmonad
+        pkill=${pkgs.procps}/bin/pkill
+        taffybar=${taffybarWithPackages}/bin/taffybar
 
+        $pkill -f taffybar
         $xrandr
         HDMI_STATUS=$(< /sys/class/drm/card0/card0-HDMI-A-1/status)
         if [[ connected == $HDMI_STATUS ]]; then
             $xrandr --output HDMI-1 --auto --primary --right-of eDP-1
+            $taffybar 1 &
         else
             $xrandr --output HDMI-1 --off
+            $taffybar 0 &
         fi
-        $xmonad --restart
         $xrandr
     '';
   in {
