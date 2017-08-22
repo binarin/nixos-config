@@ -5,6 +5,7 @@ array
 async
 attoparsec
 base
+binary
 brick
 bytestring
 cabal-doctest
@@ -13,6 +14,7 @@ clay
 containers
 data-default
 data-fix
+dbus
 Decimal
 dependent-sum
 directory
@@ -54,6 +56,7 @@ safe-exceptions
 sqlite-simple
 stm
 structured-haskell-mode
+taffybar
 template-haskell
 temporary
 text
