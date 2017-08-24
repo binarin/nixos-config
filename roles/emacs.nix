@@ -87,7 +87,6 @@ let
     yaml-mode
     yasnippet
     zenburn-theme
-    zoom-frm
   ]);
 in
 {
