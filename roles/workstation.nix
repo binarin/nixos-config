@@ -599,4 +599,20 @@ EndSection
 
     '';
   };
+
+  systemd.user.services.taffybar = {
+    description = "taffybar (with monitor autodetection)";
+    path = [ taffybarWithPackages ];
+    wantedBy = [ "default.target" ];
+    restartIfChanged = true;
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = pkgs.writeScript "taffybar-restarter" ''
+        #!${pkgs.bash}/bin/bash
+        set -x
+        taffybar 0
+      '';
+      Restart = "always";
+    };
+  };
 }
