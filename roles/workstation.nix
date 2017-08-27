@@ -1,4 +1,4 @@
-{ config, pkgs, lib, bleeding, ... }:
+{ config, pkgs, lib, bleeding, stdenv, ... }:
 
 let
   taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
@@ -202,6 +202,20 @@ in {
     };
 
     packageOverrides = super: {
+      linuxPackages_latest = super.linuxPackages_latest.extend (linuxSelf: linuxSuper: {
+        evdi = linuxSuper.evdi.overrideAttrs (oldAttrs: {
+          name = "evdi-unstable";
+          src = pkgs.fetchFromGitHub {
+            owner = "DisplayLink";
+            repo = "evdi";
+            rev = "ee1c578774e62fe4b08d92750620ed3094642160";
+            sha256 = "1m3wkmw4hjpjax7rvhmpicz09d7vxcxklq797ddjg6ljvf12671b";
+          };
+        });
+      });
+      displaylink = super.callPackage ../packages/displaylink.nix {
+        inherit (pkgs.linuxPackages_latest) evdi; # doesn't matter which version, it'll be overriden by module
+      };
       xorg = super.xorg // rec {
         xkeyboard_config_dvp = super.pkgs.lib.overrideDerivation super.xorg.xkeyboardconfig (old: {
           patches = [ ./xkb.patch ];
@@ -300,7 +314,7 @@ in {
 
   services.xserver = {
     # videoDrivers = [ "ati_unfree" "ati" "noveau" "intel" "vesa" "vmware" "modesetting"];
-    videoDrivers = ["modesetting" "ati"];
+    videoDrivers = ["displaylink" "modesetting" "ati"];
     config = ''
 Section "InputClass"
 	Identifier "CirqueTouchpad1"
