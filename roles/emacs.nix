@@ -24,11 +24,13 @@ let
     editorconfig
     elisp-slime-nav
     elm-mode
+    emojify
     # elpy
     eproject  # edts dep
     erlang
     evil
     f
+    fsm
     geiser
     go-mode flycheck-gometalinter company-go
     ghc-mod
@@ -41,7 +43,17 @@ let
     htmlize
     intero
     ivy-hydra
-    jabber
+    (jabber.overrideAttrs (oldAttrs: {
+      version = "2017-04-23";
+      packageRequires = [ fsm ];
+      propagatedBuildInputs = [ fsm ];
+      src = pkgs.fetchFromGitHub {
+        owner = "legoscia";
+        repo = "emacs-jabber";
+        rev = "3de7fb40ab9c82ada2a4b5f364a2417345953050";
+        sha256 = "0miq8y9yfnhihwxayzri81s21qwqm5vyj3h7j95q5kmdml661fb4";
+      };
+    }))
     key-chord
     keyfreq
     magit
@@ -59,6 +71,7 @@ let
     s
     slime
     smart-mode-line
+    smart-mode-line-powerline-theme
     (callPackage ({ fetchFromGitHub, fetchurl, lib, melpaBuild }:
     melpaBuild {
         pname = "shm";

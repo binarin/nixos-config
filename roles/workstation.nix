@@ -2,6 +2,22 @@
 
 let
   taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
+  xrandrShellHelpers = pkgs.writeText "xrandr-shell-helpers.sh" ''
+        export PATH=$PATH\${PATH:+:}${pkgs.gnugrep}/bin:${pkgs.xorg.xrandr}/bin:${pkgs.procps}/bin
+
+        HDMI_STATUS=
+        if xrandr | grep -q 'HDMI-1 connected'; then
+            HDMI_STATUS=connected
+        fi
+        DP1_1_STATUS=
+        if xrandr | grep -q 'DP-1-1 connected'; then
+            DP1_1_STATUS=connected
+        fi
+        DP1_3_STATUS=
+        if xrandr | grep -q 'DP-1-3 connected'; then
+            DP1_3_STATUS=connected
+        fi
+  '';
 in {
   # powerManagement.enable = true;
   imports = [
@@ -10,6 +26,7 @@ in {
     ../packages/desktop-nagger.nix
     ../packages/haskell-packages.nix
     ../packages/python-packages.nix
+#    ../packages/perl-packages.nix
     ../packages/standard-linux-tools.nix
     ../roles/emacs.nix
   ];
@@ -33,8 +50,8 @@ in {
   '';
 
   networking.nat.enable = true;
-  networking.nat.internalInterfaces = ["lxc0"];
-  networking.nat.externalInterface = "enp3s0";
+  networking.nat.internalInterfaces = ["lxc0" "virbr0"];
+  networking.nat.externalInterface = "wlp2s0";
 
   networking.bridges = {
     lxc0 = {
@@ -64,10 +81,12 @@ in {
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
       dosbox
-      google-chrome-beta
-      google-chrome-dev
-      wineFull
-      winetricks
+      firefox
+      alacritty
+      # google-chrome-beta
+      # google-chrome-dev
+      # wineFull
+      # winetricks
     ];
     desktopPackages = with pkgs; [
       aspell
@@ -85,7 +104,6 @@ in {
       icoutils
       imagemagickBig
       innoextract # for GOG games
-      firefox
       geeqie
       gimp-with-plugins
       gitg
@@ -107,6 +125,7 @@ in {
       viber
       # wineFull
       workrave
+      xdg-user-dirs
       xorg.xbacklight
       xorg.xdpyinfo
       xorg.xev
@@ -119,7 +138,7 @@ in {
       autoconf
       automake
       checkbashism
-      (elixir.override {erlang = erlangR19; rebar = rebar.override {erlang = erlangR19;};})
+      pkgs.bleeding.elixir_1_5
       erlangR19
       fakeroot
       gcc
@@ -142,7 +161,6 @@ in {
     ];
     nixDevPackages = with pkgs; [
       nix-repl
-      # nix-prefetch-zip
       nixops
       patchelf
     ];
@@ -152,7 +170,9 @@ in {
       nfs-utils # for vagrant
       pdftk
       syncthing
-      texlive.combined.scheme-full
+      (texlive.combine {
+        inherit (texlive) scheme-full beamer;
+      })
       vagrant
       virt-viewer
       virtmanager
@@ -178,6 +198,7 @@ in {
       wmctrl
       xclip
       xscreensaver
+      xsel
     ];
   in otherPackages ++
      desktopPackages ++
@@ -190,6 +211,7 @@ in {
     allowUnfree = true;
 
     firefox = {
+     enableBluejeans = true;
      enableGoogleTalkPlugin = true;
      enableAdobeFlash = true;
      jre = true;
@@ -314,7 +336,7 @@ in {
 
   services.xserver = {
     # videoDrivers = [ "ati_unfree" "ati" "noveau" "intel" "vesa" "vmware" "modesetting"];
-    videoDrivers = ["displaylink" "modesetting" "ati"];
+    videoDrivers = ["modesetting" "ati"];
     config = ''
 Section "InputClass"
 	Identifier "CirqueTouchpad1"
@@ -554,30 +576,32 @@ EndSection
 
   services.compton = {
     enable = true;
+    backend = "xr_glx_hybrid";
     vSync = "opengl-swc";
+    package = pkgs.bleeding.compton-git;
   };
 
   services.udev = let
     xrandrScript = pkgs.writeScript "xrandr-auto.sh" ''
-        exec > /dev/null 2>&1
+        exec > /tmp/xr 2>&1
         set -uxo pipefail
+        . ${xrandrShellHelpers}
 
-        xrandr=${pkgs.xorg.xrandr}/bin/xrandr
-        xmonad=${pkgs.xmonad-with-packages}/bin/xmonad
-        pkill=${pkgs.procps}/bin/pkill
-        taffybar=${taffybarWithPackages}/bin/taffybar
+        xrandr
 
-        $pkill -f taffybar
-        $xrandr
-        HDMI_STATUS=$(< /sys/class/drm/card0/card0-HDMI-A-1/status)
-        if [[ connected == $HDMI_STATUS ]]; then
-            $xrandr --output HDMI-1 --auto --primary --right-of eDP-1
-            $taffybar 1 &
+        if [[ connected == $DP1_1_STATUS && connected == $DP1_3_STATUS ]]; then
+            xrandr --output DP-1-1 --auto --primary
+            xrandr --output DP-1-3 --auto --left-of DP-1-1
+            xrandr --output eDP-1 --auto --right-of DP-1-1
+        elif [[ connected == $HDMI_STATUS ]]; then
+            xrandr --output HDMI-1 --auto --primary --right-of eDP-1
         else
-            $xrandr --output HDMI-1 --off
-            $taffybar 0 &
+            xrandr --output HDMI-1 --off
+            xrandr --output DP-1-1 --off
+            xrandr --output DP-1-3 --off
         fi
-        $xrandr
+        xrandr
+        pkill -f taffybar
     '';
   in {
     extraRules = ''
@@ -610,7 +634,14 @@ EndSection
       ExecStart = pkgs.writeScript "taffybar-restarter" ''
         #!${pkgs.bash}/bin/bash
         set -x
-        taffybar 0
+        . ${xrandrShellHelpers}
+        monitor=0
+        if [[ connected == "$HDMI_STATUS" ]]; then
+          monitor=1
+        elif [[ connected == "$DP1_1_STATUS" && connected == "$DP1_3_STATUS" ]]; then
+          monitor=1
+        fi
+        exec taffybar $monitor
       '';
       Restart = "always";
     };
