@@ -6,7 +6,7 @@
     environment.systemPackages = [
       pkgs.ghc80Env
       # pkgs.ghc82Env
-      pkgs.ghc80ProfEnv
+      # pkgs.ghc80ProfEnv
     ];
     nixpkgs.config.packageOverrides = super: rec {
       # haskellPackages = super.haskellPackages.override {
