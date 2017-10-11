@@ -112,6 +112,7 @@ in {
       libnotify
       lightdm # for dm-tool
       lightlocker
+      mpc_cli
       mplayer
       oblogout
       playerctl
@@ -645,5 +646,15 @@ EndSection
       '';
       Restart = "always";
     };
+  };
+
+  services.mopidy = {
+    enable = true;
+    extensionPackages = [ pkgs.mopidy-gmusic pkgs.mopidy-youtube ];
+    extraConfigFiles = [ "/etc/mopidy.conf" ];
+    configuration = ''
+      [audio]
+      output = pulsesink server=127.0.0.1
+    '';
   };
 }
