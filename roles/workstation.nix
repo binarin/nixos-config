@@ -127,6 +127,7 @@ in {
       # wineFull
       workrave
       xdg-user-dirs
+      xlsfonts
       xorg.xbacklight
       xorg.xdpyinfo
       xorg.xev
