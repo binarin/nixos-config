@@ -225,7 +225,7 @@ in {
      enablePepperPDF = true;
     };
 
-    packageOverrides = super: {
+    packageOverrides = super: rec {
       linuxPackages_latest = super.linuxPackages_latest.extend (linuxSelf: linuxSuper: {
         evdi = linuxSuper.evdi.overrideAttrs (oldAttrs: {
           name = "evdi-unstable";
@@ -240,6 +240,12 @@ in {
       displaylink = super.callPackage ../packages/displaylink.nix {
         inherit (pkgs.linuxPackages_latest) evdi; # doesn't matter which version, it'll be overriden by module
       };
+      libxkbcommon = super.libxkbcommon.overrideAttrs (oldAttrs: {
+         configureFlags = [
+           "--with-xkb-config-root=${xorg.xkeyboard_config_dvp}/etc/X11/xkb"
+           "--with-x-locale-root=${xorg.libX11.out}/share/X11/locale"
+         ];
+      });
       xorg = super.xorg // rec {
         xkeyboard_config_dvp = super.pkgs.lib.overrideDerivation super.xorg.xkeyboardconfig (old: {
           patches = [ ./xkb.patch ];

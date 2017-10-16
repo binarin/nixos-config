@@ -29,7 +29,7 @@ in
       gnum4
       gnumake
       gnupg1orig # some scripts expect this version
-      gnupg21
+      gnupg22
       htop
       httpie
       iftop
