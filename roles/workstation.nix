@@ -114,6 +114,7 @@ in {
       lightlocker
       mpc_cli
       mplayer
+      network-manager-applet
       oblogout
       playerctl
       shutter
@@ -140,6 +141,7 @@ in {
       autoconf
       automake
       checkbashism
+      electron
       pkgs.bleeding.elixir_1_5
       erlangR19
       fakeroot
@@ -341,7 +343,7 @@ in {
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
-  services.printing.drivers = [ pkgs.hplip ];
+  services.printing.drivers = [ pkgs.hplip pkgs.postscript-lexmark ];
 
   services.xserver = {
     # videoDrivers = [ "ati_unfree" "ati" "noveau" "intel" "vesa" "vmware" "modesetting"];
