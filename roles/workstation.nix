@@ -114,7 +114,7 @@ in {
       lightlocker
       mpc_cli
       mplayer
-      network-manager-applet
+      networkmanagerapplet
       oblogout
       playerctl
       shutter
