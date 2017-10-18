@@ -284,21 +284,29 @@ in {
     enableFontDir = true;
     enableGhostscriptFonts = true;
     fonts = with pkgs; [
-      font-awesome-ttf
       corefonts
+      dejavu_fonts
+      emacs-all-the-icons-fonts
+      fira
+      fira-code
+      fira-mono
+      font-awesome-ttf
       google-fonts
       inconsolata
+      iosevka
       liberation_ttf
       mplus-outline-fonts
       noto-fonts
       powerline-fonts
+      roboto
+      roboto-mono
+      roboto-slab
+      source-code-pro
       terminus_font
+      terminus_font_ttf
       ubuntu_font_family
       unifont
-      iosevka
       vistafonts
-      source-code-pro
-      fira-code
     ];
   };
 
