@@ -21,7 +21,6 @@ directory
 distributive
 doctest
 doctest-discover
-encoding
 errors
 file-embed
 filepath

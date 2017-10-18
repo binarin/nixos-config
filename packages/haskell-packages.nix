@@ -48,9 +48,9 @@
         let pkg = self.callPackage; in
         let reflex-src = import ./haskell-reflex-frp.nix {inherit (pkgs) fetchFromGitHub; }; in
         rec {
-          clay = dontCheck super.clay;
-          ghc-syb-utils = dontCheck super.ghc-syb-utils;
-          encoding = appendPatch super.encoding ./haskell-encoding.patch; # remove constraint on 'binary' so it'll build at all; and ignore GB18030 as it's built time is around an hour
+          # clay = dontCheck super.clay;
+          # ghc-syb-utils = dontCheck super.ghc-syb-utils;
+          # encoding = appendPatch super.encoding ./haskell-encoding.patch; # remove constraint on 'binary' so it'll build at all; and ignore GB18030 as it's built time is around an hour
           reflex = pkg reflex-src.reflex {};
           mkDerivation = args: super.mkDerivation (args // {
             enableLibraryProfiling = libProf;
