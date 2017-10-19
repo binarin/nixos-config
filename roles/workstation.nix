@@ -2,22 +2,6 @@
 
 let
   taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
-  xrandrShellHelpers = pkgs.writeText "xrandr-shell-helpers.sh" ''
-        export PATH=$PATH\${PATH:+:}${pkgs.gnugrep}/bin:${pkgs.xorg.xrandr}/bin:${pkgs.procps}/bin
-
-        HDMI_STATUS=
-        if xrandr | grep -q 'HDMI-1 connected'; then
-            HDMI_STATUS=connected
-        fi
-        DP1_1_STATUS=
-        if xrandr | grep -q 'DP-1-1 connected'; then
-            DP1_1_STATUS=connected
-        fi
-        DP1_3_STATUS=
-        if xrandr | grep -q 'DP-1-3 connected'; then
-            DP1_3_STATUS=connected
-        fi
-  '';
 in {
   # powerManagement.enable = true;
   imports = [
@@ -26,6 +10,7 @@ in {
     ../packages/desktop-nagger.nix
     ../packages/haskell-packages.nix
     ../packages/python-packages.nix
+    ../packages/xrandr-auto.nix
 #    ../packages/perl-packages.nix
     ../packages/standard-linux-tools.nix
     ../roles/emacs.nix
@@ -83,6 +68,7 @@ in {
       dosbox
       firefox
       alacritty
+      firefox-beta-bin
       # google-chrome-beta
       # google-chrome-dev
       # wineFull
@@ -93,6 +79,7 @@ in {
       aspellDicts.ru
       aspellDicts.en
       audacious
+      binarin-xrandr-auto
       chromium
       desktop-nagger
       dia
@@ -228,20 +215,6 @@ in {
     };
 
     packageOverrides = super: rec {
-      linuxPackages_latest = super.linuxPackages_latest.extend (linuxSelf: linuxSuper: {
-        evdi = linuxSuper.evdi.overrideAttrs (oldAttrs: {
-          name = "evdi-unstable";
-          src = pkgs.fetchFromGitHub {
-            owner = "DisplayLink";
-            repo = "evdi";
-            rev = "ee1c578774e62fe4b08d92750620ed3094642160";
-            sha256 = "1m3wkmw4hjpjax7rvhmpicz09d7vxcxklq797ddjg6ljvf12671b";
-          };
-        });
-      });
-      displaylink = super.callPackage ../packages/displaylink.nix {
-        inherit (pkgs.linuxPackages_latest) evdi; # doesn't matter which version, it'll be overriden by module
-      };
       xkbvalidate = super.xkbvalidate.override { libxkbcommon = libxkbcommon_dvp; };
       libxkbcommon_dvp = super.libxkbcommon.overrideAttrs (oldAttrs: {
          configureFlags = [
@@ -477,6 +450,7 @@ EndSection
   };
   programs.bash.enableCompletion = true;
   programs.zsh.interactiveShellInit = ''
+    PATH=$PATH:${pkgs.autojump}/bin
     . ${pkgs.autojump}/share/autojump/autojump.zsh
   '';
 
@@ -598,26 +572,7 @@ EndSection
 
   services.udev = let
     xrandrScript = pkgs.writeScript "xrandr-auto.sh" ''
-        exec > /tmp/xr 2>&1
-        set -uxo pipefail
-        . ${xrandrShellHelpers}
-
-        xrandr
-
-        if [[ connected == $DP1_1_STATUS && connected == $DP1_3_STATUS ]]; then
-            xrandr --output DP-1-1 --auto --primary
-            xrandr --output DP-1-3 --auto --left-of DP-1-1
-            xrandr --output eDP-1 --auto --right-of DP-1-1
-        elif [[ connected == $HDMI_STATUS ]]; then
-            xrandr --output HDMI-1 --auto --primary --right-of eDP-1
-        else
-            xrandr --output HDMI-1 --off
-            xrandr --output DP-1-1 --off
-            xrandr --output DP-1-3 --off
-        fi
-        xrandr
-        pkill -f taffybar
-        pkill -f compton
+        exec ${pkgs.binarin-xrandr-auto}/bin/xrandr-auto configure
     '';
   in {
     extraRules = ''
@@ -650,14 +605,9 @@ EndSection
       ExecStart = pkgs.writeScript "taffybar-restarter" ''
         #!${pkgs.bash}/bin/bash
         set -x
-        . ${xrandrShellHelpers}
-        monitor=0
-        if [[ connected == "$HDMI_STATUS" ]]; then
-          monitor=1
-        elif [[ connected == "$DP1_1_STATUS" && connected == "$DP1_3_STATUS" ]]; then
-          monitor=1
-        fi
-        exec taffybar $monitor
+        ${pkgs.binarin-xrandr-auto}/bin/xrandr-auto get-primary
+        primary=$?
+        exec taffybar $primary
       '';
       Restart = "always";
       RestartSec = "2";
