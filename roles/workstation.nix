@@ -470,19 +470,15 @@ EndSection
   programs.zsh.ohMyZsh = {
     enable = true;
     plugins = [
-      "autojump"
-      "cabal"
-      "coloredman"
-      "compleat"
-      "cpanm"
-      "deb"
-      "debian"
-      "git"
-      "perl"
+      "colored-man-pages"
+      "dirpersist"
     ];
-    theme = "nebirhos";
+    theme = "gianu";
   };
   programs.bash.enableCompletion = true;
+  programs.zsh.interactiveShellInit = ''
+    . ${pkgs.autojump}/share/autojump/autojump.zsh
+  '';
 
   # ghcjs
   nix.trustedBinaryCaches = [ "https://nixcache.reflex-frp.org" ];
