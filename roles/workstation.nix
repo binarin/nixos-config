@@ -595,7 +595,7 @@ EndSection
 
   services.compton = {
     enable = true;
-    backend = "xr_glx_hybrid";
+    backend = "glx";
     vSync = "opengl-swc";
     package = pkgs.bleeding.compton-git;
   };
@@ -621,6 +621,7 @@ EndSection
         fi
         xrandr
         pkill -f taffybar
+        pkill -f compton
     '';
   in {
     extraRules = ''
@@ -663,6 +664,8 @@ EndSection
         exec taffybar $monitor
       '';
       Restart = "always";
+      RestartSec = "2";
+      StartLimitIntervalSec = "0";
     };
   };
 
