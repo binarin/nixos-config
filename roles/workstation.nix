@@ -66,10 +66,10 @@ in {
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
       dosbox
-      firefox
+      # firefox
       alacritty
       firefox-beta-bin
-      # google-chrome-beta
+      google-chrome
       # google-chrome-dev
       # wineFull
       # winetricks
