@@ -86,6 +86,7 @@
           happy
           hlint
           hpack
+          hpack-convert
           stylish-haskell
         ];
       };

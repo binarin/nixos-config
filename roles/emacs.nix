@@ -19,6 +19,7 @@ let
     circe
     company
     counsel
+    dante
     dash
     easy-escape
     editorconfig
