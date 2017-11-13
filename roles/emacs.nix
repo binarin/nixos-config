@@ -11,14 +11,49 @@ let
   overrides = super: self: rec {
     haskell-mode = self.melpaPackages.haskell-mode;
     elisp-refs = self.melpaPackages.elisp-refs; # for helpful
+    jabber = (super.jabber.overrideAttrs (oldAttrs: {
+      version = "2017-04-23";
+      packageRequires = [ super.fsm ];
+      propagatedBuildInputs = [ super.fsm ];
+      src = pkgs.fetchFromGitHub {
+        owner = "legoscia";
+        repo = "emacs-jabber";
+        rev = "3de7fb40ab9c82ada2a4b5f364a2417345953050";
+        sha256 = "0miq8y9yfnhihwxayzri81s21qwqm5vyj3h7j95q5kmdml661fb4";
+      };
+    }));
+    shm = (self.callPackage ({ fetchFromGitHub, fetchurl, lib, melpaBuild }:
+      melpaBuild {
+          pname = "shm";
+          version = "20170523";
+          src = fetchFromGitHub {
+            owner = "chrisdone";
+            repo = "structured-haskell-mode";
+            rev = "bd08a0b2297667e2ac7896e3b480033ae5721d4d";
+            sha256 = "14rl739z19ns31h9fj48sx9ppca4g4mqkc7ccpacagwwf55m259c";
+          };
+          recipeFile = fetchurl {
+            url = "https://raw.githubusercontent.com/milkypostman/melpa/68a2fddb7e000487f022b3827a7de9808ae73e2a/recipes/shm";
+            sha256 = "1qmp8cc83dcz25xbyqd4987i0d8ywvh16wq2wfs4km3ia8a2vi3c";
+            name = "shm";
+          };
+          packageRequires = [];
+          meta = {
+            homepage = "https://melpa.org/#/shm";
+            license = lib.licenses.free;
+          };
+        }) {}
+    );
   };
   gen = with pkgs.bleeding; (emacsPackagesNgGen emacs).overrideScope overrides;
   emacs-with-packages = gen.emacsWithPackages (p: with p; [
+    ace-window
     alchemist
     anaphora
     auctex
     auto-complete  # edts dep
     auto-highlight-symbol # edts dep
+    avy
     cider
     circe
     company
@@ -30,15 +65,14 @@ let
     elisp-slime-nav
     elm-mode
     emojify
-    # elpy
     eproject  # edts dep
     erlang
     evil
     f
     fsm
     geiser
-    go-mode flycheck-gometalinter company-go
     ghc-mod
+    go-mode flycheck-gometalinter company-go
     haskell-mode
     helm
     helm-dash
@@ -49,19 +83,11 @@ let
     hyperbole
     intero
     ivy-hydra
-    (jabber.overrideAttrs (oldAttrs: {
-      version = "2017-04-23";
-      packageRequires = [ fsm ];
-      propagatedBuildInputs = [ fsm ];
-      src = pkgs.fetchFromGitHub {
-        owner = "legoscia";
-        repo = "emacs-jabber";
-        rev = "3de7fb40ab9c82ada2a4b5f364a2417345953050";
-        sha256 = "0miq8y9yfnhihwxayzri81s21qwqm5vyj3h7j95q5kmdml661fb4";
-      };
-    }))
+    jabber
     key-chord
     keyfreq
+    key-seq
+    kill-or-bury-alive
     magit
     markdown-mode
     mu4e-maildirs-extension
@@ -73,35 +99,17 @@ let
     projectile
     pt
     puppet-mode
+    recursive-narrow
     request
     s
+    shm
     slime
     smart-mode-line
     smart-mode-line-powerline-theme
-    (callPackage ({ fetchFromGitHub, fetchurl, lib, melpaBuild }:
-    melpaBuild {
-        pname = "shm";
-        version = "20170523";
-        src = fetchFromGitHub {
-          owner = "chrisdone";
-          repo = "structured-haskell-mode";
-          rev = "bd08a0b2297667e2ac7896e3b480033ae5721d4d";
-          sha256 = "14rl739z19ns31h9fj48sx9ppca4g4mqkc7ccpacagwwf55m259c";
-        };
-        recipeFile = fetchurl {
-          url = "https://raw.githubusercontent.com/milkypostman/melpa/68a2fddb7e000487f022b3827a7de9808ae73e2a/recipes/shm";
-          sha256 = "1qmp8cc83dcz25xbyqd4987i0d8ywvh16wq2wfs4km3ia8a2vi3c";
-          name = "shm";
-        };
-        packageRequires = [];
-        meta = {
-          homepage = "https://melpa.org/#/shm";
-          license = lib.licenses.free;
-        };
-      }) {})
     symbol-overlay
     undo-tree
     web-mode
+    which-key
     ws-butler
     yaml-mode
     yasnippet
