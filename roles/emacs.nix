@@ -58,6 +58,7 @@ let
     circe
     company
     counsel
+    counsel-projectile
     dante
     dash
     easy-escape
@@ -71,6 +72,7 @@ let
     f
     fsm
     geiser
+    general
     ghc-mod
     go-mode flycheck-gometalinter company-go
     haskell-mode
@@ -83,6 +85,7 @@ let
     hyperbole
     intero
     ivy-hydra
+    ivy-rich
     jabber
     key-chord
     keyfreq
