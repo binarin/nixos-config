@@ -46,6 +46,7 @@ let
     helpful
     highlight-parentheses
     htmlize
+    hyperbole
     intero
     ivy-hydra
     (jabber.overrideAttrs (oldAttrs: {
