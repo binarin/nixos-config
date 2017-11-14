@@ -21,6 +21,7 @@ let
         rev = "3de7fb40ab9c82ada2a4b5f364a2417345953050";
         sha256 = "0miq8y9yfnhihwxayzri81s21qwqm5vyj3h7j95q5kmdml661fb4";
       };
+      org-gcal = self.melpaPackages.org-gcal;
     }));
     shm = (self.callPackage ({ fetchFromGitHub, fetchurl, lib, melpaBuild }:
       melpaBuild {
@@ -95,6 +96,7 @@ let
     markdown-mode
     mu4e-maildirs-extension
     nix-mode
+    org-gcal
     org-plus-contrib
     paredit
     pdf-tools
