@@ -17,4 +17,9 @@
     hydraURL = "http://127.0.0.1:3000/";
     notificationSender = "hydra@amon.binarin.ru";
   };
+
+  networking.firewall.allowedTCPPorts = [ 22000 ];
+  networking.firewall.allowedUDPPorts = [ 21027 ];
+
+  environment.systemPackages = [ pkgs.syncthing ];
 }

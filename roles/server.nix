@@ -3,6 +3,7 @@
   imports = [
     ../packages/standard-linux-tools.nix
     ../packages/nixpkgs-from-submodule.nix
+    ../packages/bleeding-edge.nix
     ../modules/outgoing-email.nix
   ];
 
