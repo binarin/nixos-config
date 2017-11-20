@@ -24,5 +24,6 @@
   environment.systemPackages = with pkgs; [
     syncthing
     youtube-dl
+    insync
   ];
 }
