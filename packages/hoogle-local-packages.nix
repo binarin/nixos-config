@@ -62,6 +62,7 @@ text
 text-icu
 text-regex-replace
 text-show
+time
 threepenny-gui
 uniplate
 unordered-containers
