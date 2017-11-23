@@ -21,5 +21,8 @@
   networking.firewall.allowedTCPPorts = [ 22000 ];
   networking.firewall.allowedUDPPorts = [ 21027 ];
 
-  environment.systemPackages = [ pkgs.syncthing ];
+  environment.systemPackages = with pkgs; [
+    syncthing
+    youtube-dl
+  ];
 }
