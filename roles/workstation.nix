@@ -319,8 +319,6 @@ in {
   services.openssh.forwardX11 = true;
 
   services.cron.enable = true;
-  # services.dnsmasq.enable = true;
-  services.locate.enable = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;

@@ -76,5 +76,10 @@ in
       zip
       zsh
     ];
+    services.locate = {
+      enable = true;
+      localuser = "root";
+    };
   };
+
 }
