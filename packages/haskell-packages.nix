@@ -82,6 +82,7 @@
           cabal2nix
           ghc-core
           ghc-mod
+          ghcid
           hasktags
           happy
           hlint

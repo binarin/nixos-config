@@ -84,6 +84,7 @@ let
     highlight-parentheses
     htmlize
     hyperbole
+    impatient-mode
     intero
     ivy-hydra
     ivy-rich
@@ -108,6 +109,7 @@ let
     request
     s
     shm
+    skewer-mode
     slime
     smart-mode-line
     smart-mode-line-powerline-theme
