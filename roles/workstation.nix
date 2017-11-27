@@ -68,7 +68,7 @@ in {
       dosbox
       # firefox
       alacritty
-      firefox-beta-bin
+      firefox-devedition-bin
       google-chrome
       # google-chrome-dev
       # wineFull
