@@ -38,6 +38,7 @@ JuicyPixels
 lens
 linear
 logging
+managed
 memoize
 mtl
 opaleye
