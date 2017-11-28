@@ -11,7 +11,6 @@ in {
     ../packages/haskell-packages.nix
     ../packages/python-packages.nix
     ../packages/xrandr-auto.nix
-#    ../packages/perl-packages.nix
     ../packages/standard-linux-tools.nix
     ../roles/emacs.nix
   ];
@@ -493,20 +492,17 @@ EndSection
     };
   };
 
-
   systemd.services."binarin-org-sync" = let
     script = pkgs.writeScript "binarin-org-sync" ''
       #!${pkgs.bash}/bin/bash
       set -euo pipefail
-      export NIX_REMOTE=daemon
-      export NIX_PATH=nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos/nixpkgs:nixos-config=/etc/nixos/configuration.nix:/nix/var/nix/profiles/per-user/root/channels
       if [[ -f /home/binarin/org/push.sh ]]; then
         exec /home/binarin/org/push.sh
       fi
     '';
   in {
     description = "Syncs org-mode files via git";
-    path = [ pkgs.gitAndTools.gitFull pkgs.wget pkgs.nix pkgs.bash pkgs.nettools ];
+    path = [ pkgs.gitAndTools.gitFull pkgs.wget pkgs.coreutils pkgs.bash ];
     serviceConfig = {
       Type = "oneshot";
       User = "binarin";
