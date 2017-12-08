@@ -110,6 +110,7 @@ in {
       # wineFull
       workrave
       xdg-user-dirs
+      xdotool
       xlsfonts
       xorg.xbacklight
       xorg.xdpyinfo

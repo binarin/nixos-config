@@ -22,6 +22,7 @@ distributive
 doctest
 doctest-discover
 errors
+fast-logger
 file-embed
 filepath
 ghc-mod
@@ -53,6 +54,7 @@ raw-strings-qq
 reflex
 regex-compat
 safe-exceptions
+selda
 sqlite-simple
 stm
 structured-haskell-mode
