@@ -67,7 +67,7 @@ in {
       dosbox
       alacritty
       google-chrome
-      latest.firefox-beta-bin
+      firefox-beta-bin
     ];
     desktopPackages = with pkgs; [
       aspell
