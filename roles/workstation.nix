@@ -363,7 +363,7 @@ EndSection
     windowManager.xmonad = {
       enable = true;
       enableContribAndExtras = true;
-      extraPackages = p: [ p.taffybar p.dbus p.monad-logger ];
+      extraPackages = p: [ p.taffybar p.dbus p.monad-logger p.lens ];
     };
 
     windowManager.default = "xmonad";
