@@ -22,6 +22,7 @@ distributive
 doctest
 doctest-discover
 errors
+extra
 fast-logger
 file-embed
 filepath
