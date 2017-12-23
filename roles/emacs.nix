@@ -6,7 +6,7 @@ let
     withGTK2 = false;
     # withXwidgets = true;
     withCsrc = true;
-    inherit (pkgs) imagemagick gtk3; # webkitgtk24x;
+    inherit imagemagick gtk3; # webkitgtk24x;
   };
   overrides = super: self: rec {
     haskell-mode = self.melpaPackages.haskell-mode;
@@ -74,7 +74,6 @@ let
     fsm
     geiser
     general
-    ghc-mod
     go-mode flycheck-gometalinter company-go
     haskell-mode
     helm
