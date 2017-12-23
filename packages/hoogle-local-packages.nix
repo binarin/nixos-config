@@ -25,7 +25,7 @@ errors
 fast-logger
 file-embed
 filepath
-ghc-mod
+# ghc-mod
 GLFW-b
 hakyll
 hashable
@@ -33,8 +33,8 @@ HaXml
 hnix
 hspec
 hspec-expectations-pretty-diff
-http-streams
-io-streams
+# http-streams
+# io-streams
 JuicyPixels
 lens
 linear
@@ -51,7 +51,7 @@ pcre-heavy
 QuickCheck
 quickcheck-instances
 raw-strings-qq
-reflex
+# reflex
 regex-compat
 safe-exceptions
 selda
