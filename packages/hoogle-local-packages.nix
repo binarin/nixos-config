@@ -1,5 +1,6 @@
 haskellPackages: with haskellPackages; [
 aeson
+aeson-pretty
 ansi-wl-pprint
 array
 async
@@ -12,6 +13,7 @@ cabal-doctest
 cassava
 clay
 containers
+cryptonite
 data-default
 data-fix
 dbus
@@ -42,6 +44,8 @@ linear
 logging
 managed
 memoize
+monad-logger
+monad-loops
 mtl
 opaleye
 OpenGLRaw
@@ -49,6 +53,9 @@ optparse-applicative
 optparse-text
 pandoc
 pcre-heavy
+prettyprinter
+prettyprinter-ansi-terminal
+process
 QuickCheck
 quickcheck-instances
 raw-strings-qq
@@ -56,18 +63,20 @@ raw-strings-qq
 regex-compat
 safe-exceptions
 selda
+selda-sqlite
 sqlite-simple
 stm
 structured-haskell-mode
 taffybar
 template-haskell
 temporary
+terminal-size
 text
 text-icu
 text-regex-replace
 text-show
-time
 threepenny-gui
+time
 uniplate
 unordered-containers
 vector
