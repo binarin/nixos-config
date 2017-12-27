@@ -605,14 +605,4 @@ EndSection
       StartLimitIntervalSec = "0";
     };
   };
-
-  services.mopidy = {
-    enable = true;
-    extensionPackages = [ pkgs.mopidy-gmusic pkgs.mopidy-youtube ];
-    extraConfigFiles = [ "/etc/mopidy.conf" ];
-    configuration = ''
-      [audio]
-      output = pulsesink server=127.0.0.1
-    '';
-  };
 }
