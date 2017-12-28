@@ -285,7 +285,7 @@ in {
   };
 
   hardware.opengl = let
-    custom-mesa = pkgs.mesa_noglu.override {
+    custom-mesa = pkgs.bleeding.mesa_noglu.override {
       enableTextureFloats = true;
     };
   in {
@@ -294,7 +294,7 @@ in {
     package = pkgs.buildEnv {
       name = "opengl-hack";
       # NOTE: Forces open source S2TC rather than S3TC
-      paths = [ custom-mesa custom-mesa.drivers pkgs.libtxc_dxtn_s2tc ];
+      paths = [ custom-mesa custom-mesa.drivers pkgs.bleeding.libtxc_dxtn_s2tc ];
     };
   };
 
