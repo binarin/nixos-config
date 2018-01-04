@@ -1,13 +1,6 @@
 {config, pkgs, ...}:
 
 let
-  emacs = with pkgs.bleeding; emacs25.override {
-    withGTK3 = true;
-    withGTK2 = false;
-    # withXwidgets = true;
-    withCsrc = true;
-    inherit imagemagick gtk3; # webkitgtk24x;
-  };
   overrides = super: self: rec {
     haskell-mode = self.melpaPackages.haskell-mode;
     elisp-refs = self.melpaPackages.elisp-refs; # for helpful
@@ -46,8 +39,8 @@ let
         }) {}
     );
   };
-  gen = with pkgs.bleeding; (emacsPackagesNgGen emacs).overrideScope overrides;
-  emacs-with-packages = gen.emacsWithPackages (p: with p; [
+  customEmacsPackages = pkgs.emacsPackagesNg.overrideScope overrides;
+  emacs-with-packages = customEmacsPackages.emacsWithPackages (p: with p; [
     ace-window
     alchemist
     anaphora
