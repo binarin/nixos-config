@@ -84,6 +84,7 @@ let
     htmlize
     hyperbole
     impatient-mode
+    indium
     intero
     ivy-hydra
     ivy-rich
