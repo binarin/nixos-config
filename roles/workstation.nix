@@ -382,8 +382,8 @@ EndSection
 
   services.redshift = {
     enable = true;
-    latitude = "55.7558";
-    longitude = "37.6173";
+    latitude = "52.3702";
+    longitude = "4.8952";
     temperature = { day = 6500; night = 3000; };
     extraOptions = [ "-v" ];
   };
