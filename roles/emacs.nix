@@ -2,8 +2,7 @@
 
 let
   overrides = super: self: rec {
-    haskell-mode = self.melpaPackages.haskell-mode;
-    elisp-refs = self.melpaPackages.elisp-refs; # for helpful
+    inherit (self.melpaPackages) indium haskell-mode elisp-refs;
     jabber = (super.jabber.overrideAttrs (oldAttrs: {
       version = "2017-04-23";
       packageRequires = [ super.fsm ];
