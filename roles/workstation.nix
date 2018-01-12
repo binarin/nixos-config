@@ -13,6 +13,7 @@ in {
     ../packages/xrandr-auto.nix
     ../packages/standard-linux-tools.nix
     ../roles/emacs.nix
+    ../roles/openvpn-client.nix
   ];
 
   boot.supportedFilesystems = [ "exfat" ];
