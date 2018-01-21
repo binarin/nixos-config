@@ -63,6 +63,9 @@ in {
 
   standard-linux-tools.wireshark-package = pkgs.wireshark-gtk;
 
+  programs.wireshark.enable = true;
+  programs.wireshark.package = pkgs.wireshark-gtk;
+
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
       dosbox
@@ -396,7 +399,7 @@ EndSection
       uid = 1000;
       isNormalUser = true;
       shell = "/run/current-system/sw/bin/zsh";
-      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" "dialout" "vboxusers" ];
+      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" "dialout" "vboxusers" "wireshark" ];
     };
     root = {
       shell = "/run/current-system/sw/bin/zsh";
