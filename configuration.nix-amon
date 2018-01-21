@@ -16,6 +16,7 @@ in
     ./partitions/unencrypted-grub-with-separate-boot-4-hdd.nix
     ./roles/server.nix
     ./modules/easyrsa.nix
+    ./modules/rabbitmq-server.nix
     # ./modules/squid.nix
   ];
 
@@ -38,6 +39,7 @@ in
   networking.firewall.extraCommands = ''
     ip46tables -A nixos-fw -i ${vpnIface} -p tcp --dport 3128 -j nixos-fw-accept
     ip46tables -A nixos-fw -i ${vpnIface} -p tcp --dport 4242 -j nixos-fw-accept
+    ip46tables -A nixos-fw -i enp3s0 -p tcp --dport 8123 -j nixos-fw-accept  # hass
   '';
 
   environment.systemPackages = with pkgs; [
@@ -173,4 +175,6 @@ in
     '';
   };
 
+  services.journald.rateLimitInterval = "30s";
+  services.journald.rateLimitBurst = 7000;
 }

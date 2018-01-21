@@ -6,7 +6,7 @@
   };
   amon = {
     deployment.targetEnv = "none";
-    deployment.targetHost = "192.168.1.9";
+    deployment.targetHost = "192.168.2.11";
     deployment.targetPort = 22;
   };
 }
