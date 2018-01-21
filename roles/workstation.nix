@@ -72,6 +72,7 @@ in {
       alacritty
       google-chrome
       firefox-beta-bin
+      python36Packages.keyring
     ];
     desktopPackages = with pkgs; [
       aspell
