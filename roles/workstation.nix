@@ -14,6 +14,7 @@ in {
     ../packages/standard-linux-tools.nix
     ../roles/emacs.nix
     ../roles/openvpn-client.nix
+    ../modules/rabbitmq-broker.nix
   ];
 
   boot.supportedFilesystems = [ "exfat" ];
@@ -609,5 +610,9 @@ EndSection
       RestartSec = "2";
       StartLimitIntervalSec = "0";
     };
+  };
+
+  services.rabbitmq-broker = {
+    enable = true;
   };
 }
