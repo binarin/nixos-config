@@ -1,14 +1,11 @@
 {...}:
 {
-  time.timeZone = "Europe/Moscow";
+  time.timeZone = "Europe/Amsterdam";
   services.openssh.enable = true;
   services.openssh.permitRootLogin = "yes";
 
   nixpkgs.config.allowUnfree = true;
-  users.extraUsers.binarin = {
-    isNormalUser = true;
-    uid = 1000;
-  };
+
   services.xserver.desktopManager.kodi.enable = true;
   services.xserver.enable = true;
   services.xserver.displayManager.lightdm.enable = true;

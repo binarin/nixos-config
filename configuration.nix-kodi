@@ -10,5 +10,6 @@
     ./hardware/aspire-revo.nix
     ./partitions/unencrypted-grub.nix
     ./roles/kodi.nix
+    ./users/binarin.nix
   ];
 }

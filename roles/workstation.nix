@@ -3,7 +3,6 @@
 let
   taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
 in {
-  # powerManagement.enable = true;
   imports = [
     ../packages/nixpkgs-from-submodule.nix
     ../packages/bleeding-edge.nix
@@ -14,7 +13,10 @@ in {
     ../packages/standard-linux-tools.nix
     ../roles/emacs.nix
     ../roles/openvpn-client.nix
-    ../modules/rabbitmq-broker.nix
+    ../users/binarin.nix
+    ../nixpkgs-proposed/nixos/modules/services/networking/epmd.nix
+    ../nixpkgs-proposed/nixos/modules/services/amqp/rabbitmq.nix
+    ../packages/use-my-overlays.nix
   ];
 
   boot.supportedFilesystems = [ "exfat" ];
@@ -396,23 +398,11 @@ EndSection
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.extraUsers = {
-    binarin = {
-      description = "Alexey Lebedeff";
-      uid = 1000;
-      isNormalUser = true;
-      shell = "/run/current-system/sw/bin/zsh";
-      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" "dialout" "vboxusers" "wireshark" ];
-    };
     root = {
       shell = "/run/current-system/sw/bin/zsh";
       subUidRanges = [ { startUid = 100001; count = 65534; } ];
       subGidRanges = [ { startGid = 1001; count = 999; } ];
     };
-  };
-
-  security.sudo = {
-    enable = true;
-    wheelNeedsPassword = false;
   };
 
   networking.firewall.enable = true;
@@ -436,23 +426,9 @@ EndSection
   };
 
   # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "16.09";
+  system.stateVersion = "17.09";
 
   programs.ssh.startAgent = true;
-  programs.zsh.enable = true;
-  programs.zsh.ohMyZsh = {
-    enable = true;
-    plugins = [
-      "colored-man-pages"
-      "dirpersist"
-    ];
-    theme = "gianu";
-  };
-  programs.bash.enableCompletion = true;
-  programs.zsh.interactiveShellInit = ''
-    PATH=$PATH:${pkgs.autojump}/bin
-    . ${pkgs.autojump}/share/autojump/autojump.zsh
-  '';
 
   # ghcjs
   nix.trustedBinaryCaches = [ "https://nixcache.reflex-frp.org" ];
@@ -551,15 +527,6 @@ EndSection
     };
   };
 
-  security.pam.loginLimits = [
-    {
-      domain = "*";
-      type = "-";
-      item = "nofile";
-      value = "131072";
-    }
-  ];
-
   services.compton = {
     enable = true;
     backend = "glx";
@@ -612,7 +579,11 @@ EndSection
     };
   };
 
-  services.rabbitmq-broker = {
+  disabledModules = [ "services/amqp/rabbitmq.nix" ];
+
+  services.epmd.package = pkgs.proposed.erlangR18;
+  services.rabbitmq = {
     enable = true;
+    package = pkgs.proposed.rabbitmq_server;
   };
 }

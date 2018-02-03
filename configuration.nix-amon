@@ -17,6 +17,7 @@ in
     ./roles/server.nix
     ./modules/easyrsa.nix
     ./modules/rabbitmq-server.nix
+    ./users/binarin.nix
     # ./modules/squid.nix
   ];
 

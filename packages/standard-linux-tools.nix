@@ -80,6 +80,17 @@ in
       enable = true;
       localuser = "root";
     };
+    security.sudo = {
+      enable = true;
+      wheelNeedsPassword = false;
+    };
+    security.pam.loginLimits = [
+      {
+        domain = "*";
+        type = "-";
+        item = "nofile";
+        value = "131072";
+      }
+    ];
   };
-
 }
