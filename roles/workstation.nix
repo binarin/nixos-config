@@ -14,8 +14,6 @@ in {
     ../roles/emacs.nix
     ../roles/openvpn-client.nix
     ../users/binarin.nix
-    ../nixpkgs-proposed/nixos/modules/services/networking/epmd.nix
-    ../nixpkgs-proposed/nixos/modules/services/amqp/rabbitmq.nix
     ../packages/use-my-overlays.nix
   ];
 
@@ -577,13 +575,5 @@ EndSection
       RestartSec = "2";
       StartLimitIntervalSec = "0";
     };
-  };
-
-  disabledModules = [ "services/amqp/rabbitmq.nix" ];
-
-  services.epmd.package = pkgs.proposed.erlangR18;
-  services.rabbitmq = {
-    enable = true;
-    package = pkgs.proposed.rabbitmq_server;
   };
 }

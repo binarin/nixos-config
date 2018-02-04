@@ -18,6 +18,7 @@ in
     ./modules/easyrsa.nix
     ./modules/rabbitmq-server.nix
     ./users/binarin.nix
+    ./packages/use-my-overlays.nix
     # ./modules/squid.nix
   ];
 
@@ -32,6 +33,7 @@ in
   networking.firewall.enable = true;
   networking.firewall.allowedTCPPorts = [
     22000 # Syncthing
+    80 443
   ];
   networking.firewall.allowedUDPPorts = [
     21027 # Syncthing
@@ -178,4 +180,23 @@ in
 
   services.journald.rateLimitInterval = "30s";
   services.journald.rateLimitBurst = 7000;
+
+
+  services.nginx.enable = true;
+  services.nginx.recommendedTlsSettings = true;
+
+  users.extraGroups.acme-reader.gid = 2000;
+  users.extraUsers.nginx.extraGroups = [ "acme-reader" ];
+  security.acme.certs."amon.binarin.ru" = {
+    group = "acme-reader";
+    allowKeysForGroup = true;
+  };
+
+  services.nginx.virtualHosts."amon.binarin.ru" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/" = {
+      root = "/var/www/";
+    };
+  };
 }
