@@ -46,6 +46,11 @@ in
   '';
 
   environment.systemPackages = with pkgs; [
+    pkgs.proposed.bitcoin
+    pkgs.proposed.cpp_ethereum
+    pkgs.proposed.altcoins.litecoin
+    pkgs.proposed.altcoins.primecoin
+    pkgs.proposed.altcoins.zcash
     syncthing
     youtube-dl
     insync
@@ -199,4 +204,5 @@ in
       root = "/var/www/";
     };
   };
+
 }
