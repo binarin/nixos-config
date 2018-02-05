@@ -5,7 +5,6 @@ let
 in {
   imports = [
     ../packages/nixpkgs-from-submodule.nix
-    ../packages/bleeding-edge.nix
     ../packages/desktop-nagger.nix
     ../packages/haskell-packages.nix
     ../packages/python-packages.nix

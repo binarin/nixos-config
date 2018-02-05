@@ -117,7 +117,6 @@ let
 in
 {
   imports = [
-    ../packages/bleeding-edge.nix
   ];
   environment.systemPackages =
     [
