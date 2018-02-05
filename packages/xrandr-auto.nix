@@ -42,28 +42,28 @@
           configure)
             case "$setup" in
               work)
-                xrandr --output DP-1-1 --auto --primary
-                xrandr --output DP-1-3 --auto --left-of DP-1-1
-                xrandr --output eDP-1 --auto --right-of DP-1-1
+                xrandr --output DP-1-1 --mode 1920x1080 --primary
+                xrandr --output DP-1-3 --mode 1920x1080 --left-of DP-1-1
+                xrandr --output eDP-1 --mode 1920x1080 --right-of DP-1-1
                 xrandr --output DP-1-2 --off
                 xrandr --output HDMI-1 --off
                 ;;
               home)
-                xrandr --output eDP-1 --auto
-                xrandr --output DP-1-2 --auto --above eDP-1
-                xrandr --output DP-1-1 --auto --primary --right-of DP-1-2
+                xrandr --output eDP-1 --mode 1920x1080
+                xrandr --output DP-1-2 --mode 1920x1080 --above eDP-1
+                xrandr --output DP-1-1 --mode 1920x1080 --primary --right-of DP-1-2
                 xrandr --output DP-1-3 --off
                 xrandr --output HDMI-1 --off
                 ;;
               presentation)
-                xrandr --output eDP-1 --auto
+                xrandr --output eDP-1 --mode 1920x1080
                 xrandr --output DP-1-1 --off
                 xrandr --output DP-1-2 --off
                 xrandr --output DP-1-3 --off
-                xrandr --output HDMI-1 --auto --same-as eDP-1
+                xrandr --output HDMI-1 --mode 1920x1080 --same-as eDP-1
                 ;;
               standalone)
-                xrandr --output eDP-1 --auto
+                xrandr --output eDP-1 --mode 1920x1080
                 xrandr --output HDMI-1 --off
                 xrandr --output DP-1-1 --off
                 xrandr --output DP-1-2 --off
