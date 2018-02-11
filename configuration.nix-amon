@@ -22,6 +22,11 @@ in
     # ./modules/squid.nix
   ];
 
+  fileSystems."/media" = {
+    device = "/dev/disk/by-label/amon-media";
+    fsType = "ext4";
+  };
+
   services.fail2ban.enable = true;
 
   # services.hydra = {
@@ -43,14 +48,13 @@ in
     ip46tables -A nixos-fw -i ${vpnIface} -p tcp --dport 3128 -j nixos-fw-accept
     ip46tables -A nixos-fw -i ${vpnIface} -p tcp --dport 4242 -j nixos-fw-accept
     ip46tables -A nixos-fw -i enp3s0 -p tcp --dport 8123 -j nixos-fw-accept  # hass
+    iptables -A nixos-fw -i enp3s0 -p tcp -s 192.168.2.0/24 --dport 4000:4002 -j nixos-fw-accept # nfs server
+    iptables -A nixos-fw -i enp3s0 -p tcp -s 192.168.2.0/24 --dport 2049 -j nixos-fw-accept # nfs server
+    iptables -A nixos-fw -i enp3s0 -p udp -s 192.168.2.0/24 --dport 2049 -j nixos-fw-accept # nfs server
   '';
 
   environment.systemPackages = with pkgs; [
     pkgs.proposed.bitcoin
-    pkgs.proposed.cpp_ethereum
-    pkgs.proposed.altcoins.litecoin
-    pkgs.proposed.altcoins.primecoin
-    pkgs.proposed.altcoins.zcash
     syncthing
     youtube-dl
     insync
@@ -203,6 +207,16 @@ in
     locations."/" = {
       root = "/var/www/";
     };
+  };
+
+  services.nfs.server = {
+    enable = true;
+    exports = ''
+      /media/shared 192.168.2.7(ro,all_squash,anonuid=1000,anongid=100)
+    '';
+    lockdPort = 4001;
+    mountdPort = 4002;
+    statdPort = 4000;
   };
 
 }
