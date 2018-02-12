@@ -6,7 +6,7 @@
   };
   amon = {
     deployment.targetEnv = "none";
-    deployment.targetHost = "192.168.2.11";
+    deployment.targetHost = "amon.binarin.ru";
     deployment.targetPort = 22;
   };
 }
