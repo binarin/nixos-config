@@ -56,7 +56,7 @@ in
   '';
 
   environment.systemPackages = with pkgs; [
-    pkgs.bleeding.bitcoin
+    pkgs.bitcoin
     pkgs.bleeding.erlangR20
     syncthing
     youtube-dl
