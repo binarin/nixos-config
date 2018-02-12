@@ -200,6 +200,9 @@ in
   security.acme.certs."amon.binarin.ru" = {
     group = "acme-reader";
     allowKeysForGroup = true;
+    postRun = ''
+      chmod g+r /var/lib/acme/amon.binarin.ru/*.pem # */
+    '';
   };
 
   services.nginx.virtualHosts."amon.binarin.ru" = {
