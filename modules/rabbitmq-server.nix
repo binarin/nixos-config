@@ -28,11 +28,14 @@ in {
   config = mkIf cfg.enable {
     users.extraUsers.rabbitmq.extraGroups = [ "acme-reader" ];
 
-    services.epmd.package = pkgs.proposed.erlangR18;
+    services.epmd.package = pkgs.proposed.erlangR20;
 
     services.rabbitmq = {
       enable = true;
-      package = pkgs.proposed.rabbitmq_server;
+      package = pkgs.proposed.rabbitmq_server.override {
+        erlang = pkgs.proposed.erlangR20;
+        elixir = pkgs.proposed.beam.packages.erlangR20.elixir_1_5;
+      };
       plugins = [ "rabbitmq_management" "rabbitmq_mqtt" ];
       listenAddress = "0.0.0.0";
       configItems = {
