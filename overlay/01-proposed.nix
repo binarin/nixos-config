@@ -4,6 +4,8 @@ let nixpkgs = import ../nixpkgs-proposed {
         allowUnfree = true;
       };
     };
+    proposed = nixpkgs.pkgs;
 in {
-  proposed = nixpkgs.pkgs;
+  inherit proposed;
+  home-assistant = proposed.home-assistant;
 }

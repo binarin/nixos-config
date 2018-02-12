@@ -19,6 +19,7 @@ in
     ./modules/rabbitmq-server.nix
     ./users/binarin.nix
     ./packages/use-my-overlays.nix
+    ./roles/home-assistant.nix
     # ./modules/squid.nix
   ];
 
