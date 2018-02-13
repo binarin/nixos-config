@@ -1,5 +1,8 @@
 {pkgs, ...}:
 {
+  imports = [
+    ../nixpkgs-proposed/nixos/modules/programs/zsh/zsh-autoenv.nix
+  ];
   users.extraUsers = {
     binarin = {
       description = "Alexey Lebedeff";
@@ -10,6 +13,10 @@
     };
   };
   programs.zsh.enable = true;
+  programs.zsh.zsh-autoenv = {
+    enable = true;
+    package = pkgs.proposed.zsh-autoenv;
+  };
   programs.zsh.ohMyZsh = {
     enable = true;
     plugins = [
