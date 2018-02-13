@@ -1,0 +1,6 @@
+nixpkgs-proposed is a merge of all my currently open nixpkgs PR that I
+want to use, and rebased on top of upstream nixpkgs master. That way I
+don't need to wait for my PRs to be merged before starting to work on
+something unrelated.
+
+There should be a script for doing this rebasing.

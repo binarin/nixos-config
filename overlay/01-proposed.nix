@@ -7,5 +7,4 @@ let nixpkgs = import ../nixpkgs-proposed {
     proposed = nixpkgs.pkgs;
 in {
   inherit proposed;
-  home-assistant = proposed.home-assistant;
 }
