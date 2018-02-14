@@ -1,12 +1,14 @@
-{
+let
+  hosts = import ./personal-hosts.nix;
+in {
   kodi = {
     deployment.targetEnv = "none";
-    deployment.targetHost = "192.168.2.7";
+    deployment.targetHost = hosts.kodi.lan.ip;
     deployment.targetPort = 22;
   };
   amon = {
     deployment.targetEnv = "none";
-    deployment.targetHost = "amon.binarin.ru";
+    deployment.targetHost = hosts.amon.lan.ip;
     deployment.targetPort = 22;
   };
 }

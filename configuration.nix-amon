@@ -5,6 +5,7 @@ let
   vpnIp = "10.10.10.1";
   vpnNet = "10.10.10.0/24";
   vpnIface = "ovpn-server";
+  hosts = import ./nixops/personal-hosts.nix;
 in
 {
   networking.hostName = "amon";
@@ -219,7 +220,7 @@ in
   services.nfs.server = {
     enable = true;
     exports = ''
-      /media/shared 192.168.2.7(ro,all_squash,anonuid=1000,anongid=100)
+      /media/shared ${hosts.kodi.lan.ip}(ro,all_squash,anonuid=1000,anongid=100) ${hosts.ishamael.lan.ip}(rw,all_squash,anonuid=1000,anongid=100) ${hosts.ishamael.wifi.ip}(rw,all_squash,anonuid=1000,anongid=100)
     '';
     lockdPort = 4001;
     mountdPort = 4002;
