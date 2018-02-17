@@ -9,6 +9,7 @@
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/aspire-revo.nix
     ./partitions/unencrypted-grub.nix
+    ./packages/use-my-overlays.nix
     ./roles/kodi.nix
     ./users/binarin.nix
   ];

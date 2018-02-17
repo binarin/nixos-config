@@ -15,6 +15,7 @@
      lan = {
        mac = "90:fb:a6:2b:02:33";
        ip = "192.168.2.7";
+       iface = "enp0s10";
      };
    };
    lanfear = {
