@@ -4,7 +4,6 @@ set -x
 
 branches=(
     gh/modern-rabbitmq
-    gh/zsh-autoenv
 )
 cd /etc/nixos/nixpkgs-proposed
 git fetch upstream

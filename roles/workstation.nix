@@ -69,6 +69,7 @@ in {
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
       dosbox
+      dropbox
       alacritty
       google-chrome
       firefox-beta-bin
@@ -157,7 +158,6 @@ in {
       patchelf
     ];
     utilityPackages = with pkgs; [
-      dropbox-cli
       jekyll
       nfs-utils # for vagrant
       pdftk
