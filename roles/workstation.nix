@@ -575,4 +575,6 @@ EndSection
       StartLimitIntervalSec = "0";
     };
   };
+
+  services.tlp.enable = true;
 }
