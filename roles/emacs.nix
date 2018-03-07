@@ -85,10 +85,12 @@ let
     keyfreq
     key-seq
     kill-or-bury-alive
+    lsp-haskell
     magit
     markdown-mode
     mu4e-maildirs-extension
     nix-mode
+    origami
     org-gcal
     org-plus-contrib
     paredit
