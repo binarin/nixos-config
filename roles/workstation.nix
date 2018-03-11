@@ -180,6 +180,7 @@ in {
       gmrun
       haskellPackages.xmobar
       haskellPackages.yeganesh
+      hugo
       isyncUnstable
       quasselClient
       keychain

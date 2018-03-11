@@ -93,6 +93,7 @@ let
     origami
     org-gcal
     org-plus-contrib
+    ox-hugo
     paredit
     pdf-tools
     popup  # edts dep
