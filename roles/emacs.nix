@@ -15,6 +15,27 @@ let
       };
       org-gcal = self.melpaPackages.org-gcal;
     }));
+    ox-hugo = self.callPackage ({ emacs, fetchFromGitHub, fetchurl, lib, melpaBuild, org }:
+      melpaBuild {
+          pname = "ox-hugo";
+          version = "20180211.2258";
+          src = fetchFromGitHub {
+            owner = "kaushalmodi";
+            repo = "ox-hugo";
+            rev = "a8ae44e692f30fa7d0c76c21ad2dd6ebf65da700";
+            sha256 = "0856n634k43ingr7smcwvjjzd9h96mvh0d767q7qcg6h2f5lmgg7";
+          };
+          recipeFile = fetchurl {
+            url = "https://raw.githubusercontent.com/milkypostman/melpa/1e1240bb7b5bb8773f804b987901566a20e3e8a9/recipes/ox-hugo";
+            sha256 = "1niarxj2y4a14lrv2nqcc36msw7k61h8fbjpcdrfbaw3n0kchd40";
+            name = "ox-hugo";
+          };
+          packageRequires = [ emacs org ];
+          meta = {
+            homepage = "https://melpa.org/#/ox-hugo";
+            license = lib.licenses.free;
+          };
+        }) {};
     shm = (self.callPackage ({ fetchFromGitHub, fetchurl, lib, melpaBuild }:
       melpaBuild {
           pname = "shm";

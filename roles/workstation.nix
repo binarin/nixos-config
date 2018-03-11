@@ -70,6 +70,8 @@ in {
     bleedingEdgePackages = with pkgs.bleeding; [
       dosbox
       dropbox
+      hugo
+      lessc
       alacritty
       google-chrome
       firefox-beta-bin
@@ -180,7 +182,6 @@ in {
       gmrun
       haskellPackages.xmobar
       haskellPackages.yeganesh
-      hugo
       isyncUnstable
       quasselClient
       keychain
