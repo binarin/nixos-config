@@ -84,6 +84,7 @@ let
     erlang
     evil
     f
+    firestarter
     fsm
     geiser
     general
@@ -106,6 +107,7 @@ let
     keyfreq
     key-seq
     kill-or-bury-alive
+    less-css-mode
     lsp-haskell
     magit
     markdown-mode
