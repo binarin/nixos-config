@@ -10,6 +10,7 @@
     ./hardware/aspire-revo.nix
     ./partitions/unencrypted-grub.nix
     ./packages/use-my-overlays.nix
+    ./packages/standard-linux-tools.nix
     ./roles/kodi.nix
     ./users/binarin.nix
   ];

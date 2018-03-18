@@ -33,8 +33,12 @@ in {
     script = pkgs.writeScript "turn-tv-on" ''
       #!${pkgs.bash}/bin/bash
       ${pkgs.coreutils}/bin/stty -F /dev/ttyUSB0 9600
-      (echo "ka 01 01"; sleep 1) > /dev/ttyUSB0
-      (echo "xb 01 92"; sleep 1) > /dev/ttyUSB0
+      sleep 2
+      echo -ne "ka 01 01\r\n" > /dev/ttyUSB0
+      sleep 10
+      echo -ne "xb 01 92\r\n" > /dev/ttyUSB0
+      sleep 10
+      echo -ne "xb 01 92\r\n" > /dev/ttyUSB0
     '';
   in {
     description = "Turns on LG TV (fuck you NVidia for absent HDMI CEC support)";
