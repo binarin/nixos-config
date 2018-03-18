@@ -76,6 +76,7 @@ in {
       google-chrome
       firefox-beta-bin
       python36Packages.keyring
+      androidenv.platformTools
     ];
     desktopPackages = with pkgs; [
       aspell
@@ -83,6 +84,7 @@ in {
       aspellDicts.en
       audacious
       binarin-xrandr-auto
+      calibre
       chromium
       desktop-nagger
       dia
@@ -102,6 +104,7 @@ in {
       libnotify
       lightdm # for dm-tool
       lightlocker
+      mcomix
       mpc_cli
       mplayer
       networkmanagerapplet
