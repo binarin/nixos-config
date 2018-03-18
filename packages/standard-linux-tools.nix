@@ -35,6 +35,7 @@ in
       iftop
       inotify-tools
       iotop
+      ipcalc
       iptables
       jq
       libosinfo # osinfo-query
@@ -72,6 +73,7 @@ in
       wget
       which
       whois
+      wol
       cfg.wireshark-package
       zip
       zsh
