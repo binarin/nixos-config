@@ -22,9 +22,9 @@ in
       dpkg
       elinks
       file
-      pkgs.bleeding.fzf # fzf-share is only here yet
+      fzf
       gdb
-      pkgs.bleeding.gitAndTools.diff-so-fancy # broken in 17.03 as of 2017-08-22
+      gitAndTools.diff-so-fancy
       gitAndTools.gitFull
       gnum4
       gnumake

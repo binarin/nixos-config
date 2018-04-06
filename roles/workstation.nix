@@ -46,8 +46,9 @@ in {
 
   networking.interfaces = {
     lxc0 = {
-      ipAddress = "10.10.30.1";
-      prefixLength = 24;
+      ipv4.addresses = [
+        { address = "10.10.30.1"; prefixLength = 24; }
+      ];
     };
   };
 
@@ -136,12 +137,11 @@ in {
       automake
       checkbashism
       electron
-      pkgs.bleeding.elixir_1_5
+      elixir_1_5
       erlangR19
       fakeroot
       gcc
       git-review
-      go_1_7
       libvirt # for `vagrant plugin install vagrant-libvirt`
       libxslt # xsltproc - for building rabbitmq
       mysql
@@ -295,7 +295,7 @@ in {
   };
 
   hardware.opengl = let
-    custom-mesa = pkgs.bleeding.mesa_noglu.override {
+    custom-mesa = pkgs.mesa_noglu.override {
       enableTextureFloats = true;
     };
   in {
@@ -304,7 +304,7 @@ in {
     package = pkgs.buildEnv {
       name = "opengl-hack";
       # NOTE: Forces open source S2TC rather than S3TC
-      paths = [ custom-mesa custom-mesa.drivers pkgs.bleeding.libtxc_dxtn_s2tc ];
+      paths = [ custom-mesa custom-mesa.drivers pkgs.libtxc_dxtn_s2tc ];
     };
   };
 
@@ -428,7 +428,7 @@ EndSection
   };
 
   # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "17.09";
+  system.stateVersion = "18.03";
 
   programs.ssh.startAgent = true;
 
@@ -533,7 +533,7 @@ EndSection
     enable = true;
     backend = "glx";
     vSync = "opengl-swc";
-    package = pkgs.bleeding.compton-git;
+    package = pkgs.compton-git;
   };
 
   services.udev = let

@@ -22,13 +22,11 @@ dependent-sum
 directory
 distributive
 doctest
-doctest-discover
 errors
 extra
 fast-logger
 file-embed
 filepath
-# ghc-mod
 GLFW-b
 hakyll
 hashable
@@ -36,8 +34,6 @@ HaXml
 hnix
 hspec
 hspec-expectations-pretty-diff
-# http-streams
-# io-streams
 JuicyPixels
 lens
 linear
@@ -59,7 +55,6 @@ process
 QuickCheck
 quickcheck-instances
 raw-strings-qq
-# reflex
 regex-compat
 safe-exceptions
 selda

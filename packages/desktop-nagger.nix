@@ -4,8 +4,8 @@ let
   src = pkgs.fetchFromGitHub {
     owner = "binarin";
     repo = "desktop-nagger";
-    rev = "067098ae71acf8fe8d694f8d1fdad56f7668b05a";
-    sha256 = "055qr8lla2j3255s13dkjlm5yrpl2hzdd28s9g0l05qpi258v1z8";
+    rev = "d80a2d438f6960e9973ca9808619213b3d9e6e3b";
+    sha256 = "06w29vf4szv44f1zv3plp3cvwgndhklr1kzdhvhvdn4b44bd7zgc";
   };
   desktop-nagger = pkgs.callPackage src {};
 in

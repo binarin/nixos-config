@@ -58,7 +58,7 @@ in
 
   environment.systemPackages = with pkgs; [
     bitcoin
-    bleeding.erlangR20
+    erlangR20
     syncthing
     yandex-disk
     youtube-dl

@@ -1,7 +1,6 @@
 {pkgs, ...}:
 {
   imports = [
-    ../nixpkgs-master/nixos/modules/programs/zsh/zsh-autoenv.nix
   ];
   users.extraUsers = {
     binarin = {
@@ -15,7 +14,7 @@
   programs.zsh.enable = true;
   programs.zsh.zsh-autoenv = {
     enable = true;
-    package = pkgs.bleeding.zsh-autoenv;
+    package = pkgs.zsh-autoenv;
   };
   programs.zsh.ohMyZsh = {
     enable = true;

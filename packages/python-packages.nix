@@ -16,7 +16,7 @@ let
   };
   python = pkgs.python27.override {inherit packageOverrides; };
   packagesToInstall = ps: with ps; [
-    QSTK
+    # QSTK
     ipython
     jupyter
   ];
