@@ -25,6 +25,7 @@ in
       fzf
       gdb
       gitAndTools.diff-so-fancy
+      gitAndTools.git-annex
       gitAndTools.gitFull
       gnum4
       gnumake
