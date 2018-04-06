@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ../nixpkgs-proposed/nixos/modules/services/misc/home-assistant.nix
   ];
   environment.systemPackages = [
   ];
