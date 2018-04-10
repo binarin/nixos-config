@@ -582,4 +582,13 @@ EndSection
   };
 
   services.tlp.enable = true;
+  services.bitlbee = {
+    enable = true;
+    authMode = "Closed";
+    plugins = [ pkgs.bitlbee-facebook ];
+    extraSettings = ''
+      AuthPassword = md5:CiSC/UbtoWs9zOUxB6H7HBRc+Lwn
+      OperPassword = md5:CiSC/UbtoWs9zOUxB6H7HBRc+Lwn
+    '';
+  };
 }
