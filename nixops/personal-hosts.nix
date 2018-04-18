@@ -52,4 +52,11 @@
        ip = "192.168.2.15";
      };
    };
+   epson = {
+     description = "epson MFD";
+     wlan = {
+       ip = "192.168.2.16";
+       mac = "64:eb:8c:91:b2:2f";
+     };
+   };
 }
