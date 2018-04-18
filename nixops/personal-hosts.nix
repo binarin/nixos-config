@@ -59,4 +59,11 @@
        mac = "64:eb:8c:91:b2:2f";
      };
    };
+   dir632 = {
+     description = "D-Link DIR-632 router";
+     wlan = {
+       ip = "192.168.2.17";
+       mac = "00:11:22:33:44:55";
+     };
+   };
 }
