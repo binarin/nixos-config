@@ -227,4 +227,7 @@ in
     statdPort = 4000;
   };
 
+  services.printing.enable = true;
+  services.printing.drivers = [ pkgs.hplip pkgs.postscript-lexmark pkgs.epson-escpr ];
+
 }
