@@ -8,7 +8,7 @@ in {
   };
   amon = {
     deployment.targetEnv = "none";
-    deployment.targetHost = hosts.amon.lan.ip;
+    deployment.targetHost = "amon.binarin.ru"; # hosts.amon.lan.ip;
     deployment.targetPort = 22;
   };
 }
