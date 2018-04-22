@@ -1,0 +1,32 @@
+commit 16229da9a93fb010f31ebaf659ade7b672999c19
+Author: Alexey Lebedeff <binarin@binarin.ru>
+Date:   Sun Apr 22 09:19:00 2018 +0200
+
+    Prevent failure from uninitialized modules
+    
+    This can be seen e.g. when outdoor module is not connected. In that
+    case API returns a stub data for that module, that contains neither
+    'module_name' nor 'dashboard_data'.
+
+diff --git a/smart_home/WeatherStation.py b/smart_home/WeatherStation.py
+index 74e61fe..2e7ea0a 100644
+--- a/smart_home/WeatherStation.py
++++ b/smart_home/WeatherStation.py
+@@ -27,6 +27,8 @@ class WeatherStationData:
+         self.modules = dict()
+         for i in range(len(self.rawData)):
+             for m in self.rawData[i]['modules']:
++                if 'module_name' not in m:
++                    continue
+                 self.modules[ m['_id'] ] = m
+                 self.modules[ m['_id'] ][ 'main_device' ] = self.rawData[i]['_id']
+         self.default_station = list(self.stations.values())[0]['station_name']
+@@ -106,6 +108,8 @@ class WeatherStationData:
+             lastD[s['module_name']]['When'] = lastD[s['module_name']].pop("time_utc")
+             lastD[s['module_name']]['wifi_status'] = s['wifi_status']
+         for module in s["modules"]:
++            if 'dashboard_data' not in module:
++                continue
+             ds = module['dashboard_data']
+             if ds['time_utc'] > limit :
+                 lastD[module['module_name']] = ds.copy()

@@ -3,101 +3,63 @@
 with lib;
 
 let
-  hassConfig = {
-    homeassistant = {
-      name = "Meer en Vaart";
-      latitude = "52.379189";
-      longitude = "4.899431";
-      elevation = "0";
-      unit_system = "metric";
-      time_zone = "Europe/Amsterdam";
+  keyringsAlt = ps: ps.buildPythonPackage {
+    pname = "keyrings.alt";
+    version = "2.3";
+    src = pkgs.fetchurl { url = "https://files.pythonhosted.org/packages/90/2d/4425b56231a1bbd8dc5bb6549d4558920abfe1dea97eaf9dc92845d7438d/keyrings.alt-2.3.tar.gz"; sha256 = "5cb9b6cdb5ce5e8216533e342d3e1b418ddd210466834061966d7dc1a4736f2d"; };
+    doCheck = false;
+    propagatedBuildInputs = with ps; [
+      keyring six setuptools_scm
+    ];
+  };
+  lnetatmo = ps: ps.buildPythonPackage {
+    pname = "lnetatmo";
+    version = "0.9.2.1";
+    src = pkgs.fetchurl {
+      url = https://github.com/jabesq/netatmo-api-python/archive/v0.9.2.1.zip;
+      sha256 = "10vf3szl9x09d3fbxfpsjac5i295nmhgc0g044rp9gp653i3b581";
     };
-    recorder = {
-      db_url = "sqlite:////var/lib/hass/hass.sqlite3";
-    };
-    frontend = {
-    };
-    config = {
-    };
-    http = {
-      api_password = "$(cat /run/keys/hass-http-password)";
-    };
-    updater = {
-    };
-    discovery = {
-    };
-    conversation = {
-    };
-    history = {
-    };
-    logbook = {
-    };
-    map = {
-    };
-    sun = {
-    };
-    sensor = {
-      platform = "yr";
-    };
-    tts = {
-      platform = "google";
-    };
-    cloud = {
-    };
-    mqtt = {
-      broker = "127.0.0.1";
-      username = "led-strip-1";
-      password = "$(cat /run/keys/hass-mqtt-password)";
-    };
-    logger = {
-      default = "debug";
+    patches = [
+      ./hass-lnetatmo.patch
+    ];
+    meta = with pkgs.stdenv.lib; {
+      homepage = "https://github.com/philippelt/netatmo-api-python";
+      license = "GPL V3";
+      description = "Simple API to access Netatmo weather station data from any python script.";
     };
   };
-  keyDeps = [ "hass-http-password-key.service" "hass-mqtt-password-key.service" ];
-  availableComponents = pkgs.home-assistant.availableComponents;
-
-  useComponentPlatform = component:
-    let
-      path = splitString "." component;
-      parentConfig = attrByPath (init path) null hassConfig;
-      platform = last path;
-    in isList parentConfig && any
-      (item: item.platform or null == platform)
-      parentConfig;
-
-  # Returns whether component is used in config
-  useComponent = component:
-    hasAttrByPath (splitString "." component) hassConfig
-    || useComponentPlatform component;
-
-  # List of components used in config
-  extraComponents = filter useComponent availableComponents;
+  hassPackage = pkgs.home-assistant.override {
+    extraPackages = ps: with ps; [
+      xmltodict paho-mqtt netdisco (lnetatmo ps) (keyringsAlt ps) jsonrpc-async jsonrpc-websocket
+    ];
+  };
 in {
-
-  systemd.services.hass-config-renderer = {
-    after = keyDeps;
-    wants = keyDeps;
-    wantedBy = [ "home-assistant.service" ];
-    serviceConfig = {
-      Type = "oneshot";
-    };
-    script = ''
-      #!${pkgs.bash}/bin/bash
-      CONFIG=${config.services.home-assistant.configDir}/configuration.yaml
-      rm -f $CONFIG
-      cat <<EOF > $CONFIG
-      ${builtins.toJSON hassConfig}
-      EOF
-      chown hass:hass $CONFIG
-      chmod 0400 $CONFIG
-    '';
-  };
-
   services.home-assistant = {
     enable = true;
-    package = pkgs.home-assistant.override {
-      inherit extraComponents;
-      extraPackages = ps: with ps; [ xmltodict ];
-    };
+    package = hassPackage;
   };
+  users.extraUsers.hass.extraGroups = [ "keys" ];
+  systemd.services.home-assistant.preStart = ''
+    KEYS=(
+      hass_http_password
+      hass_mqtt_password
+      hass_kodi_password
+      hass_netatmo_api_key
+      hass_netatmo_secret_key
+      hass_netatmo_username
+      hass_netatmo_password
+    )
+
+    for key in "''${KEYS[@]}"; do
+      if [[ -f /run/keys/$key ]]; then
+          cat /run/keys/$key | ${hassPackage}/bin/hass --script keyring set $key
+      fi
+    done
+
+    ln -sf ${./home-assistant/configuration.yaml} /var/lib/hass/configuration.yaml
+    ln -sf ${./home-assistant/customize.yaml} /var/lib/hass/customize.yaml
+    ln -sf ${./home-assistant/groups.yaml} /var/lib/hass/groups.yaml
+    ln -sf ${./home-assistant/automations.yaml} /var/lib/hass/automations.yaml
+    ln -sf ${./home-assistant/scripts.yaml} /var/lib/hass/scripts.yaml
+  '';
 }
