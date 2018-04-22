@@ -163,6 +163,7 @@ in {
       patchelf
     ];
     utilityPackages = with pkgs; [
+      gopass
       jekyll
       nfs-utils # for vagrant
       pdftk
