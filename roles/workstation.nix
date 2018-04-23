@@ -91,6 +91,7 @@ in {
       icoutils
       imagemagickBig
       innoextract # for GOG games
+      insync
       geeqie
       gimp-with-plugins
       gitg
