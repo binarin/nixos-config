@@ -69,17 +69,9 @@ in {
 
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
-      dosbox
-      dropbox
-      hugo
-      lessc
-      alacritty
-      google-chrome
-      firefox-beta-bin
-      python36Packages.keyring
-      androidenv.platformTools
     ];
     desktopPackages = with pkgs; [
+      alacritty
       aspell
       aspellDicts.ru
       aspellDicts.en
@@ -89,10 +81,12 @@ in {
       chromium
       desktop-nagger
       dia
+      dropbox
       dunst
       ebook_tools
       electrum
       evince
+      firefox-beta-bin
       icewm # something to run in Xephyr
       icoutils
       imagemagickBig
@@ -101,6 +95,7 @@ in {
       gimp-with-plugins
       gitg
       glxinfo
+      google-chrome
       keepass
       libnotify
       lightdm # for dm-tool
@@ -130,6 +125,7 @@ in {
       yandex-disk
     ];
     developmentPackages = with pkgs; [
+      androidenv.platformTools
       ant
       apitrace
       arduino
@@ -142,6 +138,8 @@ in {
       fakeroot
       gcc
       git-review
+      hugo
+      lessc
       libvirt # for `vagrant plugin install vagrant-libvirt`
       libxslt # xsltproc - for building rabbitmq
       mysql
