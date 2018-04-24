@@ -20,6 +20,9 @@
     consoleKeyMap = "dvp";
     defaultLocale = "ru_RU.UTF-8";
   };
+  nixpkgs.config = {
+    allowUnfree = true;
+  };
   services.xserver = {
     desktopManager.plasma5.enable = true;
     enable = true;
