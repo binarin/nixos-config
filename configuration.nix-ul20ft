@@ -13,7 +13,6 @@
   ];
 
   networking.networkmanager.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
 
   # Select internationalisation properties.
   i18n = {
@@ -22,6 +21,7 @@
     defaultLocale = "ru_RU.UTF-8";
   };
   services.xserver = {
+    desktopManager.plasma5.enable = true;
     enable = true;
     layout = "us,ru";
     xkbVariant = "dvp,";
