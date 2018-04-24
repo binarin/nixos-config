@@ -66,4 +66,11 @@
       mac = "00:11:22:33:44:55";
     };
   };
+  ul20ft = {
+    description = "Old laptop";
+    wlan = {
+      ip = "192.168.2.18";
+      mac = "74:f0:6d:92:3b:cf";
+    };
+  };
 }

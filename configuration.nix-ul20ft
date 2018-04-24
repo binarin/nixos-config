@@ -1,0 +1,15 @@
+# -*- nix -*-
+{ config, lib, pkgs, ... }:
+
+{
+  networking.hostName = "ul20ft";
+  networking.hostId = "8c86d01c";
+
+  imports = [
+    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
+    ./hardware/intel.nix
+    ./hardware/laptop.nix
+    ./partitions/laptop-crypt-grub.nix
+    ./roles/workstation.nix
+  ];
+}
