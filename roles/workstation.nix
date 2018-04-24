@@ -385,7 +385,7 @@ EndSection
 
     displayManager = {
       lightdm = {
-	enable = true;
+	      enable = true;
       };
     };
   };

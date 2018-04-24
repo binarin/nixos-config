@@ -10,6 +10,28 @@
     ./hardware/intel.nix
     ./hardware/laptop.nix
     ./partitions/laptop-crypt-grub.nix
-    ./roles/workstation.nix
   ];
+
+  networking.networkmanager.enable = true;
+  services.xserver.desktopManager.plasma5.enable = true;
+
+  # Select internationalisation properties.
+  i18n = {
+    consoleFont = "UniCyr_8x16";
+    consoleKeyMap = "dvp";
+    defaultLocale = "ru_RU.UTF-8";
+  };
+  services.xserver = {
+    enable = true;
+    layout = "us,ru";
+    xkbVariant = "dvp,";
+    xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,ctrl:ralt_rctrl";
+    synaptics = {
+      enable = true;
+      twoFingerScroll = true;
+      tapButtons = true;
+      fingersMap = [0 0 0];
+      buttonsMap = [0 0 0];
+    };
+  };
 }
