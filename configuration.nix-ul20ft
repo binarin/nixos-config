@@ -12,8 +12,6 @@
     ./partitions/laptop-crypt-grub.nix
   ];
 
-  networking.networkmanager.enable = true;
-
   # Select internationalisation properties.
   i18n = {
     consoleFont = "UniCyr_8x16";
@@ -37,4 +35,10 @@
       buttonsMap = [0 0 0];
     };
   };
+  boot.blacklistedKernelModules = [
+    "ath" "ath9k" "mac80211" "bluetooth" "atl1c"
+  ];
+  environment.systemPackages = with pkgs; [
+    electrum
+  ];
 }
