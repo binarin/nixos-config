@@ -111,11 +111,12 @@ in {
       slack
       stack
       stalonetray
+      steam
       taffybarWithPackages
       torbrowser
       tdesktop
       viber
-      # wineFull
+      wineFull
       workrave
       xdg-user-dirs
       xdotool
@@ -311,6 +312,7 @@ in {
   hardware.pulseaudio = {
     enable = true;
     package = pkgs.pulseaudioFull;
+    support32Bit = true;
   };
 
   # List services that you want to enable:
@@ -409,6 +411,8 @@ EndSection
 
   networking.firewall.enable = true;
   networking.firewall.checkReversePath = false; # I want my DHCP for VM's
+  networking.firewall.allowedTCPPorts = [27036 27037];
+  networking.firewall.allowedUDPPorts = [27031 27036];
 
   virtualisation = {
     lxc.enable = true;
