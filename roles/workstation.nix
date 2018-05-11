@@ -69,6 +69,7 @@ in {
 
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      gitAndTools.git-annex
     ];
     desktopPackages = with pkgs; [
       alacritty
@@ -107,6 +108,8 @@ in {
       networkmanagerapplet
       oblogout
       playerctl
+      psi
+      qt4 # for qtconfig
       shutter
       slack
       stack
@@ -144,6 +147,7 @@ in {
       lessc
       libvirt # for `vagrant plugin install vagrant-libvirt`
       libxslt # xsltproc - for building rabbitmq
+      lsyncd
       mysql
       nodejs
       ncurses
