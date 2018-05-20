@@ -194,12 +194,12 @@ in {
       quasselClient
       keychain
       libreoffice
+      light-locker
       mu
       pavucontrol
       skype
       wmctrl
       xclip
-      xscreensaver
       xsel
     ];
   in otherPackages ++
