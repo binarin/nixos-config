@@ -194,7 +194,7 @@ in {
       quasselClient
       keychain
       libreoffice
-      light-locker
+      lightlocker
       mu
       pavucontrol
       skype
