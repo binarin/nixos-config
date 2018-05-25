@@ -138,8 +138,8 @@ in {
       automake
       checkbashism
       electron
-      elixir_1_5
-      erlangR19
+      elixir_1_6
+      erlangR20
       fakeroot
       gcc
       git-review
@@ -190,6 +190,7 @@ in {
       gmrun
       haskellPackages.xmobar
       haskellPackages.yeganesh
+      hsetroot
       isyncUnstable
       quasselClient
       keychain
