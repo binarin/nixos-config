@@ -54,11 +54,13 @@ let
     kill-or-bury-alive
     less-css-mode
     lsp-haskell
+    lsp-ui
     magit
     markdown-mode
     mu4e-maildirs-extension
     nix-mode
     origami
+    org-brain
     org-gcal
     org-plus-contrib
     ox-hugo
