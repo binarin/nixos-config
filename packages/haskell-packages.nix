@@ -8,6 +8,8 @@ let haskellOverrides = libProf: self: super:
        enableLibraryProfiling = libProf;
        enableExecutableProfiling = false;
      });
+    simple-effects = dontCheck super.simple-effects;
+    simple-logging = dontCheck super.simple-logging;
    };
 in {
   options = {};

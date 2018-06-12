@@ -27,13 +27,16 @@ extra
 fast-logger
 file-embed
 filepath
+gitlib
 GLFW-b
 hakyll
 hashable
 HaXml
+hlibgit2
 hnix
 hspec
 hspec-expectations-pretty-diff
+hssqlppp
 JuicyPixels
 lens
 linear
@@ -47,11 +50,14 @@ opaleye
 OpenGLRaw
 optparse-applicative
 optparse-text
+overload
 pandoc
 pcre-heavy
 prettyprinter
 prettyprinter-ansi-terminal
+pretty-show
 process
+process-extras
 QuickCheck
 quickcheck-instances
 raw-strings-qq
@@ -59,6 +65,8 @@ regex-compat
 safe-exceptions
 selda
 selda-sqlite
+simple-effects
+simple-logging
 sqlite-simple
 stm
 structured-haskell-mode
@@ -81,4 +89,5 @@ wreq
 X11
 xmonad
 xmonad-contrib
+zlib
 ]
