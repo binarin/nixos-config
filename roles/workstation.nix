@@ -124,7 +124,6 @@ in {
       xdg-user-dirs
       xdotool
       xlsfonts
-      xorg.xbacklight
       xorg.xdpyinfo
       xorg.xev
       yandex-disk
@@ -440,6 +439,7 @@ EndSection
   system.stateVersion = "18.03";
 
   programs.ssh.startAgent = true;
+  programs.light.enable = true;
 
   # ghcjs
   nix.binaryCaches = [ "https://cache.nixos.org/" "https://nixcache.reflex-frp.org" ];
