@@ -429,7 +429,7 @@ EndSection
     # '';
 
     docker.enable = true;
-    docker.storageDriver = "devicemapper";
+    docker.storageDriver = "overlay2";
 
     libvirtd.enable = true;
   };
