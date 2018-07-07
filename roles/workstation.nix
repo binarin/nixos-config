@@ -122,7 +122,7 @@ in {
       torbrowser
       tdesktop
       viber
-      wineFull
+      # wineFull
       workrave
       xdg-user-dirs
       xdotool
