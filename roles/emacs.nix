@@ -41,6 +41,7 @@ let
     helpful
     highlight-parentheses
     htmlize
+    hydra
     hyperbole
     impatient-mode
     indium
