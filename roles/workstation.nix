@@ -35,21 +35,24 @@ in {
   '';
 
   networking.nat.enable = true;
-  networking.nat.internalInterfaces = ["lxc0" "virbr0"];
+  networking.nat.internalInterfaces = [
+    # "lxc0"
+    "virbr0"
+  ];
   networking.nat.externalInterface = "wlp2s0";
 
   networking.bridges = {
-    lxc0 = {
-      interfaces = [];
-    };
+    # lxc0 = {
+    #   interfaces = [];
+    # };
   };
 
   networking.interfaces = {
-    lxc0 = {
-      ipv4.addresses = [
-        { address = "10.10.30.1"; prefixLength = 24; }
-      ];
-    };
+    # lxc0 = {
+    #   ipv4.addresses = [
+    #     { address = "10.10.30.1"; prefixLength = 24; }
+    #   ];
+    # };
   };
 
   # Select internationalisation properties.
@@ -419,11 +422,11 @@ EndSection
   networking.firewall.allowedUDPPorts = [27031 27036];
 
   virtualisation = {
-    lxc.enable = true;
-    lxc.defaultConfig = ''
-      lxc.network.type = veth
-      lcx.network.link = lxc0
-    '';
+    # lxc.enable = true;
+    # lxc.defaultConfig = ''
+    #   lxc.network.type = veth
+    #   lxc.network.link = lxc0
+    # '';
 
     docker.enable = true;
     docker.storageDriver = "devicemapper";
