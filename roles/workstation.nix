@@ -489,6 +489,31 @@ EndSection
     };
   };
 
+
+  systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
+
+  # systemd.services.udev-monitor = {
+  #   description="udev Monitoring";
+  #   wantedBy=["sysinit.target"];
+  #   after=["systemd-udevd-control.socket" "systemd-udevd-kernel.socket"];
+  #   before=["sysinit.target" "systemd-udev-trigger.service" "systemd-udev-settle.service"];
+  #   unitConfig = {
+  #     DefaultDependencies = false;
+  #   };
+  #   wants=["systemd-udevd.service"];
+  #   serviceConfig = {
+  #     Type = "simple";
+  #     ExecStart=''${pkgs.bash}/bin/bash -c "${pkgs.systemd}/bin/udevadm monitor --udev --env --kernel > /udev_monitor.log"'';
+  #   };
+  # };
+
+  # boot.extraKernelParams = [
+  #   "systemd.log_level=debug"
+  #   "systemd.log_target=kmsg"
+  #   "udev.log-priority=debug"
+  #   "log_buf_len=8M"
+  # ];
+
   systemd.services."binarin-org-sync" = let
     script = pkgs.writeScript "binarin-org-sync" ''
       #!${pkgs.bash}/bin/bash
