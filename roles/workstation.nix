@@ -610,7 +610,7 @@ EndSection
         set -x
         ${pkgs.binarin-xrandr-auto}/bin/xrandr-auto get-primary
         primary=$?
-        exec taffybar $primary
+        exec ${taffybarWithPackages}/bin/taffybar $primary
       '';
       Restart = "always";
       RestartSec = "2";
