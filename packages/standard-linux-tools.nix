@@ -3,6 +3,9 @@ let
   cfg = config.standard-linux-tools;
 in
 {
+  imports = [
+    ../modules/tmux.nix
+  ];
   options = {
     standard-linux-tools = {
       wireshark-package = lib.mkOption {
@@ -66,7 +69,6 @@ in
       tcpdump
       telnet
       tiptop
-      tmux
       unrar
       unzip
       usbutils
