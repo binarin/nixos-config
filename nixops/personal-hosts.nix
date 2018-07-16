@@ -25,11 +25,15 @@
       ip = "192.168.2.4";
     };
   };
-  amon = {
+  amon = rec {
     description = "HP Proliant MicroServer";
     lan = {
       mac = "3c:d9:2b:0c:1d:e0";
       ip = "192.168.2.11";
+    };
+    deployTarget = {
+      default = "amon.binarin.ru";
+      home = lan.ip;
     };
   };
   h315 = {

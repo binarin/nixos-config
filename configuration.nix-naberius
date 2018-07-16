@@ -1,0 +1,22 @@
+# -*- nix -*-
+{ config, pkgs, ... }:
+{
+  networking.hostName = "naberius";
+  networking.hostId = "c9d7882d";
+
+  imports = [
+    ./roles/server.nix
+    ./users/binarin.nix
+    ./packages/use-my-overlays.nix
+  ];
+
+  services.gitlab = {
+    enable = true;
+    databasePassword = "ident auth is used";
+    secrets = {
+      secret = "what's this?";
+      otp = "i'm still testing";
+    };
+  };
+
+}

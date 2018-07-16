@@ -21,6 +21,7 @@ in {
   nix.extraOptions = ''
     gc-keep-outputs = true
     gc-keep-derivations = true
+    plugin-files = ${pkgs.nix-plugins_4.override { nix = config.nix.package; }}/lib/nix/plugins/libnix-extra-builtins.so
   '';
 
   boot.kernel.sysctl."vm.swappiness" = 1;

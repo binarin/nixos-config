@@ -5,6 +5,11 @@
        ../configuration.nix-kodi
      ];
   };
+  naberius = {config, lib, pkgs, ...}: {
+     imports = [
+       ../configuration.nix-naberius
+     ];
+  };
   amon = {config, lib, pkgs, ...}: {
     imports = [
       ../configuration.nix-amon
