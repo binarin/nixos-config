@@ -8,15 +8,102 @@
     ./roles/server.nix
     ./users/binarin.nix
     ./packages/use-my-overlays.nix
+    ./roles/gitlab.nix
+    ./nixpkgs-master/nixos/modules/services/continuous-integration/gitlab-runner.nix
   ];
+
+  networking.firewall.allowedTCPPorts = [80 443];
+
+  disabledModules = [ "services/misc/gitlab.nix" "services/continuous-integration/gitlab-runner.nix" ];
+
+  systemd.services.gitlab = rec {
+    after = [
+      "gitlab-database-password-key.service"
+      "gitlab-db-key-base-key.service"
+      "gitlab-otp-key-base-key.service"
+      "gitlab-secret-key-base-key.service"
+    ];
+    wants = after;
+  };
 
   services.gitlab = {
     enable = true;
-    databasePassword = "ident auth is used";
+    host = "gitlab.binarin.ru";
+    port = 443;
+    https = true;
+    smtp = {
+      enable = true;
+      port = 25;
+      domain = "gitlab.binarin.ru";
+    };
+    packages = {
+      inherit (pkgs.bleeding) gitlab gitlab-shell gitlab-workhorse gitaly;
+    };
+    databasePasswordFile = "/run/keys/gitlab-database-password";
     secrets = {
-      secret = "what's this?";
-      otp = "i'm still testing";
+      secretFile = "/run/keys/gitlab-secret-key-base";
+      otpFile = "/run/keys/gitlab-otp-key-base";
+      dbFile  = "/run/keys/gitlab-db-key-base";
+      jws  = "still to do";
     };
   };
 
+  # services.postfix.enable = false;
+
+  services.postgresql = {
+    enable = true;
+  };
+
+  services.nginx.enable = true;
+  services.nginx.recommendedTlsSettings = true;
+  services.nginx.recommendedProxySettings = true;
+
+  services.nginx.upstreams.gitlab-workhorse.servers = {
+    "unix:/run/gitlab/gitlab-workhorse.socket" = {};
+  };
+
+  services.nginx.virtualHosts.gitlab = {
+    serverName = "gitlab.binarin.ru";
+    forceSSL = true;
+    enableACME = true;
+
+    locations."/" = {
+      # proxyWebSockets = true;
+      proxyPass = "http://gitlab-workhorse";
+      extraConfig = ''
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+      '';
+    };
+
+  };
+
+  systemd.services.gitlab-runner = rec {
+    after = [
+      "gitlab-naberius-runner-token.service"
+    ];
+    wants = after;
+    preStart = ''
+      mkdir -p /run/gitlab-runner
+      chmod 0700 /run/gitlab-runner
+      cat <<EOF > /run/gitlab-runner/config.toml
+      [[runners]]
+        name = "naberius"
+        url = "https://gitlab.binarin.ru/"
+        token = "$(cat /run/keys/gitlab-naberius-runner-token)"
+        limit = 2
+        executor = "shell"
+        builds_dir = ""
+        shell = "bash"
+      EOF
+    '';
+  };
+
+  services.gitlab-runner = {
+    enable = true;
+    configFile = "/run/gitlab-runner/config.toml";
+    package = pkgs.bleeding.gitlab-runner;
+    packages = [ config.system.path ];
+  };
 }

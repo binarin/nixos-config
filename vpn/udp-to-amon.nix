@@ -1,5 +1,4 @@
 {config, pkgs, ...}:
-pkgs.lib.mkIf (builtins.pathExists "/root/.openvpn/${config.networking.hostName}-to-amon-udp-server.key")
 {
   config = ''
     client

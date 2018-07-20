@@ -14,14 +14,17 @@ let
   pathUrlQuote = url: replaceStrings ["/"] ["%2F"] url;
   pgSuperUser = config.services.postgresql.superUser;
 
-  databaseYml = ''
+  databaseYmlRender = pkgs.writeScript "render-database-yml" ''
+    #!${pkgs.bash}/bin/bash
+    cat <<EOF
     production:
       adapter: postgresql
       database: ${cfg.databaseName}
       host: ${cfg.databaseHost}
-      password: ${cfg.databasePassword}
+      password: $(cat ${cfg.databasePasswordFile})
       username: ${cfg.databaseUsername}
       encoding: utf8
+    EOF
   '';
 
   gitalyToml = pkgs.writeText "gitaly.toml" ''
@@ -66,12 +69,15 @@ let
       url: redis://localhost:6379/
   '';
 
-  secretsYml = ''
+  secretsYmlRender = pkgs.writeScript "render-secrets-yml" ''
+    #!${pkgs.bash}/bin/bash
+    cat <<EOF
     production:
-      secret_key_base: ${cfg.secrets.secret}
-      otp_key_base: ${cfg.secrets.otp}
-      db_key_base: ${cfg.secrets.db}
+      secret_key_base: $(cat ${cfg.secrets.secretFile})
+      otp_key_base: $(cat ${cfg.secrets.otpFile})
+      db_key_base: $(cat ${cfg.secrets.dbFile})
       openid_connect_signing_key: ${builtins.toJSON cfg.secrets.jws}
+    EOF
   '';
 
   gitlabConfig = {
@@ -244,9 +250,9 @@ in {
         description = "Gitlab database hostname.";
       };
 
-      databasePassword = mkOption {
+      databasePasswordFile = mkOption {
         type = types.str;
-        description = "Gitlab database user password.";
+        description = "File to read Gitlab database user password from.";
       };
 
       databaseName = mkOption {
@@ -366,7 +372,7 @@ in {
         };
       };
 
-      secrets.secret = mkOption {
+      secrets.secretFile = mkOption {
         type = types.str;
         description = ''
           The secret is used to encrypt variables in the DB. If
@@ -378,7 +384,7 @@ in {
         '';
       };
 
-      secrets.db = mkOption {
+      secrets.dbFile = mkOption {
         type = types.str;
         description = ''
           The secret is used to encrypt variables in the DB. If
@@ -390,7 +396,7 @@ in {
         '';
       };
 
-      secrets.otp = mkOption {
+      secrets.otpFile = mkOption {
         type = types.str;
         description = ''
           The secret is used to encrypt secrets for OTP tokens. If
@@ -547,8 +553,10 @@ in {
         nodejs
         procps
         gnupg
+        coreutils
       ];
       preStart = ''
+        set -x
         mkdir -p ${cfg.backupPath}
         mkdir -p ${cfg.statePath}/builds
         mkdir -p ${cfg.statePath}/repositories
@@ -567,6 +575,13 @@ in {
         ${pkgs.openssl}/bin/openssl rand -hex 32 > ${cfg.statePath}/config/gitlab_shell_secret
 
         mkdir -p /run/gitlab
+
+        # This fixes a broken link from gitlab inside a nix
+        # store. It's important because there is a migration that tries to
+        # create a subdirectory, but fails as it can't do anything
+        # with that broken link.
+        mkdir -p /run/gitlab/uploads
+
         mkdir -p ${cfg.statePath}/log
         ln -sf ${cfg.statePath}/log /run/gitlab/log
         ln -sf ${cfg.statePath}/tmp /run/gitlab/tmp
@@ -584,14 +599,19 @@ in {
           ln -sf ${smtpSettings} ${cfg.statePath}/config/initializers/smtp_settings.rb
         ''}
         ln -sf ${cfg.statePath}/config /run/gitlab/config
-        rm ${cfg.statePath}/lib
-        ln -sf ${pkgs.gitlab}/share/gitlab/lib ${cfg.statePath}/lib
+        rm -rf ${cfg.statePath}/lib
+        ln -sf ${cfg.packages.gitlab}/share/gitlab/lib ${cfg.statePath}/lib
         cp ${cfg.packages.gitlab}/share/gitlab/VERSION ${cfg.statePath}/VERSION
 
         # JSON is a subset of YAML
         ln -fs ${pkgs.writeText "gitlab.yml" (builtins.toJSON gitlabConfig)} ${cfg.statePath}/config/gitlab.yml
-        ln -fs ${pkgs.writeText "database.yml" databaseYml} ${cfg.statePath}/config/database.yml
-        ln -fs ${pkgs.writeText "secrets.yml" secretsYml} ${cfg.statePath}/config/secrets.yml
+
+        rm -f ${cfg.statePath}/config/database.yml
+        ${databaseYmlRender} > ${cfg.statePath}/config/database.yml
+
+        rm -f ${cfg.statePath}/config/secrets.yml
+        ${secretsYmlRender} > ${cfg.statePath}/config/secrets.yml
+
         ln -fs ${pkgs.writeText "unicorn.rb" unicornConfig} ${cfg.statePath}/config/unicorn.rb
 
         chown -R ${cfg.user}:${cfg.group} ${cfg.statePath}/
@@ -604,7 +624,7 @@ in {
 
         if [ "${cfg.databaseHost}" = "127.0.0.1" ]; then
           if ! test -e "${cfg.statePath}/db-created"; then
-            ${pkgs.sudo}/bin/sudo -u ${pgSuperUser} psql postgres -c "CREATE ROLE ${cfg.databaseUsername} WITH LOGIN NOCREATEDB NOCREATEROLE ENCRYPTED PASSWORD '${cfg.databasePassword}'"
+            ${pkgs.sudo}/bin/sudo -u ${pgSuperUser} psql postgres -c "CREATE ROLE ${cfg.databaseUsername} WITH LOGIN NOCREATEDB NOCREATEROLE ENCRYPTED PASSWORD '$(cat ${cfg.databasePasswordFile})'"
             ${pkgs.sudo}/bin/sudo -u ${pgSuperUser} ${config.services.postgresql.package}/bin/createdb --owner ${cfg.databaseUsername} ${cfg.databaseName}
             touch "${cfg.statePath}/db-created"
           fi
@@ -653,5 +673,5 @@ in {
     };
 
   };
-  meta.doc = ./gitlab.xml;
+  # meta.doc = ./gitlab.xml;
 }

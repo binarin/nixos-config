@@ -14,7 +14,23 @@ in {
     ../roles/openvpn-client.nix
     ../users/binarin.nix
     ../packages/use-my-overlays.nix
+
+    ../nixpkgs-proposed/nixos/modules/services/networking/epmd.nix
+    ../nixpkgs-proposed/nixos/modules/services/amqp/rabbitmq.nix
   ];
+
+  disabledModules = [ "services/amqp/rabbitmq.nix" ];
+  services.epmd = {
+    package = pkgs.proposed.erlang_nox;
+  };
+  services.rabbitmq = {
+    enable = true;
+    package = pkgs.proposed.rabbitmq-server.override {
+      elixir = pkgs.proposed.elixir_1_6;
+      erlang = pkgs.proposed.erlang_nox;
+    };
+    plugins = [ "rabbitmq_management" "rabbitmq_mqtt" ];
+  };
 
   boot.supportedFilesystems = [ "exfat" ];
   nix.useSandbox = true;

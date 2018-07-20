@@ -77,4 +77,13 @@
       mac = "74:f0:6d:92:3b:cf";
     };
   };
+  balthamel = {
+    description = "e7270 workstation";
+    known-as = {
+      amon-ovpn = "10.10.10.18";
+    };
+  };
+  naberius = {
+    description = "hetzner host";
+  };
 }

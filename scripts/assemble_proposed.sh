@@ -3,8 +3,11 @@ set -euo pipefail
 set -x
 
 branches=(
-    gh/modern-rabbitmq
+    gh/epmd-systemd-mine
+    gh/procps-systemd-mine
+    gh/modern-rabbitmq-mine
 )
+
 cd /etc/nixos/nixpkgs-proposed
 git fetch upstream
 git fetch gh

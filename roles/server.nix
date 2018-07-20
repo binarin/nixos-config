@@ -3,7 +3,7 @@
   imports = [
     ../packages/standard-linux-tools.nix
     ../packages/nixpkgs-from-submodule.nix
-    ../modules/outgoing-email.nix
+    # ../modules/outgoing-email.nix
   ];
 
   time.timeZone = "Europe/Amsterdam";

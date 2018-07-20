@@ -6,6 +6,13 @@ let
     # then hosts."$host".deployTarget."$weAreAt"
     # else
 in {
+  balthamel = {
+    deployment.targetEnv = "none";
+    deployment.targetHost = if builtins.extraBuiltins.hostname == "balthamel"
+                            then "localhost"
+                            else hosts.balthamel.known-as.amon-ovpn;
+    deployment.targetPort = 22;
+  };
   kodi = {
     deployment.targetEnv = "none";
     deployment.targetHost = hosts.kodi.lan.ip;
