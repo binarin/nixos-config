@@ -14,29 +14,39 @@ in
   imports = [
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/hp-microserver.nix
-    ./partitions/unencrypted-grub-with-separate-boot-4-hdd.nix
     ./roles/server.nix
     ./modules/easyrsa.nix
-    ./modules/rabbitmq-server.nix
     ./users/binarin.nix
     ./packages/use-my-overlays.nix
     ./roles/emacs.nix
     ./roles/home-assistant.nix
-    # ./modules/squid.nix
   ];
 
-  fileSystems."/media" = {
-    device = "/dev/disk/by-label/amon-media";
-    fsType = "ext4";
-  };
+  boot.loader.grub.enable = true;
+  boot.loader.grub.version = 2;
+  boot.loader.grub.devices = [ "/dev/sda" "/dev/sdb" "/dev/sdc" "/dev/sdd" ];
+
+  boot.supportedFilesystems = [ "zfs" ];
+
+  services.zfs.autoScrub.enable = true;
+
+  fileSystems."/" =
+    { device = "tank/root/nixos";
+      fsType = "zfs";
+    };
+
+  # 16k record size, for bit-torrent
+  fileSystems."/media" =
+    { device = "tank/root/media";
+      fsType = "zfs";
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-label/boot";
+      fsType = "ext4";
+    };
 
   services.fail2ban.enable = true;
-
-  # services.hydra = {
-  #   enable = true;
-  #   hydraURL = "http://127.0.0.1:3000/";
-  #   notificationSender = "hydra@amon.binarin.ru";
-  # };
 
   networking.firewall.enable = true;
   networking.firewall.allowedTCPPorts = [
@@ -63,6 +73,9 @@ in
     yandex-disk
     youtube-dl
     insync
+    gptfdisk
+    hdparm
+    smartmontools
   ];
 
   services.openvpn-easyrsa.servers.test = {
@@ -229,5 +242,4 @@ in
 
   services.printing.enable = true;
   services.printing.drivers = [ pkgs.hplip pkgs.postscript-lexmark pkgs.epson-escpr ];
-
 }
