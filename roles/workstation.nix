@@ -14,7 +14,6 @@ in {
     ../roles/openvpn-client.nix
     ../users/binarin.nix
     ../packages/use-my-overlays.nix
-
     ../nixpkgs-proposed/nixos/modules/services/networking/epmd.nix
     ../nixpkgs-proposed/nixos/modules/services/amqp/rabbitmq.nix
   ];
@@ -645,4 +644,5 @@ EndSection
       OperPassword = md5:CiSC/UbtoWs9zOUxB6H7HBRc+Lwn
     '';
   };
+
 }

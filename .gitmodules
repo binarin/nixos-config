@@ -10,3 +10,6 @@
 [submodule "nixpkgs-proposed"]
 	path = nixpkgs-proposed
 	url = https://github.com/binarin/nixpkgs
+[submodule "home-manager"]
+	path = home-manager
+	url = https://github.com/rycee/home-manager
