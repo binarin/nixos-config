@@ -133,6 +133,8 @@ in
     enable = true;
     proxyPort = 3128;
     configText = ''
+      dns_nameservers 1.1.1.1
+
       http_port ${vpnIp}:3128
       # Example rule allowing access from your local networks.
       # Adapt to list your (internal) IP networks from where browsing
@@ -242,4 +244,15 @@ in
 
   services.printing.enable = true;
   services.printing.drivers = [ pkgs.hplip pkgs.postscript-lexmark pkgs.epson-escpr ];
+
+  services.transmission = {
+    enable = true;
+    settings = {
+      download-dir = "/media/shared/";
+      incomplete-dir = "/media/incomplete-torrents/";
+      incomplete-dir-enabled = true;
+      rpc-whitelist = "127.0.0.1,192.168.*.*,10.10.10.*";
+    };
+  };
+
 }
