@@ -235,7 +235,7 @@ in
   services.nfs.server = {
     enable = true;
     exports = ''
-      /media/shared ${hosts.kodi.lan.ip}(ro,all_squash,anonuid=1000,anongid=100) ${hosts.ishamael.lan.ip}(rw,all_squash,anonuid=1000,anongid=100) ${hosts.ishamael.wifi.ip}(rw,all_squash,anonuid=1000,anongid=100) ${hosts.rpi3.lan.ip}(rw,all_squash,anonuid=1000,anongid=100) ${hosts.rpi3.wlan.ip}(rw,all_squash,anonuid=1000,anongid=100)
+      /media/shared ${hosts.kodi.lan.ip}(ro,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.ishamael.lan.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.ishamael.wifi.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.rpi3.lan.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.rpi3.wlan.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission})
     '';
     lockdPort = 4001;
     mountdPort = 4002;
