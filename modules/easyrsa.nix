@@ -133,7 +133,7 @@ let
         ifconfig-pool-persist = ipp name;
         client-config-dir = "${client-config-dir name cfg}/ccd";
       };
-      configValues = defaultConfig // cfg.config // sslOpts // otherOpts;
+      configValues = defaultConfig // { proto = "${cfg.proto}-server"; } // cfg.config // sslOpts // otherOpts;
       configFile = writeText "openvpn-easyrsa-${name}.config" (renderConfig configValues);
     in {
       description = "OpenVPN/easyrsa server instance '${name}'";
