@@ -10,11 +10,11 @@
 
     <connection>
       remote naberius.binarin.ru 8443 tcp
+      http-proxy ${builtins.replaceStrings ["baz" "lol" "inc" "queen"] ["boo" "web" "corp" "king"] "lolproxy.corp.bazqueen.com"} 3128
     </connection>
 
     <connection>
-      remote binarin.ru 8443 tcp
-      http-proxy ${builtins.replaceStrings ["baz" "lol" "inc" "queen"] ["boo" "web" "corp" "king"] "lolproxy.corp.bazqueen.com"} 3128
+      remote naberius.binarin.ru 8443 tcp
     </connection>
 
     resolv-retry infinite
