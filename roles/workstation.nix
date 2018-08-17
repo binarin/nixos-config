@@ -369,10 +369,19 @@ EndSection
 
 Section "InputClass"
 	Identifier "CirqueTouchpad2"
-        MatchUSBID "0488:0280"
+  MatchUSBID "0488:0280"
 	Option "SwapAxes" "True"
 	Option "Emulate3Buttons" "True"
 	Option "InvertY" "True"
+EndSection
+
+Section "InputClass"
+  Identifier "Yubikey"
+  MatchUSBID "1050:0403"
+  Option "XkbModel" "pc104"
+  Option "XkbLayout" "us"
+  Option "XkbOptions" ""
+  Option "XkbVariant" ""
 EndSection
 
 # Section "Device"
