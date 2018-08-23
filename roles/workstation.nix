@@ -95,6 +95,7 @@ in {
       aspell
       aspellDicts.ru
       aspellDicts.en
+      aspellDicts.nl
       audacious
       binarin-xrandr-auto
       calibre
