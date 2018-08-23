@@ -385,6 +385,18 @@ Section "InputClass"
   Option "XkbVariant" ""
 EndSection
 
+Section "InputClass"
+    Identifier      "Marble Mouse"
+    MatchUSBID      "046d:c408"
+    Option          "SendCoreEvents" "true"
+    Option "Buttons"            "9"
+    Option "ButtonMapping"      "1 8 3 4 5 6 7 2 9"
+    Option "EmulateWheel"       "true"
+    Option "EmulateWheelButton" "9"
+    Option "YAxisMapping"       "4 5"
+    Option "XAxisMapping"       "6 7"
+EndSection
+
 # Section "Device"
 #         Identifier  "Intel Graphics"
 #         Driver      "intel"
