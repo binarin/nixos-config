@@ -53,9 +53,9 @@
                 xrandr --output HDMI-1 --off
                 ;;
               home)
-                xrandr --output eDP-1 --mode 1920x1080
-                xrandr --output DP-1-2 --mode 1920x1080 --above eDP-1
-                xrandr --output DP-1-1 --mode 1920x1080 --primary --right-of DP-1-2
+                xrandr --output DP-1-1 --mode 1920x1080 --primary
+                xrandr --output DP-1-2 --mode 1920x1080 --left-of DP-1-1
+                xrandr --output eDP-1 --mode 1920x1080 --right-of DP-1-1
                 xrandr --output DP-1-3 --off
                 xrandr --output HDMI-1 --off
                 ;;
@@ -84,7 +84,7 @@
                   exit 1
                   ;;
                 home)
-                  exit 2
+                  exit 1
                   ;;
                 presentation)
                   exit 0
