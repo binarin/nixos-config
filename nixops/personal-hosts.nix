@@ -77,6 +77,11 @@
       mac = "74:f0:6d:92:3b:cf";
     };
   };
+  unify-cloud-key = {
+    lan = {
+      ip = "192.168.2.19";
+    };
+  };
   balthamel = {
     description = "e7270 workstation";
     known-as = {
@@ -89,5 +94,10 @@
   };
   naberius = {
     description = "hetzner host";
+  };
+  philips-hue-bridge = {
+    lan = {
+      ip = "192.168.2.20";
+    };
   };
 }
