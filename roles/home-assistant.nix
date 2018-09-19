@@ -28,7 +28,7 @@ let
       description = "Simple API to access Netatmo weather station data from any python script.";
     };
   };
-  hassPackage = pkgs.home-assistant.override {
+  hassPackage = pkgs.bleeding.home-assistant.override {
     extraPackages = ps: with ps; [
       xmltodict paho-mqtt netdisco (lnetatmo ps) (keyringsAlt ps) jsonrpc-async jsonrpc-websocket
     ];
