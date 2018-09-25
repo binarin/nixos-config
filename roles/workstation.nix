@@ -11,6 +11,7 @@ in {
     ../packages/xrandr-auto.nix
     ../packages/standard-linux-tools.nix
     ../roles/emacs.nix
+    ../roles/nixops.nix
     ../roles/openvpn-client.nix
     ../users/binarin.nix
     ../packages/use-my-overlays.nix
@@ -36,7 +37,6 @@ in {
   nix.extraOptions = ''
     gc-keep-outputs = true
     gc-keep-derivations = true
-    plugin-files = ${pkgs.nix-plugins_4.override { nix = config.nix.package; }}/lib/nix/plugins/libnix-extra-builtins.so
   '';
 
   boot.kernel.sysctl."vm.swappiness" = 1;
@@ -182,7 +182,6 @@ in {
     ];
     nixDevPackages = with pkgs; [
       nix-repl
-      nixops
       patchelf
     ];
     utilityPackages = with pkgs; [
