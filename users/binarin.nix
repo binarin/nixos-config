@@ -9,7 +9,7 @@
       uid = 1000;
       isNormalUser = true;
       shell = "/run/current-system/sw/bin/zsh";
-      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" "dialout" "vboxusers" "wireshark" ];
+      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" "dialout" "vboxusers" "wireshark" "transmission" ];
     };
   };
   programs.zsh.enable = true;
@@ -72,4 +72,5 @@
       "xscreensaver.dpmsQuickOff" = true;
     };
   };
+  nix.trustedUsers = [ "binarin" ];
 }

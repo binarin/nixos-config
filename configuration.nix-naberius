@@ -7,6 +7,7 @@
   imports = [
     ./roles/server.nix
     ./roles/nixops.nix
+    ./roles/binary-cache.nix
     ./users/binarin.nix
     ./packages/use-my-overlays.nix
     ./roles/gitlab.nix

@@ -82,6 +82,10 @@
     known-as = {
       amon-ovpn = "10.10.10.18";
     };
+    sshKeys = {
+      binarin = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQClOg+Rcj3dcGZRWzsGJ+KLlW8oQUaXZ6zXdAc8VZotzRj2agj9klYPmTiCXgfKHsPTFBosJntzLoneEMDHNE1RU2/3q7dkcytOea1kE25g0NNv9n6ZwWQMjHRDeyEhsd6BJn1a+Kx9jPWEGX+FZd2hAxph+0tU8M6m9NdkHz2xtT4+/XTjtRCNaZ6t59RdOX5mCxyl/911jq+kBb5QZot6pz9UybPPVfLvIsqMvzNUX+N871XsdiaLegKyGEyBiWW4ni5vHTj7cE1n/ykJlqUrUzvcu6A1acE05tcgK8WBfY+sOseFG5Sse87uICAmaO3fPV5Esi0bPG1b4kn+0MuT balthamel (booking ws), nixos - 2017-09-28";
+      root = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJLK34Ge9j6oabaCk9cuGyGk8oZvbN9t0tXuoaKEzo39f6n2Sef4Na8hT9pFrcDR34esmc5byh6uqAuZIzwjyh3+OQe6TDbzjHEYGnMBjXSKaEKxRna8BFroc0saYG8/KHyc0A6kTEF72LJ0iDcYxqrzVO1TzFpgaB4vVNUu2GiWoYHqUWA2DcOQBcyBiyjRRThXRs28ISN+lAoexQzAL20KnvJ5GmJ9anelOmIdfHxitcdmu/goxFjml6CgYoFtIY4Oo711rWErXmjmFuHIDiu0M+ufLZtj/dl153qMi9BGLY9HH3LHkd7FZjGWIwA2TLdKO+L6Ra8AVePIe3G4KL 20180926 - balthamel (root)";
+    };
   };
   naberius = {
     description = "hetzner host";

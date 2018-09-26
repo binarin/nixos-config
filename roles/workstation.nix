@@ -39,6 +39,18 @@ in {
     gc-keep-derivations = true
   '';
 
+  nix.distributedBuilds = true;
+  nix.buildMachines = [
+    {
+      hostName = "naberius.binarin.ru";
+      sshUser = "binarin";
+      sshKey = "/root/.ssh/id_rsa";
+      system = "x86_64-linux";
+      maxJobs = 4;
+      supportedFeatures = [ "kvm" ];
+    }
+  ];
+
   boot.kernel.sysctl."vm.swappiness" = 1;
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
@@ -481,8 +493,12 @@ EndSection
   programs.ssh.startAgent = true;
   programs.light.enable = true;
 
-  # ghcjs
-  nix.binaryCaches = [ "https://cache.nixos.org/" "https://nixcache.reflex-frp.org" ];
+  nix.binaryCaches = [
+    "ssh://nix-ssh@naberius.binarin.ru"
+    "https://cache.nixos.org"
+    "https://nixcache.reflex-frp.org"
+  ];
+
   nix.binaryCachePublicKeys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
 
   systemd.services."binarin-auto-commit-wip" = let
