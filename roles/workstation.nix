@@ -212,7 +212,6 @@ in {
     otherPackages = with pkgs; [
       youtube-dl
       gnuplot
-      conkeror
       gnome3.dconf
       gnome3.dconf-editor
       dmenu
