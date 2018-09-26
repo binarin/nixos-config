@@ -30,6 +30,10 @@
       gitlab-naberius-runner-token = {
         text = builtins.extraBuiltins.pass "deploy/gitlab/naberius_runner_token";
       };
+      nix-store-secret = {
+        text = builtins.extraBuiltins.pass "deploy/naberius-nix-store/secret";
+        path = "/root/.nix-store-signing-key";
+      };
     };
   };
   amon = {config, lib, pkgs, ...}: {

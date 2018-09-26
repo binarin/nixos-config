@@ -493,12 +493,15 @@ EndSection
   programs.light.enable = true;
 
   nix.binaryCaches = [
-    "ssh://nix-ssh@naberius.binarin.ru"
+    # "ssh://nix-ssh@naberius.binarin.ru"
     "https://cache.nixos.org"
     "https://nixcache.reflex-frp.org"
   ];
 
-  nix.binaryCachePublicKeys = [ "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=" ];
+  nix.binaryCachePublicKeys = [
+    "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+    "naberius.binarin.ru-1:HeueNAbXuNomZp4xJL+ITAmJpSNYl/newnqoI85aUyc="
+  ];
 
   systemd.services."binarin-auto-commit-wip" = let
     script = pkgs.writeScript "binarin-auto-commit-wip" ''
