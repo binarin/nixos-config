@@ -11,6 +11,7 @@
     ./hardware/laptop.nix
     ./partitions/ishamael-crypt.nix
 
+    ./modules/force-my-version.nix
     ./roles/workstation.nix
     ./roles/bluetooth.nix
     ./roles/openvpn-client.nix

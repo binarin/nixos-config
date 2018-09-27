@@ -9,6 +9,7 @@
     ./roles/nixops.nix
     ./roles/binary-cache.nix
     ./users/binarin.nix
+    ./modules/force-my-version.nix
     ./packages/use-my-overlays.nix
     ./roles/gitlab.nix
     ./nixpkgs-master/nixos/modules/services/continuous-integration/gitlab-runner.nix

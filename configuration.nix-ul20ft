@@ -7,6 +7,7 @@
 
   imports = [
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
+    ./modules/force-my-version.nix
     ./hardware/intel.nix
     ./hardware/laptop.nix
     ./partitions/laptop-crypt-grub.nix
