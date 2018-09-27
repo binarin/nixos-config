@@ -5,6 +5,8 @@
   networking.hostName = "balthamel";
   networking.hostId = "d4a5542e";
 
+  system.nixos.revision = "master";
+
   imports = [
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/intel.nix
