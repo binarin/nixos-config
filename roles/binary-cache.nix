@@ -8,8 +8,10 @@ in {
 
   services.nix-serve = {
     enable = true;
-    secretKeyFile = "/root/.nix-store-signing-key";
+    secretKeyFile = "/var/lib/nix-serve/nix-store-secret";
   };
+
+  users.users.nix-serve.extraGroups = [ "keys" ];
 
   networking.firewall.allowedTCPPorts = [5000];
 }

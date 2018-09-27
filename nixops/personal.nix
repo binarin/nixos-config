@@ -32,7 +32,8 @@
       };
       nix-store-secret = {
         text = builtins.extraBuiltins.pass "deploy/naberius-nix-store/secret";
-        path = "/root/.nix-store-signing-key";
+        destDir = "/var/lib/nix-serve";
+        user = "nix-serve";
       };
     };
   };
