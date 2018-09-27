@@ -493,7 +493,7 @@ EndSection
   programs.light.enable = true;
 
   nix.binaryCaches = [
-    # "ssh://nix-ssh@naberius.binarin.ru"
+    "http://naberius.binarin.ru:5000"
     "https://cache.nixos.org"
     "https://nixcache.reflex-frp.org"
   ];
