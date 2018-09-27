@@ -5,14 +5,13 @@
   networking.hostName = "balthamel";
   networking.hostId = "d4a5542e";
 
-  system.nixos.revision = "master";
-
   imports = [
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/intel.nix
     ./hardware/laptop.nix
     ./partitions/laptop-crypt.nix
 
+    ./modules/force-my-version.nix
     ./roles/workstation.nix
     ./roles/bluetooth.nix
     ./roles/openvpn-client.nix
