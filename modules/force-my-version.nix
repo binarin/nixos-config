@@ -11,5 +11,5 @@ let
   gitCommitId  = lib.substring 0 7 (lib.commitIdFromGitRepo gitRepo);
 in {
   system.nixos.versionSuffix = "-binarin-${gitCommitId}";
-  system.nixos.label = "-binarin-${gitCommitId}";
+  system.nixos.label = "binarin-${gitCommitId}";
 }
