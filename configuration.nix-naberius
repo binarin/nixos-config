@@ -1,5 +1,5 @@
 # -*- nix -*-
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 {
   networking.hostName = "naberius";
   networking.hostId = "c9d7882d";
@@ -15,6 +15,13 @@
     ./nixpkgs-master/nixos/modules/services/continuous-integration/gitlab-runner.nix
     ./modules/easyrsa.nix
   ];
+
+  # This are here only for standalone evaluation in CI, nixops will provide proper values for them later
+  fileSystems."/" = lib.mkDefault {
+    device = "/dev/mapper/sysvg-root";
+    fsType = "ext4";
+  };
+  boot.loader.grub.devices = lib.mkDefault [ "/dev/sda" "/dev/sdb" ];
 
   networking.firewall.allowedTCPPorts = [80 443];
 
