@@ -16,13 +16,6 @@
     ./modules/easyrsa.nix
   ];
 
-  # This are here only for standalone evaluation in CI, nixops will provide proper values for them later
-  fileSystems."/" = lib.mkDefault {
-    device = "/dev/mapper/sysvg-root";
-    fsType = "ext4";
-  };
-  boot.loader.grub.devices = lib.mkDefault [ "/dev/sda" "/dev/sdb" ];
-
   networking.firewall.allowedTCPPorts = [80 443];
 
   disabledModules = [ "services/misc/gitlab.nix" "services/continuous-integration/gitlab-runner.nix" ];
@@ -191,4 +184,16 @@
     internalInterfaces = ["ovpn-server-tcp"];
     externalInterface = "eth0";
   };
+} // lib.optionalAttrs ((builtins.getEnv "CI_JOB_NAME") != "") {
+  fileSystems."/" = {
+    device = "/dev/mapper/sysvg-root";
+    fsType = "ext4";
+  };
+
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-label/boot";
+    fsType = "ext2";
+  };
+
+  boot.loader.grub.devices = [ "/dev/sda" "/dev/sdb" ];
 }
