@@ -1,3 +1,7 @@
+stages:
+  - build
+  - deploy
+
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
@@ -20,3 +24,10 @@ naberius:
 
 kodi:
   extends: .build-system
+
+deploy-amon:
+  stage: deploy
+  only:
+    - master
+  script:
+    - nixops create cd-amon.nix cd-amon-deployment.nix -d cd-amon  -I nixpkgs=$(pwd)/nixpkgs -I nixos-config=$(pwd)/configuration.nix-$CI_JOB_NAME -I nixpkgs-overlays=$(pwd)/overlay

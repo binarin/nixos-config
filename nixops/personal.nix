@@ -11,9 +11,9 @@
      ];
   };
   naberius = {config, lib, pkgs, ...}: {
-     imports = [
-       ../configuration.nix-naberius
-     ];
+    imports = [
+      ../configuration.nix-naberius
+    ];
     deployment.keys = {
       gitlab-database-password = {
         text = builtins.extraBuiltins.pass "deploy/gitlab/database-password";
