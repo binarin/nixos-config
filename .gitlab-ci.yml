@@ -30,4 +30,5 @@ deploy-amon:
   only:
     - master
   script:
-    - nixops create cd-amon.nix cd-amon-deployment.nix -d cd-amon  -I nixpkgs=$(pwd)/nixpkgs -I nixos-config=$(pwd)/configuration.nix-$CI_JOB_NAME -I nixpkgs-overlays=$(pwd)/overlay
+    - nixops create ./nixops/cd-amon.nix ./nixops/cd-amon-deployment.nix -d cd-amon  -I nixpkgs=$(pwd)/nixpkgs -I nixos-config=$(pwd)/configuration.nix-$CI_JOB_NAME -I nixpkgs-overlays=$(pwd)/overlay || nixops modify ./nixops/cd-amon.nix ./nixops/cd-amon-deployment.nix -d cd-amon  -I nixpkgs=$(pwd)/nixpkgs -I nixos-config=$(pwd)/configuration.nix-$CI_JOB_NAME -I nixpkgs-overlays=$(pwd)/overlay
+    - nixops deploy -d cd-amon --option extra-builtins-file $(pwd)/nixops/extra-builtins.nix
