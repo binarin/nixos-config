@@ -595,32 +595,6 @@ EndSection
     };
   };
 
-  systemd.services."binarin-mail-sync" = let
-    script = pkgs.writeScript "binarin-mail-sync" ''
-      #!${pkgs.bash}/bin/bash
-      set -euo pipefail
-      if [[ ! -f $HOME/.work-offline ]]; then
-        mbsync -a
-      fi
-    '';
-  in {
-    description = "Sync my e-mails to local storage";
-    path = [ pkgs.isyncUnstable ];
-    serviceConfig = {
-      Type = "oneshot";
-      User = "binarin";
-      ExecStart = script;
-    };
-  };
-  systemd.timers."binarin-mail-sync" = {
-    description = "Periodically syncs mail to local storage";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnBootSec = "10min";
-      OnUnitActiveSec = "10min";
-    };
-  };
-
   services.compton = {
     enable = true;
     backend = "glx";
