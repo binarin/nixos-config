@@ -100,6 +100,7 @@
         executor = "shell"
         builds_dir = ""
         shell = "bash"
+        output_limit = 40960
       EOF
     '';
   };
