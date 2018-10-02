@@ -3,25 +3,23 @@
 with lib;
 
 let
-  lnetatmo = ps: ps.buildPythonPackage {
-    pname = "lnetatmo";
-    version = "0.9.2.1";
+
+  pyatmo = ps: ps.buildPythonPackage {
+    pname = "pyatmo";
+    version = "1.2.1";
     src = pkgs.fetchurl {
-      url = https://github.com/jabesq/netatmo-api-python/archive/v0.9.2.1.zip;
-      sha256 = "10vf3szl9x09d3fbxfpsjac5i295nmhgc0g044rp9gp653i3b581";
+      url = https://files.pythonhosted.org/packages/77/66/e1c9e95ae60ed31cdbec6c9d889eb37da175d736aedda449ef4743471528/pyatmo-1.2.1.tar.gz;
+      sha256 = "0wwprngw88w7bjccik34bii5c5m5xpw4bg9qyxa5xkx194rlm78k";
     };
-    patches = [
-      ./hass-lnetatmo.patch
-    ];
     meta = with pkgs.stdenv.lib; {
-      homepage = "https://github.com/philippelt/netatmo-api-python";
-      license = "GPL V3";
+      homepage = "https://pypi.org/project/pyatmo/";
+      license = "MIT";
       description = "Simple API to access Netatmo weather station data from any python script.";
     };
   };
   hassPackage = pkgs.bleeding.home-assistant.override {
     extraPackages = ps: with ps; [
-      xmltodict paho-mqtt netdisco (lnetatmo ps) keyring keyrings-alt jsonrpc-async jsonrpc-websocket
+      xmltodict paho-mqtt netdisco (pyatmo ps) keyring keyrings-alt jsonrpc-async jsonrpc-websocket
     ];
   };
 in {
