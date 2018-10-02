@@ -15,6 +15,7 @@ in
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/hp-microserver.nix
     ./modules/force-my-version.nix
+    ./modules/rabbitmq-server.nix
     ./roles/server.nix
     ./users/binarin.nix
     ./packages/use-my-overlays.nix

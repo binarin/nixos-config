@@ -19,8 +19,8 @@ in {
   };
 
   imports = [
-    ../nixpkgs-proposed/nixos/modules/services/networking/epmd.nix
-    ../nixpkgs-proposed/nixos/modules/services/amqp/rabbitmq.nix
+    ../nixpkgs-master/nixos/modules/services/networking/epmd.nix
+    ../nixpkgs-master/nixos/modules/services/amqp/rabbitmq.nix
   ];
 
   disabledModules = [ "services/amqp/rabbitmq.nix" ];
@@ -28,14 +28,11 @@ in {
   config = mkIf cfg.enable {
     users.extraUsers.rabbitmq.extraGroups = [ "acme-reader" ];
 
-    services.epmd.package = pkgs.proposed.erlangR20;
+    services.epmd.package = pkgs.bleeding.erlangR20;
 
     services.rabbitmq = {
       enable = true;
-      package = pkgs.proposed.rabbitmq_server.override {
-        erlang = pkgs.proposed.erlangR20;
-        elixir = pkgs.proposed.beam.packages.erlangR20.elixir_1_5;
-      };
+      package = pkgs.bleeding.rabbitmq-server;
       plugins = [ "rabbitmq_management" "rabbitmq_mqtt" ];
       listenAddress = "0.0.0.0";
       configItems = {
