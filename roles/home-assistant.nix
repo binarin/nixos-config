@@ -60,7 +60,6 @@ in {
 
   services.nginx.virtualHosts."amon.binarin.ru".locations."/hass" = {
     proxyPass = "http://hass-backend";
-    proxyWebSockets = true;
     extraConfig = ''
       proxy_http_version 1.1;
       proxy_set_header Upgrade $http_upgrade;
