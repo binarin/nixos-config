@@ -55,7 +55,7 @@ in {
   '';
 
   services.nginx.upstreams.hass-backend.servers = {
-    "http://127.0.0.1:8123" = {};
+    "127.0.0.1:8123" = {};
   };
 
   services.nginx.virtualHosts."amon.binarin.ru".locations."/hass" = {
