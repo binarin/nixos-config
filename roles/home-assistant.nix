@@ -52,16 +52,38 @@ in {
     ln -sf ${./home-assistant/scripts.yaml} /var/lib/hass/scripts.yaml
   '';
 
-  services.nginx.upstreams.hass-backend.servers = {
-    "127.0.0.1:8123" = {};
+  services.nginx.virtualHosts."hass.binarin.ru" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/" = {
+      proxyPass = "http://localhost:8123";
+      extraConfig = ''
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_redirect http:// https://;
+        proxy_http_version 1.1;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+      '';
+    };
   };
 
-  services.nginx.virtualHosts."amon.binarin.ru".locations."/hass" = {
-    proxyPass = "http://hass-backend";
-    extraConfig = ''
-      proxy_http_version 1.1;
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection $connection_upgrade;
-    '';
+  services.nginx.virtualHosts."hass-dev.binarin.ru" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/" = {
+      proxyPass = "http://localhost:8124";
+      extraConfig = ''
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_redirect http:// https://;
+        proxy_http_version 1.1;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+      '';
+    };
   };
+
 }
