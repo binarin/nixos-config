@@ -53,4 +53,18 @@ in {
     ln -sf ${./home-assistant/automations.yaml} /var/lib/hass/automations.yaml
     ln -sf ${./home-assistant/scripts.yaml} /var/lib/hass/scripts.yaml
   '';
+
+  services.nginx.upstreams.hass-backend.servers = {
+    "http://127.0.0.1:8123" = {};
+  };
+
+  services.nginx.virtualHosts."amon.binarin.ru".locations."/hass" = {
+    proxyPass = "http://hass-backend";
+    proxyWebSockets = true;
+    extraConfig = ''
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
+    '';
+  };
 }
