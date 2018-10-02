@@ -3,15 +3,6 @@
 with lib;
 
 let
-  keyringsAlt = ps: ps.buildPythonPackage {
-    pname = "keyrings.alt";
-    version = "2.3";
-    src = pkgs.fetchurl { url = "https://files.pythonhosted.org/packages/90/2d/4425b56231a1bbd8dc5bb6549d4558920abfe1dea97eaf9dc92845d7438d/keyrings.alt-2.3.tar.gz"; sha256 = "5cb9b6cdb5ce5e8216533e342d3e1b418ddd210466834061966d7dc1a4736f2d"; };
-    doCheck = false;
-    propagatedBuildInputs = with ps; [
-      keyring six setuptools_scm
-    ];
-  };
   lnetatmo = ps: ps.buildPythonPackage {
     pname = "lnetatmo";
     version = "0.9.2.1";
@@ -30,7 +21,7 @@ let
   };
   hassPackage = pkgs.bleeding.home-assistant.override {
     extraPackages = ps: with ps; [
-      xmltodict paho-mqtt netdisco (lnetatmo ps) (keyringsAlt ps) jsonrpc-async jsonrpc-websocket
+      xmltodict paho-mqtt netdisco (lnetatmo ps) keyrings-alt jsonrpc-async jsonrpc-websocket
     ];
   };
 in {
