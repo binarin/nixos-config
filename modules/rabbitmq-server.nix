@@ -32,9 +32,7 @@ in {
 
     services.rabbitmq = {
       enable = true;
-      package = pkgs.bleeding.rabbitmq-server.override {
-        procps = pkgs.bleeding.procps;
-      };
+      package = pkgs.bleeding.rabbitmq-server;
       plugins = [ "rabbitmq_management" "rabbitmq_mqtt" ];
       listenAddress = "0.0.0.0";
       configItems = {

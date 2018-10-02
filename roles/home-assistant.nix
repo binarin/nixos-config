@@ -28,6 +28,9 @@ in {
     package = hassPackage;
   };
   users.extraUsers.hass.extraGroups = [ "keys" ];
+  systemd.services.home-assistant.after = [ "rabbitmq-server.service" ];
+  systemd.services.home-assistant.requires = [ "rabbitmq-server.service" ];
+
   systemd.services.home-assistant.preStart = ''
     KEYS=(
       hass_http_password
