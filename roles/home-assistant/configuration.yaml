@@ -105,3 +105,7 @@ media_player:
 
 device_tracker:
   - platform: owntracks
+
+hue:
+  bridges:
+    - host: 192.168.2.20
