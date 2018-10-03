@@ -1,7 +1,7 @@
 homeassistant:
-  name: Meer en Vaart
-  latitude: 52.379189
-  longitude: 4.899431
+  name: Almere
+  latitude: 52.351895
+  longitude: 5.180150
   elevation: 0
   unit_system: metric
   time_zone: Europe/Amsterdam
@@ -102,3 +102,6 @@ media_player:
       data:
         entity_id: media_player.kodi
         method: System.Hibernate
+
+device_tracker:
+  - platform: owntracks
