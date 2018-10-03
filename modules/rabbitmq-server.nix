@@ -20,7 +20,7 @@ in {
 
   imports = [
     ../nixpkgs-master/nixos/modules/services/networking/epmd.nix
-    ../nixpkgs-master/nixos/modules/services/amqp/rabbitmq.nix
+    ../nixpkgs-proposed/nixos/modules/services/amqp/rabbitmq.nix
   ];
 
   disabledModules = [ "services/amqp/rabbitmq.nix" ];
@@ -30,11 +30,9 @@ in {
 
     services.epmd.package = pkgs.bleeding.erlangR20;
 
-    systemd.services.rabbitmq.path = lib.mkForce [ pkgs.bleeding.rabbitmq-server pkgs.bleeding.procps pkgs.coreutils pkgs.gnused ];
-
     services.rabbitmq = {
       enable = true;
-      package = pkgs.bleeding.rabbitmq-server;
+      package = pkgs.proposed.rabbitmq-server;
       plugins = [ "rabbitmq_management" "rabbitmq_mqtt" ];
       listenAddress = "0.0.0.0";
       configItems = {
