@@ -30,7 +30,7 @@ in {
 
     services.epmd.package = pkgs.bleeding.erlangR20;
 
-    systemd.services.rabbitmq.path = lib.mkForce [ pkgs.bleeding.rabbitmq-server pkgs.bleeding.procps pkgs.coreutils ];
+    systemd.services.rabbitmq.path = lib.mkForce [ pkgs.bleeding.rabbitmq-server pkgs.bleeding.procps pkgs.coreutils pkgs.gnused ];
 
     services.rabbitmq = {
       enable = true;
