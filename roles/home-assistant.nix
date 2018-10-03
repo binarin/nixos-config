@@ -19,7 +19,7 @@ let
   };
   hassPackage = pkgs.bleeding.home-assistant.override {
     extraPackages = ps: with ps; [
-      xmltodict paho-mqtt netdisco (pyatmo ps) keyring keyrings-alt jsonrpc-async jsonrpc-websocket
+      xmltodict paho-mqtt netdisco (pyatmo ps) keyring keyrings-alt jsonrpc-async jsonrpc-websocket aiohue
     ];
   };
 in {
