@@ -427,6 +427,10 @@ EndSection
       buttonsMap = [0 0 0];
     };
 
+    multitouch = {
+      enable = true;
+    };
+
     windowManager.xmonad = {
       enable = true;
       enableContribAndExtras = true;
