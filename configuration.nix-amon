@@ -23,7 +23,7 @@ in
     ./roles/home-assistant.nix
 
     ./nixpkgs-master/nixos/modules/virtualisation/lxd.nix
-    ./nixpkgs-master/nixos/modules/services/torrent/transmission.nix
+    ./nixpkgs-proposed/nixos/modules/services/torrent/transmission.nix
   ];
 
   boot.loader.grub.enable = true;
