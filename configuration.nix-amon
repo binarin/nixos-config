@@ -140,17 +140,4 @@ in
     enable = true;
     zfsSupport = true;
   };
-
-  networking.nat.enable = true;
-
-  networking.nat.internalInterfaces = [
-    "lxdbr0"
-  ];
-  networking.nat.externalInterface = "enp3s0";
-
-  networking.bridges = {
-    lxdbr0 = {
-      interfaces = [];
-    };
-  };
 }
