@@ -126,4 +126,7 @@ in
     };
   };
 
+  virtualisation = {
+    lxd.enable = true;
+  };
 }

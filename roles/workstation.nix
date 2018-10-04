@@ -479,10 +479,9 @@ EndSection
     #   lxc.network.type = veth
     #   lxc.network.link = lxc0
     # '';
-
+    lxd.enable = true;
     docker.enable = true;
     docker.storageDriver = "overlay2";
-
     libvirtd.enable = true;
   };
 
