@@ -23,7 +23,7 @@ in
     ./roles/home-assistant.nix
 
     ./nixpkgs-master/nixos/modules/virtualisation/lxd.nix
-    ./nixpkgs-proposed/nixos/modules/services/torrent/transmission.nix
+    ./nixpkgs-master/nixos/modules/services/torrent/transmission.nix
   ];
 
   boot.loader.grub.enable = true;
@@ -133,7 +133,6 @@ in
 
   nixpkgs.config.packageOverrides = super: rec {
     lxd = pkgs.bleeding.lxd;
-    transmission = pkgs.bleeding.transmission;
     runtimeShell = pkgs.bleeding.runtimeShell;
   };
 
