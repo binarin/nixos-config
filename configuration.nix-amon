@@ -134,6 +134,7 @@ in
   nixpkgs.config.packageOverrides = super: rec {
     lxd = pkgs.bleeding.lxd;
     transmission = pkgs.bleeding.transmission;
+    runtimeShell = pkgs.bleeding.runtimeShell;
   };
 
   virtualisation.lxd = {
