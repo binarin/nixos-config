@@ -21,6 +21,8 @@ in
     ./packages/use-my-overlays.nix
     ./roles/emacs.nix
     ./roles/home-assistant.nix
+    ../nixpkgs-master/nixos/modules/virtualisation/lxd.nix
+    ../nixpkgs-master/nixos/modules/services/torrent/transmission.nix
   ];
 
   boot.loader.grub.enable = true;
@@ -126,7 +128,16 @@ in
     };
   };
 
-  virtualisation = {
-    lxd.enable = true;
+  disabledModules = [ "virtualisation/lxd.nix" "services/torrent/transmission.nix" ];
+
+  nixpkgs.config.packageOverrides = super: rec {
+    lxd = pkgs.bleeding.lxd;
+    transmission = pkgs.bleeding.transmission;
   };
+
+  virtualisation.lxd = {
+    enable = true;
+    zfsSupport = true;
+  };
+
 }
