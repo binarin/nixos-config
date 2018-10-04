@@ -21,8 +21,9 @@ in
     ./packages/use-my-overlays.nix
     ./roles/emacs.nix
     ./roles/home-assistant.nix
-    ../nixpkgs-master/nixos/modules/virtualisation/lxd.nix
-    ../nixpkgs-master/nixos/modules/services/torrent/transmission.nix
+
+    ./nixpkgs-master/nixos/modules/virtualisation/lxd.nix
+    ./nixpkgs-master/nixos/modules/services/torrent/transmission.nix
   ];
 
   boot.loader.grub.enable = true;
