@@ -12,7 +12,7 @@ in {
         default = true;
       };
       trustedInterfaces = mkOption {
-        default = [ "enp3s0" ];
+        default = [ "enp3s0" "lxdbr2" ];
         type = types.listOf types.str;
       };
     };
