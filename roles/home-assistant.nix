@@ -76,7 +76,7 @@ in {
     forceSSL = true;
     enableACME = true;
     locations."/" = {
-      proxyPass = "http://localhost:8124";
+      proxyPass = "http://10.48.168.180:8123";
       extraConfig = ''
         proxy_set_header Connection $connection_upgrade;
         proxy_set_header Host $host;
