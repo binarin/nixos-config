@@ -87,7 +87,12 @@ in {
         proxy_set_header Connection $connection_upgrade;
       '';
     };
-    locations."/dash" = {
+  };
+
+  services.nginx.virtualHosts."hass-dash.binarin.ru" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/" = {
       proxyPass = "http://10.48.168.180:5050";
       extraConfig = ''
         proxy_set_header Connection $connection_upgrade;
