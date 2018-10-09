@@ -20,7 +20,7 @@ in
     ./users/binarin.nix
     ./packages/use-my-overlays.nix
     ./roles/emacs.nix
-    ./roles/home-assistant.nix
+    # ./roles/home-assistant.nix
 
     ./nixpkgs-master/nixos/modules/virtualisation/lxd.nix
     ./nixpkgs-master/nixos/modules/services/torrent/transmission.nix
@@ -140,4 +140,47 @@ in
     enable = true;
     zfsSupport = true;
   };
+
+  services.nginx.upstreams."hass.binarin.ru".servers = {
+    "192.168.2.15:8123" = {};
+  };
+
+  services.nginx.upstreams."dash.binarin.ru".servers = {
+    "192.168.2.15:5050" = {};
+  };
+
+  services.nginx.virtualHosts."hass.binarin.ru" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/" = {
+      proxyPass = "https://hass.binarin.ru";
+      extraConfig = ''
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_redirect http:// https://;
+        proxy_http_version 1.1;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+      '';
+    };
+  };
+
+  services.nginx.virtualHosts."dash.binarin.ru" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/" = {
+      proxyPass = "https://dash.binarin.ru";
+      extraConfig = ''
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_redirect http:// https://;
+        proxy_http_version 1.1;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+      '';
+    };
+  };
+
 }
