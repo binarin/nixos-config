@@ -55,11 +55,15 @@ in {
     ln -sf ${./home-assistant/scripts.yaml} /var/lib/hass/scripts.yaml
   '';
 
+  services.nginx.upstreams."hass.binarin.ru".servers = {
+    "192.168.2.14:8123" = {};
+  };
+
   services.nginx.virtualHosts."hass.binarin.ru" = {
     forceSSL = true;
     enableACME = true;
     locations."/" = {
-      proxyPass = "http://localhost:8123";
+      proxyPass = "https://hass.binarin.ru";
       extraConfig = ''
         proxy_set_header Connection $connection_upgrade;
         proxy_set_header Host $host;
