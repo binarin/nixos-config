@@ -14,7 +14,6 @@
     mosh
     netcat
     nethogs
-    nix-repl
     nmap
     openssl
     psmisc

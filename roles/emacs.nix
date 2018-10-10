@@ -1,10 +1,10 @@
 {config, pkgs, ...}:
 
 let
-  overrides = super: self: rec {
+  overrides = self: self: rec {
     inherit (self.melpaPackages) indium haskell-mode elisp-refs;
   };
-  customEmacsPackages = pkgs.emacsPackagesNg.overrideScope overrides;
+  customEmacsPackages = pkgs.emacsPackagesNg.overrideScope' overrides;
   emacs-with-packages = customEmacsPackages.emacsWithPackages (p: with p; [
     ace-window
     alchemist
