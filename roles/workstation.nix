@@ -329,18 +329,9 @@ in {
     powerOnBoot = true;
   };
 
-  hardware.opengl = let
-    custom-mesa = pkgs.mesa_noglu.override {
-      enableTextureFloats = true;
-    };
-  in {
+  hardware.opengl = {
     enable = true;
     driSupport32Bit = true;
-    package = pkgs.buildEnv {
-      name = "opengl-hack";
-      # NOTE: Forces open source S2TC rather than S3TC
-      paths = [ custom-mesa custom-mesa.drivers pkgs.libtxc_dxtn_s2tc ];
-    };
   };
 
   hardware.pulseaudio = {
