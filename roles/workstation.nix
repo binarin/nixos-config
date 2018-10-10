@@ -445,9 +445,8 @@ EndSection
     libinput.enable = false;
 
     displayManager = {
-      lightdm = {
-	      enable = true;
-      };
+      gdm.enable = mkForce false;
+      lightdm.enable = true;
     };
   };
 
