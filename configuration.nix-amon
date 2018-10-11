@@ -20,9 +20,6 @@ in
     ./users/binarin.nix
     ./packages/use-my-overlays.nix
     ./roles/emacs.nix
-    # ./roles/home-assistant.nix
-
-    ./nixpkgs-master/nixos/modules/virtualisation/lxd.nix
   ];
 
   boot.loader.grub.enable = true;
@@ -126,18 +123,6 @@ in
       incomplete-dir-enabled = true;
       rpc-whitelist = "127.0.0.1,192.168.*.*,10.10.10.*";
     };
-  };
-
-  disabledModules = [ "virtualisation/lxd.nix" ];
-
-  nixpkgs.config.packageOverrides = super: rec {
-    lxd = pkgs.bleeding.lxd;
-    runtimeShell = pkgs.bleeding.runtimeShell;
-  };
-
-  virtualisation.lxd = {
-    enable = true;
-    zfsSupport = true;
   };
 
   services.nginx.upstreams."hass.binarin.ru".servers = {
