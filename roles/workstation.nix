@@ -110,7 +110,7 @@ in {
       aspellDicts.nl
       audacious
       binarin-xrandr-auto
-      calibre
+      # calibre
       chromium
       desktop-nagger
       dia
