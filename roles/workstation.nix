@@ -6,7 +6,7 @@ in {
   imports = [
     ../packages/nixpkgs-from-submodule.nix
     ../packages/desktop-nagger.nix
-    ../packages/haskell-packages.nix
+    # ../packages/haskell-packages.nix
     ../packages/python-packages.nix
     ../packages/xrandr-auto.nix
     ../packages/standard-linux-tools.nix
@@ -185,7 +185,6 @@ in {
       oraclejdk8
       pkgconfig
       python35Packages.virtualenv
-      python35Packages.ipython
       quilt
       sbcl
       subversion
