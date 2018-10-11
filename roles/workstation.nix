@@ -366,7 +366,8 @@ EndSection
     '';
     enable = true;
     layout = "us,ru";
-    # xkbDir ="${pkgs.xorg.xkeyboard_config_dvp}/share/X11/xkb"; # not enough - we still need to inject patched xkbcomp to xorgserver (see above)
+
+    xkbDir = "${pkgs.xorg.xkeyboardconfig_dvp}/share/X11/xkb";
     xkbVariant = "dvp,dvp";
     xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,ctrl:ralt_rctrl";
 
