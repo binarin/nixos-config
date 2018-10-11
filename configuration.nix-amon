@@ -23,7 +23,6 @@ in
     # ./roles/home-assistant.nix
 
     ./nixpkgs-master/nixos/modules/virtualisation/lxd.nix
-    ./nixpkgs-master/nixos/modules/services/torrent/transmission.nix
   ];
 
   boot.loader.grub.enable = true;
@@ -129,7 +128,7 @@ in
     };
   };
 
-  disabledModules = [ "virtualisation/lxd.nix" "services/torrent/transmission.nix" ];
+  disabledModules = [ "virtualisation/lxd.nix" ];
 
   nixpkgs.config.packageOverrides = super: rec {
     lxd = pkgs.bleeding.lxd;
