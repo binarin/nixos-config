@@ -11,7 +11,7 @@ in {
     ../packages/xrandr-auto.nix
     ../packages/standard-linux-tools.nix
     ../roles/emacs.nix
-    # ../roles/nixops.nix
+    ../roles/nixops.nix
     ../roles/openvpn-client.nix
     ../users/binarin.nix
     ../packages/use-my-overlays.nix
