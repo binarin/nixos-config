@@ -2,7 +2,7 @@
 {
   imports = [
     ../packages/standard-linux-tools.nix
-    ../packages/nixpkgs-from-submodule.nix
+    ../packages/use-my-overlays.nix
     # ../modules/outgoing-email.nix
   ];
 

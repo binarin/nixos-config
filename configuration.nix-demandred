@@ -11,7 +11,7 @@
     ./partitions/unencrypted-uefi.nix
     ./partitions/secondary-hdd-in-my-home.nix
     ./roles/workstation.nix
-    ./packages/nixpkgs-from-submodule.nix
+    ./packages/use-my-overlays.nix
     ./roles/openvpn-client.nix
   ];
 }

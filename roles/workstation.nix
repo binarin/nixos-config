@@ -2,88 +2,74 @@
 
 let
   taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
+  taffybarWrapped = pkgs.stdenv.mkDerivation {
+    name = "taffybar-with-packages-and-theme";
+    buildInputs = [ pkgs.wrapGAppsHook pkgs.hicolor-icon-theme pkgs.gnome3.adwaita-icon-theme ];
+    phases = [ "installPhase" "fixupPhase" ];
+    installPhase = ''
+      mkdir -p $out/bin
+      cd $out/bin
+      cp -s ${taffybarWithPackages}/bin/taffybar .
+    '';
+  };
 in {
   imports = [
-    ../packages/nixpkgs-from-submodule.nix
+    ../packages/use-my-overlays.nix
+
     ../packages/desktop-nagger.nix
-    # ../packages/haskell-packages.nix
-    ../packages/python-packages.nix
     ../packages/xrandr-auto.nix
     ../packages/standard-linux-tools.nix
+    # ../packages/haskell-packages.nix
+    # ../packages/python-packages.nix
+
     ../roles/emacs.nix
     ../roles/nixops.nix
     ../roles/openvpn-client.nix
+
     ../users/binarin.nix
-    ../packages/use-my-overlays.nix
-    ../nixpkgs-proposed/nixos/modules/services/networking/epmd.nix
-    ../nixpkgs-proposed/nixos/modules/services/amqp/rabbitmq.nix
   ];
 
-  disabledModules = [ "services/amqp/rabbitmq.nix" ];
-  services.epmd = {
-    package = pkgs.proposed.erlang_nox;
+  boot = {
+    kernelPackages = pkgs.linuxPackages_latest;
+    supportedFilesystems = [ "exfat" ];
+    kernelModules = [ "fuse" ];
+    kernel.sysctl."vm.swappiness" = 1;
   };
-  services.rabbitmq = {
-    enable = true;
-    package = pkgs.proposed.rabbitmq-server.override {
-      elixir = pkgs.proposed.elixir_1_6;
-      erlang = pkgs.proposed.erlang_nox;
+
+  nix = {
+    binaryCaches = [
+      "http://naberius.binarin.ru:5000"
+      "https://cache.nixos.org"
+      "https://nixcache.reflex-frp.org"
+    ];
+
+    binaryCachePublicKeys = [
+      "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+      "naberius.binarin.ru-1:HeueNAbXuNomZp4xJL+ITAmJpSNYl/newnqoI85aUyc="
+    ];
+
+    useSandbox = true;
+
+    extraOptions = ''
+      gc-keep-outputs = true
+      gc-keep-derivations = true
+    '';
+  };
+
+  networking = {
+    networkmanager.enable = true;
+    extraHosts = ''
+      127.0.0.1 ${config.networking.hostName}
+    '';
+    nat = {
+      enable = true;
+      internalInterfaces = [
+        "virbr0"
+      ];
+      externalInterface = "wlp2s0";
     };
-    plugins = [ "rabbitmq_management" "rabbitmq_mqtt" ];
   };
 
-  boot.supportedFilesystems = [ "exfat" ];
-  nix.useSandbox = true;
-  nix.extraOptions = ''
-    gc-keep-outputs = true
-    gc-keep-derivations = true
-  '';
-
-  nix.distributedBuilds = true;
-  nix.buildMachines = [
-    {
-      hostName = "naberius.binarin.ru";
-      sshUser = "binarin";
-      sshKey = "/root/.ssh/id_rsa";
-      system = "x86_64-linux";
-      maxJobs = 4;
-      supportedFeatures = [ "kvm" ];
-    }
-  ];
-
-  boot.kernel.sysctl."vm.swappiness" = 1;
-
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.kernelModules = [ "fuse" ];
-
-  networking.networkmanager.enable = true;
-
-  networking.extraHosts = ''
-    127.0.0.1 ${config.networking.hostName}
-  '';
-
-  networking.nat.enable = true;
-  networking.nat.internalInterfaces = [
-    # "lxc0"
-    "virbr0"
-  ];
-  networking.nat.externalInterface = "wlp2s0";
-
-  networking.bridges = {
-    # lxc0 = {
-    #   interfaces = [];
-    # };
-  };
-
-  networking.interfaces = {
-    # lxc0 = {
-    #   ipv4.addresses = [
-    #     { address = "10.10.30.1"; prefixLength = 24; }
-    #   ];
-    # };
-  };
-
-  # Select internationalisation properties.
   i18n = {
     consoleFont = "UniCyr_8x16";
     consoleKeyMap = "dvp";
@@ -104,6 +90,8 @@ in {
       gitAndTools.git-annex
     ];
     desktopPackages = with pkgs; [
+      (haskell.lib.justStaticExecutables haskellPackages.status-notifier-item)
+
       aspell
       aspellDicts.ru
       aspellDicts.en
@@ -243,13 +231,11 @@ in {
     firefox = {
      enableBluejeans = true;
      enableGoogleTalkPlugin = true;
-     # enableAdobeFlash = true;
      jre = true;
      enableDjvu = true;
     };
 
     chromium = {
-     # enablePepperFlash = true; # Chromium removed support for Mozilla (NPAPI) plugins so Adobe Flash no longer works
      enablePepperPDF = true;
     };
   };
@@ -300,12 +286,6 @@ in {
     support32Bit = true;
   };
 
-  # List services that you want to enable:
-  services.gnome3.gvfs.enable = true;
-  services.gnome3.at-spi2-core.enable = true; # https://github.com/NixOS/nixpkgs/issues/16327
-  services.dbus.enable = true;
-  services.dbus.packages = [ pkgs.gnome3.dconf ];
-  
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
   services.openssh.permitRootLogin = "yes";
@@ -410,7 +390,6 @@ EndSection
     extraOptions = [ "-v" ];
   };
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
   users.extraUsers = {
     root = {
       shell = "/run/current-system/sw/bin/zsh";
@@ -425,12 +404,6 @@ EndSection
   networking.firewall.allowedUDPPorts = [27031 27036];
 
   virtualisation = {
-    # lxc.enable = true;
-    # lxc.defaultConfig = ''
-    #   lxc.network.type = veth
-    #   lxc.network.link = lxc0
-    # '';
-    lxd.enable = true;
     docker.enable = true;
     docker.storageDriver = "overlay2";
     libvirtd.enable = true;
@@ -441,21 +414,11 @@ EndSection
   };
 
   # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "18.03";
+  system.stateVersion = "18.09";
 
   programs.ssh.startAgent = true;
   programs.light.enable = true;
-
-  nix.binaryCaches = [
-    "http://naberius.binarin.ru:5000"
-    "https://cache.nixos.org"
-    "https://nixcache.reflex-frp.org"
-  ];
-
-  nix.binaryCachePublicKeys = [
-    "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
-    "naberius.binarin.ru-1:HeueNAbXuNomZp4xJL+ITAmJpSNYl/newnqoI85aUyc="
-  ];
+  programs.gnupg.agent.enable = true;
 
   systemd.services."binarin-auto-commit-wip" = let
     script = pkgs.writeScript "binarin-auto-commit-wip" ''
@@ -498,30 +461,8 @@ EndSection
     };
   };
 
-
+  # XXX Try disabling, maybe already fixed
   systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
-
-  # systemd.services.udev-monitor = {
-  #   description="udev Monitoring";
-  #   wantedBy=["sysinit.target"];
-  #   after=["systemd-udevd-control.socket" "systemd-udevd-kernel.socket"];
-  #   before=["sysinit.target" "systemd-udev-trigger.service" "systemd-udev-settle.service"];
-  #   unitConfig = {
-  #     DefaultDependencies = false;
-  #   };
-  #   wants=["systemd-udevd.service"];
-  #   serviceConfig = {
-  #     Type = "simple";
-  #     ExecStart=''${pkgs.bash}/bin/bash -c "${pkgs.systemd}/bin/udevadm monitor --udev --env --kernel > /udev_monitor.log"'';
-  #   };
-  # };
-
-  # boot.extraKernelParams = [
-  #   "systemd.log_level=debug"
-  #   "systemd.log_target=kmsg"
-  #   "udev.log-priority=debug"
-  #   "log_buf_len=8M"
-  # ];
 
   systemd.services."binarin-org-sync" = let
     script = pkgs.writeScript "binarin-org-sync" ''
@@ -540,6 +481,7 @@ EndSection
       ExecStart = script;
     };
   };
+
   systemd.timers."binarin-org-sync" = {
     description = "Periodically updates org-mode files via git";
     wantedBy = [ "timers.target" ];
@@ -566,21 +508,6 @@ EndSection
       KERNEL=="card0", SUBSYSTEM=="drm", ACTION=="change", ENV{DISPLAY}=":0", ENV{XAUTHORITY}="/home/binarin/.Xauthority", RUN+="${pkgs.bash}/bin/bash ${xrandrScript}"
     '';
   };
-  services.postgresql = {
-    enable = true;
-    initialScript = pkgs.writeText "postgres-init" ''
-      create user binarin with
-        unencrypted password 'aoeuaoeu'
-        ;
-      create database toshl with
-        owner = binarin
-        encoding = UTF8
-        lc_collate = "ru_RU.UTF-8"
-        lc_ctype = "ru_RU.UTF-8"
-        ;
-
-    '';
-  };
 
   systemd.user.services.taffybar = {
     description = "taffybar (with monitor autodetection)";
@@ -591,10 +518,7 @@ EndSection
       Type = "simple";
       ExecStart = pkgs.writeScript "taffybar-restarter" ''
         #!${pkgs.bash}/bin/bash
-        set -x
-        ${pkgs.binarin-xrandr-auto}/bin/xrandr-auto get-primary
-        primary=$?
-        exec ${taffybarWithPackages}/bin/taffybar $primary
+        exec ${taffybarWrapped}/bin/taffybar
       '';
       Restart = "always";
       RestartSec = "2";
@@ -602,15 +526,6 @@ EndSection
     };
   };
 
+  # TLP brings you the benefits of advanced power management for Linux without the need to understand every technical detail.
   services.tlp.enable = true;
-  services.bitlbee = {
-    enable = true;
-    authMode = "Closed";
-    plugins = [ pkgs.bitlbee-facebook ];
-    extraSettings = ''
-      AuthPassword = md5:CiSC/UbtoWs9zOUxB6H7HBRc+Lwn
-      OperPassword = md5:CiSC/UbtoWs9zOUxB6H7HBRc+Lwn
-    '';
-  };
-
 }
