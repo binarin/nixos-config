@@ -53,7 +53,7 @@ in {
 
   boot.kernel.sysctl."vm.swappiness" = 1;
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+# boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelModules = [ "fuse" ];
 
   networking.networkmanager.enable = true;
@@ -561,6 +561,7 @@ EndSection
         exec ${pkgs.binarin-xrandr-auto}/bin/xrandr-auto configure
     '';
   in {
+    packages = [ pkgs.crda ];
     extraRules = ''
       KERNEL=="card0", SUBSYSTEM=="drm", ACTION=="change", ENV{DISPLAY}=":0", ENV{XAUTHORITY}="/home/binarin/.Xauthority", RUN+="${pkgs.bash}/bin/bash ${xrandrScript}"
     '';
