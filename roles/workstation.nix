@@ -4,7 +4,7 @@ let
   taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
   taffybarWrapped = pkgs.stdenv.mkDerivation {
     name = "taffybar-with-packages-and-theme";
-    buildInputs = [ pkgs.wrapGAppsHook pkgs.hicolor-icon-theme pkgs.gnome3.adwaita-icon-theme ];
+    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme ];
     phases = [ "installPhase" "fixupPhase" ];
     installPhase = ''
       mkdir -p $out/bin
@@ -12,6 +12,17 @@ let
       cp -s ${taffybarWithPackages}/bin/taffybar .
     '';
   };
+  nmappletWrapped = pkgs.stdenv.mkDerivation {
+    name = "nmapplet-with-themes";
+    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme ];
+    phases = [ "installPhase" "fixupPhase" ];
+    installPhase = ''
+      mkdir -p $out/bin
+      cd $out/bin
+      cp -s ${pkgs.networkmanagerapplet}/bin/nm-applet .
+    '';
+  };
+
 in {
   imports = [
     ../packages/use-my-overlays.nix
@@ -90,8 +101,6 @@ in {
       gitAndTools.git-annex
     ];
     desktopPackages = with pkgs; [
-      (haskell.lib.justStaticExecutables haskellPackages.status-notifier-item)
-
       aspell
       aspellDicts.ru
       aspellDicts.en
@@ -117,7 +126,10 @@ in {
       gimp-with-plugins
       gitg
       glxinfo
+      gnome2.gnome_icon_theme
+      gnome3.adwaita-icon-theme
       google-chrome
+      hicolor-icon-theme
       keepass
       libnotify
       lightdm # for dm-tool
@@ -125,7 +137,6 @@ in {
       mcomix
       mpc_cli
       mplayer
-      networkmanagerapplet
       oblogout
       playerctl
       psi
@@ -509,10 +520,34 @@ EndSection
     '';
   };
 
+  systemd.user.services.status-notifier-watcher = {
+    description = "https://www.freedesktop.org/wiki/Specifications/StatusNotifierItem/StatusNotifierWatcher/";
+    wantedBy = [ "default.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${(pkgs.haskell.lib.justStaticExecutables pkgs.haskellPackages.status-notifier-item)}/bin/status-notifier-watcher";
+    };
+  };
+
+  systemd.user.services.nm-applet = {
+    description = "https://www.freedesktop.org/wiki/Specifications/StatusNotifierItem/StatusNotifierWatcher/";
+    after = [ "status-notifier-watcher.service "];
+    wants = [ "status-notifier-watcher.service "];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${nmappletWrapped}/bin/nm-applet --indicator";
+    };
+  };
+
   systemd.user.services.taffybar = {
     description = "taffybar (with monitor autodetection)";
     path = [ taffybarWithPackages ];
-    wantedBy = [ "default.target" ];
+    after = [ "status-notifier-watcher.service "];
+    wants = [ "status-notifier-watcher.service "];
+    unitConfig = {
+        StartLimitIntervalSec = "0";
+    };
+
     restartIfChanged = true;
     serviceConfig = {
       Type = "simple";
@@ -522,7 +557,6 @@ EndSection
       '';
       Restart = "always";
       RestartSec = "2";
-      StartLimitIntervalSec = "0";
     };
   };
 
