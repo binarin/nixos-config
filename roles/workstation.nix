@@ -53,7 +53,7 @@ in {
 
   boot.kernel.sysctl."vm.swappiness" = 1;
 
-# boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelModules = [ "fuse" ];
 
   networking.networkmanager.enable = true;
