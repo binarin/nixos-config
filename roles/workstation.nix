@@ -362,12 +362,10 @@ EndSection
     xkbVariant = "dvp,dvp";
     xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,ctrl:ralt_rctrl";
 
-    synaptics = {
+    libinput = {
       enable = true;
-      twoFingerScroll = true;
-      tapButtons = true;
-      fingersMap = [0 0 0];
-      buttonsMap = [0 0 0];
+      clickMethod = "none";
+      middleEmulation = true;
     };
 
     multitouch = {
@@ -385,7 +383,6 @@ EndSection
     desktopManager.default = "none";
 
     desktopManager.gnome3.enable = true;
-    libinput.enable = false;
 
     displayManager = {
       gdm.enable = lib.mkForce false;
