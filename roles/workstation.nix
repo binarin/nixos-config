@@ -4,7 +4,7 @@ let
   taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
   taffybarWrapped = pkgs.stdenv.mkDerivation {
     name = "taffybar-with-packages-and-theme";
-    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme ];
+    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme pkgs.networkmanagerapplet pkgs.gnome-themes-extra ];
     phases = [ "installPhase" "fixupPhase" ];
     installPhase = ''
       mkdir -p $out/bin
@@ -14,7 +14,7 @@ let
   };
   nmappletWrapped = pkgs.stdenv.mkDerivation {
     name = "nmapplet-with-themes";
-    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme ];
+    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme pkgs.gnome-themes-extra ];
     phases = [ "installPhase" "fixupPhase" ];
     installPhase = ''
       mkdir -p $out/bin
