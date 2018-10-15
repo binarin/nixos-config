@@ -323,9 +323,7 @@ EndSection
 Section "InputClass"
 	Identifier "CirqueTouchpad2"
   MatchUSBID "0488:0280"
-	Option "SwapAxes" "True"
-	Option "Emulate3Buttons" "True"
-	Option "InvertY" "True"
+  Option "TransformationMatrix" "0 1 0 -1 0 1 0 0 1"
 EndSection
 
 Section "InputClass"
