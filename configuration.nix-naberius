@@ -6,6 +6,7 @@
 
   imports = [
     ./roles/server.nix
+    ./roles/emacs.nix
     ./roles/nixops.nix
     ./roles/binary-cache.nix
     ./users/binarin.nix
