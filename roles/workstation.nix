@@ -97,10 +97,9 @@ in {
 
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
-      alacritty
-      gitAndTools.git-annex
     ];
     desktopPackages = with pkgs; [
+      alacritty
       aspell
       aspellDicts.ru
       aspellDicts.en
