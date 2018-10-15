@@ -1,30 +1,20 @@
 {pkgs, lib, ...}:
 
-let haskellOverrides = libProf: self: super:
-   with pkgs.haskell.lib;
+let haskellOverrides = self: super:
+   with super.haskell.lib;
    let pkg = self.callPackage; in
    rec {
-     mkDerivation = args: super.mkDerivation (args // {
-       enableLibraryProfiling = libProf;
-       enableExecutableProfiling = false;
-     });
-    simple-effects = dontCheck super.simple-effects;
-    simple-logging = dontCheck super.simple-logging;
    };
 in {
   options = {};
   config = {
     environment.systemPackages = [
       pkgs.ghcEnv
-      # pkgs.haskellPackages.hpack-convert
     ];
-    nixpkgs.config.packageOverrides = super: rec {
-      myHaskellPackages = pkgs.haskell.packages.ghc822.override {
-        overrides = haskellOverrides false;
-      };
 
-      myProfiledHaskellPackages = super.haskell.packages.ghc822.override {
-        overrides = haskellOverrides true;
+    nixpkgs.config.packageOverrides = super: rec {
+      myHaskellPackages = pkgs.haskell.packages.ghc843.override {
+        overrides = haskellOverrides;
       };
 
       myGhcWithHoogle = ghcWithHoogle: ghcWithHoogle (import ./hoogle-local-packages.nix);
@@ -43,7 +33,7 @@ in {
       };
 
       ghcEnv = super.pkgs.buildEnv {
-        name = "ghc82";
+        name = "ghc843";
         paths = with myHaskellPackages; [
           (myGhcWithHoogleFiltered ghcWithHoogle)
           alex

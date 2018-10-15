@@ -30,7 +30,7 @@ in {
     ../packages/desktop-nagger.nix
     ../packages/xrandr-auto.nix
     ../packages/standard-linux-tools.nix
-    # ../packages/haskell-packages.nix
+    ../packages/haskell-packages.nix
     # ../packages/python-packages.nix
 
     ../roles/emacs.nix
