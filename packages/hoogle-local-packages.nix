@@ -31,12 +31,10 @@ gitlib
 GLFW-b
 hakyll
 hashable
-HaXml
 hlibgit2
 hnix
 hspec
 hspec-expectations-pretty-diff
-hssqlppp
 JuicyPixels
 lens
 linear
@@ -66,7 +64,6 @@ safe-exceptions
 selda
 selda-sqlite
 simple-effects
-simple-logging
 sqlite-simple
 stm
 structured-haskell-mode
