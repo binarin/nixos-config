@@ -323,6 +323,8 @@ Section "InputClass"
 	Identifier "CirqueTouchpad2"
   MatchUSBID "0488:0280"
   Option "TransformationMatrix" "0 1 0 -1 0 1 0 0 1"
+  Option "MiddleEmulation" "True"
+	Option "Emulate3Buttons" "True"
 EndSection
 
 Section "InputClass"
@@ -363,6 +365,7 @@ EndSection
       enable = true;
       clickMethod = "none";
       middleEmulation = true;
+      tapping = false;
     };
 
     multitouch = {
