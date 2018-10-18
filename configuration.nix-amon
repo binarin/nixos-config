@@ -126,11 +126,11 @@ in
   };
 
   services.nginx.upstreams."hass.binarin.ru".servers = {
-    "192.168.2.15:8123" = {};
+    "192.168.2.21:8123" = {};
   };
 
   services.nginx.upstreams."dash.binarin.ru".servers = {
-    "192.168.2.15:5050" = {};
+    "192.168.2.21:5050" = {};
   };
 
   services.nginx.virtualHosts."hass.binarin.ru" = {
