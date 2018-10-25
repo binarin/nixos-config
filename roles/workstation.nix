@@ -178,7 +178,7 @@ in {
       libxslt # xsltproc - for building rabbitmq
       lsyncd
       mysql
-      nodejs
+      nodejs-10_x
       ncurses
       oraclejdk8
       pkgconfig
