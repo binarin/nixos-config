@@ -4,7 +4,7 @@ let
   overrides = self: self: rec {
     inherit (self.melpaPackages) indium haskell-mode elisp-refs;
   };
-  customEmacsPackages = pkgs.emacsPackagesNg.overrideScope' overrides;
+  customEmacsPackages = pkgs.bleeding.emacsPackagesNg.overrideScope' overrides;
   emacs-with-packages = customEmacsPackages.emacsWithPackages (p: with p; [
     ace-window
     alchemist
@@ -28,6 +28,7 @@ let
     eproject  # edts dep
     erlang
     evil
+    eyebrowse
     f
     firestarter
     fsm
@@ -55,7 +56,9 @@ let
     kill-or-bury-alive
     less-css-mode
     lsp-haskell
+    lsp-mode
     lsp-ui
+    lsp-vue
     magit
     markdown-mode
     mu4e-maildirs-extension
@@ -81,6 +84,7 @@ let
     smart-mode-line-powerline-theme
     symbol-overlay
     undo-tree
+    vue-mode
     web-mode
     which-key
     ws-butler
