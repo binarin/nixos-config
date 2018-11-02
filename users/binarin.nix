@@ -70,6 +70,7 @@
       "xscreensaver.mode" = "blank";
       "xscreensaver.dpmsEnabled" = true;
       "xscreensaver.dpmsQuickOff" = true;
+
     };
   };
   nix.trustedUsers = [ "binarin" ];
