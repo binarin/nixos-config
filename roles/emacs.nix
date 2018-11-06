@@ -102,6 +102,7 @@ let
     slime
     smart-mode-line
     smart-mode-line-powerline-theme
+    solarized-theme
     symbol-overlay
     typescript-mode
     undo-tree

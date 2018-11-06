@@ -34,7 +34,7 @@
   home-manager.users.binarin = {
     xresources.properties = {
       "URxvt.termName" = "rxvt-unicode-256color";
-      "URxvt.font" = "-xos4-terminus-bold-r-*-*-22-*-*-*-*-*-iso10646-*";
+      "URxvt.font" = "xft:Iosevka-22";
       "URxvt.boldFont" = "";
       "URxvt.italicFont" = "";
       "URxvt.boldItalicFont" = "";
