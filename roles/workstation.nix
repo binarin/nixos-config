@@ -97,6 +97,14 @@ in {
 
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      anki # broken in stable
+      freecad
+      goldendict
+      k2pdfopt
+      kubernetes
+      openscad
+      (platinum-searcher.overrideAttrs (oldAttrs: { name = "platinum-searcher-rebuild-its-not-working"; }))
+      vscode
     ];
     desktopPackages = with pkgs; [
       alacritty
@@ -106,6 +114,7 @@ in {
       aspellDicts.nl
       audacious
       binarin-xrandr-auto
+      blender
       # calibre
       chromium
       desktop-nagger
