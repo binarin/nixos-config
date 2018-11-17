@@ -106,6 +106,12 @@ in {
       (platinum-searcher.overrideAttrs (oldAttrs: { name = "platinum-searcher-rebuild-its-not-working"; }))
       vscode
     ];
+    jsPackages = with pkgs; [
+      js."@bitwarden/cli"
+      js."@vue/cli"
+      js.vue-language-server
+      js.yarn
+    ];
     desktopPackages = with pkgs; [
       alacritty
       aspell
@@ -242,6 +248,7 @@ in {
      developmentPackages ++
      nixDevPackages ++
      utilityPackages ++
+     jsPackages ++
      bleedingEdgePackages;
 
   nixpkgs.config = {
