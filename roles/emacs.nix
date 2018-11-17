@@ -92,10 +92,12 @@ let
     pdf-tools
     popup  # edts dep
     projectile
+    projectile-ripgrep
     pt
     puppet-mode
     recursive-narrow
     request
+    ripgrep
     s
     shm
     skewer-mode
