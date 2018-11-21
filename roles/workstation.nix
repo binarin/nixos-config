@@ -566,7 +566,7 @@ EndSection
       Type = "simple";
       ExecStart = pkgs.writeScript "taffybar-restarter" ''
         #!${pkgs.bash}/bin/bash
-        exec ${taffybarWrapped}/bin/taffybar
+        exec ${taffybarWrapped}/bin/taffybar +RTS -M300m
       '';
       Restart = "always";
       RestartSec = "2";
