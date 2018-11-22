@@ -57,6 +57,7 @@ in
       pciutils
       (platinum-searcher.overrideAttrs (old: { force = "rebuild"; })) # binary cache for 'pt' is broken
       psmisc
+      pv
       ripgrep
       rpm
       rtorrent
