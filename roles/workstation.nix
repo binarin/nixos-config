@@ -97,7 +97,6 @@ in {
 
   environment.systemPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
-      anki # broken in stable
       freecad
       goldendict
       k2pdfopt
