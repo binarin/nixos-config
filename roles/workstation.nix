@@ -101,8 +101,10 @@ in {
       goldendict
       k2pdfopt
       kubernetes
+      pythonPackages.pywatchman
       openscad
       (platinum-searcher.overrideAttrs (oldAttrs: { name = "platinum-searcher-rebuild-its-not-working"; }))
+      simplescreenrecorder
       vscode
     ];
     jsPackages = with pkgs; [
@@ -155,7 +157,6 @@ in {
       psi
       qt4 # for qtconfig
       shutter
-      bleeding.simplescreenrecorder
       slack
       stack
       stalonetray
@@ -203,7 +204,6 @@ in {
       subversion
       tightvnc
       travis
-      bleeding.pythonPackages.pywatchman
     ];
     nixDevPackages = with pkgs; [
       patchelf
