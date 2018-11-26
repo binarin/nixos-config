@@ -55,7 +55,7 @@ in
       p7zip
       parallel
       pciutils
-      (platinum-searcher.overrideAttrs (old: { force = "rebuild"; })) # binary cache for 'pt' is broken
+      (platinum-searcher.overrideAttrs (old: { name = "lol"; force = "rebuild"; })) # binary cache for 'pt' is broken
       psmisc
       pv
       ripgrep

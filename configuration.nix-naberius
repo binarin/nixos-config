@@ -198,4 +198,17 @@
   };
 
   boot.loader.grub.devices = [ "/dev/sda" "/dev/sdb" ];
+
+  # services.acme.certs = {
+  #   "vault.binarin.ru" = {
+  #     email = "binarin@binarin.ru";
+  #     allowKeysForGroup = "vault";
+  #   };
+  # };
+
+  services.vault = {
+    enable = true;
+    storageBackend = "file";
+  };
+
 }
