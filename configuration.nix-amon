@@ -172,4 +172,8 @@ in
     docker.storageDriver = "zfs";
   };
 
+  services.plex = {
+    enable = true;
+    openFirewall = true;
+  };
 }
