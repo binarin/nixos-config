@@ -489,6 +489,35 @@ EndSection
   # XXX Try disabling, maybe already fixed
   systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
 
+  # Because systemd doesn't enforce resource limits on user units
+  systemd.services."kill-leaking-taffybar" = let
+    script = pkgs.writeScript "kill-leaking-taffybar" ''
+      #!${pkgs.bash}/bin/bash
+      taffy_pid=$(pgrep -f taffybar-linux)
+      if [[ -n $taffy_pid ]]; then
+        taffy_size=$(ps h -eo rss -q $taffy_pid)
+        if [[ $taffy_size -gt 240000 ]]; then
+          kill $taffy_pid
+        fi
+      fi
+    '';
+  in {
+    description = "Kills leaking taffybar";
+    path = with pkgs; [ procps ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "binarin";
+      ExecStart = script;
+    };
+  };
+  systemd.timers."kill-leaking-taffybar" = {
+    description = "Periodically updates org-mode files via git";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnActiveSec = "5min";
+    };
+  };
+
   systemd.services."binarin-org-sync" = let
     script = pkgs.writeScript "binarin-org-sync" ''
       #!${pkgs.bash}/bin/bash
@@ -567,10 +596,12 @@ EndSection
       Type = "simple";
       ExecStart = pkgs.writeScript "taffybar-restarter" ''
         #!${pkgs.bash}/bin/bash
-        exec ${taffybarWrapped}/bin/taffybar +RTS -M300m
+        exec ${taffybarWrapped}/bin/taffybar +RTS
       '';
       Restart = "always";
       RestartSec = "2";
+      MemoryAccounting = "yes";
+      MemoryMax = "10M";
     };
   };
 
