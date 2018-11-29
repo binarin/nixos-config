@@ -186,4 +186,8 @@ in
   services.radarr = {
     enable = true;
   };
+
+  services.jackett = {
+    enable = true;
+  };
 }
