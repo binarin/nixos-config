@@ -178,6 +178,8 @@ in
   };
 
   users.extraUsers.plex.extraGroups = ["transmission"];
+  users.extraUsers.sonarr.extraGroups = ["transmission"];
+  users.extraUsers.radarr.extraGroups = ["transmission"];
 
   services.sonarr = {
     enable = true;
