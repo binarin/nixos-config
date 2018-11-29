@@ -178,4 +178,12 @@ in
   };
 
   users.extraUsers.plex.extraGroups = ["transmission"];
+
+  services.sonarr = {
+    enable = true;
+  };
+
+  services.radarr = {
+    enable = true;
+  };
 }
