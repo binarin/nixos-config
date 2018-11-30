@@ -5,6 +5,7 @@ in
 {
   imports = [
     ../modules/tmux.nix
+    ../packages/perl-packages.nix
   ];
   options = {
     standard-linux-tools = {
