@@ -514,7 +514,8 @@ EndSection
     description = "Periodically updates org-mode files via git";
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnActiveSec = "5min";
+      OnBootSec = "5min";
+      OnUnitActiveSec = "5min";
     };
   };
 
