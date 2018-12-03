@@ -4,7 +4,7 @@
 {
   networking.hostName = "kodi";
   networking.hostId = "eeab1dad";
- 
+
   imports = [
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/aspire-revo.nix
