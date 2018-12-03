@@ -69,6 +69,7 @@ in {
 
   networking = {
     networkmanager.enable = true;
+    dnsExtensionMechanism = false;
     extraHosts = ''
       127.0.0.1 ${config.networking.hostName}
     '';
