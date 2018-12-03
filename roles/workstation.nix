@@ -96,14 +96,15 @@ in {
   programs.wireshark.package = pkgs.wireshark-gtk;
 
   environment.systemPackages = let
-    bleedingEdgePackages = with pkgs.bleeding; [
+  bleedingEdgePackages = with pkgs.bleeding; [
+      chromium
+      firefox-beta-bin
       freecad
       goldendict
       k2pdfopt
       kubernetes
       pythonPackages.pywatchman
       openscad
-      (platinum-searcher.overrideAttrs (oldAttrs: { name = "platinum-searcher-rebuild-its-not-working"; }))
       simplescreenrecorder
       vscode
     ];
@@ -123,7 +124,6 @@ in {
       binarin-xrandr-auto
       blender
       # calibre
-      chromium
       desktop-nagger
       dia
       dropbox
@@ -131,7 +131,6 @@ in {
       ebook_tools
       electrum
       evince
-      firefox-beta-bin
       icewm # something to run in Xephyr
       icoutils
       imagemagickBig
