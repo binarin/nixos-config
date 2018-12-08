@@ -22,8 +22,8 @@ amon:
 naberius:
   extends: .build-system
 
-kodi:
-  extends: .build-system
+# kodi:
+#   extends: .build-system
 
 deploy-amon:
   stage: deploy
