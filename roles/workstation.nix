@@ -161,6 +161,7 @@ in {
       stack
       stalonetray
       steam
+      sweethome3d.application
       taffybarWithPackages
       torbrowser
       tdesktop
