@@ -1,0 +1,65 @@
+diff --git a/drivers/gpu/drm/i915/intel_ddi.c b/drivers/gpu/drm/i915/intel_ddi.c
+index f3b115ce4029..3e64488a2b0a 100644
+--- a/drivers/gpu/drm/i915/intel_ddi.c
++++ b/drivers/gpu/drm/i915/intel_ddi.c
+@@ -1414,7 +1414,7 @@ static int cnl_calc_wrpll_link(struct drm_i915_private *dev_priv,
+ 		break;
+ 	}
+ 
+-	ref_clock = dev_priv->cdclk.hw.ref;
++	ref_clock = cnl_hdmi_pll_ref_clock(dev_priv);
+ 
+ 	dco_freq = (cfgcr0 & DPLL_CFGCR0_DCO_INTEGER_MASK) * ref_clock;
+ 
+diff --git a/drivers/gpu/drm/i915/intel_dpll_mgr.c b/drivers/gpu/drm/i915/intel_dpll_mgr.c
+index 04d41bc1a4bb..e6cac9225536 100644
+--- a/drivers/gpu/drm/i915/intel_dpll_mgr.c
++++ b/drivers/gpu/drm/i915/intel_dpll_mgr.c
+@@ -2212,6 +2212,20 @@ static void cnl_wrpll_params_populate(struct skl_wrpll_params *params,
+ 	params->dco_fraction = dco & 0x7fff;
+ }
+ 
++int cnl_hdmi_pll_ref_clock(struct drm_i915_private *dev_priv)
++{
++	int ref_clock = dev_priv->cdclk.hw.ref;
++
++	/*
++	 * For ICL+, the spec states: if reference frequency is 38.4,
++	 * use 19.2 because the DPLL automatically divides that by 2.
++	 */
++	if (INTEL_GEN(dev_priv) >= 11 && ref_clock == 38400)
++		ref_clock = 19200;
++
++	return ref_clock;
++}
++
+ static bool
+ cnl_ddi_calculate_wrpll(int clock,
+ 			struct drm_i915_private *dev_priv,
+@@ -2251,14 +2265,7 @@ cnl_ddi_calculate_wrpll(int clock,
+ 
+ 	cnl_wrpll_get_multipliers(best_div, &pdiv, &qdiv, &kdiv);
+ 
+-	ref_clock = dev_priv->cdclk.hw.ref;
+-
+-	/*
+-	 * For ICL, the spec states: if reference frequency is 38.4, use 19.2
+-	 * because the DPLL automatically divides that by 2.
+-	 */
+-	if (IS_ICELAKE(dev_priv) && ref_clock == 38400)
+-		ref_clock = 19200;
++	ref_clock = cnl_hdmi_pll_ref_clock(dev_priv);
+ 
+ 	cnl_wrpll_params_populate(wrpll_params, best_dco, ref_clock, pdiv, qdiv,
+ 				  kdiv);
+diff --git a/drivers/gpu/drm/i915/intel_dpll_mgr.h b/drivers/gpu/drm/i915/intel_dpll_mgr.h
+index 7e522cf4f13f..bf0de8a4dc63 100644
+--- a/drivers/gpu/drm/i915/intel_dpll_mgr.h
++++ b/drivers/gpu/drm/i915/intel_dpll_mgr.h
+@@ -344,5 +344,6 @@ void intel_dpll_dump_hw_state(struct drm_i915_private *dev_priv,
+ 			      struct intel_dpll_hw_state *hw_state);
+ int icl_calc_dp_combo_pll_link(struct drm_i915_private *dev_priv,
+ 			       uint32_t pll_id);
++int cnl_hdmi_pll_ref_clock(struct drm_i915_private *dev_priv);
+ 
+ #endif /* _INTEL_DPLL_MGR_H_ */
