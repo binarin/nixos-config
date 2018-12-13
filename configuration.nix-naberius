@@ -186,7 +186,19 @@
     internalInterfaces = ["ovpn-server-tcp"];
     externalInterface = "eth0";
   };
+
+  services.vault = {
+    enable = true;
+    storageBackend = "file";
+  };
+  environment.systemPackages = [ pkgs.vault ];
+
+  virtualisation = {
+    docker.enable = true;
+    docker.storageDriver = "overlay2";
+  };
 } // lib.optionalAttrs ((builtins.getEnv "CI_JOB_NAME") != "") {
+  # DON'T ADD HERE, its conditional by `optionalAttrs` above
   fileSystems."/" = {
     device = "/dev/mapper/sysvg-root";
     fsType = "ext4";
@@ -199,21 +211,5 @@
 
   boot.loader.grub.devices = [ "/dev/sda" "/dev/sdb" ];
 
-  # services.acme.certs = {
-  #   "vault.binarin.ru" = {
-  #     email = "binarin@binarin.ru";
-  #     allowKeysForGroup = "vault";
-  #   };
-  # };
-
-  services.vault = {
-    enable = true;
-    storageBackend = "file";
-  };
-
-  virtualisation = {
-    docker.enable = true;
-    docker.storageDriver = "overlay2";
-  };
-
+  # DON'T ADD HERE, its conditional by `optionalAttrs` above
 }
