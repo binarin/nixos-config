@@ -41,6 +41,7 @@ in {
   ];
 
   boot = {
+    kernelPackages = pkgs.linuxPackages_4_18;
     supportedFilesystems = [ "exfat" ];
     kernelModules = [ "fuse" ];
     kernel.sysctl."vm.swappiness" = 1;
@@ -172,7 +173,7 @@ in {
       xlsfonts
       xorg.xdpyinfo
       xorg.xev
-      yandex-disk
+      # yandex-disk
     ];
     developmentPackages = with pkgs; [
       androidenv.platformTools
