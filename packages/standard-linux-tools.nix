@@ -44,6 +44,7 @@ in
       iptables
       jq
       libosinfo # osinfo-query
+      libxml2 # xmllint
       lsof
       manpages
       mc
