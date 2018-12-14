@@ -70,7 +70,7 @@ in
     bitcoin
     erlangR20
     syncthing
-    yandex-disk
+    # yandex-disk
     youtube-dl
     insync
     gptfdisk
