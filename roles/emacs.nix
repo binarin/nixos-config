@@ -54,7 +54,7 @@ let
     fsm
     geiser
     general
-    go-mode flycheck-gometalinter company-go
+    go-mode flycheck-gometalinter company-go go-eldoc
     haskell-mode
     helm
     helm-dash
@@ -75,6 +75,7 @@ let
     key-seq
     kill-or-bury-alive
     less-css-mode
+    lsp-go
     lsp-haskell
     lsp-mode
     lsp-ui
@@ -126,5 +127,6 @@ in
     ] ++ (with pkgs; [
       xprintidle-ng
       sqlite # for helm-dash
+      bleeding.gometalinter
     ]);
 }
