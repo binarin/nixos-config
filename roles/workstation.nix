@@ -256,6 +256,8 @@ in {
   nixpkgs.config = {
     allowUnfree = true;
 
+    oraclejdk.accept_license = true;
+
     firefox = {
      enableBluejeans = true;
      enableGoogleTalkPlugin = true;

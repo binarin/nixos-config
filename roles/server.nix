@@ -14,7 +14,10 @@
     22
   ];
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config = {
+    allowUnfree = true;
+    oraclejdk.accept_license = true;
+  };
 
   networking.firewall.enable = true;
 }
