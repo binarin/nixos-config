@@ -25,6 +25,9 @@ naberius:
 kodi:
   extends: .build-system
 
+lanfear:
+  extends: .build-system
+
 deploy-amon:
   stage: deploy
   only:

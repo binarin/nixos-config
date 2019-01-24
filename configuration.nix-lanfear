@@ -9,8 +9,7 @@
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/intel.nix
     ./partitions/unencrypted-uefi-ext4.nix
-    ./partitions/secondary-hdd-in-my-home.nix
-    ./roles/workstation.nix
-    ./roles/openvpn-client.nix
+    ./roles/server.nix
+    ./users/binarin.nix
   ];
 }

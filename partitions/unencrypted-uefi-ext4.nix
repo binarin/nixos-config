@@ -16,5 +16,5 @@
     fsType = "vfat";
   };
 
-  swapDevices = [ {device = "/dev/disk/by-label/swap-0"; } ];
+  # swapDevices = [ {device = "/dev/disk/by-label/swap-0"; } ];
 }
