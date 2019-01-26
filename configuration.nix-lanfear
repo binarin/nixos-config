@@ -11,5 +11,49 @@
     ./partitions/unencrypted-uefi-ext4.nix
     ./roles/server.nix
     ./users/binarin.nix
+    ./roles/emacs.nix
   ];
+
+  services.vault = {
+    enable = true;
+    storageBackend = "file";
+  };
+  environment.systemPackages = [ pkgs.vault ];
+  virtualisation.docker.enable = true;
+  virtualisation.libvirtd.enable = true;
+
+  networking.firewall.allowedTCPPorts = [
+    80 443
+  ];
+
+  security.pam.services.nginx = {
+    name = "nginx";
+    unixAuth = true;
+  };
+
+  services.nginx.package = pkgs.nginx.override {
+    modules = [pkgs.nginxModules.pam];
+  };
+
+  users.extraGroups.shadow.gid = 2001;
+  users.extraUsers.nginx.extraGroups = [ "shadow" ];
+  system.activationScripts.shadowGroup = lib.stringAfter [ "users" ] ''
+    chgrp shadow /etc/shadow
+    chmod g+r /etc/shadow
+  '';
+
+  services.nginx.enable = true;
+  services.nginx.virtualHosts."org.binarin.ru" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/" = {
+      root = "/var/www/org/";
+      index = "index.html";
+      extraConfig = ''
+        auth_pam    "Secure Zone";
+        auth_pam_service_name   "nginx";
+      '';
+    };
+  };
+
 }
