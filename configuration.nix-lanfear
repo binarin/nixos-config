@@ -82,6 +82,8 @@
     };
   };
 
+  config.services.dnsmasq.enable = false;
+
   systemd.services."pi-hole" = let
     stateDir = "/var/lib/pihole/";
     serverIP = "192.168.2.4";
