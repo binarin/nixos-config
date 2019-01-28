@@ -14,6 +14,8 @@
     ./roles/emacs.nix
   ];
 
+  system.fsPackages = [ pkgs.ntfs3g ];
+
   services.vault = {
     enable = true;
     storageBackend = "file";
@@ -56,4 +58,27 @@
     };
   };
 
+
+  systemd.services."org-agenda-render" = let
+    script = pkgs.writeScript "org-agenda-render" ''
+      #!${pkgs.bash}/bin/bash
+      export PATH=/run/current-system/sw/bin:$PATH
+      $HOME/.rc/agenda-gen.sh
+    '';
+  in {
+    description = "Pre-render org-mode agendas to .html";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "binarin";
+      ExecStart = script;
+    };
+  };
+  systemd.timers."org-agenda-render" = {
+    description = "Periodically fetches latest org files and pre-generates .html agenda";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "15min";
+      OnUnitActiveSec = "30min";
+    };
+  };
 }
