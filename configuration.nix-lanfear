@@ -104,6 +104,8 @@
     description = "Starts pi-hole docker container";
     after = [ "docker.service "];
     wants = [ "wants.service "];
+    wantedBy = [ "default.target" ];
+    path = [ pkgs.docker ];
     serviceConfig = {
       ExecStart = script;
     };
