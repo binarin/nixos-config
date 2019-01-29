@@ -27,7 +27,7 @@ in {
   virtualisation.libvirtd.enable = true;
 
   networking.firewall.allowedTCPPorts = [
-    80 443
+    80 443 8443
   ];
 
   security.pam.services.nginx = {
