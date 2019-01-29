@@ -118,7 +118,6 @@
       dh none
       tls-server
       dev tun
-      ifconfig 172.25.14.1 172.25.14.2
       port 8443
       proto tcp-server
       cert /var/lib/acme/org.binarin.ru/fullchain.pem
@@ -126,6 +125,49 @@
       ca /etc/ssl/certs/ca-bundle.crt
       plugin openvpn-plugin-auth-pam.so "login login USERNAME password PASSWORD"
       verify-client-cert none
+
+cipher AES-128-CBC
+client-to-client
+
+ifconfig 172.25.14.1 172.25.14.2
+ifconfig-pool 172.25.14.128 172.25.14.254
+
+keepalive 5 30
+tun-mtu 1300
+
+push "route 172.25.14.0 255.255.255.0"
+push "topology net30"
+push "route 0.0.0.0 248.0.0.0"
+push "route 8.0.0.0 254.0.0.0"
+push "route 11.0.0.0 255.0.0.0"
+push "route 12.0.0.0 252.0.0.0"
+push "route 16.0.0.0 240.0.0.0"
+push "route 32.0.0.0 224.0.0.0"
+push "route 64.0.0.0 192.0.0.0"
+push "route 128.0.0.0 224.0.0.0"
+push "route 160.0.0.0 248.0.0.0"
+push "route 168.0.0.0 252.0.0.0"
+push "route 172.0.0.0 255.240.0.0"
+push "route 172.32.0.0 255.224.0.0"
+push "route 172.64.0.0 255.192.0.0"
+push "route 172.128.0.0 255.128.0.0"
+push "route 173.0.0.0 255.0.0.0"
+push "route 174.0.0.0 254.0.0.0"
+push "route 176.0.0.0 240.0.0.0"
+push "route 192.0.0.0 255.128.0.0"
+push "route 192.128.0.0 255.224.0.0"
+push "route 192.160.0.0 255.248.0.0"
+push "route 192.169.0.0 255.255.0.0"
+push "route 192.170.0.0 255.254.0.0"
+push "route 192.172.0.0 255.252.0.0"
+push "route 192.176.0.0 255.240.0.0"
+push "route 192.192.0.0 255.192.0.0"
+push "route 193.0.0.0 255.0.0.0"
+push "route 194.0.0.0 254.0.0.0"
+push "route 196.0.0.0 252.0.0.0"
+push "route 200.0.0.0 248.0.0.0"
+push "route 208.0.0.0 240.0.0.0"
+route 172.25.14.0 255.255.255.0
     '';
   };
 }
