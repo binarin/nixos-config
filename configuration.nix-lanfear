@@ -1,4 +1,5 @@
 # -*- nix -*-
+
 { config, lib, pkgs, ... }:
 
 let
@@ -119,7 +120,8 @@ in {
       mode server
       dh none
       tls-server
-      dev tun
+      dev-type tun
+      dev ovpn-server-tcp
       port 8443
       proto tcp-server
       cert /var/lib/acme/org.binarin.ru/fullchain.pem
@@ -139,6 +141,9 @@ tun-mtu 1300
 
 push "route ${net}.0 255.255.255.0"
 push "topology net30"
+
+route ${net}.0 255.255.255.0
+
 push "route 0.0.0.0 248.0.0.0"
 push "route 8.0.0.0 254.0.0.0"
 push "route 11.0.0.0 255.0.0.0"
@@ -169,7 +174,22 @@ push "route 194.0.0.0 254.0.0.0"
 push "route 196.0.0.0 252.0.0.0"
 push "route 200.0.0.0 248.0.0.0"
 push "route 208.0.0.0 240.0.0.0"
-route ${net}.0 255.255.255.0
     '';
   };
+
+  networking.nat = {
+    enable = true;
+    internalInterfaces = ["ovpn-server-tcp"];
+    externalInterface = "eno1";
+  };
+
+  networking.firewall.extraCommands = ''
+    ip46tables -A FORWARD -i ovpn-server-tcp -j ACCEPT
+    ip46tables -A FORWARD -o ovpn-server-tcp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+  '';
+
+  networking.firewall.extraStopCommands = ''
+    ip46tables -D FORWARD -i ovpn-server-tcp -j ACCEPT
+    ip46tables -D FORWARD -o ovpn-server-tcp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+  '';
 }
