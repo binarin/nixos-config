@@ -1,7 +1,9 @@
 # -*- nix -*-
 { config, lib, pkgs, ... }:
 
-{
+let
+  net = "172.25.14";
+in {
   networking.hostName = "lanfear";
   networking.hostId = "2d75caa8";
 
@@ -129,13 +131,13 @@
 cipher AES-128-CBC
 client-to-client
 
-ifconfig 172.25.14.1 172.25.14.2
-ifconfig-pool 172.25.14.128 172.25.14.254
+ifconfig ${net}.1 ${net}.2
+ifconfig-pool ${net}.128 ${net}.254
 
 keepalive 5 30
 tun-mtu 1300
 
-push "route 172.25.14.0 255.255.255.0"
+push "route ${net}.0 255.255.255.0"
 push "topology net30"
 push "route 0.0.0.0 248.0.0.0"
 push "route 8.0.0.0 254.0.0.0"
@@ -167,7 +169,7 @@ push "route 194.0.0.0 254.0.0.0"
 push "route 196.0.0.0 252.0.0.0"
 push "route 200.0.0.0 248.0.0.0"
 push "route 208.0.0.0 240.0.0.0"
-route 172.25.14.0 255.255.255.0
+route ${net}.0 255.255.255.0
     '';
   };
 }
