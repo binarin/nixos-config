@@ -112,4 +112,21 @@
       ExecStart = script;
     };
   };
+
+  services.openvpn.servers.tcp-server-with-password = {
+    config = ''
+      mode server
+      dh none
+      tls-server
+      dev tun
+      ifconfig 172.25.14.1 172.25.14.2
+      port 8443
+      proto tcp-server
+      cert /var/lib/acme/org.binarin.ru/fullchain.pem
+      key /var/lib/acme/org.binarin.ru/key.pem
+      ca /etc/ssl/certs/ca-bundle.crt
+      plugin openvpn-plugin-auth-pam.so "login login USERNAME password PASSWORD"
+      verify-client-cert none
+    '';
+  };
 }
