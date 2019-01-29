@@ -91,8 +91,7 @@
       #!${pkgs.bash}/bin/bash
       docker run --rm -t \
       --name pihole \
-      -p 53:53/tcp -p 53:53/udp \
-      -p 67:67/udp \
+      -p ${serverIP}:53:53/tcp -p ${serverIP}:53:53/udp \
       -p 30080:80 \
       -p 30443:443 \
       -v "${stateDir}/pihole/:/etc/pihole/" \
