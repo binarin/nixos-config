@@ -1,10 +1,13 @@
 {config, pkgs, ...}:
-{
+let userPassFile = pkgs.writeText "auth-user-pass" ''
+  binarin
+'';
+in {
   autoStart = false;
   config = ''
     cipher AES-128-CBC
 
-    dev ovpn-lanfear-tcp
+    dev ovpn-lanfear
     dev-type tun
     client
 
@@ -29,7 +32,7 @@
     persist-tun
 
     ca /etc/ssl/certs/ca-bundle.crt
-    auth-user-pass
+    auth-user-pass ${userPassFile}
     verify-x509-name CN=org.binarin.ru
   '';
 }
