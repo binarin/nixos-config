@@ -5,8 +5,58 @@
 let
   net = "172.25.14";
 in {
-  networking.hostName = "lanfear";
-  networking.hostId = "2d75caa8";
+
+  boot = {
+    kernelPackages = pkgs.linuxPackages_4_19;
+  };
+
+  networking = {
+    hostName = "lanfear";
+    hostId = "2d75caa8";
+    firewall.allowedTCPPorts = [
+      80 443 8443
+    ];
+    defaultGateway = {
+      address = "192.168.2.1";
+      interface = "br0";
+    };
+    nameservers = [ "192.168.2.4" "192.168.2.1" "8.8.8.8" ];
+    search = [ "binarin.ru" ];
+    domain = "binarin.ru";
+    interfaces = {
+      br0 = {
+        name = "br0";
+        ipv4.addresses = [
+          { address = "192.168.2.4"; prefixLength = 24; }
+        ];
+      };
+    };
+    bridges = {
+      br0 = {
+        interfaces = [ "eno1" ];
+      };
+    };
+
+    nat = {
+      enable = true;
+      internalInterfaces = ["ovpn-server-tcp"];
+      externalInterface = "br0";
+    };
+
+    firewall.extraCommands = ''
+      ip46tables -A FORWARD -i ovpn-server-tcp -j ACCEPT || true
+      ip46tables -A FORWARD -o ovpn-server-tcp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT || true
+
+      ip46tables -A FORWARD -p all -i br0 -j ACCEPT || true
+    '';
+
+    firewall.extraStopCommands = ''
+      ip46tables -D FORWARD -i ovpn-server-tcp -j ACCEPT || true
+      ip46tables -D FORWARD -o ovpn-server-tcp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT || true
+
+      ip46tables -D FORWARD -p all -i br0 -j ACCEPT || true
+    '';
+  };
 
   imports = [
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
@@ -23,13 +73,9 @@ in {
     enable = true;
     storageBackend = "file";
   };
-  environment.systemPackages = [ pkgs.vault ];
+  environment.systemPackages = [ pkgs.vault pkgs.virtinst ];
   virtualisation.docker.enable = true;
   virtualisation.libvirtd.enable = true;
-
-  networking.firewall.allowedTCPPorts = [
-    80 443 8443
-  ];
 
   security.pam.services.nginx = {
     name = "nginx";
@@ -177,19 +223,4 @@ push "route 208.0.0.0 240.0.0.0"
     '';
   };
 
-  networking.nat = {
-    enable = true;
-    internalInterfaces = ["ovpn-server-tcp"];
-    externalInterface = "eno1";
-  };
-
-  networking.firewall.extraCommands = ''
-    ip46tables -A FORWARD -i ovpn-server-tcp -j ACCEPT
-    ip46tables -A FORWARD -o ovpn-server-tcp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-  '';
-
-  networking.firewall.extraStopCommands = ''
-    ip46tables -D FORWARD -i ovpn-server-tcp -j ACCEPT
-    ip46tables -D FORWARD -o ovpn-server-tcp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-  '';
 }
