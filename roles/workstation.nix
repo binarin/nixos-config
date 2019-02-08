@@ -49,14 +49,12 @@ in {
 
   nix = {
     binaryCaches = [
-      "http://naberius.binarin.ru:5000"
       "https://cache.nixos.org"
       "https://nixcache.reflex-frp.org"
     ];
 
     binaryCachePublicKeys = [
       "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
-      "naberius.binarin.ru-1:HeueNAbXuNomZp4xJL+ITAmJpSNYl/newnqoI85aUyc="
     ];
 
     useSandbox = true;
