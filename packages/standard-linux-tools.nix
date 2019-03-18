@@ -18,6 +18,7 @@ in
   config = {
     environment.systemPackages = with pkgs; [
       apg
+      bleeding.bat
       bind # for dig
       binutils
       bridge-utils
