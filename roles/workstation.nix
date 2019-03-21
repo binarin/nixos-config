@@ -41,7 +41,7 @@ in {
   ];
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_4_18;
+    kernelPackages = pkgs.linuxPackages_4_19;
     supportedFilesystems = [ "exfat" ];
     kernelModules = [ "fuse" ];
     kernel.sysctl."vm.swappiness" = 1;
@@ -98,7 +98,6 @@ in {
   bleedingEdgePackages = with pkgs.bleeding; [
       chromium
       firefox-beta-bin
-      freecad
       goldendict
       k2pdfopt
       kubernetes
@@ -130,6 +129,7 @@ in {
       ebook_tools
       electrum
       evince
+      freecad
       icewm # something to run in Xephyr
       icoutils
       imagemagickBig
@@ -163,7 +163,7 @@ in {
       taffybarWithPackages
       torbrowser
       tdesktop
-      viber
+      # viber
       # wineFull
       workrave
       xdg-user-dirs

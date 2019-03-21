@@ -58,7 +58,7 @@ process
 process-extras
 QuickCheck
 quickcheck-instances
-quickcheck-state-machine
+# quickcheck-state-machine
 raw-strings-qq
 regex-compat
 safe-exceptions
