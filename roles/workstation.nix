@@ -154,7 +154,7 @@ in {
       stalonetray
       steam
       sweethome3d.application
-      taffybarWithPackages
+      taffybarWrapped
       torbrowser
       tdesktop
       # viber
@@ -601,7 +601,7 @@ EndSection
 
   systemd.user.services.taffybar = {
     description = "taffybar (with monitor autodetection)";
-    path = [ taffybarWithPackages ];
+    # path = [ ];
     after = [ "status-notifier-watcher.service "];
     wants = [ "status-notifier-watcher.service "];
     unitConfig = {
