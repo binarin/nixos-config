@@ -96,7 +96,6 @@ in {
 
   environment.systemPackages = let
   bleedingEdgePackages = with pkgs.bleeding; [
-      chromium
       firefox-beta-bin
       goldendict
       k2pdfopt
@@ -105,12 +104,6 @@ in {
       openscad
       simplescreenrecorder
       vscode
-    ];
-    jsPackages = with pkgs; [
-      js."@bitwarden/cli"
-      js."@vue/cli"
-      js.vue-language-server
-      js.yarn
     ];
     desktopPackages = with pkgs; [
       alacritty
@@ -122,7 +115,8 @@ in {
       binarin-xrandr-auto
       blender
       # calibre
-      desktop-nagger
+      chromium
+      # desktop-nagger
       dia
       dropbox
       dunst
@@ -137,7 +131,7 @@ in {
       insync
       geeqie
       gimp-with-plugins
-      gitg
+      # gitg
       glxinfo
       gnome2.gnome_icon_theme
       gnome3.adwaita-icon-theme
@@ -174,7 +168,7 @@ in {
       # yandex-disk
     ];
     developmentPackages = with pkgs; [
-      androidenv.platformTools
+      # androidenv.platformTools
       ant
       apitrace
       arduino
@@ -231,7 +225,7 @@ in {
       haskellPackages.xmobar
       haskellPackages.yeganesh
       hsetroot
-      isyncUnstable
+      # isyncUnstable
       quasselClient
       keychain
       libreoffice
@@ -248,7 +242,6 @@ in {
      developmentPackages ++
      nixDevPackages ++
      utilityPackages ++
-     jsPackages ++
      bleedingEdgePackages;
 
   nixpkgs.config = {
@@ -261,10 +254,6 @@ in {
      enableGoogleTalkPlugin = true;
      jre = true;
      enableDjvu = true;
-    };
-
-    chromium = {
-     enablePepperPDF = true;
     };
   };
 
@@ -547,31 +536,31 @@ EndSection
     };
   };
 
-  systemd.services."binarin-mail-sync" = let
-    script = pkgs.writeScript "binarin-mail-sync" ''
-      #!${pkgs.bash}/bin/bash
-      set -euo pipefail
-      if [[ ! -f $HOME/.work-offline ]]; then
-        mbsync -a
-      fi
-    '';
-  in {
-    description = "Sync my e-mails to local storage";
-    path = [ pkgs.isyncUnstable ];
-    serviceConfig = {
-      Type = "oneshot";
-      User = "binarin";
-      ExecStart = script;
-    };
-  };
-  systemd.timers."binarin-mail-sync" = {
-    description = "Periodically syncs mail to local storage";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnBootSec = "10min";
-      OnUnitActiveSec = "10min";
-    };
-  };
+  # systemd.services."binarin-mail-sync" = let
+  #   script = pkgs.writeScript "binarin-mail-sync" ''
+  #     #!${pkgs.bash}/bin/bash
+  #     set -euo pipefail
+  #     if [[ ! -f $HOME/.work-offline ]]; then
+  #       mbsync -a
+  #     fi
+  #   '';
+  # in {
+  #   description = "Sync my e-mails to local storage";
+  #   path = [ pkgs.isyncUnstable ];
+  #   serviceConfig = {
+  #     Type = "oneshot";
+  #     User = "binarin";
+  #     ExecStart = script;
+  #   };
+  # };
+  # systemd.timers."binarin-mail-sync" = {
+  #   description = "Periodically syncs mail to local storage";
+  #   wantedBy = [ "timers.target" ];
+  #   timerConfig = {
+  #     OnBootSec = "10min";
+  #     OnUnitActiveSec = "10min";
+  #   };
+  # };
 
   services.compton = {
     enable = true;

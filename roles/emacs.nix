@@ -23,7 +23,7 @@ let
     });
 
   };
-  customEmacsPackages = pkgs.bleeding.emacsPackagesNg.overrideScope' overrides;
+  customEmacsPackages = pkgs.emacsPackagesNg.overrideScope' overrides;
   emacs-with-packages = customEmacsPackages.emacsWithPackages (p: with p; [
     ace-window
     alchemist
@@ -127,6 +127,6 @@ in
     ] ++ (with pkgs; [
       xprintidle-ng
       sqlite # for helm-dash
-      bleeding.gometalinter
+      gometalinter
     ]);
 }

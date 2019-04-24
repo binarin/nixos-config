@@ -13,7 +13,7 @@ in {
     ];
 
     nixpkgs.config.packageOverrides = super: rec {
-      myHaskellPackages = pkgs.haskell.packages.ghc843.override {
+      myHaskellPackages = pkgs.haskell.packages.ghc844.override {
         overrides = haskellOverrides;
       };
 
@@ -33,13 +33,13 @@ in {
       };
 
       ghcEnv = super.pkgs.buildEnv {
-        name = "ghc843";
+        name = "ghc844";
         paths = with myHaskellPackages; [
           (myGhcWithHoogleFiltered ghcWithHoogle)
           alex
           cabal-install
           ghc-core
-          ghcid
+          # ghcid
           happy
           hasktags
           hlint

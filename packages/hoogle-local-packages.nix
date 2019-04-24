@@ -11,7 +11,7 @@ brick
 bytestring
 cabal-doctest
 cassava
-clay
+# clay
 containers
 cryptonite
 data-default
@@ -29,12 +29,12 @@ file-embed
 filepath
 gitlib
 GLFW-b
-hakyll
+# hakyll
 hashable
 hlibgit2
-hnix
+#hnix
 hspec
-hspec-expectations-pretty-diff
+#hspec-expectations-pretty-diff
 JuicyPixels
 lens
 linear
@@ -48,8 +48,8 @@ opaleye
 OpenGLRaw
 optparse-applicative
 optparse-text
-overload
-pandoc
+#overload
+#pandoc
 pcre-heavy
 prettyprinter
 prettyprinter-ansi-terminal
@@ -64,7 +64,7 @@ regex-compat
 safe-exceptions
 selda
 selda-sqlite
-simple-effects
+#simple-effects
 sqlite-simple
 stm
 structured-haskell-mode
