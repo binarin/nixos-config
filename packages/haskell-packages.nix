@@ -39,7 +39,7 @@ in {
     ];
 
     nixpkgs.config.packageOverrides = super: rec {
-      myHaskellPackages = pkgs.haskell.packages.ghc844.override {
+      myHaskellPackages = pkgs.haskell.packages.ghc864.override {
         overrides = haskellOverrides;
       };
 
@@ -67,7 +67,7 @@ in {
       };
 
       ghcEnv = super.pkgs.buildEnv {
-        name = "ghc844";
+        name = "ghc864";
         paths = with myHaskellPackages; [
           (myGhcWithHoogleFiltered ghcWithHoogle)
           alex
