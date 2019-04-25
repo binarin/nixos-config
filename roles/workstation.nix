@@ -224,6 +224,7 @@ in {
       subversion
       tightvnc
       travis
+      watchman
     ];
     nixDevPackages = with pkgs; [
       patchelf
