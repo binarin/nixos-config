@@ -10,12 +10,12 @@
 
     redirect-private
 
-    <connection>
-      remote org.binarin.ru 8443 tcp
-      http-proxy ${builtins.replaceStrings ["baz" "lol" "inc" "queen"] ["boo" "web" "corp" "king"] "lolproxy.corp.bazqueen.com"} 3128
-      tun-mtu 1300
-      nobind
-    </connection>
+    # <connection>
+    #   remote org.binarin.ru 8443 tcp
+    #   http-proxy ${builtins.replaceStrings ["baz" "lol" "inc" "queen"] ["boo" "web" "corp" "king"] "lolproxy.corp.bazqueen.com"} 3128
+    #   tun-mtu 1300
+    #   nobind
+    # </connection>
 
     <connection>
       remote org.binarin.ru 8443 tcp

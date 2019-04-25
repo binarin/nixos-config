@@ -66,7 +66,34 @@ in {
   };
 
   networking = {
-    networkmanager.enable = true;
+    networkmanager = {
+      enable = true;
+      dispatcherScripts = [
+        {
+          source = pkgs.writeScript "upHook" ''
+            #!${pkgs.bash}/bin/bash
+            export PATH=$PATH:${pkgs.unixtools.getent}/bin:${pkgs.gawk}/bin
+
+            if [[ "$CONNECTION_ID" == "BK-GUEST" ]] ; then
+              AMON_IP=$(getent hosts amon.binarin.ru | awk '{ print $1 }')
+              if [[ -z $AMON_IP ]]; then
+                AMON_IP=82.197.211.232
+                logger "amon.binarin.ru failed to resolve, defaulting to $AMON_IP"
+              fi
+              if [[ "$NM_DISPATCHER_ACTION" == "up" ]]; then
+                logger "BK-G UP: Adding static route to amon $AMON_IP via $IP4_GATEWAY"
+                ip r a $AMON_IP via $IP4_GATEWAY || true
+                systemctl start openvpn-tcp-to-lanfear.service || true
+              else
+                logger "BK-G DOWN: Deleting static route to amon $AMON_IP"
+                ip r d $AMON_IP via $IP4_GATEWAY || true
+                systemctl stop openvpn-tcp-to-lanfear.service || true
+              fi
+            fi
+          '';
+        }
+      ];
+    };
     dnsExtensionMechanism = false;
     extraHosts = ''
       127.0.0.1 ${config.networking.hostName}
