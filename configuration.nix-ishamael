@@ -7,12 +7,6 @@
 
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
-    kernelPatches = [
-      {
-        name = "drm-fix";
-        patch = ./roles/v2-drm-i915-Fix-ICL-HDMI-clock-readout.patch;
-      }
-    ];
   };
 
   imports = [
