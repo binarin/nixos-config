@@ -140,6 +140,7 @@ in {
       aspellDicts.nl
       audacious
       binarin-xrandr-auto
+      bitwarden-cli
       blender
       # calibre
       chromium
