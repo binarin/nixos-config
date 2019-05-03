@@ -134,6 +134,7 @@ in {
     ];
     desktopPackages = with pkgs; [
       alacritty
+      anki
       aspell
       aspellDicts.ru
       aspellDicts.en
