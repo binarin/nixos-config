@@ -6,9 +6,11 @@
       binarin-xrandr-auto = pkgs.writeScriptBin "xrandr-auto" ''
         #!${pkgs.bash}/bin/bash
         set -euxo pipefail
-        export PATH=$PATH''${PATH:+:}${pkgs.gnugrep}/bin:${pkgs.xorg.xrandr}/bin:${pkgs.procps}/bin:${pkgs.findutils}/bin:${pkgs.coreutils}/bin
+        export PATH=$PATH''${PATH:+:}${pkgs.gnugrep}/bin:${pkgs.xorg.xrandr}/bin:${pkgs.procps}/bin:${pkgs.findutils}/bin:${pkgs.coreutils}/bin:${pkgs.gawk}/bin
 
         mode="''${1:-}"
+
+        LID_STATUS=$(cat /proc/acpi/button/lid/LID0/state | awk '{print $2}')
 
         HDMI_STATUS=
         if xrandr | grep -q 'HDMI-1 connected'; then
@@ -54,8 +56,8 @@
                 ;;
               home)
                 xrandr --output DP-1-1 --mode 1920x1080 --primary
-                xrandr --output DP-1-2 --mode 1920x1080 --left-of DP-1-1
-                xrandr --output eDP-1 --mode 1920x1080 --right-of DP-1-1
+                xrandr --output DP-1-2 --mode 1920x1080 --right-of DP-1-1
+                xrandr --output eDP-1 --off
                 xrandr --output DP-1-3 --off
                 xrandr --output HDMI-1 --off
                 ;;
