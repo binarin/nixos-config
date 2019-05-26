@@ -22,6 +22,15 @@ let
       };
     });
 
+    intero = self.intero.overrideAttrs (oldAttrs: {
+      src = pkgs.fetchFromGitHub {
+        owner = "commercialhaskell";
+        repo = "intero";
+        rev = "8da81244783fbf03afb49660423c875f2e874fba";
+        sha256 = "17vibxapzp4wf0dfc56x98wsf3wy98ghj5h10nyf7xcfwy6k0rja";
+      };
+    });
+
   };
   customEmacsPackages = pkgs.emacsPackagesNg.overrideScope' overrides;
   emacs-with-packages = customEmacsPackages.emacsWithPackages (p: with p; [
