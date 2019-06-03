@@ -654,4 +654,10 @@ EndSection
 
   # TLP brings you the benefits of advanced power management for Linux without the need to understand every technical detail.
   services.tlp.enable = true;
+
+  services.logind = {
+    lidSwitch = "suspend";
+    lidSwitchExternalPower = "ignore";
+    lidSwitchDocked = "ignore";
+  };
 }
