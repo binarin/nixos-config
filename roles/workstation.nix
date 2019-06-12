@@ -147,7 +147,7 @@ in {
       chromium
       # desktop-nagger
       dia
-      dropbox
+      # dropbox
       dunst
       ebook_tools
       electrum
@@ -218,7 +218,7 @@ in {
       mysql
       nodejs-10_x
       ncurses
-      oraclejdk8
+      # oraclejdk8
       pkgconfig
       python35Packages.virtualenv
       quilt
@@ -282,7 +282,7 @@ in {
     firefox = {
      enableBluejeans = true;
      enableGoogleTalkPlugin = true;
-     jre = true;
+     # jre = true;
      enableDjvu = true;
     };
   };
