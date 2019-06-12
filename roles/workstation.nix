@@ -83,11 +83,11 @@ in {
               if [[ "$NM_DISPATCHER_ACTION" == "up" ]]; then
                 logger "BK-G UP: Adding static route to amon $AMON_IP via $IP4_GATEWAY"
                 ip r a $AMON_IP via $IP4_GATEWAY || true
-                systemctl start openvpn-tcp-to-lanfear.service || true
+                systemctl start openvpn-udp-to-lanfear.service || true
               elif [[ "$NM_DISPATCHER_ACTION" == "down" ]]; then
                 logger "BK-G DOWN: Deleting static route to amon $AMON_IP"
                 ip r d $AMON_IP via $IP4_GATEWAY || true
-                systemctl stop openvpn-tcp-to-lanfear.service || true
+                systemctl stop openvpn-udp-to-lanfear.service || true
               fi
             fi
           '';

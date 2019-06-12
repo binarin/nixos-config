@@ -8,6 +8,7 @@ in {
     environment.systemPackages = with pkgs.perl528Packages; [
       PathTiny
       JSONXS
+      JSON
     ];
   };
 }
