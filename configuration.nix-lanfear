@@ -4,6 +4,7 @@
 
 let
   net = "172.25.14";
+  udpNet = "172.25.15";
 in {
 
   boot = {
@@ -15,6 +16,9 @@ in {
     hostId = "2d75caa8";
     firewall.allowedTCPPorts = [
       80 443 8443
+    ];
+    firewall.allowedUDPPorts = [
+       8443
     ];
     defaultGateway = {
       address = "192.168.2.1";
@@ -39,7 +43,7 @@ in {
 
     nat = {
       enable = true;
-      internalInterfaces = ["ovpn-server-tcp"];
+      internalInterfaces = ["ovpn-server-tcp" "ovpn-server-udp"];
       externalInterface = "br0";
     };
 
@@ -48,6 +52,9 @@ in {
       ip46tables -A FORWARD -o ovpn-server-tcp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT || true
 
       ip46tables -A FORWARD -p all -i br0 -j ACCEPT || true
+
+      ip46tables -A FORWARD -i ovpn-server-udp -j ACCEPT || true
+      ip46tables -A FORWARD -o ovpn-server-udp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT || true
     '';
 
     firewall.extraStopCommands = ''
@@ -55,6 +62,9 @@ in {
       ip46tables -D FORWARD -o ovpn-server-tcp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT || true
 
       ip46tables -D FORWARD -p all -i br0 -j ACCEPT || true
+
+      ip46tables -D FORWARD -i ovpn-server-udp -j ACCEPT || true
+      ip46tables -D FORWARD -o ovpn-server-udp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT || true
     '';
   };
 
@@ -159,6 +169,38 @@ in {
     serviceConfig = {
       ExecStart = script;
     };
+  };
+
+  services.openvpn.servers.udp-server-with-password = {
+    config = ''
+      mode server
+      dh none
+      tls-server
+      dev-type tun
+      dev ovpn-server-udp
+      port 8443
+      proto udp
+      cert /var/lib/acme/org.binarin.ru/fullchain.pem
+      key /var/lib/acme/org.binarin.ru/key.pem
+      ca /etc/ssl/certs/ca-bundle.crt
+      plugin openvpn-plugin-auth-pam.so "login login USERNAME password PASSWORD"
+      verify-client-cert none
+
+      cipher AES-128-CBC
+      client-to-client
+
+      ifconfig ${udpNet}.1 ${udpNet}.2
+      ifconfig-pool ${udpNet}.128 ${udpNet}.254
+
+      keepalive 5 30
+      tun-mtu 1300
+
+      push "redirect-gateway"
+      push "route ${udpNet}.0 255.255.255.0"
+      push "topology net30"
+
+      route ${udpNet}.0 255.255.255.0
+    '';
   };
 
   services.openvpn.servers.tcp-server-with-password = {
