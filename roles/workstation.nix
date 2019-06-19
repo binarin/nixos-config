@@ -123,7 +123,7 @@ in {
 
   environment.systemPackages = let
   bleedingEdgePackages = with pkgs.bleeding; [
-      firefox-beta-bin
+      firefox-bin
       goldendict
       k2pdfopt
       kubernetes
