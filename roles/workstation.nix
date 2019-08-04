@@ -125,7 +125,6 @@ in {
   bleedingEdgePackages = with pkgs.bleeding; [
       firefox-bin
       goldendict
-      k2pdfopt
       kubernetes
       pythonPackages.pywatchman
       openscad
@@ -166,6 +165,7 @@ in {
       gnome3.adwaita-icon-theme
       google-chrome
       hicolor-icon-theme
+      k2pdfopt
       keepass
       libnotify
       lightdm # for dm-tool

@@ -11,7 +11,7 @@ brick
 bytestring
 cabal-doctest
 cassava
-# clay
+clay
 containers
 cryptonite
 data-default

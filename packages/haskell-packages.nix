@@ -1,18 +1,21 @@
 {pkgs, lib, ...}:
 
 let haskellOverrides = self: super:
-   with pkgs.haskell.lib;
-   let pkg = self.callPackage; in
-   rec {
-     taffybar = (
-       addPkgconfigDepend (disableLibraryProfiling (dontCheck (
-         super.callCabal2nix
-         "taffybar"
-         ../taffybar
-         {}
-       )))
-       pkgs.gtk3
-     );
+  with pkgs.haskell.lib;
+  let pkg = self.callPackage;
+    markUnbroken = drv: overrideCabal drv (drv: { broken = false; });
+  in rec {
+    taffybar = (
+      addPkgconfigDepend (disableLibraryProfiling (dontCheck (
+        super.callCabal2nix
+        "taffybar"
+        ../taffybar
+        {}
+      )))
+      pkgs.gtk3
+    );
+
+    clay = dontCheck (markUnbroken super.clay);
 
      broadcast-chan = pkg
        ({ mkDerivation, async, base, criterion, deepseq, stm
