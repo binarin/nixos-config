@@ -84,11 +84,11 @@ let
     key-seq
     kill-or-bury-alive
     less-css-mode
-    lsp-go
+    # lsp-go
     lsp-haskell
     lsp-mode
     lsp-ui
-    lsp-vue
+    # lsp-vue
     magit
     markdown-mode
     mu4e-maildirs-extension

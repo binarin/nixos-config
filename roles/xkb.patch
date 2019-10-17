@@ -1,43 +1,42 @@
-diff -ru xkeyboard-config-2.20.orig/rules/base.xml.in xkeyboard-config-2.20/rules/base.xml.in
---- xkeyboard-config-2.20.orig/rules/base.xml.in	2017-02-01 04:39:10.000000000 +0300
-+++ xkeyboard-config-2.20/rules/base.xml.in	2017-03-20 18:20:11.338387281 +0300
-@@ -4092,6 +4092,12 @@
+diff -ur xkeyboard-config-2.27/rules/base.xml xkeyboard-config-2.27/rules/base.xml
+--- xkeyboard-config-2.27/rules/base.xml	2019-05-30 23:30:31.000000000 +0000
++++ xkeyboard-config-2.27/rules/base.xml	2019-10-13 11:32:35.693430368 +0000
+@@ -4595,6 +4595,12 @@
          </variant>
          <variant>
            <configItem>
-+            <name>dvp</name>
-+            <_description>Russian (Programmer Dvorak compatible)</_description>
-+          </configItem>
-+        </variant>
-+        <variant>
-+          <configItem>
++             <name>dvp</name>
++             <description>Russian (Programmer Dvorak compatible)</description>
++           </configItem>
++         </variant>
++         <variant>
++           <configItem>
              <name>phonetic_winkeys</name>
-             <_description>Russian (phonetic WinKeys)</_description>
+             <description>Russian (phonetic, with Win keys)</description>
            </configItem>
-diff -ru xkeyboard-config-2.20.orig/rules/evdev.xml.in xkeyboard-config-2.20/rules/evdev.xml.in
---- xkeyboard-config-2.20.orig/rules/evdev.xml.in	2017-02-01 04:39:18.000000000 +0300
-+++ xkeyboard-config-2.20/rules/evdev.xml.in	2017-03-20 18:20:40.302719956 +0300
-@@ -4092,6 +4092,12 @@
+diff -ur xkeyboard-config-2.27/rules/evdev.xml xkeyboard-config-2.27/rules/evdev.xml
+--- xkeyboard-config-2.27/rules/evdev.xml	2019-05-30 23:30:43.000000000 +0000
++++ xkeyboard-config-2.27/rules/evdev.xml	2019-10-13 11:33:27.451759244 +0000
+@@ -4595,6 +4595,12 @@
          </variant>
          <variant>
            <configItem>
-+            <name>dvp</name>
-+            <_description>Russian (Programmer Dvorak compatible)</_description>
-+          </configItem>
-+        </variant>
-+        <variant>
-+          <configItem>
++             <name>dvp</name>
++             <description>Russian (Programmer Dvorak compatible)</description>
++           </configItem>
++         </variant>
++         <variant>
++           <configItem>
              <name>phonetic_winkeys</name>
-             <_description>Russian (phonetic WinKeys)</_description>
+             <description>Russian (phonetic, with Win keys)</description>
            </configItem>
-diff -ru xkeyboard-config-2.20.orig/symbols/ru xkeyboard-config-2.20/symbols/ru
---- xkeyboard-config-2.20.orig/symbols/ru	2017-02-01 04:39:10.000000000 +0300
-+++ xkeyboard-config-2.20/symbols/ru	2017-03-20 18:16:20.425578176 +0300
-@@ -853,3 +853,25 @@
- 
-     include "level3(ralt_switch)"
+diff -ur xkeyboard-config-2.27/symbols/ru xkeyboard-config-2.27/symbols/ru
+--- xkeyboard-config-2.27/symbols/ru	2019-10-13 11:19:08.000000000 +0000
++++ xkeyboard-config-2.27/symbols/ru	2019-10-13 11:29:51.891193005 +0000
+@@ -856,6 +856,28 @@
+ 	include "sun_vndr/ru(sun_type6)"
  };
-+
+ 
 +partial default alphanumeric_keys
 +xkb_symbols "dvp" {
 +    include "ru(common)"
@@ -59,3 +58,7 @@ diff -ru xkeyboard-config-2.20.orig/symbols/ru xkeyboard-config-2.20/symbols/ru
 +    key <AB10> {        [       period,     comma     ]       };
 +    key <BKSL> {        [       backslash,  bar       ]       };
 +};
++
+ // Apple layout
+ partial alphanumeric_keys
+ xkb_symbols "mac" {

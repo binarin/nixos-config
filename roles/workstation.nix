@@ -94,7 +94,7 @@ in {
         }
       ];
     };
-    dnsExtensionMechanism = false;
+    resolvconf.dnsExtensionMechanism = false;
     extraHosts = ''
       127.0.0.1 ${config.networking.hostName}
     '';
@@ -116,10 +116,10 @@ in {
   # Set your time zone.
   time.timeZone = "Europe/Amsterdam";
 
-  standard-linux-tools.wireshark-package = pkgs.wireshark-gtk;
+  standard-linux-tools.wireshark-package = pkgs.wireshark-qt;
 
   programs.wireshark.enable = true;
-  programs.wireshark.package = pkgs.wireshark-gtk;
+  programs.wireshark.package = pkgs.wireshark-qt;
 
   environment.systemPackages = let
   bleedingEdgePackages = with pkgs.bleeding; [
@@ -427,10 +427,11 @@ EndSection
     };
   };
 
+  location.latitude = 52.3702;
+  location.longitude = 4.8952;
+
   services.redshift = {
     enable = true;
-    latitude = "52.3702";
-    longitude = "4.8952";
     temperature = { day = 6500; night = 3000; };
     extraOptions = [ "-v" ];
   };
@@ -595,8 +596,8 @@ EndSection
   services.compton = {
     enable = true;
     backend = "glx";
-    vSync = "opengl-swc";
-    package = pkgs.compton-git;
+    vSync = true;
+    # package = pkgs.compton-git;
   };
 
   services.udev = let
