@@ -145,6 +145,7 @@ in {
       # calibre
       chromium
       # desktop-nagger
+      desktop-file-utils
       dia
       # dropbox
       dunst
