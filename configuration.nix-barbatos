@@ -12,6 +12,15 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPatches = lib.singleton {
+    name = "enable-pm-trace";
+    patch = null;
+    extraConfig = ''
+      PM_TRACE_RTC y
+    '';
+  };
+
   networking.useDHCP = false;
   networking.interfaces.enp6s0.useDHCP = true;
 
