@@ -5,6 +5,6 @@
   # boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
   hardware.cpu.intel.updateMicrocode = true;
-  hardware.enableAllFirmware = true;
+  hardware.enableRedistributableFirmware = true;
   nix.maxJobs = 4;
 }

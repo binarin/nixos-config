@@ -262,7 +262,7 @@ in {
       libreoffice
       mu
       pavucontrol
-      skype
+      # skype
       wmctrl
       xclip
       xscreensaver
@@ -656,8 +656,6 @@ EndSection
 
   # TLP brings you the benefits of advanced power management for Linux without the need to understand every technical detail.
   services.tlp.enable = true;
-
-  powerManagement.enable = if config.networking.hostName == "barbatos" then true else false;
 
   services.logind = {
     lidSwitch = "suspend";
