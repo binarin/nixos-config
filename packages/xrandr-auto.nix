@@ -36,7 +36,7 @@
         setup=
         if [[ connected == $DP1_1_STATUS && connected == $DP1_2_STATUS && 2 == $WORK_DELL_COUNT ]]; then
             setup=work
-        elif [[ connected == $DP1_1_STATUS && connected == $DP1_2_STATUS ]]; then
+        elif [[ connected == $DP1_1_STATUS && "" == $DP1_2_STATUS ]]; then
             setup=home
         elif [[ connected == $HDMI_STATUS ]]; then
             setup=presentation
@@ -55,9 +55,9 @@
                 xrandr --output HDMI-1 --off
                 ;;
               home)
-                xrandr --output DP-1-1 --mode 1920x1080 --primary
-                xrandr --output DP-1-2 --mode 1920x1080 --right-of DP-1-1
-                xrandr --output eDP-1 --off
+                xrandr --output eDP-1 --mode 1920x1080 --primary
+                xrandr --output DP-1-1 --mode 1920x1080 --same-as eDP-1
+                xrandr --output DP-1-2 --off
                 xrandr --output DP-1-3 --off
                 xrandr --output HDMI-1 --off
                 ;;

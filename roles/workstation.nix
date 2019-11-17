@@ -41,7 +41,7 @@ in {
   ];
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_4_19;
+    # kernelPackages = pkgs.linuxPackages_4_19;
     supportedFilesystems = [ "exfat" ];
     kernelModules = [ "fuse" ];
     kernel.sysctl."vm.swappiness" = 1;
