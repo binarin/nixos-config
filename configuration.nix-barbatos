@@ -5,26 +5,43 @@
   networking.hostName = "barbatos";
   networking.hostId = "aafbe1f4";
 
-  nix.maxJobs = lib.mkDefault 4;
+  nix.maxJobs = lib.mkDefault 24;
 
   boot.initrd.availableKernelModules = [ "uhci_hcd" "ehci_pci" "ahci" "usb_storage" "usbhid" "sd_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
+  boot.loader.grub.enable = true;
+  boot.loader.grub.version = 2;
+  boot.loader.grub.devices = [ "/dev/sda" "/dev/sdb" ];
+  boot.supportedFilesystems = [ "zfs "];
+
+  fileSystems."/" =
+    { device = "rpool/root/nixos";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home" =
+    { device = "rpool/home";
+      fsType = "zfs";
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/8212b55a-b6c1-4d81-ab28-c295d293bfb8";
+      fsType = "ext4";
+    };
+
   networking.useDHCP = false;
   networking.interfaces.enp6s0.useDHCP = true;
-
-  services.openssh.enable = true;
-  services.openssh.permitRootLogin = "yes";
 
   imports = [
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
 
-    ./partitions/zfs-root.nix
-
     ./modules/force-my-version.nix
 
-    ./roles/workstation.nix
+    ./roles/server.nix
+    ./users/binarin.nix
+    ./roles/emacs.nix
   ];
 }

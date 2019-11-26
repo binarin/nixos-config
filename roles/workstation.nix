@@ -185,7 +185,7 @@ in {
       steam
       sweethome3d.application
       taffybarWrapped
-      torbrowser
+      #torbrowser
       tdesktop
       # viber
       # wineFull
