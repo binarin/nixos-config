@@ -9,7 +9,7 @@
       uid = 1000;
       isNormalUser = true;
       shell = "/run/current-system/sw/bin/zsh";
-      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" "dialout" "vboxusers" "wireshark" "transmission" "lxd" ];
+      extraGroups = [ "networkmanager" "docker" "libvirtd" "wheel" "dialout" "vboxusers" "wireshark" "transmission" "lxd" "video" ];
     };
   };
   programs.zsh.enable = true;
