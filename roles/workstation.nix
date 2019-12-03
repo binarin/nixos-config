@@ -347,7 +347,7 @@ in {
 
   services.xserver = {
     # videoDrivers = [ "ati_unfree" "ati" "noveau" "intel" "vesa" "vmware" "modesetting"];
-    videoDrivers = ["modesetting" "ati"];
+    videoDrivers = ["intel" "modesetting" "ati"];
     config = ''
 Section "InputClass"
 	Identifier "CirqueTouchpad1"
@@ -386,11 +386,11 @@ Section "InputClass"
     Option "XAxisMapping"       "6 7"
 EndSection
 
-# Section "Device"
-#         Identifier  "Intel Graphics"
-#         Driver      "intel"
-#         Option      "TearFree" "true"
-# EndSection
+Section "Device"
+        Identifier  "Intel Graphics"
+        Driver      "intel"
+        Option      "TearFree" "true"
+EndSection
     '';
     enable = true;
     layout = "us,ru";

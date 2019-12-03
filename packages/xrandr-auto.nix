@@ -13,20 +13,52 @@
         LID_STATUS=$(cat /proc/acpi/button/lid/LID0/state | awk '{print $2}')
 
         HDMI_STATUS=
+        HDMI_OUTPUT=
         if xrandr | grep -q 'HDMI-1 connected'; then
             HDMI_STATUS=connected
+            HDMI_OUTPUT=HDMI-1
         fi
+        if xrandr | grep -q 'HDMI1 connected'; then
+            HDMI_STATUS=connected
+            HDMI_OUTPUT=HDMI1
+        fi
+
         DP1_1_STATUS=
+        DP1_1_OUTPUT=
         if xrandr | grep -q 'DP-1-1 connected'; then
             DP1_1_STATUS=connected
+            DP1_1_OUTPUT=DP-1-1
         fi
+        if xrandr | grep -q 'DP1-1 connected'; then
+            DP1_1_STATUS=connected
+            DP1_1_OUTPUT=DP1-1
+        fi
+
         DP1_2_STATUS=
+        DP1_2_OUTPUT=
         if xrandr | grep -q 'DP-1-2 connected'; then
             DP1_2_STATUS=connected
+            DP1_2_OUTPUT=DP-1-2
         fi
+        if xrandr | grep -q 'DP1-2 connected'; then
+            DP1_2_STATUS=connected
+            DP1_2_OUTPUT=DP1-2
+        fi
+
         DP1_3_STATUS=
+        DP1_3_OUTPUT=
         if xrandr | grep -q 'DP-1-3 connected'; then
             DP1_3_STATUS=connected
+            DP1_3_OUTPUT=DP-1-3
+        fi
+        if xrandr | grep -q 'DP1-3 connected'; then
+            DP1_3_STATUS=connected
+            DP1_3_OUTPUT=DP1-3
+        fi
+
+        EDP1_OUTPUT=eDP-1
+        if xrandr | grep -q 'eDP1 connected'; then
+          EDP1_OUTPUT=eDP1
         fi
 
         set +o pipefail
@@ -48,32 +80,32 @@
           configure)
             case "$setup" in
               work)
-                xrandr --output DP-1-1 --mode 1920x1080 --primary
-                xrandr --output DP-1-2 --mode 1920x1080 --left-of DP-1-1
-                xrandr --output eDP-1 --mode 1920x1080 --right-of DP-1-1
-                xrandr --output DP-1-3 --off
-                xrandr --output HDMI-1 --off
+                xrandr --output $DP1_1_OUTPUT --mode 1920x1080 --primary
+                xrandr --output $DP1_2_OUTPUT --mode 1920x1080 --left-of $DP1_1_OUTPUT --rotate left
+                xrandr --output $EDP1_OUTPUT --mode 1920x1080 --right-of $DP1_1_OUTPUT
+                xrandr --output $DP1_3_OUTPUT --off
+                xrandr --output $HDMI_OUTPUT --off
                 ;;
               home)
-                xrandr --output eDP-1 --mode 1920x1080 --primary
-                xrandr --output DP-1-1 --mode 1920x1080 --same-as eDP-1
-                xrandr --output DP-1-2 --off
-                xrandr --output DP-1-3 --off
-                xrandr --output HDMI-1 --off
+                xrandr --output $EDP1_OUTPUT --mode 1920x1080 --primary
+                xrandr --output $DP1_1_OUTPUT --mode 1920x1080 --same-as $EDP1_OUTPUT
+                xrandr --output $DP1_2_OUTPUT --off
+                xrandr --output $DP1_3_OUTPUT --off
+                xrandr --output $HDMI_OUTPUT --off
                 ;;
               presentation)
-                xrandr --output eDP-1 --mode 1920x1080
-                xrandr --output DP-1-1 --off
-                xrandr --output DP-1-2 --off
-                xrandr --output DP-1-3 --off
-                xrandr --output HDMI-1 --mode 1920x1080 --same-as eDP-1
+                xrandr --output $EDP1_OUTPUT --mode 1920x1080
+                xrandr --output $DP1_1_OUTPUT --off
+                xrandr --output $DP1_2_OUTPUT --off
+                xrandr --output $DP1_3_OUTPUT --off
+                xrandr --output $HDMI_OUTPUT --mode 1920x1080 --same-as $EDP1_OUTPUT
                 ;;
               standalone)
-                xrandr --output eDP-1 --mode 1920x1080
-                xrandr --output HDMI-1 --off
-                xrandr --output DP-1-1 --off
-                xrandr --output DP-1-2 --off
-                xrandr --output DP-1-3 --off
+                xrandr --output $EDP1_OUTPUT --mode 1920x1080
+                xrandr --output $HDMI_OUTPUT --off
+                xrandr --output $DP1_1_OUTPUT --off
+                xrandr --output $DP1_2_OUTPUT --off
+                xrandr --output $DP1_3_OUTPUT --off
                 ;;
               esac
               xrandr
