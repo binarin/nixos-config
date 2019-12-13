@@ -347,7 +347,7 @@ in {
 
   services.xserver = {
     # videoDrivers = [ "ati_unfree" "ati" "noveau" "intel" "vesa" "vmware" "modesetting"];
-    videoDrivers = ["intel" "modesetting" "ati"];
+    videoDrivers = ["modesetting" "ati"];
     config = ''
 Section "InputClass"
 	Identifier "CirqueTouchpad1"

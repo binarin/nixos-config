@@ -81,7 +81,7 @@
             case "$setup" in
               work)
                 xrandr --output $DP1_1_OUTPUT --mode 1920x1080 --primary
-                xrandr --output $DP1_2_OUTPUT --mode 1920x1080 --left-of $DP1_1_OUTPUT --rotate left
+                xrandr --output $DP1_2_OUTPUT --mode 1920x1080 --left-of $DP1_1_OUTPUT
                 xrandr --output $EDP1_OUTPUT --mode 1920x1080 --right-of $DP1_1_OUTPUT
                 xrandr --output $DP1_3_OUTPUT --off
                 xrandr --output $HDMI_OUTPUT --off
