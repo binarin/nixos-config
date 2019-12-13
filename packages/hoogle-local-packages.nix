@@ -13,6 +13,7 @@ cabal-doctest
 cassava
 clay
 containers
+criterion
 cryptonite
 data-default
 data-fix
@@ -29,8 +30,10 @@ file-embed
 filepath
 gitlib
 GLFW-b
+gloss
 # hakyll
 hashable
+hashtables
 hlibgit2
 #hnix
 hspec
@@ -39,7 +42,9 @@ JuicyPixels
 lens
 linear
 logging
+loop
 managed
+megaparsec
 memoize
 monad-logger
 monad-loops
