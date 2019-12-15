@@ -61,6 +61,7 @@ prettyprinter-ansi-terminal
 pretty-show
 process
 process-extras
+pqueue
 QuickCheck
 quickcheck-instances
 # quickcheck-state-machine
