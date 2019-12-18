@@ -62,6 +62,7 @@ pretty-show
 process
 process-extras
 pqueue
+PSQueue
 QuickCheck
 quickcheck-instances
 # quickcheck-state-machine
