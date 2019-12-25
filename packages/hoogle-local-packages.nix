@@ -7,6 +7,7 @@ async
 attoparsec
 base
 binary
+bitvec
 brick
 bytestring
 cabal-doctest
@@ -61,6 +62,9 @@ prettyprinter-ansi-terminal
 pretty-show
 process
 process-extras
+pqueue
+psqueues
+PSQueue
 QuickCheck
 quickcheck-instances
 # quickcheck-state-machine
