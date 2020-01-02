@@ -1,5 +1,12 @@
-Building a specific machine
-===========================
+# NixOS configs
+
+Configuration for multiple machines
+-----------------------------------
+
+Individual machine configurations live in a `configuration.nix-XXXXX` files. Plain `configuration.nix` is git-ignored, but on a machines where I do manual updates, it's usually created as a symlink to that machine specific config.
+
+I've tried to loosely follow puppet [role/profile pattern](https://puppet.com/docs/pe/2018.1/the_roles_and_profiles_method.html). 
+E.g. one of my [laptops configs](./configuration.nix-balthamel) just includes a bunch of other modules, including a [`workstation` profile](profile/workstation.nix) that I use for all my workstation.
 
 After checking out submodules, any configuration can be built using command like
 
@@ -12,13 +19,10 @@ After checking out submodules, any configuration can be built using command like
     ./result/bin/switch-to-configuration boot
         
 This command is used for bootstrapping or CI. 
- 
-But on every machine where I update things manually, I usually put a symlink from `configuration.nix-XXXX` to to `configuration.nix` (it's git-ignored, so doesn't get into the way). Then after bootstrapping by using the above commands, I can simply use `nixos-rebuild`, as custom `NIX_PATH` is [already set to my custom values](packages/use-my-overlays.nix).
-        
-        
-Highlights
-==========
- 
+
+After bootstrapping and making a forementionode symlink, I can simply use `nixos-rebuild`, as custom `NIX_PATH` is [already set to my custom values](packages/use-my-overlays.nix).
+
+
 Multiple pinned versions of `nixpkgs`
 -------------------------------------
  
@@ -37,3 +41,7 @@ Home-manager
 ------------
 
 [home-manager](https://github.com/rycee/home-manager) also lives in a submodule, and it's easy to use just by [loading its NixOS module](users/binarin.nix).
+
+User management
+---------------
+
