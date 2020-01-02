@@ -20,7 +20,7 @@ After checking out submodules, any configuration can be built using command like
         
 This command is used for bootstrapping or CI. 
 
-After bootstrapping and making a forementionode symlink, I can simply use `nixos-rebuild`, as custom `NIX_PATH` is [already set to my custom values](packages/use-my-overlays.nix).
+After bootstrapping and making a forementioned symlink, I can simply use `nixos-rebuild`, as custom `NIX_PATH` is [already set to my custom values](packages/use-my-overlays.nix).
 
 
 Multiple pinned versions of `nixpkgs`
