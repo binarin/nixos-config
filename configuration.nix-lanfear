@@ -72,9 +72,9 @@ in {
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/intel.nix
     ./partitions/unencrypted-uefi-ext4.nix
-    ./roles/server.nix
+    ./profile/server.nix
     ./users/binarin.nix
-    ./roles/emacs.nix
+    ./profile/emacs.nix
   ];
 
   system.fsPackages = [ pkgs.ntfs3g ];

@@ -40,8 +40,8 @@
 
     ./modules/force-my-version.nix
 
-    ./roles/server.nix
+    ./profile/server.nix
     ./users/binarin.nix
-    ./roles/emacs.nix
+    ./profile/emacs.nix
   ];
 }

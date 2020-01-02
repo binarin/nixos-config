@@ -9,7 +9,7 @@ self: super: rec {
   });
   xorg = super.xorg // rec {
     xkeyboardconfig_dvp = super.pkgs.lib.overrideDerivation super.xorg.xkeyboardconfig (old: {
-      patches = [ ../roles/xkb.patch ];
+      patches = [ ../profile/xkb.patch ];
     });
     xorgserver = super.xorg.xorgserver.overrideAttrs (old: {
       configureFlags = [

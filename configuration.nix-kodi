@@ -12,7 +12,7 @@
     ./packages/use-my-overlays.nix
     ./modules/force-my-version.nix
     ./packages/standard-linux-tools.nix
-    ./roles/kodi.nix
+    ./profile/kodi.nix
     ./users/binarin.nix
   ];
 

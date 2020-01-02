@@ -16,10 +16,10 @@ in
     ./hardware/hp-microserver.nix
     ./modules/force-my-version.nix
     ./modules/rabbitmq-server.nix
-    ./roles/server.nix
+    ./profile/server.nix
     ./users/binarin.nix
     ./packages/use-my-overlays.nix
-    ./roles/emacs.nix
+    ./profile/emacs.nix
   ];
 
   boot.loader.grub.enable = true;

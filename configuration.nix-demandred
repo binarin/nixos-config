@@ -10,8 +10,8 @@
     ./hardware/intel.nix
     ./partitions/unencrypted-uefi.nix
     ./partitions/secondary-hdd-in-my-home.nix
-    ./roles/workstation.nix
+    ./profile/workstation.nix
     ./packages/use-my-overlays.nix
-    ./roles/openvpn-client.nix
+    ./profile/openvpn-client.nix
   ];
 }

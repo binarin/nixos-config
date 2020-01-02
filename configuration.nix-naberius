@@ -5,14 +5,14 @@
   networking.hostId = "c9d7882d";
 
   imports = [
-    ./roles/server.nix
-    ./roles/emacs.nix
-    ./roles/nixops.nix
-    ./roles/binary-cache.nix
+    ./profile/server.nix
+    ./profile/emacs.nix
+    ./profile/nixops.nix
+    ./profile/binary-cache.nix
     ./users/binarin.nix
     ./modules/force-my-version.nix
     ./packages/use-my-overlays.nix
-    ./roles/gitlab.nix
+    ./profile/gitlab.nix
     ./nixpkgs-master/nixos/modules/services/continuous-integration/gitlab-runner.nix
     ./modules/easyrsa.nix
   ];

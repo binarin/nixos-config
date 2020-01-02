@@ -16,8 +16,8 @@
     ./partitions/laptop-crypt.nix
 
     ./modules/force-my-version.nix
-    ./roles/workstation.nix
-    ./roles/bluetooth.nix
-    ./roles/openvpn-client.nix
+    ./profile/workstation.nix
+    ./profile/bluetooth.nix
+    ./profile/openvpn-client.nix
   ];
 }

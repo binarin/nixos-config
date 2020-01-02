@@ -33,9 +33,9 @@ in {
     ../packages/haskell-packages.nix
     # ../packages/python-packages.nix
 
-    ../roles/emacs.nix
-    ../roles/nixops.nix
-    ../roles/openvpn-client.nix
+    ../profile/emacs.nix
+    ../profile/nixops.nix
+    ../profile/openvpn-client.nix
 
     ../users/binarin.nix
   ];
