@@ -28,7 +28,7 @@ Multiple pinned versions of `nixpkgs`
  
 There are multiple submodules pointing to different `nixpkgs` commits. The primary one is in `nixpkgs` directory, and it's used for defining the system (for me it's usually points to a stable release).
 
-And some packages are being installed from a `nixpkgs-master`, which usually points to a more recent commit. This is achieved by an [overlay](overlay/02-bleeding.nix), which injects a whole nixpkgs under an attribute. Then in can be used both in configuration files, by referring to packages like `pkgs.bleeding.telegram`, and even from CLI: `nix-env -iA nixos.bleeding.telegram`.
+And some packages are being installed from a `nixpkgs-master`, which usually points to a more recent commit. This is achieved by an [overlay](overlay/02-bleeding.nix), which injects a whole nixpkgs under an attribute. Then it can be used both in configuration files, by referring to packages like `pkgs.bleeding.telegram`, and even from CLI: `nix-env -iA nixos.bleeding.telegram`.
 
 Overlays
 --------
