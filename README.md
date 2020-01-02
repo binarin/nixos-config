@@ -37,11 +37,28 @@ Overlays are automatically loaded from `overlay` folder.
 
 For some reason `nixos-rebuild` was ignoring overlays from `NIX_PATH`, so it was necessary to [populate `nixpkgs.overlays` option manually](packages/use-my-overlays.nix)
 
-Home-manager
-------------
+User management and home-manager
+--------------------------------
 
 [home-manager](https://github.com/rycee/home-manager) also lives in a submodule, and it's easy to use just by [loading its NixOS module](users/binarin.nix).
 
-User management
----------------
+I don't manage passwords with NixOS, as I don't want even cached passwords to live in nix store. That allows me e.g. to simply export any store as a cache without authorization. The cost is the one-time manual password set-up during a new machine installation.
+
+Updating nixpkgs
+----------------
+
+To get all the benefits of caching, `nixpkgs` are following [NixOS/nixpkgs-channels repo](https://github.com/NixOS/nixpkgs-channels). Updating it looks like this:
+
+    cd nixpkgs
+    git remote add channels https://github.com/NixOS/nixpkgs-channels
+    git fetch channels
+    git reset --hard channels/nixos-19.09
+    
+And `nixpkgs-master` I just bump to any fresh random commit, knowing that there may be no cache:
+
+    cd nixpkgs-master
+    git fetch origin master
+    git reset --hard origin/master
+
+
 
