@@ -120,6 +120,7 @@ in {
 
   programs.wireshark.enable = true;
   programs.wireshark.package = pkgs.wireshark-qt;
+  programs.chromium.enable = true;
 
   environment.systemPackages = let
   bleedingEdgePackages = with pkgs.bleeding; [

@@ -19,5 +19,6 @@
     ./profile/workstation.nix
     ./profile/bluetooth.nix
     ./profile/openvpn-client.nix
+    ./profile/bkng-kerberos.nix
   ];
 }

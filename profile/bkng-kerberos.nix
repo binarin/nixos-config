@@ -12,4 +12,5 @@ in
     };
     domain_realm = secrets.domain_realm;
   };
+  programs.chromium.extraOpts = secrets.extraOpts;
 }
