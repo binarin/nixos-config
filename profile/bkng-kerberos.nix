@@ -13,4 +13,5 @@ in
     domain_realm = secrets.domain_realm;
   };
   programs.chromium.extraOpts = secrets.extraOpts;
+  environment.systemPackages = [ pkgs.krb5Full ];
 }
