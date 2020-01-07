@@ -78,6 +78,7 @@
 
         case "$mode" in
           configure)
+            xrand --auto
             case "$setup" in
               work)
                 xrandr --output $DP1_1_OUTPUT --mode 1920x1080 --primary
