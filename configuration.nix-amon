@@ -53,21 +53,20 @@ in
   networking.firewall.allowedUDPPorts = [
     21027 # Syncthing
   ];
+
   networking.firewall.logRefusedConnections = false;
+
   networking.firewall.extraCommands = ''
-    ip46tables -A nixos-fw -i enp3s0 -p tcp --dport 8123 -j nixos-fw-accept  # hass
     iptables -A nixos-fw -i enp3s0 -p tcp -s 192.168.2.0/24 --dport 4000:4002 -j nixos-fw-accept # nfs server
     iptables -A nixos-fw -i enp3s0 -p tcp -s 192.168.2.0/24 --dport 2049 -j nixos-fw-accept # nfs server
     iptables -A nixos-fw -i enp3s0 -p udp -s 192.168.2.0/24 --dport 2049 -j nixos-fw-accept # nfs server
+
+    iptables -A nixos-fw -i enp3s0 -p tcp -s 192.168.2.0/24 --dport ${config.services.transmission.port} -j nixos-fw-accept
   '';
 
   environment.systemPackages = with pkgs; [
-    # bitcoin
-    # erlangR20
     syncthing
-    # yandex-disk
     youtube-dl
-    # insync
     gptfdisk
     hdparm
     smartmontools
@@ -76,12 +75,10 @@ in
   services.journald.rateLimitInterval = "30s";
   services.journald.rateLimitBurst = 7000;
 
-  services.nginx.enable = true;
-  services.nginx.recommendedTlsSettings = true;
-
   services.nfs.server = {
     enable = true;
-    # XXX?
+
+    # XXX enable to everyone on local network?
     exports = ''
       /media/shared ${hosts.kodi.lan.ip}(ro,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.ishamael.lan.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.ishamael.wifi.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.rpi3.lan.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.rpi3.wlan.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission})
     '';
@@ -89,9 +86,6 @@ in
     mountdPort = 4002;
     statdPort = 4000;
   };
-
-  services.printing.enable = true;
-  services.printing.drivers = [ pkgs.hplip pkgs.postscript-lexmark pkgs.epson-escpr ];
 
   services.transmission = {
     enable = true;
@@ -103,8 +97,4 @@ in
     };
   };
 
-  virtualisation = {
-    docker.enable = true;
-    docker.storageDriver = "zfs";
-  };
 }
