@@ -2,9 +2,6 @@
 { config, pkgs, ... }:
 
 let
-  vpnIp = "10.10.10.1";
-  vpnNet = "10.10.10.0/24";
-  vpnIface = "ovpn-server";
   hosts = import ./nixops/personal-hosts.nix;
 in
 {
@@ -15,7 +12,7 @@ in
     <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/hp-microserver.nix
     ./modules/force-my-version.nix
-    ./modules/rabbitmq-server.nix
+    # ./modules/rabbitmq-server.nix
     ./profile/server.nix
     ./users/binarin.nix
     ./packages/use-my-overlays.nix
@@ -58,8 +55,6 @@ in
   ];
   networking.firewall.logRefusedConnections = false;
   networking.firewall.extraCommands = ''
-    ip46tables -A nixos-fw -i ${vpnIface} -p tcp --dport 3128 -j nixos-fw-accept
-    ip46tables -A nixos-fw -i ${vpnIface} -p tcp --dport 4242 -j nixos-fw-accept
     ip46tables -A nixos-fw -i enp3s0 -p tcp --dport 8123 -j nixos-fw-accept  # hass
     iptables -A nixos-fw -i enp3s0 -p tcp -s 192.168.2.0/24 --dport 4000:4002 -j nixos-fw-accept # nfs server
     iptables -A nixos-fw -i enp3s0 -p tcp -s 192.168.2.0/24 --dport 2049 -j nixos-fw-accept # nfs server
@@ -67,12 +62,12 @@ in
   '';
 
   environment.systemPackages = with pkgs; [
-    bitcoin
-    erlangR20
+    # bitcoin
+    # erlangR20
     syncthing
     # yandex-disk
     youtube-dl
-    insync
+    # insync
     gptfdisk
     hdparm
     smartmontools
@@ -84,26 +79,9 @@ in
   services.nginx.enable = true;
   services.nginx.recommendedTlsSettings = true;
 
-  users.extraGroups.acme-reader.gid = 2000;
-  users.extraUsers.nginx.extraGroups = [ "acme-reader" ];
-  security.acme.certs."amon.binarin.ru" = {
-    group = "acme-reader";
-    allowKeysForGroup = true;
-    postRun = ''
-      chmod g+r /var/lib/acme/amon.binarin.ru/*.pem # */
-    '';
-  };
-
-  services.nginx.virtualHosts."amon.binarin.ru" = {
-    forceSSL = true;
-    enableACME = true;
-    locations."/" = {
-      root = "/var/www/";
-    };
-  };
-
   services.nfs.server = {
     enable = true;
+    # XXX?
     exports = ''
       /media/shared ${hosts.kodi.lan.ip}(ro,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.ishamael.lan.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.ishamael.wifi.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.rpi3.lan.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission}) ${hosts.rpi3.wlan.ip}(rw,all_squash,anonuid=1000,anongid=${builtins.toString config.ids.gids.transmission})
     '';
@@ -125,71 +103,8 @@ in
     };
   };
 
-  services.nginx.upstreams."hass.binarin.ru".servers = {
-    "192.168.2.21:8123" = {};
-  };
-
-  services.nginx.upstreams."dash.binarin.ru".servers = {
-    "192.168.2.21:5050" = {};
-  };
-
-  services.nginx.virtualHosts."hass.binarin.ru" = {
-    forceSSL = true;
-    enableACME = true;
-    locations."/" = {
-      proxyPass = "https://hass.binarin.ru";
-      extraConfig = ''
-        proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host $host;
-        proxy_redirect http:// https://;
-        proxy_http_version 1.1;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-      '';
-    };
-  };
-
-  services.nginx.virtualHosts."dash.binarin.ru" = {
-    forceSSL = true;
-    enableACME = true;
-    locations."/" = {
-      proxyPass = "https://dash.binarin.ru";
-      extraConfig = ''
-        proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host $host;
-        proxy_redirect http:// https://;
-        proxy_http_version 1.1;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-      '';
-    };
-  };
-
   virtualisation = {
     docker.enable = true;
     docker.storageDriver = "zfs";
-  };
-
-  services.plex = {
-    enable = true;
-    openFirewall = true;
-  };
-
-  users.extraUsers.plex.extraGroups = ["transmission"];
-  users.extraUsers.sonarr.extraGroups = ["transmission"];
-  users.extraUsers.radarr.extraGroups = ["transmission"];
-
-  services.sonarr = {
-    enable = true;
-  };
-
-  services.radarr = {
-    enable = true;
-  };
-
-  services.jackett = {
-    enable = true;
   };
 }
