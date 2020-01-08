@@ -79,10 +79,10 @@ in {
 
   system.fsPackages = [ pkgs.ntfs3g ];
 
-  services.vault = {
-    enable = true;
-    storageBackend = "file";
-  };
+  # services.vault = {
+  #   enable = true;
+  #   storageBackend = "file";
+  # };
   environment.systemPackages = [ pkgs.vault pkgs.virtinst ];
   virtualisation.docker.enable = true;
   virtualisation.libvirtd.enable = true;
