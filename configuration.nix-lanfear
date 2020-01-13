@@ -75,6 +75,7 @@ in {
     ./profile/server.nix
     ./users/binarin.nix
     ./profile/emacs.nix
+    ./profile/nixops.nix
   ];
 
   system.fsPackages = [ pkgs.ntfs3g ];

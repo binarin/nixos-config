@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-
+echo '""'
+exit 0
 # nix-pass.sh
 
 set -euo pipefail

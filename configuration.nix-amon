@@ -61,7 +61,7 @@ in
     iptables -A nixos-fw -i enp3s0 -p tcp -s 192.168.2.0/24 --dport 2049 -j nixos-fw-accept # nfs server
     iptables -A nixos-fw -i enp3s0 -p udp -s 192.168.2.0/24 --dport 2049 -j nixos-fw-accept # nfs server
 
-    iptables -A nixos-fw -i enp3s0 -p tcp -s 192.168.2.0/24 --dport ${config.services.transmission.port} -j nixos-fw-accept
+    iptables -A nixos-fw -i enp3s0 -p tcp -s 192.168.2.0/24 --dport ${builtins.toString config.services.transmission.port} -j nixos-fw-accept
   '';
 
   environment.systemPackages = with pkgs; [
