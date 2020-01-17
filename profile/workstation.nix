@@ -23,6 +23,19 @@ let
     '';
   };
 
+  slack-no-dot = pkgs.bleeding.slack.overrideAttrs (oldAttrs: rec {
+    installPhase = oldAttrs.installPhase + ''
+        asar extract $out/lib/slack/resources/app.asar $out/lib/slack/resources/app.asar.unpacked
+
+        substituteInPlace $out/lib/slack/resources/app.asar.unpacked/dist/main.2.*.js \
+          --replace 'slack-taskbar-''${state}.ico' 'slack-taskbar-rest.ico' \
+          --replace 'srcSet[state]' 'srcSet["rest"]'
+
+        asar pack $out/lib/slack/resources/app.asar.unpacked $out/lib/slack/resources/app.asar
+    '';
+  });
+
+
 in {
   imports = [
     ../packages/use-my-overlays.nix
@@ -180,7 +193,7 @@ in {
       psi
       qt4 # for qtconfig
       shutter
-      slack
+      slack-no-dot
       stack
       stalonetray
       steam
