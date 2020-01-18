@@ -130,11 +130,7 @@
 
     lan = {
       mac = "18:03:73:21:e7:6d";
-      ip = "196.168.2.25";
-    };
-
-    br0 = {
-      ip = "192.168.2.26"; # separate, because `lan` is MAC-bound in unifi
+      ip = "192.168.2.25";
     };
 
   };

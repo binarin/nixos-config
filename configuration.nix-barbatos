@@ -22,7 +22,7 @@ in
 
   services.pi-hole = {
     enable = true;
-    bindIp = hostConf.br0.ip;
+    bindIp = hostConf.lan.ip;
     dnsMasqConfig = ''
       server=/localdomain/192.168.2.1
       server=/2.168.192.in-addr.arpa/192.168.2.1
@@ -40,7 +40,7 @@ in
       interface = "br0";
     };
     nameservers = [
-      hostConf.br0.ip
+      hostConf.lan.ip
       hosts.usg.lan.ip
       "8.8.8.8"
     ];
@@ -48,12 +48,17 @@ in
     domain = hosts.usg.domain;
 
     interfaces = {
-      br0 = {
-        name = "br0";
-        ipv4.addresses = [
-          { address = hostConf.br0.ip; prefixLength = 24; }
-        ];
+      enp6s0 = {
+        macAddress = "9e:e2:64:f5:00:fe"; # something random, to move original hw address to br0
       };
+
+      br0 = {
+        ipv4.addresses = [
+          { address = hostConf.lan.ip; prefixLength = 24; }
+        ];
+        macAddress = hostConf.lan.mac;
+      };
+
     };
 
     bridges = {
