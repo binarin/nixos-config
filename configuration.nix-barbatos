@@ -12,12 +12,22 @@ in
     ./modules/force-my-version.nix
 
     ./profile/my-vpn-server.nix
+    ./profile/pi-hole-in-docker.nix
     ./profile/server.nix
     ./users/binarin.nix
     ./profile/emacs.nix
   ];
 
   my-vpn-server.enable = true;
+
+  services.pi-hole = {
+    enable = true;
+    bindIp = hostConf.br0.ip;
+    dnsMasqConfig = ''
+      server=/localdomain/192.168.2.1
+      server=/2.168.192.in-addr.arpa/192.168.2.1
+    '';
+  };
 
   networking = {
     hostName = hostName;
@@ -53,6 +63,8 @@ in
     };
 
   };
+
+  virtualisation.libvirtd.enable = true;
 
   nix.maxJobs = lib.mkDefault 24;
 
