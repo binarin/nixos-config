@@ -126,9 +126,25 @@
 
   barbatos = {
     description = "T5500";
+    hostId = "aafbe1f4";
+
     lan = {
-      mac = "";
+      mac = "18:03:73:21:e7:6d";
       ip = "196.168.2.25";
     };
+
+    br0 = {
+      ip = "192.168.2.26"; # separate, because `lan` is MAC-bound in unifi
+    };
+
+  };
+
+  usg = {
+    description = "UniFi Security Gateway";
+    lan = {
+      ip = "192.168.2.1";
+    };
+    searchDomains = ["localdomain"];
+    domain = "localdomain";
   };
 }

@@ -1,9 +1,58 @@
 # -*- nix -*-
 { config, lib, pkgs, ... }:
-
+let
+  hosts = import ./nixops/personal-hosts.nix;
+  hostName = "barbatos";
+  hostConf = hosts.${hostName};
+in
 {
-  networking.hostName = "barbatos";
-  networking.hostId = "aafbe1f4";
+  imports = [
+    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
+
+    ./modules/force-my-version.nix
+
+    ./profile/my-vpn-server.nix
+    ./profile/server.nix
+    ./users/binarin.nix
+    ./profile/emacs.nix
+  ];
+
+  my-vpn-server.enable = true;
+
+  networking = {
+    hostName = hostName;
+    hostId = hostConf.hostId;
+
+    useDHCP = false;
+
+    defaultGateway = {
+      address = hosts.usg.lan.ip;
+      interface = "br0";
+    };
+    nameservers = [
+      hostConf.br0.ip
+      hosts.usg.lan.ip
+      "8.8.8.8"
+    ];
+    search = hosts.usg.searchDomains;
+    domain = hosts.usg.domain;
+
+    interfaces = {
+      br0 = {
+        name = "br0";
+        ipv4.addresses = [
+          { address = hostConf.br0.ip; prefixLength = 24; }
+        ];
+      };
+    };
+
+    bridges = {
+      br0 = {
+        interfaces = [ "enp6s0" ];
+      };
+    };
+
+  };
 
   nix.maxJobs = lib.mkDefault 24;
 
@@ -28,20 +77,8 @@
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/8212b55a-b6c1-4d81-ab28-c295d293bfb8";
+    { device = "/dev/disk/by-label/boot";
       fsType = "ext4";
     };
 
-  networking.useDHCP = false;
-  networking.interfaces.enp6s0.useDHCP = true;
-
-  imports = [
-    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
-
-    ./modules/force-my-version.nix
-
-    ./profile/server.nix
-    ./users/binarin.nix
-    ./profile/emacs.nix
-  ];
 }
