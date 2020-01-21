@@ -13,6 +13,10 @@ in
         type = lib.types.package;
         default = pkgs.wireshark-cli;
       };
+      gitPackage = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.bleeding.gitAndTools.gitFull;
+      };
     };
   };
   config = {
@@ -31,7 +35,8 @@ in
       gdb
       gitAndTools.diff-so-fancy
       gitAndTools.git-annex
-      gitAndTools.gitFull
+      gitAndTools.git-crypt
+      cfg.gitPackage
       gnum4
       gnumake
       gnupg1orig # some scripts expect this version
