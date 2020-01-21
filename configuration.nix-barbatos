@@ -70,6 +70,7 @@ in
   };
 
   virtualisation.libvirtd.enable = true;
+  environment.systemPackages = [ pkgs.virtinst pkgs.libguestfs-with-appliance ];
 
   nix.maxJobs = lib.mkDefault 24;
 
@@ -83,19 +84,24 @@ in
   boot.loader.grub.devices = [ "/dev/sda" "/dev/sdb" ];
   boot.supportedFilesystems = [ "zfs "];
 
-  fileSystems."/" =
-    { device = "rpool/root/nixos";
-      fsType = "zfs";
-    };
+  fileSystems."/" = {
+    device = "rpool/root/nixos";
+    fsType = "zfs";
+  };
 
-  fileSystems."/home" =
-    { device = "rpool/home";
-      fsType = "zfs";
-    };
+  fileSystems."/home" = {
+    device = "rpool/home";
+    fsType = "zfs";
+  };
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-label/boot";
-      fsType = "ext4";
-    };
+  fileSystems."/var/lib/libvirt/images/hass" = {
+    device = "rpool/vm-images/hass";
+    fsType = "zfs";
+  };
+
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-label/boot";
+    fsType = "ext4";
+  };
 
 }
