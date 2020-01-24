@@ -75,6 +75,7 @@ let
     puppet-mode
     recursive-narrow
     request
+    restclient
     ripgrep
     s
     shm
