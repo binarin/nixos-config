@@ -144,7 +144,6 @@ in {
       openscad
       simplescreenrecorder
       vscode
-      eclipses.eclipse-scala-sdk
     ];
     desktopPackages = with pkgs; [
       alacritty
