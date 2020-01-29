@@ -104,4 +104,26 @@ in
     fsType = "ext4";
   };
 
+  services.nginx.upstreams."hass.binarin.ru".servers = {
+    "192.168.2.23:8123" = {};
+  };
+
+  services.nginx.virtualHosts."hass.binarin.ru" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/" = {
+      proxyPass = "http://hass.binarin.ru";
+      extraConfig = ''
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_redirect http:// https://;
+        proxy_http_version 1.1;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+      '';
+    };
+  };
+
+
 }
