@@ -1,7 +1,17 @@
 {config, pkgs, ...}:
 
 let
-  overrides = self: self: rec {
+  overrides = self: self: with self; rec {
+    # multi-libvterm = self.b {
+    #   pname = "multi-libvterm";
+    #   buildInputs = [ self.emacs-libvterm ];
+    #   src = pkgs.fetchFromGitHub {
+    #     owner = "suonlight";
+    #     repo = "multi-libvterm";
+    #     rev = "aaeaccf9a595fc6eb162eb229aa7e6532f4d743d";
+    #     sha256 = "04aiyzgpnzk6lbvjil017d5p1zxx37x7ksz8h3m43qnnballldvj";
+    #   };
+    # };
   };
   customEmacsPackages = pkgs.emacsPackagesNg.overrideScope' overrides;
   emacs-with-packages = customEmacsPackages.emacsWithPackages (p: with p; [
@@ -22,8 +32,10 @@ let
     dash
     easy-escape
     editorconfig
+    eglot
     elisp-slime-nav
     elm-mode
+    emacs-libvterm
     emojify
     eproject  # edts dep
     erlang
@@ -60,6 +72,7 @@ let
     magit
     markdown-mode
     mu4e-maildirs-extension
+    # multi-libvterm
     nix-mode
     origami
     org-brain
@@ -68,6 +81,7 @@ let
     ox-hugo
     paredit
     pdf-tools
+    perspeen
     popup  # edts dep
     projectile
     projectile-ripgrep
@@ -78,6 +92,8 @@ let
     restclient
     ripgrep
     s
+    sbt-mode
+    scala-mode
     shm
     skewer-mode
     slime
@@ -107,5 +123,6 @@ in
       xprintidle-ng
       sqlite # for helm-dash
       gometalinter
+      bleeding.metals # scala LSP
     ]);
 }
