@@ -532,7 +532,7 @@ EndSection
       taffy_pid=$(pgrep -f taffybar-linux)
       if [[ -n $taffy_pid ]]; then
         taffy_size=$(ps h -eo rss -q $taffy_pid)
-        if [[ $taffy_size -gt 240000 ]]; then
+        if [[ $taffy_size -gt 350000 ]]; then
           kill $taffy_pid
         fi
       fi
