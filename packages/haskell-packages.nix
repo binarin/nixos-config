@@ -17,7 +17,7 @@ let haskellOverrides = self: super:
 
     clay = dontCheck (markUnbroken super.clay);
 
-     broadcast-chan = pkg
+    broadcast-chan = pkg
        ({ mkDerivation, async, base, criterion, deepseq, stm
        , unliftio-core
        }:
