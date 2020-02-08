@@ -13,8 +13,11 @@ let
     #   };
     # };
   };
+
   customEmacsPackages = pkgs.emacsPackagesNg.overrideScope' overrides;
-  emacs-with-packages = customEmacsPackages.emacsWithPackages (p: with p; [
+  gitEmacsPackages    = pkgs.emacsPackagesGen pkgs.emacsGit;
+
+  packages = (p: with p; [
     ace-window
     alchemist
     amx
@@ -112,6 +115,9 @@ let
     yasnippet
     zenburn-theme
   ]);
+
+  emacs-with-packages = customEmacsPackages.emacsWithPackages packages;
+  emacs-git-with-packages = gitEmacsPackages.emacsWithPackages packages;
 in
 {
   imports = [
@@ -119,6 +125,10 @@ in
   environment.systemPackages =
     [
       emacs-with-packages
+      (pkgs.buildEnv {
+        name = "emacs-git-env";
+        paths = [emacs-git-with-packages];
+      })
     ] ++ (with pkgs; [
       xprintidle-ng
       sqlite # for helm-dash

@@ -16,3 +16,6 @@
 [submodule "taffybar"]
 	path = taffybar
 	url = https://github.com/taffybar/taffybar
+[submodule "overlay/emacs-overlay"]
+	path = overlay/emacs-overlay
+	url = https://github.com/nix-community/emacs-overlay
