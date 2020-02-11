@@ -125,10 +125,10 @@ in
   environment.systemPackages =
     [
       emacs-with-packages
-      (pkgs.buildEnv {
-        name = "emacs-git-env";
-        paths = [emacs-git-with-packages];
-      })
+      # (pkgs.buildEnv {
+      #   name = "emacs-git-env";
+      #   paths = [emacs-git-with-packages];
+      # })
     ] ++ (with pkgs; [
       xprintidle-ng
       sqlite # for helm-dash
