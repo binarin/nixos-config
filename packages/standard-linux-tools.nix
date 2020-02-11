@@ -26,6 +26,7 @@ in
       bind # for dig
       binutils
       bridge-utils
+      bleeding.broot
       cryptsetup
       darcs
       dpkg
