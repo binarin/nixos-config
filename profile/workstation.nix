@@ -134,6 +134,9 @@ in {
   programs.wireshark.enable = true;
   programs.wireshark.package = pkgs.wireshark-qt;
   programs.chromium.enable = true;
+  programs.chromium.extraOpts = {
+    ExternalProtocolDialogShowAlwaysOpenCheckbox = true;
+  };
 
   environment.systemPackages = let
   bleedingEdgePackages = with pkgs.bleeding; [
