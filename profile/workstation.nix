@@ -40,7 +40,7 @@ in {
   imports = [
     ../packages/use-my-overlays.nix
 
-    ../packages/desktop-nagger.nix
+    # ../packages/desktop-nagger.nix
     ../packages/xrandr-auto.nix
     ../packages/standard-linux-tools.nix
     ../packages/haskell-packages.nix
@@ -122,7 +122,7 @@ in {
 
   i18n = {
     consoleFont = "UniCyr_8x16";
-    consoleKeyMap = "dvp";
+    # consoleKeyMap = "dvp";
     defaultLocale = "ru_RU.UTF-8";
   };
 
@@ -412,8 +412,8 @@ EndSection
     enable = true;
     layout = "us,ru";
 
-    xkbDir = "${pkgs.xorg.xkeyboardconfig_dvp}/share/X11/xkb";
-    xkbVariant = "dvp,dvp";
+    # xkbDir = "${pkgs.xorg.xkeyboardconfig_dvp}/share/X11/xkb";
+    xkbVariant = ",winkeys";
     xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,ctrl:ralt_rctrl";
 
     libinput = {
