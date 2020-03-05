@@ -135,6 +135,15 @@
 
   };
 
+  valak = {
+    hostId = "55f9cd65";
+    description = "vfio rig";
+    lan = {
+      mac = "";
+      ip = "192.168.2.26";
+    };
+  };
+
   usg = {
     description = "UniFi Security Gateway";
     lan = {
