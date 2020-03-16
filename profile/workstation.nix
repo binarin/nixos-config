@@ -140,7 +140,8 @@ in {
 
   environment.systemPackages = let
   bleedingEdgePackages = with pkgs.bleeding; [
-      firefox-bin
+    firefox-bin
+    godot
       goldendict
       kubernetes
       pythonPackages.pywatchman
@@ -237,6 +238,7 @@ in {
       nodejs-10_x
       ncurses
       # oraclejdk8
+      # openjdk8
       pkgconfig
       python35Packages.virtualenv
       quilt
@@ -480,6 +482,10 @@ EndSection
   # The NixOS release to be compatible with for stateful data such as databases.
   system.stateVersion = "18.09";
 
+  programs.java = {
+    enable = true;
+    package = pkgs.openjdk8;
+  };
   programs.ssh.startAgent = true;
   programs.light.enable = true;
   programs.gnupg.agent.enable = true;
