@@ -1,0 +1,74 @@
+# -*- nix -*-
+
+{ config, pkgs, lib, ... }:
+
+{
+  imports = [
+    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
+    ./profile/server.nix
+    ./users/binarin.nix
+    ./profile/emacs.nix
+    ./profile/workstation.nix
+  ];
+
+  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "amdgpu" "vfio-pci"];
+  boot.initrd.preDeviceCommands = ''
+    DEVS="0000:01:00.0 0000:0e:00.0 0000:0e:00.1 0000:0e:00.2 0000:0e:00.3"
+    for DEV in $DEVS; do
+      echo "vfio-pci" > /sys/bus/pci/devices/$DEV/driver_override
+    done
+    modprobe -i vfio-pci
+  '';
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ "kvm-amd"  ];
+  boot.kernelParams = [ "amd_iommu=on" "iommu=pt" "pcie_aspm=off" "video=efifb:off" "pci=realloc" ];
+  boot.extraModulePackages = [ ];
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  virtualisation.libvirtd = {
+    enable = true;
+    qemuOvmf = true;
+    qemuRunAsRoot = false;
+    onBoot = "ignore";
+    onShutdown = "shutdown";
+  };
+
+  services.xserver = {
+    deviceSection = ''
+      BusID "PCI:15:0:0"
+    '';
+  };
+
+  fileSystems."/" =
+    { device = "valak-rpool/root/nixos";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home" =
+    { device = "valak-rpool/home";
+      fsType = "zfs";
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-label/VALAK-BOOT";
+      fsType = "vfat";
+    };
+
+  swapDevices =
+    [ { device = "/dev/disk/by-label/valak-swap"; }
+    ];
+
+  nix.maxJobs = lib.mkDefault 8;
+
+  # Use the systemd-boot EFI boot loader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  networking.hostName = "valak"; # Define your hostname.
+  networking.hostId = "55f9cd65";
+
+  networking.useDHCP = false;
+  networking.interfaces.enp8s0.useDHCP = true;
+
+  system.stateVersion = "19.09"; # Did you read the comment?
+}

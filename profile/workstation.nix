@@ -45,6 +45,7 @@ in {
     ../packages/standard-linux-tools.nix
     ../packages/haskell-packages.nix
     # ../packages/python-packages.nix
+    ../packages/user-packages.nix
 
     ../profile/emacs.nix
     ../profile/nixops.nix
@@ -54,7 +55,7 @@ in {
   ];
 
   boot = {
-    kernelPackages = pkgs.bleeding.linuxPackages_latest;
+    # kernelPackages = pkgs.bleeding.linuxPackages_latest;
     supportedFilesystems = [ "exfat" ];
     kernelModules = [ "fuse" ];
     kernel.sysctl."vm.swappiness" = 1;
@@ -138,18 +139,53 @@ in {
     ExternalProtocolDialogShowAlwaysOpenCheckbox = true;
   };
 
-  environment.systemPackages = let
-  bleedingEdgePackages = with pkgs.bleeding; [
-    firefox-bin
-    godot
+  userPackages = let
+    bleedingEdgePackages = with pkgs.bleeding; [
+    ];
+    developmentPackages = with pkgs; [
+      godot
+      sbt
+      ant
+      apitrace
+      arduino
+      autoconf
+      automake
+      checkbashism
+      electron
+      elixir_1_6
+      erlangR20
+      fakeroot
+      gcc
+      git-review
+      hugo
+      lessc
+      libvirt # for `vagrant plugin install vagrant-libvirt`
+      libxslt # xsltproc - for building rabbitmq
+      lsyncd
+      mysql
+      nodejs-10_x
+      ncurses
+      # oraclejdk8
+      pkgconfig
+      python35Packages.virtualenv
+      quilt
+      sbcl
+      subversion
+      tightvnc
+      travis
+      watchman
+    ];
+    desktopPackages = with pkgs; [
+      firefox-bin
       goldendict
       kubernetes
       pythonPackages.pywatchman
       openscad
       simplescreenrecorder
       vscode
-    ];
-    desktopPackages = with pkgs; [
+      idea.idea-community
+      openconnect_pa
+      prusa-slicer
       alacritty
       anki
       aspell
@@ -183,6 +219,7 @@ in {
       gnome2.gnome_icon_theme
       gnome3.adwaita-icon-theme
       google-chrome
+      google-cloud-sdk
       hicolor-icon-theme
       k2pdfopt
       keepass
@@ -215,43 +252,14 @@ in {
       xorg.xev
       # yandex-disk
     ];
-    developmentPackages = with pkgs; [
-      # androidenv.platformTools
-      ant
-      apitrace
-      arduino
-      autoconf
-      automake
-      checkbashism
-      electron
-      elixir_1_6
-      erlangR20
-      fakeroot
-      gcc
-      git-review
-      hugo
-      lessc
-      libvirt # for `vagrant plugin install vagrant-libvirt`
-      libxslt # xsltproc - for building rabbitmq
-      lsyncd
-      mysql
-      nodejs-10_x
-      ncurses
-      # oraclejdk8
-      # openjdk8
-      pkgconfig
-      python35Packages.virtualenv
-      quilt
-      sbcl
-      subversion
-      tightvnc
-      travis
-      watchman
-    ];
+    in bleedingEdgePackages ++ desktopPackages ++ developmentPackages;
+
+  environment.systemPackages = let
     nixDevPackages = with pkgs; [
       patchelf
     ];
     utilityPackages = with pkgs; [
+      ntfs3g
       gopass
       jekyll
       nfs-utils # for vagrant
@@ -269,6 +277,7 @@ in {
       gnuplot
       gnome3.dconf
       gnome3.dconf-editor
+      gnome3.gnome-tweaks
       dmenu
       dmidecode
       gmrun
@@ -288,11 +297,8 @@ in {
       xsel
     ];
   in otherPackages ++
-     desktopPackages ++
-     developmentPackages ++
      nixDevPackages ++
-     utilityPackages ++
-     bleedingEdgePackages;
+     utilityPackages;
 
   nixpkgs.config = {
     allowUnfree = true;
@@ -350,6 +356,7 @@ in {
   hardware.pulseaudio = {
     enable = true;
     package = pkgs.pulseaudioFull;
+
     support32Bit = true;
   };
 
@@ -365,8 +372,7 @@ in {
   services.printing.drivers = [ pkgs.hplip pkgs.postscript-lexmark pkgs.epson-escpr ];
 
   services.xserver = {
-    # videoDrivers = [ "ati_unfree" "ati" "noveau" "intel" "vesa" "vmware" "modesetting"];
-    videoDrivers = ["modesetting" "ati"];
+    videoDrivers = [ "amdgpu" "modesetting" ];
     config = ''
 Section "InputClass"
 	Identifier "CirqueTouchpad1"
@@ -479,13 +485,11 @@ EndSection
     enable = true;
   };
 
-  # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "18.09";
-
   programs.java = {
     enable = true;
     package = pkgs.openjdk8;
   };
+
   programs.ssh.startAgent = true;
   programs.light.enable = true;
   programs.gnupg.agent.enable = true;
@@ -629,7 +633,7 @@ EndSection
         exec ${pkgs.binarin-xrandr-auto}/bin/xrandr-auto configure
     '';
   in {
-    packages = [ pkgs.crda ];
+    packages = [ pkgs.crda pkgs.pulseaudioFull ];
     extraRules = ''
       KERNEL=="card0", SUBSYSTEM=="drm", ACTION=="change", ENV{DISPLAY}=":0", ENV{XAUTHORITY}="/home/binarin/.Xauthority", RUN+="${pkgs.bash}/bin/bash ${xrandrScript}"
     '';

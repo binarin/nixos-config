@@ -59,7 +59,7 @@ in
       nethogs
       nmap
       nox
-      openssl
+      openjdk8
       openssl
       p7zip
       parallel
