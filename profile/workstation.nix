@@ -143,6 +143,7 @@ in {
     bleedingEdgePackages = with pkgs.bleeding; [
     ];
     developmentPackages = with pkgs; [
+      looking-glass-client
       godot
       sbt
       ant
@@ -356,7 +357,7 @@ in {
   hardware.pulseaudio = {
     enable = true;
     package = pkgs.pulseaudioFull;
-
+    extraModules = [ pkgs.pulseaudio-modules-bt ];
     support32Bit = true;
   };
 
@@ -380,6 +381,8 @@ Section "InputClass"
 	Option "SwapAxes" "True"
 	Option "Emulate3Buttons" "True"
 	Option "InvertY" "True"
+  Option "Tapping" "False"
+  Option "TappingDrag" "False"
 EndSection
 
 Section "InputClass"
@@ -388,6 +391,8 @@ Section "InputClass"
   Option "TransformationMatrix" "0 1 0 -1 0 1 0 0 1"
   Option "MiddleEmulation" "True"
 	Option "Emulate3Buttons" "True"
+  Option "Tapping" "False"
+  Option "TappingDrag" "False"
 EndSection
 
 Section "InputClass"
@@ -446,6 +451,8 @@ EndSection
     desktopManager.default = "none";
 
     desktopManager.gnome3.enable = true;
+    desktopManager.plasma5.enable = true;
+    desktopManager.xfce.enable = true;
 
     displayManager = {
       gdm.enable = lib.mkForce false;
