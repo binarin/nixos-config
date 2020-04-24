@@ -18,7 +18,7 @@ criterion
 cryptonite
 data-default
 data-fix
-dbus
+#dbus
 Decimal
 dependent-sum
 directory
@@ -29,7 +29,7 @@ extra
 fast-logger
 file-embed
 filepath
-gitlib
+#gitlib
 GLFW-b
 gloss
 # hakyll
@@ -77,7 +77,7 @@ selda-sqlite
 sqlite-simple
 stm
 structured-haskell-mode
-taffybar
+# taffybar
 template-haskell
 temporary
 terminal-size
@@ -92,9 +92,9 @@ unordered-containers
 vector
 vty
 webdriver
-wreq
+#wreq
 X11
-xmonad
+# xmonad
 xmonad-contrib
 zlib
 ]

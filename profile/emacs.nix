@@ -130,7 +130,7 @@ in
       #   paths = [emacs-git-with-packages];
       # })
     ] ++ (with pkgs; [
-      xprintidle-ng
+      # xprintidle-ng
       sqlite # for helm-dash
       gometalinter
       bleeding.metals # scala LSP
