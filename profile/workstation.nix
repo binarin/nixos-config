@@ -1,7 +1,8 @@
 { config, pkgs, lib, bleeding, stdenv, ... }:
 
 let
-  taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
+  taffybarWithPackages = pkgs.bleeding.taffybar.override {packages = p: with p; [safe]; };
+
   taffybarWrapped = pkgs.stdenv.mkDerivation {
     name = "taffybar-with-packages-and-theme";
     buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme pkgs.networkmanagerapplet pkgs.gnome-themes-extra ];
@@ -121,8 +122,9 @@ in {
     };
   };
 
+  console.font = "UniCyr_8x16";
+
   i18n = {
-    consoleFont = "UniCyr_8x16";
     # consoleKeyMap = "dvp";
     defaultLocale = "ru_RU.UTF-8";
   };
@@ -141,6 +143,7 @@ in {
 
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      firefox-bin
     ];
     developmentPackages = with pkgs; [
       looking-glass-client
@@ -177,7 +180,6 @@ in {
       watchman
     ];
     desktopPackages = with pkgs; [
-      firefox-bin
       goldendict
       kubernetes
       pythonPackages.pywatchman
@@ -207,7 +209,7 @@ in {
       ebook_tools
       electrum
       evince
-      freecad
+      # freecad
       icewm # something to run in Xephyr
       icoutils
       imagemagickBig
@@ -227,10 +229,8 @@ in {
       libnotify
       lightdm # for dm-tool
       lightlocker
-      mcomix
       mpc_cli
       mplayer
-      oblogout
       playerctl
       psi
       qt4 # for qtconfig
@@ -436,27 +436,22 @@ EndSection
       tapping = false;
     };
 
-    multitouch = {
-      enable = true;
-    };
-
     windowManager.xmonad = {
       enable = true;
       enableContribAndExtras = true;
-      extraPackages = p: [ p.taffybar p.dbus p.monad-logger p.lens ];
+      # extraPackages = p: [  p.taffybar p.dbus p.monad-logger p.lens ];
     };
 
-    windowManager.default = "xmonad";
     desktopManager.xterm.enable = false;
-    desktopManager.default = "none";
 
     desktopManager.gnome3.enable = true;
-    desktopManager.plasma5.enable = true;
-    desktopManager.xfce.enable = true;
+    # desktopManager.plasma5.enable = true;
+    # desktopManager.xfce.enable = true;
 
     displayManager = {
       gdm.enable = lib.mkForce false;
       lightdm.enable = true;
+      defaultSession = "none+xmonad";
     };
   };
 
@@ -501,46 +496,46 @@ EndSection
   programs.light.enable = true;
   programs.gnupg.agent.enable = true;
 
-  systemd.services."binarin-auto-commit-wip" = let
-    script = pkgs.writeScript "binarin-auto-commit-wip" ''
-      #!${pkgs.bash}/bin/bash
-      set -euo pipefail
-      dirs="/etc/nixos /etc/nixos/nixpkgs-master /home/binarin/.rc"
+  # systemd.services."binarin-auto-commit-wip" = let
+  #   script = pkgs.writeScript "binarin-auto-commit-wip" ''
+  #     #!${pkgs.bash}/bin/bash
+  #     set -euo pipefail
+  #     dirs="/etc/nixos /etc/nixos/nixpkgs-master /home/binarin/.rc"
 
-      if [[ $(DISPLAY=:0 xprintidle-ng) -lt $((3600*1000)) ]]; then
-        exit 0
-      fi
+  #     if [[ $(DISPLAY=:0 xprintidle-ng) -lt $((3600*1000)) ]]; then
+  #       exit 0
+  #     fi
 
-      set -x
+  #     set -x
 
-      for dir in $dirs; do
-        if [[ -d "$dir" ]]; then
-          cd "$dir"
-          if [[ ! -z $(git status --porcelain) ]]; then
-             git add .
-             git commit -m "WIP $(date -R)"
-             git push -f origin HEAD:refs/heads/wip-$(hostname)
-          fi
-        fi
-      done
-    '';
-  in {
-    description = "Automatically commit and push (to per-machine wip branches) in some important directories";
-    path = [ pkgs.gitAndTools.gitFull pkgs.xprintidle-ng pkgs.bash pkgs.nettools ];
-    serviceConfig = {
-      Type = "oneshot";
-      User = "binarin";
-      ExecStart = script;
-    };
-  };
-  systemd.timers."binarin-auto-commit-wip" = {
-    description = "Periodically auto-commits/pushes to WIP branch some important repos";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnBootSec = "15min";
-      OnUnitActiveSec = "30min";
-    };
-  };
+  #     for dir in $dirs; do
+  #       if [[ -d "$dir" ]]; then
+  #         cd "$dir"
+  #         if [[ ! -z $(git status --porcelain) ]]; then
+  #            git add .
+  #            git commit -m "WIP $(date -R)"
+  #            git push -f origin HEAD:refs/heads/wip-$(hostname)
+  #         fi
+  #       fi
+  #     done
+  #   '';
+  # in {
+  #   description = "Automatically commit and push (to per-machine wip branches) in some important directories";
+  #   path = [ pkgs.gitAndTools.gitFull pkgs.xprintidle-ng pkgs.bash pkgs.nettools ];
+  #   serviceConfig = {
+  #     Type = "oneshot";
+  #     User = "binarin";
+  #     ExecStart = script;
+  #   };
+  # };
+  # systemd.timers."binarin-auto-commit-wip" = {
+  #   description = "Periodically auto-commits/pushes to WIP branch some important repos";
+  #   wantedBy = [ "timers.target" ];
+  #   timerConfig = {
+  #     OnBootSec = "15min";
+  #     OnUnitActiveSec = "30min";
+  #   };
+  # };
 
   # XXX Try disabling, maybe already fixed
   systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];

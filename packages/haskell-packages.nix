@@ -1,57 +1,22 @@
 {pkgs, lib, ...}:
 
 let haskellOverrides = self: super:
-  with pkgs.haskell.lib;
+  with pkgs.bleeding.haskell.lib;
   let pkg = self.callPackage;
     markUnbroken = drv: overrideCabal drv (drv: { broken = false; });
   in rec {
-    taffybar = (
-      addPkgconfigDepend (disableLibraryProfiling (dontCheck (
-        super.callCabal2nix
-        "taffybar"
-        ../taffybar
-        {}
-      )))
-      pkgs.gtk3
-    );
-
-    clay = dontCheck (markUnbroken super.clay);
-
-    broadcast-chan = pkg
-       ({ mkDerivation, async, base, criterion, deepseq, stm
-       , unliftio-core
-       }:
-       mkDerivation {
-         pname = "broadcast-chan";
-         version = "0.2.0.2";
-         sha256 = "12ax37y9i3cs8wifz01lpq0awm9c235l5xkybf13ywvyk5svb0jv";
-         libraryHaskellDepends = [ base unliftio-core ];
-         benchmarkHaskellDepends = [ async base criterion deepseq stm ];
-         description = "Closable, fair, single-wakeup channel type that avoids 0 reader space leaks";
-         license = pkgs.stdenv.lib.licenses.bsd3;
-         hydraPlatforms = pkgs.stdenv.lib.platforms.none;
-         broken = false;
-       }) {};
-   };
+    # clay = dontCheck (markUnbroken super.clay);
+  };
 in {
   options = {};
   config = {
     environment.systemPackages = [
       pkgs.ghcEnv
-      pkgs.taffybar
     ];
 
     nixpkgs.config.packageOverrides = super: rec {
-      myHaskellPackages = pkgs.haskell.packages.ghc864.override {
+      myHaskellPackages = pkgs.bleeding.haskell.packages.ghc883.override {
         overrides = haskellOverrides;
-      };
-
-      taffybar = super.taffybar.override {
-        ghcWithPackages = myHaskellPackages.ghcWithPackages;
-      };
-
-      xmonad-with-packages = super.xmonad-with-packages.override {
-        ghcWithPackages = myHaskellPackages.ghcWithPackages;
       };
 
       myGhcWithHoogle = ghcWithHoogle: ghcWithHoogle (import ./hoogle-local-packages.nix);
@@ -70,20 +35,17 @@ in {
       };
 
       ghcEnv = super.pkgs.buildEnv {
-        name = "ghc864";
+        name = "ghc883";
         paths = with myHaskellPackages; [
           (myGhcWithHoogleFiltered ghcWithHoogle)
           alex
           cabal-install
           ghc-core
-          # ghcid
-          # taffybar
           happy
           hasktags
           hlint
           hpack
           hspec
-          stylish-haskell
         ];
       };
     };
