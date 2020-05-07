@@ -9,6 +9,7 @@
     ./users/binarin.nix
     ./profile/emacs.nix
     ./profile/workstation.nix
+    ./profile/bkng-kerberos.nix
   ];
 
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "amdgpu" "vfio-pci"];
