@@ -139,7 +139,7 @@
     hostId = "55f9cd65";
     description = "vfio rig";
     lan = {
-      mac = "";
+      mac = "70:85:c2:f4:6b:70";
       ip = "192.168.2.26";
     };
   };

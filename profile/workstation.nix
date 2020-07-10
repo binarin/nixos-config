@@ -144,10 +144,11 @@ in {
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
       firefox-bin
+      godot
     ];
     developmentPackages = with pkgs; [
       looking-glass-client
-      godot
+      # godot
       sbt
       ant
       apitrace
