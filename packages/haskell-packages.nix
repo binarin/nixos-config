@@ -1,7 +1,7 @@
 {pkgs, lib, ...}:
 
 let haskellOverrides = self: super:
-  with pkgs.bleeding.haskell.lib;
+  with pkgs.haskell.lib;
   let pkg = self.callPackage;
     markUnbroken = drv: overrideCabal drv (drv: { broken = false; });
   in rec {

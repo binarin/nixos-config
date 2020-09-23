@@ -3,7 +3,7 @@
 with lib;
 
 let
-  plugins = with pkgs.bleeding.tmuxPlugins; [
+  plugins = with pkgs.tmuxPlugins; [
     continuum
     copycat
     open

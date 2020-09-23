@@ -1,62 +1,20 @@
 { config, pkgs, lib, bleeding, stdenv, ... }:
 
 let
-  taffybarWithPackages = pkgs.bleeding.taffybar.override {packages = p: with p; [safe]; };
-
-  taffybarWrapped = pkgs.stdenv.mkDerivation {
-    name = "taffybar-with-packages-and-theme";
-    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme pkgs.networkmanagerapplet pkgs.gnome-themes-extra ];
-    phases = [ "installPhase" "fixupPhase" ];
-    installPhase = ''
-      mkdir -p $out/bin
-      cd $out/bin
-      cp -s ${taffybarWithPackages}/bin/taffybar .
-    '';
-  };
-  nmappletWrapped = pkgs.stdenv.mkDerivation {
-    name = "nmapplet-with-themes";
-    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme pkgs.gnome-themes-extra ];
-    phases = [ "installPhase" "fixupPhase" ];
-    installPhase = ''
-      mkdir -p $out/bin
-      cd $out/bin
-      cp -s ${pkgs.networkmanagerapplet}/bin/nm-applet .
-    '';
-  };
-
-  slack-no-dot = pkgs.bleeding.slack.overrideAttrs (oldAttrs: rec {
-    installPhase = oldAttrs.installPhase + ''
-        asar extract $out/lib/slack/resources/app.asar $out/lib/slack/resources/app.asar.unpacked
-
-        substituteInPlace $out/lib/slack/resources/app.asar.unpacked/dist/main.2.*.js \
-          --replace 'slack-taskbar-''${state}.ico' 'slack-taskbar-rest.ico' \
-          --replace 'srcSet[state]' 'srcSet["rest"]'
-
-        asar pack $out/lib/slack/resources/app.asar.unpacked $out/lib/slack/resources/app.asar
-    '';
-  });
-
-
 in {
   imports = [
     ../packages/use-my-overlays.nix
-
-    # ../packages/desktop-nagger.nix
     ../packages/xrandr-auto.nix
     ../packages/standard-linux-tools.nix
     ../packages/haskell-packages.nix
-    # ../packages/python-packages.nix
     ../packages/user-packages.nix
 
     ../profile/emacs.nix
-    ../profile/nixops.nix
-    ../profile/openvpn-client.nix
 
     ../users/binarin.nix
   ];
 
   boot = {
-    # kernelPackages = pkgs.bleeding.linuxPackages_latest;
     supportedFilesystems = [ "exfat" ];
     kernelModules = [ "fuse" ];
     kernel.sysctl."vm.swappiness" = 1;
@@ -80,34 +38,14 @@ in {
     '';
   };
 
+  nixpkgs.config = {
+    allowUnfree = true;
+    oraclejdk.accept_license = true;
+  };
+
   networking = {
     networkmanager = {
       enable = true;
-      dispatcherScripts = [
-        {
-          source = pkgs.writeScript "upHook" ''
-            #!${pkgs.bash}/bin/bash
-            export PATH=$PATH:${pkgs.unixtools.getent}/bin:${pkgs.gawk}/bin
-
-            if [[ "$CONNECTION_ID" == "BK-GUEST" ]] ; then
-              AMON_IP=$(getent hosts amon.binarin.ru | awk '{ print $1 }')
-              if [[ -z $AMON_IP ]]; then
-                AMON_IP=82.197.211.232
-                logger "amon.binarin.ru failed to resolve, defaulting to $AMON_IP"
-              fi
-              if [[ "$NM_DISPATCHER_ACTION" == "up" ]]; then
-                logger "BK-G UP: Adding static route to amon $AMON_IP via $IP4_GATEWAY"
-                ip r a $AMON_IP via $IP4_GATEWAY || true
-                systemctl start openvpn-udp-to-lanfear.service || true
-              elif [[ "$NM_DISPATCHER_ACTION" == "down" ]]; then
-                logger "BK-G DOWN: Deleting static route to amon $AMON_IP"
-                ip r d $AMON_IP via $IP4_GATEWAY || true
-                systemctl stop openvpn-udp-to-lanfear.service || true
-              fi
-            fi
-          '';
-        }
-      ];
     };
     resolvconf.dnsExtensionMechanism = false;
     extraHosts = ''
@@ -125,17 +63,14 @@ in {
   console.font = "UniCyr_8x16";
 
   i18n = {
-    # consoleKeyMap = "dvp";
     defaultLocale = "ru_RU.UTF-8";
   };
 
-  # Set your time zone.
   time.timeZone = "Europe/Amsterdam";
-
-  standard-linux-tools.wireshark-package = pkgs.wireshark-qt;
 
   programs.wireshark.enable = true;
   programs.wireshark.package = pkgs.wireshark-qt;
+
   programs.chromium.enable = true;
   programs.chromium.extraOpts = {
     ExternalProtocolDialogShowAlwaysOpenCheckbox = true;
@@ -143,118 +78,62 @@ in {
 
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
-      firefox-bin
-      godot
     ];
     developmentPackages = with pkgs; [
-      looking-glass-client
-      # godot
-      sbt
-      ant
-      apitrace
-      arduino
       autoconf
       automake
-      checkbashism
-      electron
-      elixir_1_6
-      erlangR20
-      fakeroot
       gcc
-      git-review
+      godot
       hugo
-      lessc
-      libvirt # for `vagrant plugin install vagrant-libvirt`
-      libxslt # xsltproc - for building rabbitmq
+      kubernetes
+      looking-glass-client
       lsyncd
-      mysql
-      nodejs-10_x
-      ncurses
-      # oraclejdk8
       pkgconfig
-      python35Packages.virtualenv
-      quilt
-      sbcl
-      subversion
-      tightvnc
-      travis
-      watchman
+      sbt
     ];
     desktopPackages = with pkgs; [
+      firefox-bin
       goldendict
-      kubernetes
-      pythonPackages.pywatchman
       openscad
-      simplescreenrecorder
       vscode
       idea.idea-community
       openconnect_pa
       prusa-slicer
-      alacritty
       anki
       aspell
       aspellDicts.ru
       aspellDicts.en
       aspellDicts.nl
-      audacious
       binarin-xrandr-auto
-      bitwarden-cli
-      blender
-      # calibre
       chromium
-      # desktop-nagger
       desktop-file-utils
-      dia
-      # dropbox
       dunst
-      ebook_tools
-      electrum
       evince
       # freecad
-      icewm # something to run in Xephyr
-      icoutils
       imagemagickBig
-      innoextract # for GOG games
-      insync
       geeqie
-      gimp-with-plugins
-      # gitg
+      gimp
+      gitg
       glxinfo
-      gnome2.gnome_icon_theme
-      gnome3.adwaita-icon-theme
       google-chrome
       google-cloud-sdk
       hicolor-icon-theme
-      k2pdfopt
-      keepass
       libnotify
-      lightdm # for dm-tool
-      lightlocker
-      mpc_cli
       mplayer
-      playerctl
-      psi
-      qt4 # for qtconfig
       shutter
-      slack-no-dot
+      slack
       stack
       stalonetray
-      steam
-      sweethome3d.application
-      taffybarWrapped
-      #torbrowser
       tdesktop
-      # viber
-      # wineFull
       workrave
       xdg-user-dirs
       xdotool
       xlsfonts
       xorg.xdpyinfo
       xorg.xev
-      # yandex-disk
     ];
     in bleedingEdgePackages ++ desktopPackages ++ developmentPackages;
+
 
   environment.systemPackages = let
     nixDevPackages = with pkgs; [
@@ -264,7 +143,6 @@ in {
       ntfs3g
       gopass
       jekyll
-      nfs-utils # for vagrant
       pdftk
       syncthing
       (texlive.combine {
@@ -286,13 +164,11 @@ in {
       haskellPackages.xmobar
       haskellPackages.yeganesh
       hsetroot
-      # isyncUnstable
       quasselClient
       keychain
       libreoffice
       mu
       pavucontrol
-      # skype
       wmctrl
       xclip
       xscreensaver
@@ -302,18 +178,6 @@ in {
      nixDevPackages ++
      utilityPackages;
 
-  nixpkgs.config = {
-    allowUnfree = true;
-
-    oraclejdk.accept_license = true;
-
-    firefox = {
-     enableBluejeans = true;
-     enableGoogleTalkPlugin = true;
-     # jre = true;
-     enableDjvu = true;
-    };
-  };
 
   fonts = {
     enableFontDir = true;
@@ -440,7 +304,6 @@ EndSection
     windowManager.xmonad = {
       enable = true;
       enableContribAndExtras = true;
-      # extraPackages = p: [  p.taffybar p.dbus p.monad-logger p.lens ];
     };
 
     desktopManager.xterm.enable = false;
@@ -459,17 +322,9 @@ EndSection
   location.latitude = 52.3702;
   location.longitude = 4.8952;
 
-  services.redshift = {
-    enable = true;
-    temperature = { day = 6500; night = 3000; };
-    extraOptions = [ "-v" ];
-  };
-
   users.extraUsers = {
     root = {
       shell = "/run/current-system/sw/bin/zsh";
-      subUidRanges = [ { startUid = 100001; count = 65534; } ];
-      subGidRanges = [ { startGid = 1001; count = 999; } ];
     };
   };
 
@@ -490,7 +345,7 @@ EndSection
 
   programs.java = {
     enable = true;
-    package = pkgs.openjdk8;
+    package = pkgs.openjdk11;
   };
 
   programs.ssh.startAgent = true;
@@ -541,36 +396,6 @@ EndSection
   # XXX Try disabling, maybe already fixed
   systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
 
-  # Because systemd doesn't enforce resource limits on user units
-  systemd.services."kill-leaking-taffybar" = let
-    script = pkgs.writeScript "kill-leaking-taffybar" ''
-      #!${pkgs.bash}/bin/bash
-      taffy_pid=$(pgrep -f taffybar-linux)
-      if [[ -n $taffy_pid ]]; then
-        taffy_size=$(ps h -eo rss -q $taffy_pid)
-        if [[ $taffy_size -gt 350000 ]]; then
-          kill $taffy_pid
-        fi
-      fi
-    '';
-  in {
-    description = "Kills leaking taffybar";
-    path = with pkgs; [ procps ];
-    serviceConfig = {
-      Type = "oneshot";
-      User = "binarin";
-      ExecStart = script;
-    };
-  };
-  systemd.timers."kill-leaking-taffybar" = {
-    description = "Periodically updates org-mode files via git";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnBootSec = "5min";
-      OnUnitActiveSec = "5min";
-    };
-  };
-
   systemd.services."binarin-org-sync" = let
     script = pkgs.writeScript "binarin-org-sync" ''
       #!${pkgs.bash}/bin/bash
@@ -598,37 +423,10 @@ EndSection
     };
   };
 
-  # systemd.services."binarin-mail-sync" = let
-  #   script = pkgs.writeScript "binarin-mail-sync" ''
-  #     #!${pkgs.bash}/bin/bash
-  #     set -euo pipefail
-  #     if [[ ! -f $HOME/.work-offline ]]; then
-  #       mbsync -a
-  #     fi
-  #   '';
-  # in {
-  #   description = "Sync my e-mails to local storage";
-  #   path = [ pkgs.isyncUnstable ];
-  #   serviceConfig = {
-  #     Type = "oneshot";
-  #     User = "binarin";
-  #     ExecStart = script;
-  #   };
-  # };
-  # systemd.timers."binarin-mail-sync" = {
-  #   description = "Periodically syncs mail to local storage";
-  #   wantedBy = [ "timers.target" ];
-  #   timerConfig = {
-  #     OnBootSec = "10min";
-  #     OnUnitActiveSec = "10min";
-  #   };
-  # };
-
   services.compton = {
     enable = true;
     backend = "glx";
     vSync = true;
-    # package = pkgs.compton-git;
   };
 
   services.udev = let
@@ -648,39 +446,6 @@ EndSection
     serviceConfig = {
       Type = "simple";
       ExecStart = "${(pkgs.haskell.lib.justStaticExecutables pkgs.haskellPackages.status-notifier-item)}/bin/status-notifier-watcher";
-    };
-  };
-
-  systemd.user.services.nm-applet = {
-    description = "https://www.freedesktop.org/wiki/Specifications/StatusNotifierItem/StatusNotifierWatcher/";
-    after = [ "status-notifier-watcher.service "];
-    wants = [ "status-notifier-watcher.service "];
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = "${nmappletWrapped}/bin/nm-applet --indicator";
-    };
-  };
-
-  systemd.user.services.taffybar = {
-    description = "taffybar (with monitor autodetection)";
-    # path = [ ];
-    after = [ "status-notifier-watcher.service "];
-    wants = [ "status-notifier-watcher.service "];
-    unitConfig = {
-        StartLimitIntervalSec = "0";
-    };
-
-    restartIfChanged = true;
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = pkgs.writeScript "taffybar-restarter" ''
-        #!${pkgs.bash}/bin/bash
-        exec ${taffybarWrapped}/bin/taffybar +RTS
-      '';
-      Restart = "always";
-      RestartSec = "2";
-      MemoryAccounting = "yes";
-      MemoryMax = "10M";
     };
   };
 

@@ -38,7 +38,7 @@ let
     eglot
     elisp-slime-nav
     elm-mode
-    emacs-libvterm
+    vterm
     emojify
     eproject  # edts dep
     erlang
@@ -78,6 +78,7 @@ let
     # multi-libvterm
     nix-mode
     origami
+    org-roam
     org-brain
     org-gcal
     org-plus-contrib
@@ -132,7 +133,7 @@ in
     ] ++ (with pkgs; [
       # xprintidle-ng
       sqlite # for helm-dash
-      gometalinter
-      bleeding.metals # scala LSP
+      # gometalinter
+      # bleeding.metals # scala LSP
     ]);
 }

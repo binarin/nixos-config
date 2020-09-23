@@ -9,24 +9,20 @@ in
   ];
   options = {
     standard-linux-tools = {
-      wireshark-package = lib.mkOption {
-        type = lib.types.package;
-        default = pkgs.wireshark-cli;
-      };
       gitPackage = lib.mkOption {
         type = lib.types.package;
-        default = pkgs.bleeding.gitAndTools.gitFull;
+        default = pkgs.gitAndTools.gitFull;
       };
     };
   };
   config = {
     environment.systemPackages = with pkgs; [
       apg
-      bleeding.bat
+      bat
       bind # for dig
       binutils
       bridge-utils
-      bleeding.broot
+      broot
       cryptsetup
       darcs
       dpkg
@@ -87,7 +83,6 @@ in
       which
       whois
       wol
-      cfg.wireshark-package
       zip
       zsh
     ];
