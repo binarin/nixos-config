@@ -50,6 +50,7 @@ in {
     resolvconf.dnsExtensionMechanism = false;
     extraHosts = ''
       127.0.0.1 ${config.networking.hostName}
+      0.0.0.0 pikabu.ru leprosorium.ru shovinist.leprosorim.ru idiod.leprosorium.ru games.leprosorium.ru meduza.io
     '';
     nat = {
       enable = true;
@@ -335,7 +336,7 @@ EndSection
 
   virtualisation = {
     docker.enable = true;
-    docker.storageDriver = "overlay2";
+    # docker.storageDriver = "overlay2";
     libvirtd.enable = true;
   };
 

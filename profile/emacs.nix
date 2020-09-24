@@ -115,6 +115,7 @@ let
     yaml-mode
     yasnippet
     zenburn-theme
+    wgrep
   ]);
 
   emacs-with-packages = customEmacsPackages.emacsWithPackages packages;
