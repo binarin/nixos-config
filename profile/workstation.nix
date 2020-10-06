@@ -97,7 +97,15 @@ in {
       goldendict
       openscad
       vscode
-      idea.idea-community
+      #idea.idea-community
+      (idea.idea-community.overrideAttrs (oldAttrs: rec {
+        name = "idea-community-${version}";
+        version = "2020.1.4"; /* updated by script */
+        src = fetchurl {
+          url = "https://download.jetbrains.com/idea/ideaIC-${version}.tar.gz";
+          sha256 = "155xiv1d39c4wkm7zqv3f4ajhlrylbyfx2xrzs1r57ippcp54rhg"; /* updated by script */
+        };
+      }))
       openconnect_pa
       prusa-slicer
       anki
@@ -126,6 +134,7 @@ in {
       stack
       stalonetray
       tdesktop
+      skype
       workrave
       xdg-user-dirs
       xdotool
