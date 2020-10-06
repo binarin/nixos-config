@@ -118,7 +118,7 @@ in {
       desktop-file-utils
       dunst
       evince
-      # freecad
+      freecad
       imagemagickBig
       geeqie
       gimp
