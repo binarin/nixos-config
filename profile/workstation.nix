@@ -473,4 +473,5 @@ EndSection
     lidSwitchExternalPower = "ignore";
     lidSwitchDocked = "ignore";
   };
+
 }

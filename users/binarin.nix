@@ -35,6 +35,10 @@
 
     home-manager.users.binarin = {
       home.packages = config.userPackages;
+      programs.direnv.enable = true;
+      programs.direnv.enableNixDirenvIntegration = true;
+      programs.direnv.enableZshIntegration = true;
+
       xresources.properties = {
         "URxvt.termName" = "rxvt-unicode-256color";
         "URxvt.font" = "xft:Iosevka-22";
