@@ -16,7 +16,12 @@ in {
 
   boot = {
     supportedFilesystems = [ "exfat" ];
-    kernelModules = [ "fuse" ];
+    kernelModules = [ "fuse" "v4l2loopback" ];
+    extraModprobeConfig = ''
+      options v4l2loopback video_nr=7
+      options v4l2loopback card_label="video loopback"
+    '';
+    extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
     kernel.sysctl."vm.swappiness" = 1;
   };
 
@@ -93,6 +98,7 @@ in {
       sbt
     ];
     desktopPackages = with pkgs; [
+      graphviz
       firefox-bin
       goldendict
       openscad
