@@ -267,7 +267,7 @@ myConfig =  configModifiers def
          , ("M-S-l", debugStuff)
 
          -- , ("M-S-l", spawn "gmrun")
-         , ("M-<Print>", spawn "shutter --select")
+         , ("M-<Print>", spawn "escrotum -s -C")
          -- -- , ("M-q", spawn "xmonad --recompile && xmonad --restart")
          -- -- , ("M-S-q", io (exitWith ExitSuccess))
          -- , ("M-h", windows W.focusDown)
