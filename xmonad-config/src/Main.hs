@@ -289,12 +289,12 @@ myConfig =  configModifiers def
          -- , ("M-S-,", screenWorkspace 0 >>= flip whenJust (windows . W.shift))
          -- , ("M-S-.", screenWorkspace 1 >>= flip whenJust (windows . W.shift))
          -- , ("M-S-p", screenWorkspace 2 >>= flip whenJust (windows . W.shift))
-         -- , ("M-k", withFocused $ \w -> do
-         --       withDisplay $ \dpy -> do
-         --         classHint <- io $ getClassHint dpy w
-         --         when (resClass classHint /= "Workrave") $ do
-         --           killWindow w
-         --       )
+         , ("M-S-c", withFocused $ \w -> do
+               withDisplay $ \dpy -> do
+                 classHint <- io $ getClassHint dpy w
+                 when (resClass classHint /= "Workrave") $ do
+                   killWindow w
+               )
          -- , ("M-<Backspace>", cycleRecentWindows [xK_Super_L, xK_Super_R] xK_BackSpace xK_Delete)
          -- , ("M-g", focusUrgent)
         ]
