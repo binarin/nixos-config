@@ -136,7 +136,7 @@ in {
       hicolor-icon-theme
       libnotify
       mplayer
-      shutter
+      escrotum
       slack
       stack
       stalonetray
