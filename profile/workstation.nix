@@ -98,6 +98,7 @@ in {
       sbt
     ];
     desktopPackages = with pkgs; [
+      my-xmonad-config
       graphviz
       firefox-bin
       goldendict
