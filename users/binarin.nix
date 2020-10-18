@@ -39,6 +39,20 @@
       programs.direnv.enableNixDirenvIntegration = true;
       programs.direnv.enableZshIntegration = true;
 
+      home.file.".xmonad/build" = {
+        text = ''
+          #!${pkgs.bash}/bin/bash
+          set -euo pipefail
+
+          nix build --no-link -f '<nixpkgs>' my-xmonad-config
+
+          rm -f $1
+          nix build -f '<nixpkgs>' -o $1 my-xmonad-executable
+        '';
+        force = true;
+        executable = true;
+      };
+
       xresources.properties = {
         "URxvt.termName" = "rxvt-unicode-256color";
         "URxvt.font" = "xft:Iosevka-22";
