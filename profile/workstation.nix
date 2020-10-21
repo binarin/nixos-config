@@ -92,6 +92,7 @@ in {
       godot
       hugo
       kubernetes
+      leiningen
       looking-glass-client
       lsyncd
       pkgconfig
