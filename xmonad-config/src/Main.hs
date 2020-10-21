@@ -102,15 +102,16 @@ myManageHook :: ManageHook
 myManageHook = composeAll
     [ className =? "Sshmenu"        --> doFloat
     -- , isFullscreen                  --> doFullFloat
-    , resource  =? "desktop_window" --> doIgnore
-    , resource  =? "kdesktop"       --> doIgnore
-    , className =? "Xfce4-notifyd"  --> doIgnore
-    , className =? "Wine"           --> doFloat
-    , className =? "Skype"          --> doF (W.shift "msg")
-    , className =? "Viber"          --> doF (W.shift "msg")
-    , className =? "Workrave"       --> doFloat
+    -- , resource  =? "desktop_window" --> doIgnore
+    -- , resource  =? "kdesktop"       --> doIgnore
+    -- , className =? "Xfce4-notifyd"  --> doIgnore
+    -- , className =? "Wine"           --> doFloat
+    -- , className =? "Skype"          --> doF (W.shift "msg")
+    -- , className =? "Viber"          --> doF (W.shift "msg")
+    -- , className =? "Workrave"       --> doFloat
     -- , className =? "looking-glass-client" --> doFloat
     , title     =? "FAST_CHOICE"    --> doCenterFloat
+    , className =? "looking-glass-client" --> hasBorder False
     ]
 
 myBordersMod = lessBorders (NoFullscreenBorders Never)
