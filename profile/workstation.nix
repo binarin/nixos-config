@@ -166,7 +166,7 @@ in {
       (texlive.combine {
         inherit (texlive) scheme-full beamer;
       })
-      vagrant
+      # vagrant
       virt-viewer
       virtmanager
     ];
