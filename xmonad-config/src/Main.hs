@@ -282,7 +282,7 @@ myConfig =  configModifiers def
          -- , ("M-n", sendMessage Expand)
          -- , ("M-w", sendMessage (IncMasterN 1))
          -- , ("M-v", sendMessage (IncMasterN (-1)))
-         -- , ("M-'", goToSelected gsconfig1)
+         , ("M-'", goToSelected gsconfig1)
          -- , ("M-s", withFocused $ windows . W.sink)
          -- , ("M-<Right>", nextScreen)
          -- , ("M-<Left>", prevScreen)
