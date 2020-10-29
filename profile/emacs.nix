@@ -37,7 +37,10 @@ let
     editorconfig
     eglot
     elisp-slime-nav
+    direnv
     elm-mode
+    elpy
+    poetry
     vterm
     emojify
     eproject  # edts dep
