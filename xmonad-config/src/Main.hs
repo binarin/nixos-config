@@ -112,6 +112,10 @@ myManageHook = composeAll
     -- , className =? "looking-glass-client" --> doFloat
     , title     =? "FAST_CHOICE"    --> doCenterFloat
     , className =? "looking-glass-client" --> hasBorder False
+    -- , className =? "kitty" --> do
+    --     w <- ask
+    --     liftX $ killWindow w
+    --     doF (W.delete w)
     ]
 
 myBordersMod = lessBorders (NoFullscreenBorders Never)

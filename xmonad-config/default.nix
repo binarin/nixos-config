@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs ? import <nixpkgs> {} }:
 
 rec {
   my-xmonad-config = pkgs.haskellPackages.callPackage ./xmonad-config.nix {};
