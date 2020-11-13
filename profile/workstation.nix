@@ -158,6 +158,8 @@ in {
       patchelf
     ];
     utilityPackages = with pkgs; [
+      pbzip2
+      pigz
       ntfs3g
       gopass
       jekyll
