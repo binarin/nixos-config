@@ -30,9 +30,12 @@
     enable = true;
     qemuOvmf = true;
     qemuRunAsRoot = false;
+    qemuPackage = pkgs.qemu.override { smbdSupport = true; };
     onBoot = "ignore";
     onShutdown = "shutdown";
   };
+
+  environment.systemPackages = [ pkgs.libguestfs-with-appliance ];
 
   services.xserver = {
     deviceSection = ''

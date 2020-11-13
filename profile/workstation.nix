@@ -84,6 +84,7 @@ in {
 
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      looking-glass-client
     ];
     developmentPackages = with pkgs; [
       autoconf
@@ -93,7 +94,6 @@ in {
       hugo
       kubernetes
       leiningen
-      looking-glass-client
       lsyncd
       pkgconfig
       sbt
