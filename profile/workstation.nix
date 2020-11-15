@@ -372,47 +372,6 @@ EndSection
   programs.light.enable = true;
   programs.gnupg.agent.enable = true;
 
-  # systemd.services."binarin-auto-commit-wip" = let
-  #   script = pkgs.writeScript "binarin-auto-commit-wip" ''
-  #     #!${pkgs.bash}/bin/bash
-  #     set -euo pipefail
-  #     dirs="/etc/nixos /etc/nixos/nixpkgs-master /home/binarin/.rc"
-
-  #     if [[ $(DISPLAY=:0 xprintidle-ng) -lt $((3600*1000)) ]]; then
-  #       exit 0
-  #     fi
-
-  #     set -x
-
-  #     for dir in $dirs; do
-  #       if [[ -d "$dir" ]]; then
-  #         cd "$dir"
-  #         if [[ ! -z $(git status --porcelain) ]]; then
-  #            git add .
-  #            git commit -m "WIP $(date -R)"
-  #            git push -f origin HEAD:refs/heads/wip-$(hostname)
-  #         fi
-  #       fi
-  #     done
-  #   '';
-  # in {
-  #   description = "Automatically commit and push (to per-machine wip branches) in some important directories";
-  #   path = [ pkgs.gitAndTools.gitFull pkgs.xprintidle-ng pkgs.bash pkgs.nettools ];
-  #   serviceConfig = {
-  #     Type = "oneshot";
-  #     User = "binarin";
-  #     ExecStart = script;
-  #   };
-  # };
-  # systemd.timers."binarin-auto-commit-wip" = {
-  #   description = "Periodically auto-commits/pushes to WIP branch some important repos";
-  #   wantedBy = [ "timers.target" ];
-  #   timerConfig = {
-  #     OnBootSec = "15min";
-  #     OnUnitActiveSec = "30min";
-  #   };
-  # };
-
   # XXX Try disabling, maybe already fixed
   systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
 
