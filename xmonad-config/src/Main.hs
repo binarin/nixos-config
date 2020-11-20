@@ -82,7 +82,7 @@ primaryWorkspaces =
   , ("web", "3")
   , ("msg", "4")
   , ("jabber", "5")
-  , ("misc", "`")
+  , ("misc", "=")
   ]
 
 secondaryWorkspaces :: [(String, String)]
@@ -97,6 +97,9 @@ secondaryWorkspaces =
 
 scratchpadWorkspace :: (String, String)
 scratchpadWorkspace = ("scratch", "<Esc>")
+
+
+allWorkspaces = primaryWorkspaces ++ secondaryWorkspaces ++ [scratchpadWorkspace]
 
 myManageHook :: ManageHook
 myManageHook = composeAll
@@ -247,7 +250,7 @@ showWSOnProperScreen ws = case classifyWorkspace ws of
 
 myConfig =  configModifiers def
   { modMask = mod4Mask
-  , workspaces = map fst (primaryWorkspaces ++ secondaryWorkspaces ++ [scratchpadWorkspace])
+  , workspaces = map fst allWorkspaces
   , terminal           = "urxvt"
   , borderWidth        = 3
   , normalBorderColor  = "#cccccc"
@@ -309,6 +312,8 @@ myConfig =  configModifiers def
             | (name, key) <- secondaryWorkspaces ]
          ++ [ ("M-" ++ key, switchToTertiary name)
             | (name, key) <- [scratchpadWorkspace] ]
+         ++ [ ("M-S-" ++ key, windows $ W.shift name)
+            | (name, key) <- allWorkspaces ]
         )
         `additionalKeys`
         [ ((0, xF86XK_Mail), return ())
