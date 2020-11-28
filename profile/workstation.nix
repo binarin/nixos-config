@@ -85,6 +85,7 @@ in {
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
       looking-glass-client
+      protonvpn-cli
     ];
     developmentPackages = with pkgs; [
       autoconf
@@ -99,6 +100,7 @@ in {
       sbt
     ];
     desktopPackages = with pkgs; [
+
       my-xmonad-config
       graphviz
       firefox-bin
