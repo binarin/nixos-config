@@ -40,6 +40,8 @@ in {
           (myGhcWithHoogleFiltered ghcWithHoogle)
           alex
           cabal-install
+          cabal2nix
+          haskell-language-server
           ghc-core
           happy
           hasktags
