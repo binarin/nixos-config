@@ -26,15 +26,15 @@
   boot.extraModulePackages = [ ];
   # boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  boot.kernelPatches = [
-    {
-      name = "OpenRGB";
-      patch = builtins.fetchurl {
-        url = "https://gitlab.com/CalcProgrammer1/OpenRGB/-/raw/5f5d50ffd8a01c9c26a0c4f816642898d085b6c9/OpenRGB.patch";
-        sha256 = "0p187wrckjkzi5k8mnjzsn90h10xbiz760va3sm2ix6s2nn29mz7";
-      };
-    }
-  ];
+  # boot.kernelPatches = [
+  #   {
+  #     name = "OpenRGB";
+  #     patch = builtins.fetchurl {
+  #       url = "https://gitlab.com/CalcProgrammer1/OpenRGB/-/raw/5f5d50ffd8a01c9c26a0c4f816642898d085b6c9/OpenRGB.patch";
+  #       sha256 = "0p187wrckjkzi5k8mnjzsn90h10xbiz760va3sm2ix6s2nn29mz7";
+  #     };
+  #   }
+  # ];
 
   virtualisation.libvirtd = {
     enable = true;
