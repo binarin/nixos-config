@@ -1,6 +1,27 @@
 { config, pkgs, lib, bleeding, stdenv, ... }:
 
 let
+  taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
+  taffybarWrapped = pkgs.stdenv.mkDerivation {
+    name = "taffybar-with-packages-and-theme";
+    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme nmappletWrapped pkgs.gnome-themes-extra ];
+    phases = [ "installPhase" "fixupPhase" ];
+    installPhase = ''
+      mkdir -p $out/bin
+      cd $out/bin
+      cp -s ${taffybarWithPackages}/bin/taffybar .
+    '';
+  };
+  nmappletWrapped = pkgs.stdenv.mkDerivation {
+    name = "nmapplet-with-themes";
+    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme pkgs.gnome-themes-extra ];
+    phases = [ "installPhase" "fixupPhase" ];
+    installPhase = ''
+      mkdir -p $out/bin
+      cd $out/bin
+      cp -s ${pkgs.networkmanagerapplet}/bin/nm-applet .
+    '';
+  };
 in {
   imports = [
     ../packages/use-my-overlays.nix
@@ -100,6 +121,8 @@ in {
       sbt
     ];
     desktopPackages = with pkgs; [
+      nmappletWrapped
+      taffybarWrapped
       usbutils.python
       xorg.xf86inputlibinput
       wally-cli
@@ -265,6 +288,13 @@ in {
     modules = [ pkgs.xorg.xf86inputlibinput ];
     videoDrivers = [ "amdgpu" "modesetting" ];
     config = ''
+Section "Device"
+     Identifier "AMD"
+     Driver "amdgpu"
+     Option "VariableRefresh" "true"
+     Option "TearFree" "on"
+EndSection
+
 Section "InputClass"
 	Identifier "CirqueTouchpad1"
 	MatchProduct "GlidePoint"
@@ -445,6 +475,29 @@ EndSection
       owner   = "nobody";
       group   = "nogroup";
       capabilities = "cap_sys_tty_config+ep";
+    };
+  };
+
+  systemd.user.services.taffybar = {
+    description = "taffybar (with monitor autodetection)";
+    # path = [ ];
+    after = [ "status-notifier-watcher.service "];
+    wants = [ "status-notifier-watcher.service "];
+    unitConfig = {
+        StartLimitIntervalSec = "0";
+    };
+
+    restartIfChanged = true;
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = pkgs.writeScript "taffybar-restarter" ''
+        #!${pkgs.bash}/bin/bash
+        exec ${taffybarWrapped}/bin/taffybar +RTS
+      '';
+      Restart = "always";
+      RestartSec = "2";
+      MemoryAccounting = "yes";
+      MemoryMax = "10M";
     };
   };
 }
