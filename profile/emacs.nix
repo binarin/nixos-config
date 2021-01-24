@@ -75,6 +75,7 @@ let
     lsp-haskell
     lsp-mode
     lsp-ui
+    lsp-metals
     magit
     markdown-mode
     mu4e-maildirs-extension
@@ -139,6 +140,6 @@ in
       # xprintidle-ng
       sqlite # for helm-dash
       # gometalinter
-      # bleeding.metals # scala LSP
+      bleeding.metals # scala LSP
     ]);
 }
