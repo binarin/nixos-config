@@ -17,12 +17,13 @@ let
   customEmacsPackages = pkgs.emacsPackagesNg.overrideScope' overrides;
   gitEmacsPackages    = pkgs.emacsPackagesGen pkgs.emacsGit;
 
+
   packages = (p: with p; [
     ace-window
     alchemist
     amx
     anaphora
-    auctex
+    # auctex
     auto-complete  # edts dep
     auto-highlight-symbol # edts dep
     avy
@@ -86,6 +87,7 @@ let
     org-brain
     org-gcal
     org-plus-contrib
+    org-super-agenda
     ox-hugo
     paredit
     pdf-tools
@@ -125,13 +127,16 @@ let
 
   emacs-with-packages = customEmacsPackages.emacsWithPackages packages;
   emacs-git-with-packages = gitEmacsPackages.emacsWithPackages packages;
+
+  emacs-pgtk-gcc = (pkgs.emacsPackagesFor pkgs.emacsPgtkGcc).emacsWithPackages packages;
 in
 {
   imports = [
   ];
   environment.systemPackages =
     [
-      emacs-with-packages
+      # emacs-with-packages
+      emacs-pgtk-gcc
       # (pkgs.buildEnv {
       #   name = "emacs-git-env";
       #   paths = [emacs-git-with-packages];
