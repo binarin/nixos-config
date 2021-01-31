@@ -124,4 +124,28 @@
   ];
 
   system.stateVersion = "21.09"; # Did you read the comment?
+
+  systemd.timers."borgbackup-job-rsync-net".timerConfig.Persistent = true;
+
+  services.borgbackup.jobs.rsync-net = {
+    paths = [ "/home/vm-shared/sketchup/models" "/home/binarin/annex" "/home/binarin/personal-workspace" "/home/binarin/org" ];
+    # exclude = [ "/nix" "'**/.cache'" ];
+    repo = "18830@ch-s011.rsync.net:valak";
+    doInit = false;
+    encryption = {
+      mode = "repokey";
+      passCommand = "cat /root/.borg-pass";
+    };
+    environment = { BORG_RSH = "ssh -i /root/.ssh/rsync.net"; };
+    extraArgs = "--remote-path=borg1";
+    compression = "zstd,22";
+    startAt = "daily";
+    prune.keep = {
+      within = "1d"; # Keep all archives from the last day
+      daily = 7;
+      weekly = 5;
+      monthly = 12;
+      yearly = -1;
+    };
+  };
 }
