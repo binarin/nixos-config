@@ -128,8 +128,27 @@
   systemd.timers."borgbackup-job-rsync-net".timerConfig.Persistent = true;
 
   services.borgbackup.jobs.rsync-net = {
-    paths = [ "/home/vm-shared/sketchup/models" "/home/binarin/annex" "/home/binarin/personal-workspace" "/home/binarin/org" ];
-    # exclude = [ "/nix" "'**/.cache'" ];
+    paths = [ "/home/vm-shared/sketchup/models" "/home/binarin" ];
+    exclude = [
+      "/home/binarin/.litecoin"
+      "/home/binarin/booking-workspace"
+      "**/*.qcow2.bz2"
+      "**/.cache"
+      "/home/binarin/Downloads"
+      "**/.cabal"
+      "**/.ivy2"
+      "/home/binarin/tmp"
+      "/home/binarin/.config/Slack"
+      "/home/binarin/.config/google-chrome"
+      "/home/binarin/.config/youtube-music-desktop-app"
+      "/home/binarin/.config/skypeforlinux"
+      "/home/binarin/.cabal"
+      "/home/binarin/.mozilla"
+      "/home/binarin/.ivy2"
+      "/home/binarin/.sbt"
+      "/home/binarin/.cargo"
+      "/home/binarin/.tabnine"
+    ];
     repo = "18830@ch-s011.rsync.net:valak";
     doInit = false;
     encryption = {
