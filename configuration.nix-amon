@@ -70,6 +70,7 @@ in
     gptfdisk
     hdparm
     smartmontools
+    borgbackup
   ];
 
   services.journald.rateLimitInterval = "30s";
@@ -89,6 +90,7 @@ in
 
   services.transmission = {
     enable = true;
+    port = 9091;
     settings = {
       download-dir = "/media/shared/";
       incomplete-dir = "/media/incomplete-torrents/";
