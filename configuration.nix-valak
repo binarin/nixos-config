@@ -14,7 +14,7 @@
 
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "amdgpu" "vfio-pci"];
   boot.initrd.preDeviceCommands = ''
-    DEVS="0000:01:00.0 0000:0e:00.0 0000:0e:00.1 0000:0e:00.2 0000:0e:00.3"
+    DEVS="0000:01:00.0 0000:0d:00.0 0000:0d:00.1 0000:0d:00.2 0000:0d:00.3"
     for DEV in $DEVS; do
       echo "vfio-pci" > /sys/bus/pci/devices/$DEV/driver_override
     done
@@ -49,7 +49,7 @@
 
   services.xserver = {
     deviceSection = ''
-      BusID "PCI:15:0:0"
+      BusID "PCI:14:0:0"
     '';
   };
 
