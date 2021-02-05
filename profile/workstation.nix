@@ -36,7 +36,7 @@ in {
   ];
 
   boot = {
-    supportedFilesystems = [ "exfat" ];
+    supportedFilesystems = [ "exfat" "nfs" "cifs" ];
     kernelModules = [ "fuse" "v4l2loopback" ];
     extraModprobeConfig = ''
       options v4l2loopback video_nr=7
@@ -338,12 +338,12 @@ EndSection
     xkbVariant = ",winkeys";
     xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,ctrl:ralt_rctrl";
 
-    libinput = {
-      enable = lib.mkForce false;
-      clickMethod = "none";
-      middleEmulation = true;
-      tapping = false;
-    };
+    # libinput = {
+    #   enable = lib.mkForce false;
+    #   clickMethod = "none";
+    #   middleEmulation = true;
+    #   tapping = false;
+    # };
 
     windowManager.xmonad = {
       enable = true;
