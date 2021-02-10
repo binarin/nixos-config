@@ -1,31 +1,9 @@
 { config, pkgs, lib, bleeding, stdenv, ... }:
 
 let
-  taffybarWithPackages = pkgs.taffybar.override {packages = p: with p; [safe]; };
-  taffybarWrapped = pkgs.stdenv.mkDerivation {
-    name = "taffybar-with-packages-and-theme";
-    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme nmappletWrapped pkgs.gnome-themes-extra ];
-    phases = [ "installPhase" "fixupPhase" ];
-    installPhase = ''
-      mkdir -p $out/bin
-      cd $out/bin
-      cp -s ${taffybarWithPackages}/bin/taffybar .
-    '';
-  };
-  nmappletWrapped = pkgs.stdenv.mkDerivation {
-    name = "nmapplet-with-themes";
-    buildInputs = [ pkgs.wrapGAppsHook pkgs.gnome3.adwaita-icon-theme pkgs.gnome2.gnome_icon_theme pkgs.hicolor-icon-theme pkgs.gnome-themes-extra ];
-    phases = [ "installPhase" "fixupPhase" ];
-    installPhase = ''
-      mkdir -p $out/bin
-      cd $out/bin
-      cp -s ${pkgs.networkmanagerapplet}/bin/nm-applet .
-    '';
-  };
 in {
   imports = [
     ../packages/use-my-overlays.nix
-    ../packages/xrandr-auto.nix
     ../packages/standard-linux-tools.nix
     ../packages/haskell-packages.nix
     ../packages/user-packages.nix
@@ -72,6 +50,7 @@ in {
   networking = {
     networkmanager = {
       enable = true;
+      dns = "dnsmasq";
     };
     resolvconf.dnsExtensionMechanism = false;
     extraHosts = ''
@@ -121,8 +100,13 @@ in {
       sbt
     ];
     desktopPackages = with pkgs; [
-      nmappletWrapped
-      taffybarWrapped
+      gnome-icon-theme
+      hicolor-icon-theme
+      gnome3.adwaita-icon-theme
+      gnome2.gnome_icon_theme
+      gnome-themes-extra
+      zafiro-icons
+      networkmanagerapplet
       usbutils.python
       xorg.xf86inputlibinput
       wally-cli
@@ -140,7 +124,6 @@ in {
       aspellDicts.ru
       aspellDicts.en
       aspellDicts.nl
-      binarin-xrandr-auto
       chromium
       desktop-file-utils
       dunst
@@ -153,7 +136,6 @@ in {
       glxinfo
       google-chrome
       google-cloud-sdk
-      hicolor-icon-theme
       libnotify
       mplayer
       escrotum
@@ -277,6 +259,7 @@ in {
   services.printing.drivers = [ pkgs.hplip pkgs.postscript-lexmark pkgs.epson-escpr ];
 
   services.xserver = {
+    gdk-pixbuf.modulePackages = [ pkgs.librsvg ];
     modules = [ pkgs.xorg.xf86inputlibinput ];
     videoDrivers = [ "amdgpu" "modesetting" ];
     config = ''
@@ -432,17 +415,6 @@ EndSection
     vSync = true;
   };
 
-  services.udev = let
-    xrandrScript = pkgs.writeScript "xrandr-auto.sh" ''
-        exec ${pkgs.binarin-xrandr-auto}/bin/xrandr-auto configure
-    '';
-  in {
-    packages = [ pkgs.crda pkgs.pulseaudioFull ];
-    extraRules = ''
-      KERNEL=="card0", SUBSYSTEM=="drm", ACTION=="change", ENV{DISPLAY}=":0", ENV{XAUTHORITY}="/home/binarin/.Xauthority", RUN+="${pkgs.bash}/bin/bash ${xrandrScript}"
-    '';
-  };
-
   systemd.user.services.status-notifier-watcher = {
     description = "https://www.freedesktop.org/wiki/Specifications/StatusNotifierItem/StatusNotifierWatcher/";
     wantedBy = [ "default.target" ];
@@ -467,29 +439,6 @@ EndSection
       owner   = "nobody";
       group   = "nogroup";
       capabilities = "cap_sys_tty_config+ep";
-    };
-  };
-
-  systemd.user.services.taffybar = {
-    description = "taffybar (with monitor autodetection)";
-    # path = [ ];
-    after = [ "status-notifier-watcher.service "];
-    wants = [ "status-notifier-watcher.service "];
-    unitConfig = {
-        StartLimitIntervalSec = "0";
-    };
-
-    restartIfChanged = true;
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = pkgs.writeScript "taffybar-restarter" ''
-        #!${pkgs.bash}/bin/bash
-        exec ${taffybarWrapped}/bin/taffybar +RTS
-      '';
-      Restart = "always";
-      RestartSec = "2";
-      MemoryAccounting = "yes";
-      MemoryMax = "10M";
     };
   };
 }
