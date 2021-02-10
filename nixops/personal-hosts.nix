@@ -31,6 +31,10 @@
       mac = "3c:d9:2b:0c:1d:e0";
       ip = "192.168.2.11";
     };
+    ipmi = {
+      ip = "192.168.2.27";
+      mac = "44:1e:a1:3d:fa:15";
+    };
     deployTarget = {
       default = "amon.binarin.ru";
       home = lan.ip;
@@ -131,6 +135,10 @@
     lan = {
       mac = "18:03:73:21:e7:6d";
       ip = "192.168.2.25";
+    };
+
+    pihole = {
+      ip = "192.168.2.28";
     };
 
   };
