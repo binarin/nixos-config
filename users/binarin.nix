@@ -267,6 +267,9 @@
       programs.zsh = {
         enable = true;
         autocd = true;
+        initExtra = ''
+          source ${pkgs.bleeding.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh
+        '';
         shellAliases = {
           gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';
           vi = ''emacsclient -nw'';
