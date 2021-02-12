@@ -409,12 +409,6 @@ EndSection
     };
   };
 
-  services.compton = {
-    enable = true;
-    backend = "glx";
-    vSync = true;
-  };
-
   systemd.user.services.status-notifier-watcher = {
     description = "https://www.freedesktop.org/wiki/Specifications/StatusNotifierItem/StatusNotifierWatcher/";
     wantedBy = [ "default.target" ];
