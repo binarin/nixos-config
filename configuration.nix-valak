@@ -125,7 +125,7 @@
 
   system.stateVersion = "21.09"; # Did you read the comment?
 
-  systemd.services."borgbackup-job-rsync-net".serviceConfig.ExecStartPre = ''${pkgs.coreutils}/bin/sleep 100'';
+  systemd.services."borgbackup-job-rsync-net".serviceConfig.ExecStartPre = ''${pkgs.coreutils}/bin/sleep 30'';
   systemd.timers."borgbackup-job-rsync-net".timerConfig.Persistent = true;
 
   services.borgbackup.jobs.rsync-net = {
