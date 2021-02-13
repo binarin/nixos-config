@@ -322,6 +322,8 @@
         "URxvt.reverseVideo" = false;
         "URxvt.pointerColor" = "red";
         "URxvt.pointerColor2" = "cyan";
+        "URxvt.iso14755" = false;
+        "URxvt.iso14755_52" = false;
         "URxvt.color12" = "#5555FF";
         "URxvt.urgentOnBell" = true;
         "URxvt.visualBell" = true;
