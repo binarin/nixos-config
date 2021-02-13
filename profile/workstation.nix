@@ -86,6 +86,7 @@ in {
     bleedingEdgePackages = with pkgs.bleeding; [
       looking-glass-client
       protonvpn-cli
+      flameshot
     ];
     developmentPackages = with pkgs; [
       autoconf
