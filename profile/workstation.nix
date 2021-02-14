@@ -101,6 +101,8 @@ in {
       sbt
     ];
     desktopPackages = with pkgs; [
+      v4l-utils
+      bluejeans-gui
       youtube-music-desktop-app
       gnome-icon-theme
       hicolor-icon-theme
@@ -174,6 +176,7 @@ in {
       # vagrant
       virt-viewer
       virtmanager
+      borgbackup
     ];
     otherPackages = with pkgs; [
       youtube-dl
