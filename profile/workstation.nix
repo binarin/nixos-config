@@ -387,6 +387,12 @@ EndSection
   # XXX Try disabling, maybe already fixed
   systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
 
+  services.udev.extraRules = let script = pkgs.writeShellScript "set-camera-zoom" ''
+    ${pkgs.v4l-utils}/bin/v4l2-ctl -c zoom_absolute=180
+    ${pkgs.v4l-utils}/bin/v4l2-ctl -c pan_absolute=10800
+  '';
+  in ''SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="0892", RUN+="${script}"'';
+
   systemd.services."binarin-org-sync" = let
     script = pkgs.writeScript "binarin-org-sync" ''
       #!${pkgs.bash}/bin/bash
