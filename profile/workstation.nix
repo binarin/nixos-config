@@ -101,6 +101,7 @@ in {
       sbt
     ];
     desktopPackages = with pkgs; [
+      youtube-music-desktop-app
       gnome-icon-theme
       hicolor-icon-theme
       gnome3.adwaita-icon-theme
