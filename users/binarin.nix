@@ -43,6 +43,25 @@
         };
       };
 
+      programs.dircolors = {
+        enable = true;
+        settings = {
+          DIR = "01;34;46";
+        };
+      };
+
+      programs.tmux = {
+        baseIndex = 1;
+        clock24 = true;
+        enable = true;
+        shortcut = "o";
+        terminal = "screen-256color";
+        extraConfig = ''
+          set -g window-status-current-style bg=red
+          set -g allow-rename off
+        '';
+      };
+
       home.sessionPath = [ "$HOME/bin" ];
       home.packages = config.userPackages;
 

@@ -19,8 +19,6 @@ let
     unbind-key C-o
     unbind-key o
 
-    set-window-option -g window-status-current-bg red
-    set-option allow-rename off
 
     ${lib.concatStrings (map (x: "run-shell ${x.rtp}\n") plugins)}
   '';
