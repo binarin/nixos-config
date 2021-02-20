@@ -60,7 +60,6 @@ in
       p7zip
       parallel
       pciutils
-      (platinum-searcher.overrideAttrs (old: { name = "lol"; force = "rebuild"; })) # binary cache for 'pt' is broken
       psmisc
       pv
       ripgrep
@@ -86,14 +85,17 @@ in
       zip
       zsh
     ];
+
     services.locate = {
       enable = true;
       localuser = "root";
     };
+
     security.sudo = {
       enable = true;
       wheelNeedsPassword = false;
     };
+
     security.pam.loginLimits = [
       {
         domain = "*";
@@ -102,5 +104,13 @@ in
         value = "131072";
       }
     ];
+
+    nix = {
+      package = pkgs.nixFlakes;
+      extraOptions = ''
+        experimental-features = nix-command flakes
+      '';
+    };
   };
+
 }

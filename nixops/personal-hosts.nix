@@ -143,6 +143,17 @@
 
   };
 
+  pi4-kodi = {
+    wan = {
+      ip = "192.168.2.29";
+      mac = "dc:a6:32:f0:c6:02";
+    };
+    lan = {
+      mac = "dc:a6:32:f0:c6:01";
+      ip = "192.168.2.30";
+    };
+  };
+
   valak = {
     hostId = "55f9cd65";
     description = "vfio rig";
