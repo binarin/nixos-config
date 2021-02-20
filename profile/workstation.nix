@@ -169,7 +169,7 @@ in {
       gopass
       jekyll
       pdftk
-      syncthing
+      # syncthing
       (texlive.combine {
         inherit (texlive) scheme-full beamer;
       })

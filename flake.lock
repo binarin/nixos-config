@@ -1,0 +1,115 @@
+{
+  "nodes": {
+    "emacs": {
+      "locked": {
+        "lastModified": 1609949322,
+        "narHash": "sha256-W941HrpOfZ6rgw27mzRL12gN/6l81mPqPxUSJu6W9A4=",
+        "owner": "nix-community",
+        "repo": "emacs-overlay",
+        "rev": "8bb502cca3b1dc3ed35d1ebeacdc92364a80997e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "emacs-overlay",
+        "rev": "8bb502cca3b1dc3ed35d1ebeacdc92364a80997e",
+        "type": "github"
+      }
+    },
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1612902587,
+        "narHash": "sha256-VZ7Z1OMFf5ReObu3CCVBsC2DWloTYDjqW1onUKejVrE=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "209566c752c4428c7692c134731971193f06b37c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "ref": "release-20.09",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1613772719,
+        "narHash": "sha256-jZ6KiCOaDOZJHMDFnBO1fHPrDqDUmOkihPWXavyGa98=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "38eaa62f28384bc5f6c394e2a99bd6a4913fc71f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-20.09",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-master": {
+      "locked": {
+        "lastModified": 1613838778,
+        "narHash": "sha256-XBBJDNyjyZz1APEPYHiWB4zOQrPlGhTR44gxDpuKE5A=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "6d771e5330157de230a8431577edb20a8733112b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "emacs": "emacs",
+        "home-manager": "home-manager",
+        "nixpkgs": "nixpkgs",
+        "nixpkgs-master": "nixpkgs-master",
+        "taffybar": "taffybar"
+      }
+    },
+    "taffybar": {
+      "inputs": {
+        "taffybar": "taffybar_2"
+      },
+      "locked": {
+        "narHash": "sha256-YhLAjaxiMEv/XJ6M+YICpds2LQuYzlhc+rd4Uq2ivjk=",
+        "path": "./taffybar-flake",
+        "type": "path"
+      },
+      "original": {
+        "path": "./taffybar-flake",
+        "type": "path"
+      }
+    },
+    "taffybar_2": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1607419775,
+        "narHash": "sha256-q/kSKsbUcISbn01ro3vYuoi8IPp5Pgp8TVLRJ5kezvQ=",
+        "owner": "taffybar",
+        "repo": "taffybar",
+        "rev": "4d3227e9cd8308c1e43846496a8a7ab417ef8e5b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "taffybar",
+        "ref": "master",
+        "repo": "taffybar",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
