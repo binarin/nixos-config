@@ -23,8 +23,8 @@
         bleeding = import inputs.nixpkgs-master { inherit system; };
       };
     };
-  in {
-    nixosConfigurations.valak = nixpkgs.lib.nixosSystem {
+  in rec {
+    rawConfigurations.valak = {
       inherit system;
       modules = [
         ./configuration.nix-valak
@@ -33,6 +33,6 @@
         { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
       ];
     };
+    nixosConfigurations.valak = nixpkgs.lib.nixosSystem rawConfigurations.valak;
   };
-
 }
