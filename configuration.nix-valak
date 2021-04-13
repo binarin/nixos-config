@@ -21,7 +21,7 @@
   '';
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd"  ];
-  boot.kernelParams = [ "amd_iommu=on" "iommu=pt" "pcie_aspm=off" "video=efifb:off" "pci=realloc" ];
+  boot.kernelParams = [ "amd_iommu=on" "iommu=pt" "pcie_aspm=off" "video=efifb:off" "pci=realloc" "usbcore.autosuspend=-1" ];
   boot.extraModulePackages = [ ];
   # boot.kernelPackages = pkgs.linuxPackages_latest;
 

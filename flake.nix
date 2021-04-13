@@ -1,21 +1,23 @@
 {
-  inputs.nixpkgs.url = github:NixOS/nixpkgs/nixos-20.09;
+  inputs.nixos.url = github:NixOS/nixpkgs/nixos-20.09;
 
   inputs.nixpkgs-master.url = github:NixOS/nixpkgs/master;
 
   inputs.home-manager = {
     url = github:nix-community/home-manager/release-20.09;
-    inputs.nixpkgs.follows = "nixpkgs";
+    inputs.nixpkgs.follows = "nixos";
   };
 
   inputs.taffybar = {
     url = path:./taffybar-flake;
-    inputs.nixpkgs.follows = "nixpkgs";
+    inputs.nixpkgs.follows = "nixos";
   };
 
   inputs.emacs.url = github:nix-community/emacs-overlay/8bb502cca3b1dc3ed35d1ebeacdc92364a80997e;
 
-  outputs = { self, nixpkgs, nixpkgs-master, home-manager, taffybar, emacs }@inputs:
+  inputs.cq.url = github:marcus7070/cq-flake;
+
+  outputs = { self, nixos, nixpkgs-master, home-manager, taffybar, emacs, cq }@inputs:
   let
     system = "x86_64-linux";
     overlays = {
@@ -29,10 +31,11 @@
       modules = [
         ./configuration.nix-valak
         home-manager.nixosModules.home-manager
-        nixpkgs.nixosModules.notDetected
+        nixos.nixosModules.notDetected
         { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
+        { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
       ];
     };
-    nixosConfigurations.valak = nixpkgs.lib.nixosSystem rawConfigurations.valak;
+    nixosConfigurations.valak = nixos.lib.nixosSystem rawConfigurations.valak;
   };
 }

@@ -15,7 +15,7 @@ in {
     ];
 
     nixpkgs.config.packageOverrides = super: rec {
-      myHaskellPackages = pkgs.bleeding.haskell.packages.ghc883.override {
+      myHaskellPackages = pkgs.bleeding.haskell.packages.ghc884.override {
         overrides = haskellOverrides;
       };
 

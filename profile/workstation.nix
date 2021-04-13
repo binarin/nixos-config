@@ -372,7 +372,7 @@ EndSection
   };
 
   zramSwap = {
-    enable = true;
+     enable = true;
   };
 
   programs.java = {

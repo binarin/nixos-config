@@ -1,5 +1,62 @@
 {
   "nodes": {
+    "cadquery": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1617420271,
+        "narHash": "sha256-uKMW2gBpV0992O0zDLtR3zlmrANcxaXN1J27M7/bchE=",
+        "owner": "CadQuery",
+        "repo": "cadquery",
+        "rev": "39e60f6e481092c5d5542f370d01c17502efb4a7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "CadQuery",
+        "repo": "cadquery",
+        "type": "github"
+      }
+    },
+    "cq": {
+      "inputs": {
+        "cadquery": "cadquery",
+        "cq-editor": "cq-editor",
+        "flake-utils": "flake-utils",
+        "llvm_src": "llvm_src",
+        "nixpkgs": "nixpkgs",
+        "ocp": "ocp",
+        "ocp-stubs": "ocp-stubs",
+        "pywrap": "pywrap"
+      },
+      "locked": {
+        "lastModified": 1617931239,
+        "narHash": "sha256-hyY/4jE1GMKkw4UIkW/kbDBOmQV8WEL+kCYCr8oXET4=",
+        "owner": "marcus7070",
+        "repo": "cq-flake",
+        "rev": "213c70902237c2ef21532bf83f11cd3854c9f328",
+        "type": "github"
+      },
+      "original": {
+        "owner": "marcus7070",
+        "repo": "cq-flake",
+        "type": "github"
+      }
+    },
+    "cq-editor": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1617908667,
+        "narHash": "sha256-rYgkcfwN9kZqLqGZWDjHtLpcWkTAFQs/J8MHS7tby2w=",
+        "owner": "CadQuery",
+        "repo": "CQ-editor",
+        "rev": "02fe0aec6b9c2d3b265cf5044b9834018a5772e2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "CadQuery",
+        "repo": "CQ-editor",
+        "type": "github"
+      }
+    },
     "emacs": {
       "locked": {
         "lastModified": 1609949322,
@@ -16,18 +73,33 @@
         "type": "github"
       }
     },
+    "flake-utils": {
+      "locked": {
+        "lastModified": 1600209923,
+        "narHash": "sha256-zoOWauTliFEjI++esk6Jzk7QO5EKpddWXQm9yQK24iM=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "3cd06d3c1df6879c9e41cb2c33113df10566c760",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs"
+          "nixos"
         ]
       },
       "locked": {
-        "lastModified": 1612902587,
-        "narHash": "sha256-VZ7Z1OMFf5ReObu3CCVBsC2DWloTYDjqW1onUKejVrE=",
+        "lastModified": 1617824794,
+        "narHash": "sha256-UGkvzx0nIXHhNq/KwJLjXvKAQRE2V33MuX+UirvqrkQ=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "209566c752c4428c7692c134731971193f06b37c",
+        "rev": "2aa20ae969f2597c4df10a094440a66e9d7f8c86",
         "type": "github"
       },
       "original": {
@@ -37,13 +109,30 @@
         "type": "github"
       }
     },
-    "nixpkgs": {
+    "llvm_src": {
+      "flake": false,
       "locked": {
-        "lastModified": 1613772719,
-        "narHash": "sha256-jZ6KiCOaDOZJHMDFnBO1fHPrDqDUmOkihPWXavyGa98=",
+        "lastModified": 1594138897,
+        "narHash": "sha256-YOVIaKo/DJ4ugHOk9l5y8YLDmhtZD7WWOBbEbexjYqs=",
+        "owner": "llvm",
+        "repo": "llvm-project",
+        "rev": "ef32c611aa214dea855364efd7ba451ec5ec3f74",
+        "type": "github"
+      },
+      "original": {
+        "owner": "llvm",
+        "ref": "llvmorg-10.0.1",
+        "repo": "llvm-project",
+        "type": "github"
+      }
+    },
+    "nixos": {
+      "locked": {
+        "lastModified": 1618242476,
+        "narHash": "sha256-B0cKMkAisdZJLcdMIB4QofpVritVrRUmyYVaR6wIvZk=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "38eaa62f28384bc5f6c394e2a99bd6a4913fc71f",
+        "rev": "c3253cdab424b87ad8490d42f6585302b20bd39b",
         "type": "github"
       },
       "original": {
@@ -53,13 +142,29 @@
         "type": "github"
       }
     },
-    "nixpkgs-master": {
+    "nixpkgs": {
       "locked": {
-        "lastModified": 1613838778,
-        "narHash": "sha256-XBBJDNyjyZz1APEPYHiWB4zOQrPlGhTR44gxDpuKE5A=",
+        "lastModified": 1613761605,
+        "narHash": "sha256-lUF6UPR96ZzQC0faNXBHLoLhNAdxZqYqDwz0PaIZ/7Y=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "6d771e5330157de230a8431577edb20a8733112b",
+        "rev": "9816b99e71c3504b0b4c1f8b2e004148460029d4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-master": {
+      "locked": {
+        "lastModified": 1618310817,
+        "narHash": "sha256-DP5nmr0x8NiIYW2MH9YiCMNaQCzsRuAbNvGXuhefwvA=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "e629341f6b0398f3989b3385d6b08872716c5fa3",
         "type": "github"
       },
       "original": {
@@ -69,11 +174,60 @@
         "type": "github"
       }
     },
+    "ocp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1614795074,
+        "narHash": "sha256-gVCMy6EafcxJQY1sRFAqFaSJhtbTsFnMOWomcv3pKHw=",
+        "owner": "cadquery",
+        "repo": "ocp",
+        "rev": "e1df3469a39228ce2553aacc3a0238e334d4dd9a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cadquery",
+        "repo": "ocp",
+        "type": "github"
+      }
+    },
+    "ocp-stubs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1614280796,
+        "narHash": "sha256-/x82W4thZlzY1Qw6iBplq21zqgUopp6vTyABqVlCzeI=",
+        "owner": "cadquery",
+        "repo": "ocp-stubs",
+        "rev": "51932c145b16af53fed202ea4d6896263249d8b4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cadquery",
+        "repo": "ocp-stubs",
+        "type": "github"
+      }
+    },
+    "pywrap": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1612598676,
+        "narHash": "sha256-GqJAZ26bhRcTOg8bMiw8Oe012k6tLu3nS6vZdb7EcDM=",
+        "owner": "CadQuery",
+        "repo": "pywrap",
+        "rev": "cb06e717fa3368333ed4e0520eb6e9e2bd8e81a0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "CadQuery",
+        "repo": "pywrap",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
+        "cq": "cq",
         "emacs": "emacs",
         "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs",
+        "nixos": "nixos",
         "nixpkgs-master": "nixpkgs-master",
         "taffybar": "taffybar"
       }
