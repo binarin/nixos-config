@@ -8,15 +8,14 @@
   boot.kernelPackages = pkgs.bleeding.linuxPackages_latest;
 
   imports = [
-    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ./hardware/intel.nix
     ./hardware/laptop.nix
     ./partitions/laptop-crypt.nix
 
-    ./modules/force-my-version.nix
+    #     ./modules/force-my-version.nix
     ./profile/workstation.nix
     ./profile/bluetooth.nix
     ./profile/openvpn-client.nix
-    ./profile/bkng-kerberos.nix
+    # ./profile/bkng-kerberos.nix
   ];
 }

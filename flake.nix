@@ -37,6 +37,16 @@
 	  { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
 	];
       };
+      balthamel = {
+	inherit system;
+	modules = [
+	  ./configuration.nix-balthamel
+	  home-manager.nixosModules.home-manager
+	  nixos.nixosModules.notDetected
+	  { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
+	  # { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
+	];
+      };
       nix-build = {
 	inherit system;
 	modules = [
@@ -50,5 +60,6 @@
     };
     nixosConfigurations.valak = nixos.lib.nixosSystem rawConfigurations.valak;
     nixosConfigurations.nix-build = nixos.lib.nixosSystem rawConfigurations.nix-build;
+    nixosConfigurations.balthamel = nixos.lib.nixosSystem rawConfigurations.balthamel;
   };
 }
