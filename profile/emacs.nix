@@ -51,7 +51,7 @@ let
     f
     firestarter
     fsm
-    geiser
+    #    geiser
     general
     go-mode flycheck-gometalinter company-go go-eldoc
     haskell-mode

@@ -13,7 +13,7 @@
     inputs.nixpkgs.follows = "nixos";
   };
 
-  inputs.emacs.url = github:nix-community/emacs-overlay/8bb502cca3b1dc3ed35d1ebeacdc92364a80997e;
+  inputs.emacs.url = github:nix-community/emacs-overlay/master;
 
   inputs.cq.url = github:marcus7070/cq-flake;
 
@@ -26,16 +26,29 @@
       };
     };
   in rec {
-    rawConfigurations.valak = {
-      inherit system;
-      modules = [
-        ./configuration.nix-valak
-        home-manager.nixosModules.home-manager
-        nixos.nixosModules.notDetected
-        { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
-        { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
-      ];
+    rawConfigurations = {
+      valak = {
+	inherit system;
+	modules = [
+	  ./configuration.nix-valak
+	  home-manager.nixosModules.home-manager
+	  nixos.nixosModules.notDetected
+	  { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
+	  { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
+	];
+      };
+      nix-build = {
+	inherit system;
+	modules = [
+	  ./configuration.nix-nix-build
+	  home-manager.nixosModules.home-manager
+	  nixos.nixosModules.notDetected
+	  { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
+	  # { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
+	];
+      };
     };
     nixosConfigurations.valak = nixos.lib.nixosSystem rawConfigurations.valak;
+    nixosConfigurations.nix-build = nixos.lib.nixosSystem rawConfigurations.nix-build;
   };
 }
