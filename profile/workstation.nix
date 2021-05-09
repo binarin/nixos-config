@@ -187,7 +187,7 @@ in {
       dmenu
       dmidecode
       gmrun
-      haskellPackages.xmobar
+      # haskellPackages.xmobar
       haskellPackages.yeganesh
       hsetroot
       quasselClient
