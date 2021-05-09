@@ -171,4 +171,10 @@
     searchDomains = ["localdomain"];
     domain = "localdomain";
   };
+
+  nix-builder = {
+    lan = {
+      ip = "192.168.2.31";
+    };
+  };
 }
