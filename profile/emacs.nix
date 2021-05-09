@@ -1,6 +1,9 @@
-{config, pkgs, ...}:
+{config, pkgs, lib, ...}:
+
+with lib;
 
 let
+  cfg = config.programs.emacs;
   overrides = self: super: with self; rec {
     smart-mode-line = super.smart-mode-line.overrideAttrs (
       oldAttrs: {
@@ -26,7 +29,6 @@ let
 
   customEmacsPackages = pkgs.emacsPackagesNg.overrideScope' overrides;
   gitEmacsPackages    = pkgs.emacsPackagesGen pkgs.emacsGit;
-
 
   packages = (p: with p; [
     ace-window
@@ -135,26 +137,32 @@ let
     wgrep
   ]);
 
-  emacs-with-packages = customEmacsPackages.emacsWithPackages packages;
-  emacs-git-with-packages = gitEmacsPackages.emacsWithPackages packages;
+  emacs-with-packages = ((pkgs.emacsPackagesFor cfg.package).overrideScope' overrides).emacsWithPackages packages;
 
-  emacs-pgtk-gcc = ((pkgs.emacsPackagesFor pkgs.emacsPgtkGcc).overrideScope' overrides).emacsWithPackages packages;
 in
 {
-  imports = [
-  ];
-  environment.systemPackages =
-    [
-      # emacs-with-packages
-      emacs-pgtk-gcc
-      # (pkgs.buildEnv {
-      #   name = "emacs-git-env";
-      #   paths = [emacs-git-with-packages];
-      # })
-    ] ++ (with pkgs; [
-      # xprintidle-ng
-      sqlite # for helm-dash
-      # gometalinter
-      bleeding.metals # scala LSP
-    ]);
+  options = {
+    programs = {
+      emacs = {
+        package = mkOption {
+          type = types.package;
+          default = pkgs.emacsPgtkGcc;
+          description = ''
+            Emacs package to bundle with all the modes
+          '';
+        };
+      };
+    };
+  };
+  config = {
+    environment.systemPackages =
+      [
+        emacs-with-packages
+      ] ++ (with pkgs; [
+        # xprintidle-ng
+        sqlite # for helm-dash
+        # gometalinter
+        bleeding.metals # scala LSP
+      ]);
+  };
 }
