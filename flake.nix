@@ -1,6 +1,6 @@
 {
-  # inputs.nixos.url = github:NixOS/nixpkgs/nixos-20.09;
-  inputs.nixos.url = "/etc/nixos/nixpkgs";
+  inputs.nixos.url = github:NixOS/nixpkgs/nixos-20.09;
+  # inputs.nixos.url = "/etc/nixos/nixpkgs";
 
   inputs.nixpkgs-master.url = github:NixOS/nixpkgs/master;
 
