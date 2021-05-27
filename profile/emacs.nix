@@ -47,7 +47,7 @@ let
     vterm
     emojify
     eproject  # edts dep
-    erlang
+    # erlang
     evil
     eyebrowse
     f
