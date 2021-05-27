@@ -5,16 +5,6 @@ with lib;
 let
   cfg = config.programs.emacs;
   overrides = self: super: with self; rec {
-    smart-mode-line = super.smart-mode-line.overrideAttrs (
-      oldAttrs: {
-        patches = [
-          (pkgs.fetchurl {
-            url = "https://github.com/Malabarba/smart-mode-line/commit/6596d4d062efc9fbdeb2241cf075b47bc21f340b.diff";
-            sha256 = "sha256-CJKHvrl3DeBs/CHsyWdnycVvOlqPAwAZ5Rd9IE2VwtE=";
-          })
-        ];
-      }
-    );
     # multi-libvterm = self.b {
     #   pname = "multi-libvterm";
     #   buildInputs = [ self.emacs-libvterm ];
