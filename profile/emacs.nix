@@ -47,7 +47,7 @@ let
     vterm
     emojify
     eproject  # edts dep
-    # erlang
+    erlang
     evil
     eyebrowse
     f
@@ -127,7 +127,7 @@ let
     wgrep
   ]);
 
-  emacs-with-packages = ((pkgs.emacsPackagesFor cfg.package).overrideScope' overrides).emacsWithPackages packages;
+  emacs-with-packages = ((pkgs.bleeding.emacsPackagesFor cfg.package).overrideScope' overrides).emacsWithPackages packages;
 
 in
 {
@@ -136,7 +136,7 @@ in
       emacs = {
         package = mkOption {
           type = types.package;
-          default = pkgs.emacsPgtkGcc;
+          default = pkgs.bleeding.emacsPgtkGcc;
           description = ''
             Emacs package to bundle with all the modes
           '';

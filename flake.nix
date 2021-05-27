@@ -23,40 +23,41 @@
     system = "x86_64-linux";
     overlays = {
       bleeding = final: prev: {
-        bleeding = import inputs.nixpkgs-master { inherit system; };
+        bleeding = import inputs.nixpkgs-master {
+          inherit system;
+          overlays = [ emacs.overlay ];
+        };
       };
     };
   in rec {
     rawConfigurations = {
       valak = {
-	inherit system;
-	modules = [
-	  ./configuration.nix-valak
-	  home-manager.nixosModules.home-manager
-	  nixos.nixosModules.notDetected
-	  { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
-	  { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
-	];
+	      inherit system;
+	      modules = [
+	        ./configuration.nix-valak
+	        home-manager.nixosModules.home-manager
+	        nixos.nixosModules.notDetected
+	        { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
+	        { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
+	      ];
       };
       balthamel = {
-	inherit system;
-	modules = [
-	  ./configuration.nix-balthamel
-	  home-manager.nixosModules.home-manager
-	  nixos.nixosModules.notDetected
-	  { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
-	  # { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
-	];
+	      inherit system;
+	      modules = [
+	        ./configuration.nix-balthamel
+	        home-manager.nixosModules.home-manager
+	        nixos.nixosModules.notDetected
+	        { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
+	      ];
       };
       nix-build = {
-	inherit system;
-	modules = [
-	  ./configuration.nix-nix-build
-	  home-manager.nixosModules.home-manager
-	  nixos.nixosModules.notDetected
-	  { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
-	  # { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
-	];
+	      inherit system;
+	      modules = [
+	        ./configuration.nix-nix-build
+	        home-manager.nixosModules.home-manager
+	        nixos.nixosModules.notDetected
+	        { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
+	      ];
       };
     };
     nixosConfigurations.valak = nixos.lib.nixosSystem rawConfigurations.valak;
