@@ -191,5 +191,6 @@
   home.packages = with pkgs; [
     ripgrep
     htop
+    erlang-ls
   ];
 }
