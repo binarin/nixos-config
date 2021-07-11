@@ -193,4 +193,11 @@
     htop
     erlang-ls
   ];
+
+  programs.git = {
+    enable = true;
+    package = pkgs.gitAndTools.gitFull;
+    userName = "Alexey Lebedeff";
+    userEmail = "binarin@binarin.info";
+  };
 }
