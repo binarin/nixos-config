@@ -103,6 +103,8 @@
 
             users.users.alebedeff.home = "/Users/alebedeff";
 
+            programs.zsh.enable = true;
+
             home-manager.useGlobalPkgs = true;
 
             home-manager.users.alebedeff = {
