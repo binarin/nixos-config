@@ -110,7 +110,13 @@
 
             users.users.alebedeff.home = "/Users/alebedeff";
 
-            programs.zsh.enable = true;
+            programs.zsh.enable = true; # Make `nix-darwin` play together with `zsh`
+
+            environment.systemPackages = with pkgs; [
+              coreutils
+              procps
+              findutils
+            ];
 
             home-manager.useGlobalPkgs = true;
 
