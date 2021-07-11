@@ -84,6 +84,7 @@ in {
 
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      vmware-horizon-client
       looking-glass-client
       protonvpn-cli
       flameshot
@@ -101,8 +102,8 @@ in {
       sbt
     ];
     desktopPackages = with pkgs; [
+      zoom-us
       v4l-utils
-      bluejeans-gui
       youtube-music-desktop-app
       gnome-icon-theme
       hicolor-icon-theme
@@ -121,7 +122,6 @@ in {
       openscad
       vscode
       pkgs.bleeding.idea.idea-community
-      openconnect_pa
       prusa-slicer
       anki
       aspell
@@ -385,10 +385,10 @@ EndSection
   programs.gnupg.agent.enable = true;
 
   # XXX Try disabling, maybe already fixed
-  systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
+  # systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
 
   services.udev.extraRules = ''
-    SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="0892", RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 --device /dev/%k"
+    SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="0892", RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 --device %p"
   '';
 
   systemd.services."binarin-org-sync" = let

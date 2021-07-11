@@ -39,6 +39,9 @@
         bleeding = import inputs.nixpkgs-master {
           inherit system;
           overlays = [ emacs.overlay ];
+          config = {
+            allowUnfree = true;
+          };
         };
       };
     };
