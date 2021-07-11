@@ -1,0 +1,1458 @@
+#+PROPERTY: header-args:emacs-lisp :results silent :lexical yes
+* File header
+** Enable lexical bindings
+  #+begin_src emacs-lisp
+    ;; -*- lexical-binding: t -*-
+  #+end_src
+** Early load of installed packages autoloads
+  #+BEGIN_SRC emacs-lisp
+    (package-initialize)
+  #+END_SRC
+
+** Customization helpers
+   #+BEGIN_SRC emacs-lisp
+     (require 'subr-x)
+     (require 'general)
+     (require 'dash)
+     (require 'f)
+     (require 'subr-x)
+     (require 'cl)
+   #+END_SRC
+
+   ~general-setq~ will also call triggers on customizable setttings,
+   allowing them to be properly changed even after corresponding
+   package was loaded:
+   #+BEGIN_SRC emacs-lisp
+     (fset 'gsetq 'general-setq)
+   #+END_SRC
+* Appearance
+** No toolbars/scrollbars
+   #+BEGIN_SRC emacs-lisp
+     (when (window-system)
+       (toggle-scroll-bar -1)
+       (tool-bar-mode -1))
+     (menu-bar-mode -1)
+
+     (setf (alist-get 'vertical-scroll-bars default-frame-alist) nil)
+   #+END_SRC
+** Font
+   #+BEGIN_SRC emacs-lisp
+     (add-to-list 'default-frame-alist
+                  `(font . ,(if (string= system-type "darwin")
+                                "Monaco-18"
+                              "Iosevka-22")))
+     (setf face-ignored-fonts '("Adobe Blank"))
+   #+END_SRC
+** Theme
+   #+begin_src emacs-lisp
+     (load-theme 'zenburn t)
+     (set-face-attribute 'lazy-highlight nil :background "red")
+   #+end_src
+** Smart mode line
+
+   #+BEGIN_SRC emacs-lisp
+     (require 'smart-mode-line)
+
+     ;; (defconst binarin/mode-line-scale-factor 0.6)
+
+     ;; (defun binarin/advise-sml/fill-width-available (orig-fun)
+     ;;   (if (display-graphic-p)
+     ;;       (let ((estimated-total-width (floor (/ (window-width) binarin/mode-line-scale-factor))))
+     ;;         (cl-letf (((symbol-function 'window-total-width) (lambda () estimated-total-width)))
+     ;;           (funcall orig-fun)))
+     ;;     (funcall orig-fun)))
+
+     ;; (advice-add 'sml/fill-width-available :around #'binarin/advise-sml/fill-width-available)
+
+     (gsetq sml/no-confirm-load-theme t)
+     (gsetq sml/theme 'dark)
+
+     (sml/setup)
+
+     ;; (set-face-attribute 'mode-line nil :height binarin/mode-line-scale-factor)
+     ;; (set-face-attribute 'mode-line-inactive nil :height binarin/mode-line-scale-factor)
+     ;; (set-face-attribute 'sml/folder nil :foreground "#aaaaaa")
+
+     (defface binarin/sml-modes-red '((t :inherit sml/minor-modes :foreground "red")) "")
+
+     (gsetq rm-blacklist
+            (format "^ \\(%s\\)$"
+                    (mapconcat #'identity
+                               '("Projectile.*" "Undo-Tree" "ivy" "ElDoc" "Paredit" "ARev" "wb")
+                               "\\|"))
+            rm-text-properties
+            '(("\\` Ovwrt\\'" 'face 'binarin/sml-modes-red)
+              ("\\` Wrap\\'" 'face 'default-face)))
+
+
+     (rich-minority-mode +1)
+
+ #+END_SRC
+** Column numbers in modeline
+   #+BEGIN_SRC emacs-lisp
+     (column-number-mode 1)
+   #+END_SRC
+** Long lines handling
+
+   Truncate long lines by default:
+   #+BEGIN_SRC emacs-lisp
+     (setq-default truncate-lines t)
+   #+END_SRC
+
+   Use fringe when ~visual-line-mode~ is in effect:
+   #+BEGIN_SRC emacs-lisp
+     (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
+   #+END_SRC
+
+* Behaviour
+** Disable startup screen
+   #+BEGIN_SRC emacs-lisp
+     (gsetq inhibit-startup-screen t)
+   #+END_SRC
+** Change "yes or no" to "y or n"
+   #+begin_src emacs-lisp
+     (fset 'yes-or-no-p 'y-or-n-p)
+   #+end_src
+
+** Ctrl-Z map
+   #+BEGIN_SRC emacs-lisp
+     (defvar ctrl-z-map (make-sparse-keymap))
+
+     (general-define-key "C-z" ctrl-z-map)
+
+     (general-define-key
+      :keymaps 'ctrl-z-map
+      "C-z" 'suspend-frame
+      "C-g" 'keyboard-quit)
+
+   #+END_SRC
+
+** Prevent accidental exit
+   Prompt on C-x C-c - no more accidential exits
+   #+begin_src emacs-lisp
+     (gsetq confirm-kill-emacs #'y-or-n-p
+            confirm-kill-processes nil)
+   #+end_src
+** Keeping a lot of history
+   #+BEGIN_SRC emacs-lisp
+     (gsetq history-length 1000
+	    history-delete-duplicates t
+	    savehist-file "~/.emacs.d/savehist"
+	    savehist-additional-variables '(savehist-minibuffer-history-variables
+					    read-expression-history
+					    minibuffer-history
+					    file-name-history
+					    mark-ring
+					    search-ring
+					    extended-command-history
+					    kill-ring
+					    search-ring
+					    regexp-search-ring
+					    compile-history
+					    command-history)
+	    recentf-max-saved-items 1000)
+
+     (savehist-mode 1)
+     (recentf-mode 1)
+   #+END_SRC
+** execute-extended-command
+   ~amx~ also needs to be installed, it's used for sorting according
+   to recently used and persisting. counsel automatically detects
+   this. ~amx~ is not used directly with ivy completion because
+   ~counsel-M-x~ is a bit prettier, with keybindings shown in
+   different font.
+
+   #+BEGIN_SRC emacs-lisp
+     (general-define-key "M-x" 'counsel-M-x)
+   #+END_SRC
+
+** Completion everywhere
+   #+BEGIN_SRC emacs-lisp
+     (ivy-mode 1)
+
+     (setf (alist-get 't ivy-re-builders-alist) 'ivy--regex-ignore-order
+           (alist-get 'org-refile ivy-initial-inputs-alist) ""
+           (alist-get 'org-agenda-refile ivy-initial-inputs-alist) ""
+           (alist-get 'org-capture-refile ivy-initial-inputs-alist) "")
+
+     (eval-after-load "counsel"
+       (lambda ()
+         (setf (alist-get 'counsel-M-x ivy-initial-inputs-alist) "")))
+
+     (gsetq ivy-use-virtual-buffers t
+            ivy-count-format "(%d/%d) "
+            ivy-virtual-abbreviate 'abbreviate)
+
+     (set-face-attribute 'ivy-virtual nil :foreground "red")
+     (set-face-attribute 'ivy-modified-buffer nil :inherit nil :slant 'italic)
+     (set-face-attribute 'ivy-modified-outside-buffer nil :inherit nil :slant 'italic)
+
+     (gsetq ivy-switch-buffer-faces-alist
+            (remove-if #'(lambda (it) (eq (car it) 'org-mode)) ivy-switch-buffer-faces-alist))
+
+     (defun binarin/ivy-switch-buffer-shortener (orig-fun str)
+       (let ((result (funcall orig-fun str)))
+         (replace-regexp-in-string "^/nix/store/.\\{33\\}" "[NIX]" result)))
+
+     (advice-add 'ivy-switch-buffer-transformer :around #'binarin/ivy-switch-buffer-shortener)
+
+     (general-define-key :keymaps 'ivy-minibuffer-map
+                         "C-l" 'ivy-backward-kill-word)
+   #+END_SRC
+** External shell
+   #+BEGIN_SRC emacs-lisp
+     (gsetq shell-file-name "/bin/sh") ;; mostly for TRAMP, should work everywhere
+   #+END_SRC
+
+** Dired
+   #+BEGIN_SRC emacs-lisp
+     (general-define-key "C-x C-j" 'dired-jump)
+     (add-hook 'dired-mode-hook 'dired-hide-details-mode)
+   #+END_SRC
+** Undo
+   #+BEGIN_SRC emacs-lisp
+     (global-undo-tree-mode +1)
+   #+END_SRC
+** Magit
+   #+BEGIN_SRC emacs-lisp
+     (general-define-key "C-x g" 'magit-status)
+   #+END_SRC
+** Saving and backups
+   Save backups to one place and don't clutter filesystem with files ending in ~\~~ or ~#~.
+   #+BEGIN_SRC emacs-lisp
+     (defvar binarin/backups-directory "~/.emacs.d/backups")
+     (make-directory binarin/backups-directory t)
+     (setq backup-directory-alist `(("." . ,binarin/backups-directory)))
+
+     (defvar binarin/auto-save-directory "~/.emacs.d/auto-save-list/")
+     (make-directory binarin/auto-save-directory t)
+     (setq auto-save-file-name-transforms `((".*" ,binarin/auto-save-directory t)))
+   #+END_SRC
+
+   Never delete backup files and never re-use them (this generates
+   ~200 megs per year with my usage patterns), they can help to
+   recover from a lot of fuckups like ~git reset --hard~:
+   #+BEGIN_SRC emacs-lisp
+     (setq version-control t)
+     (setq delete-old-versions -1)
+   #+END_SRC
+
+   The fact that file is under version control is no reason to exclude
+   it from this backup scheme (hello again, ~git reset --hard~):
+   #+BEGIN_SRC emacs-lisp
+     (setq vc-make-backup-files t)
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (global-auto-revert-mode +1)
+   #+END_SRC
+
+** Mark
+   #+BEGIN_SRC emacs-lisp
+     (gsetq mark-ring-max 64
+	    set-mark-command-repeat-pop t
+	    global-mark-ring-max 64)
+   #+END_SRC
+** Whitespace handling
+   #+BEGIN_SRC emacs-lisp
+     (general-define-key "M-SPC" 'cycle-spacing)
+     (setq-default indent-tabs-mode nil)
+     (defun binarin/show-trailing-whitespace ()
+       (setq show-trailing-whitespace t))
+     (add-hook 'prog-mode-hook #'binarin/show-trailing-whitespace)
+     (ws-butler-global-mode +1)
+     (gsetq require-final-newline 'ask-me)
+   #+END_SRC
+** Killing
+   #+BEGIN_SRC emacs-lisp
+     (gsetq kill-do-not-save-duplicates t
+            kill-ring-max 256)
+     (general-define-key "M-y" 'helm-show-kill-ring)
+   #+END_SRC
+** Clipboard
+   #+BEGIN_SRC emacs-lisp
+     (gsetq save-interprogram-paste-before-kill t)
+   #+END_SRC
+** Bookmarks
+   #+BEGIN_SRC emacs-lisp
+          (gsetq bookmark-save-flag 1
+                 bookmark-fontify nil)
+   #+END_SRC
+** Narrowing
+   #+BEGIN_SRC emacs-lisp
+     (put 'narrow-to-region 'disabled nil)
+   #+END_SRC
+** Line numbers
+   #+BEGIN_SRC emacs-lisp
+     (gsetq line-number-display-limit-width 1000)
+   #+END_SRC
+** Search
+   #+BEGIN_SRC emacs-lisp
+     (gsetq isearch-allow-scroll t
+	    search-ring-max 128
+	    regexp-search-ring-max 128)
+     (general-define-key
+      :keymaps 'isearch-mode-map
+      "M-s M-s" 'swiper-from-isearch)
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (defun binarin/search-words ()
+       (interactive)
+       (when (use-region-p)
+	 (browse-url
+	  (concat "https://duckduckgo.com/html/?q="
+		  (url-hexify-string (buffer-substring (region-beginning) (region-end)))))))
+
+     (general-define-key "M-s M-w" 'binarin/search-words)
+   #+END_SRC
+
+** Automatically make scripts executable
+   #+BEGIN_SRC emacs-lisp
+     (add-hook 'after-save-hook
+	       'executable-make-buffer-file-executable-if-script-p)
+   #+END_SRC
+** Window handling
+   Prefer horizontal splits:
+   #+BEGIN_SRC emacs-lisp
+     (gsetq split-width-threshold 100)
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (winner-mode)
+   #+END_SRC
+** I18n
+*** Russian layout over Programmers Dvorak
+    :PROPERTIES:
+    :ID:       b04b5557-e261-4073-ac6b-93e62e587ed6
+    :END:
+
+    #+begin_src emacs-lisp
+      ;; -*- coding: iso-2022-7bit-unix -*-
+      (quail-define-package
+       "russian-computer-d" "Russian" "RU" nil
+       "ЙЦУКЕН Russian computer layout over Programmers Dvorak"
+       nil t t t t nil nil nil nil nil t)
+
+      ;;  №% "7 ?5 /3 (1 =9 *0 )2 +4 -6 !8 ;:
+      ;;   Й  Ц  У  К  Е  Н  Г  Ш  Щ  З  Х  Ъ
+      ;;    Ф  Ы  В  А  П  Р  О  Л  Д  Ж  Э
+      ;;     Я  Ч  С  М  И  Т  Ь  Б  Ю  .,
+
+      (quail-define-rules
+       ("&" ?№)
+       ("[" ?\")
+       ("{" ??)
+       ("}" ?/)
+       ("(" ?()
+       ("=" ?=)
+       ("*" ?*)
+       (")" ?))
+       ("+" ?+)
+       ("]" ?-)
+       ("!" ?!)
+       ("#" ?\;)
+       ("%" ?%)
+       ("7" ?7)
+       ("5" ?5)
+       ("3" ?3)
+       ("1" ?1)
+       ("9" ?9)
+       ("0" ?0)
+       ("2" ?2)
+       ("4" ?4)
+       ("6" ?6)
+       ("8" ?8)
+       ("`" ?:)
+
+       ("$" ?ё)
+       (";" ?й)
+       ("," ?ц)
+       ("." ?у)
+       ("p" ?к)
+       ("y" ?е)
+       ("f" ?н)
+       ("g" ?г)
+       ("c" ?ш)
+       ("r" ?щ)
+       ("l" ?з)
+       ("/" ?х)
+       ("@" ?ъ)
+       ("a" ?ф)
+       ("o" ?ы)
+       ("e" ?в)
+       ("u" ?а)
+       ("i" ?п)
+       ("d" ?р)
+       ("h" ?о)
+       ("t" ?л)
+       ("n" ?д)
+       ("s" ?ж)
+       ("-" ?э)
+       ("\\" ?\\)
+       ("'" ?я)
+       ("q" ?ч)
+       ("j" ?с)
+       ("k" ?м)
+       ("x" ?и)
+       ("b" ?т)
+       ("m" ?ь)
+       ("w" ?б)
+       ("v" ?ю)
+       ("z" ?.)
+       ("~" ?Ё)
+       (":" ?Й)
+       ("<" ?Ц)
+       (">" ?У)
+       ("P" ?К)
+       ("Y" ?Е)
+       ("F" ?Н)
+       ("G" ?Г)
+       ("C" ?Ш)
+       ("R" ?Щ)
+       ("L" ?З)
+       ("?" ?Х)
+       ("^" ?Ъ)
+       ("A" ?Ф)
+       ("O" ?Ы)
+       ("E" ?В)
+       ("U" ?А)
+       ("I" ?П)
+       ("D" ?Р)
+       ("H" ?О)
+       ("T" ?Л)
+       ("N" ?Д)
+       ("S" ?Ж)
+       ("_" ?Э)
+       ("|" ?|)
+       ("\"" ?Я)
+       ("Q" ?Ч)
+       ("J" ?С)
+       ("K" ?М)
+       ("X" ?И)
+       ("B" ?Т)
+       ("M" ?Ь)
+       ("W" ?Б)
+       ("V" ?Ю)
+       ("Z" ?,))
+    #+end_src
+
+*** Prefer Russian and UTF-8
+#+begin_src emacs-lisp
+  (set-language-environment "Russian")
+  (setq default-input-method "russian-computer")
+  (prefer-coding-system 'utf-8-unix)
+#+end_src
+
+** Server
+  #+begin_src emacs-lisp
+    (defun binarin/server-start ()
+      (require 'server)
+      (unless (server-running-p server-name)
+        (server-start)))
+
+    (add-hook 'after-init-hook #'binarin/server-start)
+
+    (setf server-temp-file-regexp "^/tmp/\\(zsh\\|Re\\)\\|/draft$")
+  #+end_src
+
+** TRAMP
+   #+begin_src emacs-lisp
+     (gsetq tramp-login-prompt-regexp
+              ".*\\(user\\|login\\|2FA Token\\)\\( .*\\)?: *")
+
+
+     (setq vc-ignore-dir-regexp
+                     (format "\\(%s\\)\\|\\(%s\\)"
+                             vc-ignore-dir-regexp
+                             tramp-file-name-regexp))
+
+     (gsetq tramp-use-ssh-controlmaster-options nil)
+   #+end_src
+* Programming
+** Projects
+   #+BEGIN_SRC emacs-lisp
+     (projectile-mode +1)
+
+     (gsetq projectile-enable-caching t
+            projectile-completion-system 'ivy)
+
+     (general-define-key
+      :keymaps 'projectile-mode-map
+      "C-c p" 'projectile-command-map)
+   #+END_SRC
+
+   For my projects I usually don't want to include submodules in file
+   list. And anyway, this is broken for some of the things I work on
+   (e.g. it fails on submodules without url).
+   #+BEGIN_SRC emacs-lisp
+     (gsetq projectile-git-submodule-command nil)
+   #+END_SRC
+
+   For sparse-checkout the default command still lists too much files, so let's filter them out.
+   #+begin_src emacs-lisp
+     (gsetq projectile-git-command "git ls-files -tzco --exclude-standard | perl -n0E '($l, $r) = split / /, $_, 2; if ( $l !~ /^S/ ) { print $r }'")
+   #+end_src
+
+** Vue
+   #+BEGIN_SRC emacs-lisp
+     (defun binarin/vue-mode-hook ()
+       (setq-local mmm-submode-decoration-level 0)
+       (lsp))
+
+     (add-hook 'vue-mode-hook #'binarin/vue-mode-hook)
+
+     (eval-after-load "vue-mode"
+       (lambda ()
+         (require 'lsp-ui)))
+   #+END_SRC
+** Perl
+   #+BEGIN_SRC emacs-lisp
+     (defalias 'perl-mode 'cperl-mode)
+     (gsetq cperl-hairy t
+            cperl-indent-level 4
+            cperl-indent-parens-as-block t
+            cperl-close-paren-offset -4)
+     (add-hook 'cperl-mode-hook 'ws-butler-mode)
+   #+END_SRC
+** Lisp
+   #+BEGIN_SRC emacs-lisp
+     (add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
+     (add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
+     (add-hook 'ielm-mode-hook             #'enable-paredit-mode)
+     (add-hook 'lisp-mode-hook             #'enable-paredit-mode)
+     (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+     (add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+   #+END_SRC
+
+   Prevent ~paredit~ from replacing standard search-related binding:
+   #+BEGIN_SRC emacs-lisp
+     (eval-after-load "paredit"
+       (lambda ()
+	 (general-define-key :keymaps 'paredit-mode-map "M-s" nil)))
+   #+END_SRC
+** Nix
+   #+BEGIN_SRC emacs-lisp
+     (gsetq nix-indent-function 'nix-indent-line)
+     (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode)) ;; fixed by https://github.com/NixOS/nix-mode/commit/f1973ceb4b89e52eec35829722d0dbdcc39fb2ff, should go away soon
+   #+END_SRC
+** Go
+   #+BEGIN_SRC emacs-lisp
+     (defun binarin/go-mode-hook ()
+       (set (make-local-variable 'company-backends) '(company-go))
+       (company-mode)
+       (flycheck-mode))
+
+     (add-hook 'go-mode-hook #'binarin/go-mode-hook)
+
+     ;; (eval-after-load "go-mode"
+     ;;   (lambda () (flycheck-gometalinter-setup)))
+   #+END_SRC
+
+** Haskell
+   #+begin_src emacs-lisp
+     ;; (gsetq intero-blacklist '("/")
+     ;;        intero-whitelist '("~/personal-workspace/soe"))
+     ;; (intero-global-mode)
+   #+end_src
+** Share source position
+   #+BEGIN_SRC emacs-lisp
+     (defun binarin/get-git-remote-urls ()
+       (with-temp-buffer
+         (magit-git-insert "remote" "-v")
+         (-remove #'null (-map #'(lambda (a) (nth 1 (s-split "[ \t]+" a))) (s-lines (buffer-string))))))
+
+     (defun binarin/get-head-commit-sha ()
+       (with-temp-buffer
+         (magit-git-insert "rev-parse" "HEAD")
+         (s-trim (buffer-string))))
+
+     (defun binarin/make-gitlab-link (base project)
+       (let ((commit-sha (binarin/get-head-commit-sha))
+             (filename-relative (car (projectile-make-relative-to-root (list (buffer-file-name)))))
+             (line-number (string-to-number (format-mode-line "%l"))))
+         (format "https://%s/%s/blob/%s/%s#L%d" base project commit-sha filename-relative line-number)))
+
+     (defun binarin/make-github-link (project)
+       (let ((commit-sha (binarin/get-head-commit-sha))
+             (filename-relative (car (projectile-make-relative-to-root (list (buffer-file-name)))))
+             (line-number (string-to-number (format-mode-line "%l"))))
+         (format "https://%s/%s/blob/%s/%s#L%d" "github.com" project commit-sha filename-relative line-number)))
+
+     (defun binarin/open-web-link-to-source-code ()
+       (interactive)
+       (require 'magit)
+       (aif (block loop
+              (dolist (url (binarin/get-git-remote-urls))
+                (anaphoric-cond
+                   ((s-match  "\\(gitlab\\.[^/:]+\\)[:/]\\(.*?\\)\\(\\.git\\)?$" url)
+                    (return (binarin/make-gitlab-link (nth 1 it) (nth 2 it))))
+                   ((or
+                     (s-match "https://github.com/\\(.*\\)" url)
+                     (s-match "git@github.com:\\(.*\\)" url))
+                    (return (binarin/make-github-link (nth 1 it)))))))
+           (browse-url it)
+         (message "Failed to generate a link from that file")))
+   #+END_SRC
+* Org mode
+** Todo keywords
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-todo-keywords
+            '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+              (type "|" "CANCELLED(c!)")
+              (type "HOLD(h!)" "WAIT(w!)" "|")))
+
+     (gsetq org-todo-keyword-faces
+            '(("TODO" :foreground "red" :weight bold)
+              ("NEXT" :foreground "cyan3" :weight bold)
+              ("DONE" :foreground "green4" :weight bold)
+
+              ("WAIT" :foreground "orange3" :weight bold)
+              ("HOLD" :foreground "orange3" :weight bold)
+              ("CANCELLED" :foreground "forest green" :weight bold)))
+
+     (gsetq org-enforce-todo-dependencies t)
+     (gsetq org-log-done 'time)
+
+     (gsetq org-log-into-drawer t)
+   #+END_SRC
+** Tags
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-fast-tag-selection-single-key 't)
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-tags-exclude-from-inheritance '("PROJ"))
+
+     (defconst binarin/context-tags
+       '(("@home" :hotkey ?h :includes ("@comp" "@phone" "@inet"))
+         ("@work" :hotkey ?w :includes ("@comp" "@phone" "@inet"))
+         ("@comp" :hotkey ?c :includes ("@phone"))
+         ("@errand" :hotkey ?e :includes ("@phone"))
+         ("@inet" :hotkey ?i)
+         ("@phone" :hotkey ?o :includes ("@inet"))))
+
+     (gsetq org-tag-alist `((:startgroup . nil)
+                            ,@(mapcar (cl-function (lambda ((tag &key hotkey includes)) (cons tag hotkey))) binarin/context-tags)
+                            (:endgroup . nil)
+                            (:startgroup . nil)
+                            ("WAITING" . ?W)
+                            ("HOLD" . ?H)
+                            ("CANCELLED" . ?C)
+                            ("PROJ" . ?p)
+                            (:endgroup . nil)
+                            ("no-agenda" . ?N)
+                            ("private" . ?V)))
+
+     (gsetq org-todo-state-tags-triggers
+            '(("CANCELLED" ("CANCELLED" . t))
+              ("WAIT" ("WAITING" . t))
+              ("HOLD" ("HOLD" . t))
+              ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+              ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+              ("DONE" ("WAITING") ("CANCELLED") ("HOLD"))))
+
+   #+END_SRC
+** Outline
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-cycle-separator-lines 0)
+     (gsetq org-catch-invisible-edits 'error)
+   #+END_SRC
+** Agenda
+   Separate block for functions that absolutely require lexical
+   scope. I can't make ~eval-buffer~ to respect this setting in
+   org-mode source code editors.
+   #+BEGIN_SRC emacs-lisp :lexical yes :results silent
+     (defun binarin/agenda-sorter-tag-first (tag)
+       #'(lambda (a b)
+           (let ((ta (member (downcase tag) (get-text-property 1 'tags a)))
+                 (tb (member (downcase tag) (get-text-property 1 'tags b))))
+             (cond
+              ((and ta tb) nil)
+              ((not ta) -1)
+              (t +1)))))
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-agenda-files
+            (-map #'f-expand
+                  (-filter #'f-exists?
+                           '("~/org/personal.org"
+                             "~/org/contacts.org"
+                             "~/org/blog.org"
+                             "~/org/refile.org"
+                             "~/org/booking.org"
+                             "~/org/bcal.org"
+                             "~/org/bcal-evts.org"
+                             "~/.rc/emacs-config.org"
+                             "~/org/ference.org"))))
+
+     (gsetq org-agenda-include-diary nil
+            org-agenda-span 'day
+            org-agenda-start-on-weekday 1
+            org-agenda-window-setup 'current-window
+            org-agenda-dim-blocked-tasks nil
+            org-agenda-compact-blocks t
+            org-agenda-block-separator nil
+            org-agenda-skip-scheduled-if-done t
+            org-agenda-skip-deadline-if-done t
+            org-agenda-skip-timestamp-if-done t)
+
+     (defconst binarin/todo-sort-order '("NEXT" "TODO" "WAIT" "HOLD"))
+
+     (cl-defun binarin/sort-by-todo (a b)
+       (let* (result
+              (todo-a (get-text-property 1 'todo-state a))
+              (todo-b (get-text-property 1 'todo-state b))
+              (idx-a (-elem-index todo-a binarin/todo-sort-order))
+              (idx-b (-elem-index todo-b binarin/todo-sort-order)))
+         (cond
+          ((and idx-a idx-b)
+           (cond
+           ((> idx-a idx-b) -1)
+            ((< idx-a idx-b) +1)
+            nil))
+          (idx-a +1)
+          (idx-b -1)
+          (t nil))))
+
+     (cl-defun binarin/refile-tasks-custom-agenda ()
+       '(tags "REFILE"
+              ((org-agenda-overriding-header "Tasks to Refile")
+               (org-tags-match-list-sublevels nil)
+               (org-agenda-hide-tags-regexp "REFILE\\|CANCELLED\\|WAITING\\|HOLD"))))
+
+     (cl-defun binarin/todo-filter-other-context (primary)
+       (let ((includes (plist-get (cdr (assoc primary binarin/context-tags))
+                                  :includes)))
+         (string-join
+          (mapcar
+           (lambda (tag) (concat "-" tag))
+           (-difference (mapcar #'car binarin/context-tags)
+                        (list* primary includes))))))
+
+     (cl-defun binarin/sort-habits (a b)
+       (let* ((ha (get-text-property 1 'org-habit-p a))
+             (hb (get-text-property 1 'org-habit-p b))
+             (ma (get-text-property 1 'org-marker a))
+             (mb (get-text-property 1 'org-marker b))
+             (ia (string-to-number (or (org-entry-get ma "IMPORTANCE") "1000")))
+             (ib (string-to-number (or (org-entry-get mb "IMPORTANCE") "1000"))))
+         (when (and ha hb)
+           (cond ((> ia ib) +1)
+                 ((< ia ib) -1)
+                 (t (org-cmp-alpha a b))))))
+
+     (cl-defun binarin/next-tasks-for-context-agenda (primary includes)
+       `(tags-todo ,(concat
+                     (binarin/todo-filter-other-context primary)
+                     "-CANCELLED-HOLD-WAIT-agenda_hide/!NEXT")
+                   ((org-agenda-overriding-header ,(format "Next Tasks for %s (minus %s)" primary (binarin/todo-filter-other-context primary)))
+                    (org-agenda-sorting-strategy '(priority-down user-defined-down category-up))
+                    (org-agenda-cmp-user-defined ',(binarin/agenda-sorter-tag-first primary))
+                    (org-agenda-todo-ignore-scheduled t)
+                    (org-agenda-todo-ignore-deadlines t)
+                    (org-agenda-todo-ignore-with-date t)
+                    (org-agenda-tags-todo-honor-ignore-options t))))
+
+
+     ;; (setf (alist-get 'agenda org-agenda-sorting-strategy) '(habit-down user-defined-up time-up priority-down category-keep))
+     ;; (setf org-agenda-cmp-user-defined #'binarin/sort-habits-alphabetically)
+
+     (cl-defun binarin/custom-agenda-for-context ((tag &key hotkey includes))
+       `(,(concat "l" (char-to-string hotkey))
+         ,(concat "Agenda for " tag)
+         ((agenda
+           ""
+           ((org-agenda-sorting-strategy '(habit-down user-defined-up time-up priority-down category-keep))
+            (org-agenda-cmp-user-defined #'binarin/sort-habits)
+            (org-super-agenda-groups
+             '(;; Each group has an implicit boolean OR operator between its selectors.
+               (:name "Today"          ; Optionally specify section name
+                      :time-grid t     ; Items that appear on the time grid
+                      :todo "TODAY")   ; Items that have this TODO keyword
+               (:name "Important"
+                      :priority>= "B")
+               (:name "Habits"
+                      :habit t)))))
+          ,(binarin/refile-tasks-custom-agenda)
+          (stuck "" nil)
+          ,(binarin/next-tasks-for-context-agenda tag includes))
+         nil
+         (,(concat "~/tmp/agenda-gen/c-" tag ".html"))))
+
+     (org-super-agenda-mode)
+     (gsetq org-super-agenda-header-separator ""
+            org-super-agenda-header-prefix "")
+
+     (gsetq org-agenda-custom-commands
+            `((" " "Agenda"
+               ((agenda "" nil)
+                (tags "REFILE"
+                      ((org-agenda-overriding-header "Task to Refile")
+                       (org-tags-match-list-sublevels nil)))
+                (tags-todo "-CANCELLED-agenda_hide/!NEXT"
+                           ((org-agenda-overriding-header "Next Tasks")))))
+              ("l" . "Context-based agendas")
+              ,@(mapcar #'binarin/custom-agenda-for-context binarin/context-tags)
+              ("d" "All TODO" tags-todo "-PROJ-agenda_hide-HOLD-WAITING"
+               ((org-agenda-sorting-strategy '(category-keep priority-down user-defined-down))
+                (org-agenda-cmp-user-defined #'binarin/sort-by-todo))
+               ("~/tmp/agenda-gen/all.html"))))
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (require 'face-remap)
+
+     (defun binarin/shrink-text ()
+       (when (and
+              (window-system)
+              (or (not (boundp 'text-scale-mode))
+                 (not text-scale-mode)))
+         (text-scale-increase 0)
+         (text-scale-increase -1)))
+
+     (when (window-system)
+       (add-hook 'org-agenda-mode-hook #'binarin/shrink-text))
+
+     (gsetq org-agenda-tags-column -158
+            org-tags-column -124)
+   #+END_SRC
+** Global keybindings
+   #+BEGIN_SRC emacs-lisp
+     (general-define-key
+      "C-c a" 'org-agenda
+      "C-c r" 'org-capture)
+   #+END_SRC
+** Templates
+   #+BEGIN_SRC emacs-lisp
+     (eval-after-load "org"
+       (lambda ()
+         (require 'org-tempo)
+         (add-to-list 'org-structure-template-alist '("m" . "src emacs-lisp"))))
+   #+END_SRC
+** Habits
+   #+BEGIN_SRC emacs-lisp
+     (require 'org-habit)
+     (gsetq org-habit-graph-column 50
+            org-habit-show-all-today t
+            org-habit-completed-glyph  ?✓
+            org-habit-today-glyph  ??
+            binarin/org-habit-missed-day-glyph ?✗
+            org-habit-preceding-days 35
+            org-habit-following-days 1)
+
+     ;; "CANCELLED" shouldn't be considered 'done', but only for habits calculation
+     (defun binarin/advise-org-habit-parse-todo (orig-fun &optional pom)
+       (let ((org-done-keywords (--remove (string= it "CANCELLED") org-done-keywords)))
+         (funcall orig-fun pom)))
+
+     (defun binarin/advise-org-habit-get-faces (orig-fun habit &optional now-days scheduled-days donep)
+       (let* ((m-days (or now-days (time-to-days nil)))
+              (today-days (time-to-days nil))
+              (s-repeat (org-habit-scheduled-repeat habit))
+              (d-repeat (org-habit-deadline-repeat habit)))
+         (if (not (= 1 s-repeat d-repeat))
+             (funcall orig-fun habit now-days scheduled-days donep)
+           (cond
+            (donep '(org-habit-ready-face . org-habit-ready-future-face))
+            ((< m-days today-days) '(org-habit-overdue-face . org-habit-overdue-future-face))
+            (t '(org-habit-clear-face . org-habit-clear-future-face))))))
+
+
+     (set-face-attribute 'org-habit-clear-face nil
+                         :background "cyan4")
+     (set-face-attribute 'org-habit-ready-face nil
+                         :background "cyan4"
+                         :foreground "green2")
+     (set-face-attribute 'org-habit-alert-face nil
+                         :background "cyan4"
+                         :foreground "pink2")
+     (set-face-attribute 'org-habit-overdue-face nil
+                         :background "cyan4"
+                         :foreground "yellow")
+
+     (defun binarin/org-habit-build-graph (orig-fun habit starting current ending)
+       "Very simplified replacement for org-habit-build-graph,
+     supporting only daily habits and using different visual style:
+
+     - Pink crosses for days when thing wasn't done
+     - Green check-mares for days when thing was done
+     - Yellow question marks for today's undone tasks
+
+     Original function uses complicated color coding for habits with
+     irregular intervals - but for daily habits it's kinda impossible
+     to interpret with one glance.
+     "
+       (let* ((all-done-dates (sort (org-habit-done-dates habit) #'<))
+              (done-dates all-done-dates)
+              (scheduled (org-habit-scheduled habit))
+              (s-repeat (org-habit-scheduled-repeat habit))
+              (start (time-to-days starting))
+              (now (time-to-days current))
+              (end (time-to-days ending))
+              (graph (make-string (1+ (- end start)) ?\s))
+              (index 0)
+              last-done-date)
+         (while (and done-dates (< (car done-dates) start))
+           (setq last-done-date (car done-dates)
+                 done-dates (cdr done-dates)))
+         (while (< start end)
+           (let* ((in-the-past-p (< start now))
+                  (todayp (= start now))
+                  (donep (and done-dates (= start (car done-dates))))
+                  (face 'org-habit-clear-face))
+             (if donep
+                 (let ((done-time (time-add
+                                   starting
+                                   (days-to-time
+                                    (- start (time-to-days starting))))))
+
+                   (aset graph index org-habit-completed-glyph)
+                   (setq face 'org-habit-ready-face)
+                   (put-text-property
+                    index (1+ index) 'help-echo
+                    (format-time-string (org-time-stamp-format) done-time) graph)
+                   (while (and done-dates
+                               (= start (car done-dates)))
+                     (setq last-done-date (car done-dates)
+                           done-dates (cdr done-dates))))
+               (if todayp
+                   (progn
+                     (setq face 'org-habit-overdue-face)
+                     (aset graph index org-habit-today-glyph))
+                 (when last-done-date
+                   (setq face 'org-habit-alert-face)
+                   (aset graph index binarin/org-habit-missed-day-glyph))))
+             (put-text-property index (1+ index) 'face face graph))
+           (setq start (1+ start)
+                 index (1+ index)))
+         graph))
+
+     (advice-add 'org-habit-parse-todo :around #'binarin/advise-org-habit-parse-todo)
+     (advice-add 'org-habit-get-faces :around #'binarin/advise-org-habit-get-faces)
+     (advice-add 'org-habit-build-graph :around #'binarin/org-habit-build-graph)
+   #+END_SRC
+** Priorities
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-highest-priority ?A
+            org-lowest-priority ?D
+            org-default-priority ?C)
+
+   #+END_SRC
+** Contacts
+   #+BEGIN_SRC emacs-lisp
+     (require 'org-contacts)
+     (gsetq org-contacts-files '("~/org/contacts.org"))
+   #+END_SRC
+** Appearance
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-pretty-entities nil)
+     (gsetq org-agenda-dim-blocked-tasks nil)
+     (gsetq org-ellipsis " ▾")
+     ;; Always highlight the current agenda line
+     (add-hook 'org-agenda-mode-hook
+               '(lambda () (hl-line-mode 1))
+               'append)
+   #+END_SRC
+** Capture
+   :PROPERTIES:
+   :ID:       2be24f6f-5f15-4c1a-861e-01c09fb6f1e1
+   :END:
+   #+BEGIN_SRC emacs-lisp
+     (setq org-capture-templates
+                '(("t" "todo" entry
+                   (file "~/org/refile.org")
+                   "* TODO %?\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %u\n  %a"
+                   :clock-in t :clock-resume t)
+                  ("l" "Link" entry
+                   (file "~/org/refile.org")
+                   "* TODO %a\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %i" :immediate-finish t)))
+     (setq org-default-notes-file "~/org/refile.org")
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (require 'org-protocol)
+     (autoload 'notifications-notify "notifications")
+
+     (defun binarin/display-notify-after-capture (&rest args)
+       (notifications-notify
+        :title "Link captured"
+        :body (cadar org-stored-links)
+        :app-name "emacs"
+        :app-icon (expand-file-name "~/.rc/org.svg")
+        :timeout 3000
+        :urgency 'low))
+
+     (advice-add 'org-protocol-capture :after #'binarin/display-notify-after-capture)
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (defvar binarin/org-protocol-mundane-link-descriptions
+       '(" - binarin@gmail.com - Gmail"
+         " - binarin@binarin.ru - Mail"
+         " - Booking.com Ltd"
+         " - YouTube"
+         " - alexey.lebedeff@booking.com - Booking.com Mail"))
+
+     (defun binarin/org-protocol-capture-postprocess ()
+       (save-excursion
+         (beginning-of-buffer))
+       (awhen (s-match "binarin@binarin.ru - Mail\\]\\]" (buffer-string))
+         (replace-regexp "https://mail\\.google\\.com/mail/u/[0-9]/" "https://mail.google.com/mail/u/?authuser=binarin@binarin.ru"))
+       (awhen (s-match "alexey.lebedeff@booking.com - Booking.com Mail\\]\\]" (buffer-string))
+         (replace-regexp "https://mail\\.google\\.com/mail/u/[0-9]/" "https://mail.google.com/mail/u/?authuser=alexey.lebedeff@booking.com"))
+       (awhen (re-search-forward (concat (regexp-opt binarin/org-protocol-mundane-link-descriptions t) "]]") nil t)
+         (replace-match "]]")))
+
+     (add-hook 'org-capture-prepare-finalize-hook #'binarin/org-protocol-capture-postprocess)
+   #+END_SRC
+** Refile
+   #+BEGIN_SRC emacs-lisp
+     ; Targets include this file and any file contributing to the agenda - up to 9 levels deep
+     (setq org-refile-targets '((org-agenda-files :maxlevel . 9)
+                                (nil :maxlevel . 9)))
+
+     ; Use full outline paths for refile targets - we file directly with IDO
+     (setq org-refile-use-outline-path 'file)
+
+     ; Targets complete directly with IDO
+     (setq org-outline-path-complete-in-steps nil)
+
+     ; Allow refile to create parent tasks with confirmation
+     (setq org-refile-allow-creating-parent-nodes 'confirm)
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (defun binarin/update-parent-todo-statistics (&rest rest)
+       (save-excursion
+         (org-update-parent-todo-statistics)))
+
+     (add-hook 'org-after-refile-insert-hook #'binarin/update-parent-todo-statistics)
+
+     (advice-add 'org-refile :after #'binarin/update-parent-todo-statistics)
+
+     (advice-add 'org-archive-subtree :after #'binarin/update-parent-todo-statistics)
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (defconst binarin/common-tasks-for-refiling
+       '(("personal-next" . "ece10822-11d9-4939-b3e2-2d660c0a29ad")
+         ("personal-projects" . "f43d2ba5-e840-4382-85da-ff2bf10ff9de")
+         ("personal-scheduled" . "13d7a494-3f80-4ffe-a7b4-bded42335342")
+         ("booking-next" . "b24815d0-c63e-4525-8fc2-bd64b7319db9")
+         ("booking-scheduled" . "ed90c020-04fc-41e4-af5f-256307111d1a")))
+
+     (defun binarin/refile-to-predefined (name)
+       (interactive)
+       (aand (assoc name binarin/common-tasks-for-refiling)
+             (org-id-find (cdr it) t)
+             (let ((pos (save-current-buffer
+                          (save-excursion
+                            (set-buffer (marker-buffer it))
+                            (goto-char (marker-position it))
+                            (let* ((heading-comps (org-heading-components))
+                                   (heading (nth 4 (org-heading-components))))
+
+                              (list heading (buffer-file-name) nil it))))))
+               (if (derived-mode-p 'org-agenda-mode)
+                   (org-agenda-refile nil pos)
+                   (org-refile nil nil pos)))))
+
+     (defhydra binarin/org-refile-hydra (:exit t :hint nil :color pink)
+       "
+     ^^Personal                    ^^Booking
+     ^^------------------------    ^^-----------------------
+     _n_ Next Actions              _b_ Next Actions
+     _p_ Projects                  _w_ Scheduled and waiting
+     _s_ Scheduled and waiting
+     "
+       ("n" (binarin/refile-to-predefined "personal-next"))
+       ("p" (binarin/refile-to-predefined "personal-projects"))
+       ("b" (binarin/refile-to-predefined "booking-next"))
+       ("s" (binarin/refile-to-predefined "personal-scheduled"))
+       ("w" (binarin/refile-to-predefined "booking-scheduled")))
+
+     (general-define-key "C-z C-w" 'binarin/org-refile-hydra/body)
+   #+END_SRC
+
+** Babel
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-babel-default-header-args:emacs-lisp '((:lexical . "yes")))
+   #+END_SRC
+** Clocking
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-clock-into-drawer "CLOCK")
+     (set-face-attribute 'org-mode-line-clock nil :background "black")
+     (set-face-attribute 'org-mode-line-clock-overrun nil :background "red")
+     (setf org-clock-history-length 35)
+     (setf org-clock-out-remove-zero-time-clocks t)
+     (gsetq org-clock-out-when-done t)
+   #+END_SRC
+
+*** Clocking persistence
+    #+BEGIN_SRC emacs-lisp
+      (require 'org-clock)
+      (add-hook 'emacs-startup-hook #'org-clock-load)
+      (setf org-clock-persist t)
+      (gsetq org-clock-persist-query-resume nil)
+      (org-clock-persistence-insinuate)
+
+    #+END_SRC
+*** Punch-in stack
+    :PROPERTIES:
+    :ID:       52d239a4-9b17-4ff1-8b1a-97996370862e
+    :END:
+   #+BEGIN_SRC emacs-lisp
+     (defvar binarin/keep-clock-running nil "")
+
+     (defun binarin/punch-in ()
+       (interactive)
+       (org-save-all-org-buffers)
+       (let ((default-directory "~/org/"))
+         (shell-command "./push.sh"))
+       (cl-letf (((symbol-function 'yes-or-no-p) (lambda (&rest rest) t)))
+         (org-revert-all-org-buffers))
+       (setf binarin/keep-clock-running t)
+       (org-with-point-at (org-id-find (cdr (assoc "organization" binarin/common-tasks-for-clocking)) 'marker)
+         (org-clock-in '(16))))
+
+     (defun binarin/punch-out ()
+       (interactive)
+       (setf binarin/keep-clock-running nil)
+       (when (org-clock-is-active)
+         (org-clock-out))
+       (org-save-all-org-buffers)
+       (let ((default-directory "~/org/"))
+         (shell-command "./push.sh")))
+
+     (defun binarin/clock-in-default-task ()
+       (save-excursion
+         (org-with-point-at org-clock-default-task
+           (org-clock-in))))
+
+     (defun binarin/clock-out-maybe ()
+       (when (and binarin/keep-clock-running
+                  (not org-clock-clocking-in)
+                  (marker-buffer org-clock-default-task)
+                  (not org-clock-resolving-clocks-due-to-idleness))
+         (binarin/clock-in-default-task)))
+
+     (add-hook 'org-clock-out-hook #'binarin/clock-out-maybe 'append)
+   #+END_SRC
+
+*** Predefined tasks
+    :PROPERTIES:
+    :ID:       fc4ca434-7f87-48fd-9a94-9d22b2875ae8
+    :END:
+   #+BEGIN_SRC emacs-lisp
+     (defconst binarin/common-tasks-for-clocking
+       '(("internet" . "3762fad1-cf8c-40ae-b010-bacc1cf6b879")
+         ("daily" . "c7e6c3e1-41a2-4fdc-84ee-d56ca3c8b8e3")
+         ("weekly" . "6ddefbe6-9130-4707-94f3-2bc4da826bea")
+         ("organization" . "ece10822-11d9-4939-b3e2-2d660c0a29ad")
+         ("cron-master" . "4e63061d-976e-4038-93f6-657d5622eeeb")
+         ("wbso" . "06985e72-2048-4199-95fd-5dd0722098be")
+         ("break" . "cb2267ea-5143-4601-b409-6f7ac2deee85")
+         ("standup" . "5af61d72-a35d-4951-b6e5-7fd2fc3f7c1f")
+         ("lunch" . "7efa80d2-2cf4-43ab-b201-3bb2b022fc8a")))
+
+
+     (defvar binarin/default-tasks-stack)
+
+     (defun binarin/clock-in-predefined (alias &optional set-default)
+       (aand (assoc alias binarin/common-tasks-for-clocking)
+             (org-id-find (cdr it) t)
+             (save-current-buffer
+               (save-excursion
+                 (set-buffer (marker-buffer it))
+                 (goto-char (marker-position it))
+                 (let ((org-clock-in-switch-to-state nil))
+                   (if set-default
+                       (org-clock-in '(16))
+                     (org-clock-in)))))))
+
+
+     (defun binarin/clock-in-predefined-and-maybe-open-link (alias &optional set-default)
+       (binarin/clock-in-predefined alias)
+       (let* ((marker (org-id-find (cdr (assoc alias binarin/common-tasks-for-clocking)) t))
+              (props (org-entry-properties marker))
+              (link (cdr (assoc "LINK" props))))
+         (when link
+           (browse-url link))))
+
+   #+END_SRC
+
+*** Hydra
+    :PROPERTIES:
+    :ID:       3c205ff2-7376-41c0-beca-cfad17f4d798
+    :END:
+    #+BEGIN_SRC emacs-lisp
+      (defhydra binarin/org-clock-hydra (:exit t :hint nil :color pink)
+        "
+       ^^Predefined                 ^^Jump^^                ^^Clock
+       ^^━━━━━━━━━━━━━━━━━━━━━━━━━┳━^^━━^^━━━━━━━━━━━━━━━━┳━^^━━━━━━━━━━━
+       _n_ Тупление в интернете   ┃ ^^_e_ Current clock   ┃ _i_ In
+       _d_ Daily Review           ┃ ^^_l_ Last capture    ┃ _o_ Out
+       _w_ Weekly Review          ┃ ^^^^                  ┃ _p_ Punch-In
+       _c_ CronMaster             ┃ ^^^^                  ┃ _P_ Punch-Out
+       _b_ WBSO                   ┃ ^^^^                  ┃ _r_ Recent
+       _k_ Break                  ┃ ^^^^                  ┃
+       _s_ Standup                ┃ ^^^^                  ┃
+       _u_ Lunch                  ┃ ^^^^                  ┃
+           "
+        ("e" org-clock-goto)
+        ("P" binarin/punch-out)
+        ("b" (binarin/clock-in-predefined-and-maybe-open-link "wbso"))
+        ("c" (binarin/clock-in-predefined "cron-master" t))
+        ("d" (binarin/clock-in-predefined "daily" t))
+        ("i" org-clock-in)
+        ("k" (binarin/clock-in-predefined "break"))
+        ("l" org-capture-goto-last-stored)
+        ("n" (binarin/clock-in-predefined "internet"))
+        ("o" org-clock-out)
+        ("p" binarin/punch-in)
+        ("r" (org-clock-in '(4)))
+        ("s" (binarin/clock-in-predefined "standup"))
+        ("u" (binarin/clock-in-predefined "lunch"))
+        ("w" (binarin/clock-in-predefined "weekly" t)))
+
+      (general-define-key "<f12>" 'binarin/org-clock-hydra/body)
+      (general-define-key "C-c o" 'binarin/org-clock-hydra/body)
+    #+END_SRC
+*** Move to NEXT on clock-in
+    #+BEGIN_SRC emacs-lisp
+      (defun binarin/clock-in-to-next (kw)
+        (when (not (and (boundp 'org-capture-mode) org-capture-mode))
+          (cond
+           ((and (member (org-get-todo-state) (list "TODO"))
+                 (binarin/is-task-p))
+            "NEXT")
+           ((and (member (org-get-todo-state) (list "NEXT"))
+                 (binarin/is-project-p))
+            "TODO"))))
+
+      (setq org-clock-in-switch-to-state #'binarin/clock-in-to-next)
+    #+END_SRC
+*** Punch-in stack
+
+** Projects
+*** What is a project
+    #+BEGIN_SRC emacs-lisp
+      (defun binarin/is-todo-heading-p ()
+        (member (org-get-todo-state) org-todo-keywords-1))
+
+      (defun binarin/is-task-p ()
+        (and (binarin/is-todo-heading-p)
+             (not (binarin/is-project-p))))
+
+      (defun binarin/is-project-p ()
+        (and (binarin/is-todo-heading-p)
+             (member "PROJ" (org-get-tags-at))))
+    #+END_SRC
+*** Stuck projects
+    :PROPERTIES:
+    :ID:       8cb0dc32-de4e-4c93-9db1-92c62135a668
+    :END:
+    #+BEGIN_SRC emacs-lisp
+      (gsetq org-stuck-projects '("+PROJ-agenda_hide/!TODO" ("NEXT" "WAIT") nil ""))
+    #+END_SRC
+*** Adding subtask to a TODO/NEXT task should make it into project
+    #+BEGIN_SRC emacs-lisp
+      (defun binarin/mark-next-parent-tasks-todo ()
+        "Visit each parent task and change NEXT states to TODO"
+        (when (org-get-todo-state)
+          (save-excursion
+            (while (org-up-heading-safe)
+              (when (member (org-get-todo-state) (list "NEXT" "TODO"))
+                (org-todo "TODO")
+                (org-set-tags-to (-union (list "PROJ") (org-get-tags nil t))))))))
+
+      (add-hook 'org-after-todo-state-change-hook 'binarin/mark-next-parent-tasks-todo)
+      (add-hook 'org-clock-in-hook 'binarin/mark-next-parent-tasks-todo)
+    #+END_SRC
+** Links
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-return-follows-link t)
+     (gsetq org-id-link-to-org-use-id 'create-if-interactive)
+   #+END_SRC
+** Speed commands
+   #+BEGIN_SRC emacs-lisp
+     (gsetq org-use-speed-commands t)
+     (gsetq org-speed-commands-user '(("h" org-speed-move-safe 'helm-org-in-buffer-headings)
+                                      ("б" org-refile)
+                                      ("i" org-clock-in)))
+   #+END_SRC
+** Calendar Sync
+   #+BEGIN_SRC emacs-lisp
+     (require 'org-gcal)
+     (setq org-gcal-client-id (awhen (auth-source-search :host "booking-gcal" :max 1)
+                                (plist-get (car it) :user))
+           org-gcal-client-secret (awhen (auth-source-search :host "booking-gcal" :max 1)
+                                    (funcall (plist-get (car it) :secret)))
+           org-gcal-file-alist '(("alexey.lebedeff@booking.com" .  "~/org/bcal.org")
+                                 ("7pgunlpa0t36dtkhpcuhhhmddcnt9b8d@import.calendar.google.com" . "~/org/bcal-evts.org")))
+   #+END_SRC
+
+** Blogging
+   #+BEGIN_SRC emacs-lisp
+     (with-eval-after-load 'ox
+       (require 'ox-hugo))
+
+     (setf org-hugo-default-section-directory "post")
+   #+END_SRC
+** Notifications
+   :PROPERTIES:
+   :ID:       c70f16f4-6678-423c-896d-fe4b73e9c819
+   :END:
+   #+BEGIN_SRC emacs-lisp
+     (require 'appt)
+
+     (defun binarin/refresh-appts ()
+       (setq appt-time-msg-list nil)
+       (org-agenda-to-appt t))
+
+     ;; Run once, activate and schedule refresh
+     (binarin/refresh-appts)
+     (appt-activate t)
+     (run-at-time "24:01" nil #'binarin/refresh-appts)
+
+     ; Update appt each time agenda opened.
+     (add-hook 'org-finalize-agenda-hook #'binarin/refresh-appts)
+
+     (defvar binarin/last-appt-notify-id nil)
+
+     (defun binarin/appt-notify (min-to-app new-time msg)
+       (setf binarin/last-appt-notify-id
+             (notifications-notify
+              :title "Appointment"
+              :body (if (listp msg) (string-join msg "\\n") msg)
+              :timeout 5000
+              :urgency 'normal)))
+
+     (setf appt-display-format 'window)
+     (setf appt-disp-window-function #'binarin/appt-notify)
+     (setf appt-message-warning-time 10)
+   #+END_SRC
+
+** Sorting
+   #+begin_src emacs-lisp
+     (defvar binarin/priority-todos-for-sorting '("NEXT" "WAIT"))
+
+     (defun binarin/todo-to-started-first-int ()
+       "Default todo order is modified by giving more priority to
+     todo's from binarin/priority-todos-for-sorting and entries
+     without any todo keywords at all."
+       (let* ((props (org-entry-properties))
+              (item-todo (cdr (assoc "TODO" props)))
+              (item-prio (- (aif (cdr (assoc "PRIORITY" props))
+                                (aref it 0)
+                              org-default-priority)
+                            org-highest-priority))
+              (item-tags (cdr (assoc "TAGS" props)))
+              (modified-todo-order
+               (append binarin/priority-todos-for-sorting
+                       (-remove #'(lambda (todo) (member todo binarin/priority-todos-for-sorting)) org-todo-keywords-1)))
+              (todo-idx (if item-todo (1+ (-elem-index item-todo modified-todo-order)) 0))
+              (prio-range (1+ (- org-default-priority org-highest-priority))))
+         (+ (* prio-range todo-idx) item-prio)))
+
+     (defun binarin/org-sort-entries ()
+       (interactive)
+       (org-sort-entries nil ?f #'binarin/todo-to-started-first-int)
+       (org-cycle)
+       (org-cycle)
+       (org-cycle-hide-drawers 'subtree))
+   #+end_src
+
+** Roam
+   :PROPERTIES:
+   :ID:       50517a18-e858-4bc1-8304-0aff3951e8ac
+   :END:
+   #+begin_src emacs-lisp
+     (gsetq org-roam-directory (concat (file-name-as-directory org-directory) "roam"))
+     (org-roam-mode t)
+     (require 'org-roam-protocol)
+
+     (general-define-key
+      :keymaps 'org-roam-mode-map
+      "C-c n r" 'org-roam-db-build-cache
+      "C-c n l" 'org-roam
+      "C-c n f" 'org-roam-find-file
+      "C-c n g" 'org-roam-graph)
+
+     (general-define-key
+      :keymaps 'org-mode-map
+      "C-c n i" 'org-roam-insert
+      "C-c n I" 'org-roam-insert-immediate)
+
+     (setf (alist-get 'file org-link-frame-setup) 'find-file)
+   #+end_src
+* Communication
+** IRC
+   #+begin_src emacs-lisp
+     (defun binarin/get-bitlbee-password ()
+       (awhen (auth-source-search :host "bitlbee" :max 1)
+         (funcall (plist-get (car it) :secret))))
+
+     (defun binarin/bitlbee-oper-auth (conn event)
+       (irc-send-raw conn (concat "OPER alebedeff " (binarin/get-bitlbee-password))))
+
+     (eval-after-load "circe"
+       #'(lambda ()
+           (irc-handler-add (circe-irc-handler-table) "nickserv.identified" #'binarin/bitlbee-oper-auth)))
+
+     (setf circe-network-options `(("Freenode"
+                                    :channels ("#erlang" "#erlounge" "#rabbitmq" "#nixos" "#haskell" "#reflex-frp"))
+                                   ("my bitlbee"
+                                    :nick "alebedeff"
+                                    :realname "Alexey Lebedeff"
+                                    :channels ("#spdata" "#live" "#hackers" "#spcron")
+                                    :nickserv-mask "\\(bitlbee\\|root\\)!\\(bitlbee\\|root\\)@"
+                                    :nickserv-identify-challenge "If you already have an account on this server, just use the"
+                                    :nickserv-identify-command "PRIVMSG &bitlbee :identify"
+                                    :nickserv-identify-confirmation "About to identify, use /OPER"
+                                    :nickserv-nick "alebedeff"
+                                    :nickserv-password "dummy"
+                                    :host "bitlbee.booking.com"
+                                    :port 9997
+                                    :tls t)))
+
+     (setf circe-reduce-lurker-spam t)
+
+     (eval-after-load "circe"
+       (lambda ()
+         (require 'circe-color-nicks)
+         (enable-circe-color-nicks)
+         (load "lui-logging" nil t)
+         (enable-lui-logging-globally)))
+
+     (global-set-key (kbd "<f8>") #'tracking-next-buffer)
+
+     (defun irc ()
+       (interactive)
+       (circe "Freenode")
+       (circe "my bitlbee"))
+
+
+     (defun binarin/circe-chat-mode-hook ()
+       (emojify-mode)
+       (lui-set-prompt
+        (concat (propertize (concat (buffer-name) ">")
+                            'face 'circe-prompt-face)
+                " ")))
+
+     (add-hook 'circe-chat-mode-hook #'binarin/circe-chat-mode-hook)
+
+     (setq lui-flyspell-p t
+           lui-flyspell-alist '((".*" "american")))
+
+     (setq
+      lui-time-stamp-position 'right-margin
+      lui-time-stamp-format "%H:%M")
+
+     (add-hook 'lui-mode-hook 'my-circe-set-margin)
+     (defun my-circe-set-margin ()
+       (setq right-margin-width 5))
+   #+end_src
+* Test space

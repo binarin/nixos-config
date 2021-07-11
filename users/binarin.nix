@@ -27,7 +27,7 @@
 
     programs.zsh.enable = true;
     services.autorandr.enable = true;
-
+    
     home-manager.users.binarin = {
       # fonts.fontconfig.enable = true;
       gtk = {
@@ -49,28 +49,9 @@
         };
       };
 
-      programs.tmux = {
-        baseIndex = 1;
-        clock24 = true;
-        enable = true;
-        shortcut = "o";
-        terminal = "screen-256color";
-        extraConfig = ''
-          set -g window-status-current-style bg=red
-          set -g allow-rename off
-        '';
-      };
-
       home.stateVersion = "20.09";
       home.sessionPath = [ "$HOME/bin" ];
       home.packages = config.userPackages;
-
-      programs.direnv.enable = true;
-      programs.direnv.enableNixDirenvIntegration = true;
-      programs.direnv.enableZshIntegration = true;
-
-      programs.fzf.enable = true;
-      programs.bat.enable = true;
 
       services.picom = {
         enable = true;
@@ -268,44 +249,6 @@
             foreground = ''#ffffff'';
             timeout = 0;
           };
-        };
-      };
-
-      programs.autojump = {
-        enable = true;
-        enableZshIntegration = true;
-        enableBashIntegration = true;
-      };
-
-      programs.broot = {
-        enable = true;
-        enableZshIntegration = true;
-        enableBashIntegration = true;
-      };
-
-      programs.zsh = {
-        enable = true;
-        autocd = true;
-        initExtra = ''
-          source ${pkgs.bleeding.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh
-        '';
-        shellAliases = {
-          gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';
-          vi = ''emacsclient -nw'';
-          vim = ''emacsclient -nw'';
-          rgrep = ''grep -R'';
-          o = ''xdg-open'';
-          pst = ''pstree -ap | less'';
-        };
-        enableAutosuggestions = true;
-        history = {
-          size = 20000;
-          save = 20000;
-        };
-        oh-my-zsh = {
-          enable = true;
-          plugins = [ "colored-man-pages" "dirpersist" ];
-          theme = "gianu";
         };
       };
 
