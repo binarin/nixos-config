@@ -27,8 +27,11 @@
 
     programs.zsh.enable = true;
     services.autorandr.enable = true;
-    
+
     home-manager.users.binarin = {
+      imports = [
+        ./binarin-hm.nix
+      ];
       # fonts.fontconfig.enable = true;
       gtk = {
         enable = true;

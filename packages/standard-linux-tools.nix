@@ -104,13 +104,6 @@ in
         value = "131072";
       }
     ];
-
-    nix = {
-      package = pkgs.nixFlakes;
-      extraOptions = ''
-        experimental-features = nix-command flakes
-      '';
-    };
   };
 
 }

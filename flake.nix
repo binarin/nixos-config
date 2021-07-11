@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixos.url = github:NixOS/nixpkgs/nixos-20.09;
+    nixos.url = github:NixOS/nixpkgs/nixos-21.05;
     nixpkgs-master.url = github:NixOS/nixpkgs/master;
     nixpkgs.url = github:nixos/nixpkgs/nixpkgs-21.05-darwin;
 
@@ -10,99 +10,103 @@
     darwin.url = "github:LnL7/nix-darwin";
     darwin.inputs.nixpkgs.follows = "nixpkgs";
 
-    taffybar.url = path:./taffybar-flake;
-    taffybar.inputs.nixpkgs.follows = "nixos";
+    taffybar.url = github:taffybar/taffybar/master;
+    taffybar.flake = false;
 
     emacs.url = github:nix-community/emacs-overlay/master;
 
     cq.url = github:marcus7070/cq-flake;
+
+    flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };
   };
 
-  outputs = { self, nixos, nixpkgs, nixpkgs-master,
+  outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat,
               darwin, home-manager, taffybar, emacs, cq}@inputs:
+
   let
-    nixpkgsConfig = rec {
-      config = { allowUnfree = true; };
-      overlays = [
-        emacs.overlay
-        (
-          final: prev: rec {
-            bleeding = import nixpkgs-master { inherit (prev) system; inherit config; };
-            emacsPackagesFor = final.bleeding.emacsPackagesFor;
-          }
-        )
-      ];
+    taffybar-overlay = (
+      self: super:
+      let
+        taffybarOverlay = _: pkgs: rec {
+          haskellPackages = pkgs.haskellPackages.override (old: {
+            overrides =
+              pkgs.lib.composeExtensions (old.overrides or (_: _: {}))
+              (self: super: {
+                taffybar =
+                  self.callCabal2nix "taffybar" taffybar
+                  { inherit (pkgs) gtk3; };
+              });
+          });
+        };
+      in super.lib.composeExtensions taffybarOverlay (import "${taffybar}/environment.nix") self super
+    );
+
+    xmonad-config-overlay = final: prev: {
+      inherit (import ./xmonad-config/default.nix { pkgs = final; }) my-xmonad-config my-xmonad-executable;
     };
-    system = "x86_64-linux";
-    overlays = {
-      bleeding = final: prev: {
-        bleeding = import inputs.nixpkgs-master {
-          inherit system;
-          overlays = [ emacs.overlay ];
-          config = {
-            allowUnfree = true;
+
+    globalOverlays = [
+      emacs.overlay
+      taffybar-overlay
+      xmonad-config-overlay
+      (
+        final: prev: rec {
+          bleeding = import nixpkgs-master {
+            inherit (prev) system;
+            config = nixpkgsConfig;
+            overlays = [ emacs.overlay ];
           };
-        };
+          emacsPackagesFor = final.bleeding.emacsPackagesFor;
+        }
+      )
+    ];
+
+    nixpkgsConfig = {
+      allowUnfree = true;
+      oraclejdk.accept_license = true;
+    };
+
+    nixCommonConfigModule = {pkgs, ...}: {
+      nixpkgs = rec {
+        config = nixpkgsConfig;
+        overlays = globalOverlays;
+      };
+      nix = {
+        package = pkgs.nixUnstable;
+        extraOptions = ''
+          experimental-features = nix-command flakes
+        '';
+
+        nixPath = [
+          "nixpkgs=${./.}/nixpkgs.nix"
+        ];
       };
     };
+
+    linuxSystem = configuration: nixos.lib.nixosSystem {
+      system = "x86_64-linux";
+	    modules = [
+	      configuration
+        nixCommonConfigModule
+	      home-manager.nixosModules.home-manager
+	      nixos.nixosModules.notDetected
+        { home-manager.useGlobalPkgs = true; }
+	    ];
+    };
+
   in rec {
-    rawConfigurations = {
-      valak = {
-	      inherit system;
-	      modules = [
-	        ./configuration.nix-valak
-	        home-manager.nixosModules.home-manager
-	        nixos.nixosModules.notDetected
-	        { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
-	        { environment.systemPackages = [ cq.packages."${system}".cq-editor ]; }
-	      ];
-      };
-      nix-build = {
-	      inherit system;
-	      modules = [
-	        ./configuration.nix-nix-build
-	        home-manager.nixosModules.home-manager
-	        nixos.nixosModules.notDetected
-	        { nixpkgs.overlays = [ taffybar.overlay emacs.overlay overlays.bleeding ]; }
-	      ];
-      };
-    };
+    overlays = globalOverlays;
 
-    nixosConfigurations.valak = nixos.lib.nixosSystem rawConfigurations.valak;
-    nixosConfigurations.nix-build = nixos.lib.nixosSystem rawConfigurations.nix-build;
-
-    homeManagerConfigurations = {
-      darwin = inputs.home-manager.lib.homeManagerConfiguration {
-        configuration = {
-          imports = [
-            ./users/binarin-hm.nix
-          ];
-          nixpkgs.overlays = [ emacs.overlay overlays.bleeding ];
-        };
-	      system = "x86_64-darwin";
-	      homeDirectory = "/Users/alebedeff";
-	      username = "alebedeff";
-	      pkgs = import nixpkgs-master {
-          system = "x86_64-darwin";
-        };
-      };
-    };
+    nixosConfigurations.valak = linuxSystem ./configuration.nix-valak;
+    nixosConfigurations.nix-build = linuxSystem ./configuration.nix-nix-build;
 
     darwinConfigurations.vmware-laptop = darwin.lib.darwinSystem {
       modules = [
         home-manager.darwinModules.home-manager
+        nixCommonConfigModule
         (
           {pkgs, ... }: {
             services.nix-daemon.enable = true;
-
-            nix = {
-              package = pkgs.nixUnstable;
-              extraOptions = ''
-                experimental-features = nix-command flakes
-              '';
-            };
-
-            nixpkgs = nixpkgsConfig;
 
             users.users.alebedeff.home = "/Users/alebedeff";
 

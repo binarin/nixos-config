@@ -5,7 +5,7 @@ in {
   imports = [
     ../packages/use-my-overlays.nix
     ../packages/standard-linux-tools.nix
-    ../packages/haskell-packages.nix
+    # ../packages/haskell-packages.nix
     ../packages/user-packages.nix
 
     ../profile/emacs.nix
@@ -206,7 +206,7 @@ in {
 
 
   fonts = {
-    enableFontDir = true;
+    fontDir.enable = true;
     enableGhostscriptFonts = true;
     fonts = with pkgs; [
       corefonts
@@ -340,9 +340,7 @@ EndSection
 
     desktopManager.xterm.enable = false;
 
-    desktopManager.gnome3.enable = true;
-    # desktopManager.plasma5.enable = true;
-    # desktopManager.xfce.enable = true;
+    desktopManager.gnome.enable = true;
 
     displayManager = {
       gdm.enable = lib.mkForce false;
@@ -428,7 +426,7 @@ EndSection
   };
 
   # TLP brings you the benefits of advanced power management for Linux without the need to understand every technical detail.
-  services.tlp.enable = true;
+  # services.tlp.enable = true;
 
   services.logind = {
     lidSwitch = "suspend";

@@ -1,5 +1,4 @@
 # -*- nix -*-
-
 { config, pkgs, lib, ... }:
 
 {
@@ -19,32 +18,19 @@
     done
     modprobe -i vfio-pci
   '';
+
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd"  ];
   boot.kernelParams = [ "amd_iommu=on" "iommu=pt" "pcie_aspm=off" "video=efifb:off" "pci=realloc" "usbcore.autosuspend=-1" ];
   boot.extraModulePackages = [ ];
-  # boot.kernelPackages = pkgs.linuxPackages_latest;
-
-  # boot.kernelPatches = [
-  #   {
-  #     name = "OpenRGB";
-  #     patch = builtins.fetchurl {
-  #       url = "https://gitlab.com/CalcProgrammer1/OpenRGB/-/raw/5f5d50ffd8a01c9c26a0c4f816642898d085b6c9/OpenRGB.patch";
-  #       sha256 = "0p187wrckjkzi5k8mnjzsn90h10xbiz760va3sm2ix6s2nn29mz7";
-  #     };
-  #   }
-  # ];
 
   virtualisation.libvirtd = {
     enable = true;
     qemuOvmf = true;
     qemuRunAsRoot = false;
-    # qemuPackage = pkgs.qemu.override { smbdSupport = true; };
     onBoot = "ignore";
     onShutdown = "shutdown";
   };
-
-  # environment.systemPackages = [ pkgs.libguestfs-with-appliance ];
 
   services.xserver = {
     deviceSection = ''
@@ -124,7 +110,7 @@
     "f /dev/shm/looking-glass 0660 binarin qemu-libvirtd -"
   ];
 
-  system.stateVersion = "21.09"; # Did you read the comment?
+  system.stateVersion = "20.09";
 
   systemd.services."borgbackup-job-rsync-net".serviceConfig.ExecStartPre = ''${pkgs.coreutils}/bin/sleep 30'';
   systemd.timers."borgbackup-job-rsync-net".timerConfig.Persistent = true;
@@ -167,32 +153,6 @@
       weekly = 5;
       monthly = 12;
       yearly = -1;
-    };
-  };
-
-  services.synergy.client = {
-    enable = false;
-    screenName = "valak";
-    serverAddress = "192.168.122.2:24800";
-  };
-  services.synergy.server = {
-    enable = true;
-    address = "192.168.122.1:24800";
-    screenName = "valak";
-    configFile = pkgs.writeTextFile {
-      name = "synergy-config";
-      text = ''
-        section: screens
-          valak:
-          win10:
-        end
-        section: links
-           valak:
-               down = win10
-           win10:
-               up = valak
-        end
-      '';
     };
   };
 }
