@@ -555,6 +555,13 @@
      ;;        intero-whitelist '("~/personal-workspace/soe"))
      ;; (intero-global-mode)
    #+end_src
+** Erlang
+   #+begin_src emacs-lisp
+     (defun binarin/erlang-mode-hook ()
+       (lsp))
+
+     (add-hook 'erlang-mode-hook #'binarin/erlang-mode-hook)
+   #+end_src
 ** Share source position
    #+BEGIN_SRC emacs-lisp
      (defun binarin/get-git-remote-urls ()
