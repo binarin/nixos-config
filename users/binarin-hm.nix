@@ -78,6 +78,7 @@
       org-gcal
       org-plus-contrib
       org-super-agenda
+      ob-elixir
       ox-hugo
       paredit
       pdf-tools
