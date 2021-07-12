@@ -1,4 +1,4 @@
-{pkgs, config, ...}:
+{pkgs, config, system, ...}:
 
 {
   home.file.".emacs".source = pkgs.runCommand "emacs-config-tangled" {} ''
@@ -174,6 +174,7 @@
       rgrep = ''grep -R'';
       o = ''xdg-open'';
       pst = ''pstree -ap | less'';
+      zzz = ''sudo systemctl suspend'';
     };
     enableAutosuggestions = true;
     history = {
