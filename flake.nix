@@ -18,10 +18,12 @@
     cq.url = github:marcus7070/cq-flake;
 
     flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };
+
+    comma = { url = "github:Shopify/comma"; flake = false; };
   };
 
   outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat,
-              darwin, home-manager, taffybar, emacs, cq}@inputs:
+              darwin, home-manager, taffybar, emacs, cq, comma}@inputs:
 
   let
     taffybar-overlay = (
@@ -50,13 +52,14 @@
       taffybar-overlay
       xmonad-config-overlay
       (
-        final: prev: rec {
+        final: prev: {
           bleeding = import nixpkgs-master {
             inherit (prev) system;
             config = nixpkgsConfig;
             overlays = [ emacs.overlay ];
           };
           emacsPackagesFor = final.bleeding.emacsPackagesFor;
+          comma = import comma { inherit (prev) pkgs; };
         }
       )
     ];

@@ -194,6 +194,7 @@
     ripgrep
     htop
     erlang-ls
+    comma
   ];
 
   programs.git = {
