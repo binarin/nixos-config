@@ -195,6 +195,10 @@
     htop
     erlang-ls
     comma
+    gopass
+    git-annex
+    gnupg
+    httpie
   ];
 
   programs.git = {
