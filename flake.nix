@@ -60,6 +60,15 @@
           };
           emacsPackagesFor = final.bleeding.emacsPackagesFor;
           comma = import comma { inherit (prev) pkgs; };
+
+          ytt = prev.ytt.overrideAttrs (oldAttrs: {
+            src = final.fetchFromGitHub {
+              owner = "vmware-tanzu";
+              repo = "carvel-ytt";
+              rev = "v0.35.1";
+              sha256 = "sha256-hSs+kKefhth8hvR13+Lqg8lC/pvPScXAhSOtHDl8ax0=";
+            };
+          });
         }
       )
     ];

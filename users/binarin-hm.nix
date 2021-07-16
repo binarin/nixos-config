@@ -7,7 +7,7 @@
 
   programs.emacs = {
     enable = true;
-    package = pkgs.emacsGcc;
+    package = if pkgs.system == "x86_64-linux" then pkgs.emacsPgtkGcc else pkgs.emacsGcc;
     extraPackages = epkgs: with epkgs; [
       ace-window
       alchemist
@@ -194,11 +194,14 @@
     ripgrep
     htop
     erlang-ls
+    erlang
+    elixir
     comma
     gopass
     git-annex
     gnupg
     httpie
+    ytt
   ];
 
   programs.git = {
