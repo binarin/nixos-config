@@ -111,6 +111,7 @@
 
     nixosConfigurations.valak = linuxSystem ./configuration.nix-valak;
     nixosConfigurations.nix-build = linuxSystem ./configuration.nix-nix-build;
+    nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
 
     darwinConfigurations.vmware-laptop = darwin.lib.darwinSystem {
       modules = [
