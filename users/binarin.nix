@@ -58,7 +58,7 @@
 
       services.picom = {
         enable = true;
-        backend = "glx";
+        backend = "xr_glx_hybrid";
         vSync = true;
       };
 
