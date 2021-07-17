@@ -380,7 +380,6 @@ EndSection
 
   programs.ssh.startAgent = true;
   programs.light.enable = true;
-  programs.gnupg.agent.enable = true;
 
   # XXX Try disabling, maybe already fixed
   # systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];

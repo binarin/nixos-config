@@ -210,4 +210,15 @@
     userName = "Alexey Lebedeff";
     userEmail = "binarin@binarin.info";
   };
+
+  services.gpg-agent = {
+    enable = true;
+    defaultCacheTtl = 3600;
+    maxCacheTtl = 14400;
+    extraConfig = ''
+      allow-preset-passphrase
+    '';
+    pinentryFlavor = "gtk2";
+  };
+
 }
