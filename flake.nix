@@ -115,6 +115,7 @@
     darwinConfigurations.vmware-laptop = darwin.lib.darwinSystem {
       modules = [
         home-manager.darwinModules.home-manager
+        ./users/binarin-fonts.nix
         nixCommonConfigModule
         (
           {pkgs, ... }: {
@@ -137,6 +138,8 @@
                 ./users/binarin-hm.nix
               ];
             };
+
+            fonts.enableFontDir = true;
           }
         )
       ];

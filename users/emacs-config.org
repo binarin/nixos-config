@@ -39,7 +39,7 @@
    #+BEGIN_SRC emacs-lisp
      (add-to-list 'default-frame-alist
                   `(font . ,(if (string= system-type "darwin")
-                                "Monaco-18"
+                                "JetBrains Mono-14"
                               "Iosevka-22")))
      (setf face-ignored-fonts '("Adobe Blank"))
    #+END_SRC

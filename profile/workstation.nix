@@ -11,6 +11,7 @@ in {
     ../profile/emacs.nix
 
     ../users/binarin.nix
+    ../users/binarin-fonts.nix
   ];
 
   boot = {
@@ -208,31 +209,6 @@ in {
   fonts = {
     fontDir.enable = true;
     enableGhostscriptFonts = true;
-    fonts = with pkgs; [
-      corefonts
-      dejavu_fonts
-      emacs-all-the-icons-fonts
-      fira
-      fira-code
-      fira-mono
-      font-awesome-ttf
-      google-fonts
-      inconsolata
-      iosevka
-      liberation_ttf
-      mplus-outline-fonts
-      noto-fonts
-      powerline-fonts
-      roboto
-      roboto-mono
-      roboto-slab
-      source-code-pro
-      terminus_font
-      terminus_font_ttf
-      ubuntu_font_family
-      unifont
-      vistafonts
-    ];
   };
 
   hardware.bluetooth = {
