@@ -197,7 +197,6 @@
     erlang
     elixir
     comma
-    gopass
     git-annex
     gnupg
     httpie
@@ -221,4 +220,5 @@
     pinentryFlavor = "gtk2";
   };
 
+  home.file."bin/pass".source = "${pkgs.gopass}/bin/gopass";
 }
