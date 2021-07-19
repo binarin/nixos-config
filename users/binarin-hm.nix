@@ -1,4 +1,4 @@
-{pkgs, config, system, ...}:
+{lib, pkgs, config, system, ...}:
 
 {
   home.file.".emacs".source = pkgs.runCommand "emacs-config-tangled" {} ''
@@ -211,7 +211,7 @@
     userEmail = "binarin@binarin.info";
   };
 
-  services.gpg-agent = {
+  services.gpg-agent = lib.mkIf (pkgs.system == "x86_64-linux") {
     enable = true;
     defaultCacheTtl = 3600;
     maxCacheTtl = 14400;
