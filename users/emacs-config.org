@@ -849,6 +849,8 @@
             org-habit-preceding-days 35
             org-habit-following-days 1)
 
+     (setq org-agenda-hide-tags-regexp "agenda_hide")
+
      ;; "CANCELLED" shouldn't be considered 'done', but only for habits calculation
      (defun binarin/advise-org-habit-parse-todo (orig-fun &optional pom)
        (let ((org-done-keywords (--remove (string= it "CANCELLED") org-done-keywords)))
