@@ -9,6 +9,7 @@
     enable = true;
     package = if pkgs.system == "x86_64-linux" then pkgs.emacsPgtkGcc else pkgs.emacsGcc;
     extraPackages = epkgs: with epkgs; [
+      bazel
       ace-window
       alchemist
       amx
@@ -191,15 +192,17 @@
   home.stateVersion = "20.09";
 
   home.packages = with pkgs; [
-    ripgrep
-    htop
-    erlang-ls
-    erlang
-    elixir
+    bazel
     comma
+    elixir
+    erlang
+    erlang-ls
     git-annex
     gnupg
+    gopass
+    htop
     httpie
+    ripgrep
     ytt
   ];
 
