@@ -140,6 +140,25 @@
         "type": "github"
       }
     },
+    "gitIgnoreNix": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_3"
+      },
+      "locked": {
+        "lastModified": 1626413882,
+        "narHash": "sha256-ZHw1YVsrs7rG9jPEH0ZabbbCTdnVr48FAwK6GCQPSF4=",
+        "owner": "IvanMalison",
+        "repo": "gitignore.nix",
+        "rev": "a2ffb0bfd0145ca57d792a6f9f76f5c305ca29b7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "IvanMalison",
+        "ref": "master",
+        "repo": "gitignore.nix",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -242,6 +261,20 @@
         "type": "github"
       }
     },
+    "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1626808368,
+        "narHash": "sha256-h/MRD4eNBtPOn+qBsUM62NdRlBpAWT2CaStE+FHqXKI=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "3c093fd023e4e31ab3acf6e0c27ec82c2e2d2da0",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "type": "indirect"
+      }
+    },
     "ocp-src": {
       "flake": false,
       "locked": {
@@ -305,13 +338,18 @@
       }
     },
     "taffybar": {
-      "flake": false,
+      "inputs": {
+        "gitIgnoreNix": "gitIgnoreNix",
+        "nixpkgs": [
+          "nixos"
+        ]
+      },
       "locked": {
-        "lastModified": 1626191194,
-        "narHash": "sha256-YNRD7WTLoobWwvjoNV3r7clm3NJahtu7EhbL36jt1Go=",
+        "lastModified": 1626556930,
+        "narHash": "sha256-ytlLSruO6d3Kiz5W2s3iqeyKOYKq5/AgfRxv42yVYRA=",
         "owner": "taffybar",
         "repo": "taffybar",
-        "rev": "dda45f8a0f1e840ecae707a76fb98444e41fcbc0",
+        "rev": "2c4bb6a4c8e3e5023f1be937ee9e091b421fffbc",
         "type": "github"
       },
       "original": {

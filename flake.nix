@@ -11,7 +11,7 @@
     darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     taffybar.url = github:taffybar/taffybar/master;
-    taffybar.flake = false;
+    taffybar.inputs.nixpkgs.follows = "nixos";
 
     emacs.url = github:nix-community/emacs-overlay/master;
 
@@ -26,37 +26,41 @@
               darwin, home-manager, taffybar, emacs, cq, comma}@inputs:
 
   let
-    taffybar-overlay = (
-      self: super:
-      let
-        taffybarOverlay = _: pkgs: rec {
-          haskellPackages = pkgs.haskellPackages.override (old: {
-            overrides =
-              pkgs.lib.composeExtensions (old.overrides or (_: _: {}))
-              (self: super: {
-                taffybar =
-                  self.callCabal2nix "taffybar" taffybar
-                  { inherit (pkgs) gtk3; };
-              });
-          });
-        };
-      in super.lib.composeExtensions taffybarOverlay (import "${taffybar}/environment.nix") self super
-    );
-
     xmonad-config-overlay = final: prev: {
       inherit (import ./xmonad-config/default.nix { pkgs = final; }) my-xmonad-config my-xmonad-executable;
     };
 
+    # NIX_GHC support, should be not needed when dyre will upgrage past 0.9.1
+    taffybar-dyre-patch-overlay = (
+      final: prev: {
+        haskellPackages = prev.haskellPackages.override (old: {
+          overrides = prev.lib.composeExtensions (old.overrides or (_: _: {})) (s: super: {
+            dyre = prev.haskell.lib.appendPatch super.dyre (
+              final.fetchpatch {
+                url = "https://github.com/willdonnelly/dyre/commit/c7f29d321aae343d6b314f058812dffcba9d7133.patch";
+                sha256 = "10m22k35bi6cci798vjpy4c2l08lq5nmmj24iwp0aflvmjdgscdb";
+              }
+            );
+          });
+        });
+      }
+    );
+
     globalOverlays = [
       emacs.overlay
-      taffybar-overlay
+      taffybar.overlay
+      taffybar-dyre-patch-overlay
       xmonad-config-overlay
       (
         final: prev: {
           bleeding = import nixpkgs-master {
             inherit (prev) system;
             config = nixpkgsConfig;
-            overlays = [ emacs.overlay ];
+            overlays = [
+              emacs.overlay
+              taffybar.overlay
+              taffybar-dyre-patch-overlay
+            ];
           };
           emacsPackagesFor = final.bleeding.emacsPackagesFor;
           comma = import comma { inherit (prev) pkgs; };

@@ -3,7 +3,10 @@
   imports = [
     ../packages/user-packages.nix
   ];
+
   config = {
+    nix.trustedUsers = [ "binarin" ];
+
     users.extraUsers = {
       binarin = {
         description = "Alexey Lebedeff";
@@ -26,12 +29,14 @@
     };
 
     programs.zsh.enable = true;
+
     services.autorandr.enable = true;
 
     home-manager.users.binarin = {
       imports = [
         ./binarin-hm.nix
       ];
+
       # fonts.fontconfig.enable = true;
       gtk = {
         enable = true;
@@ -313,11 +318,12 @@
 
       services.taffybar = {
         enable = true;
-        package = pkgs.taffybar.override {packages = p: with p; [safe]; };
+        package = pkgs.bleeding.taffybar.override {packages = p: with p; [safe]; };
       };
+
       systemd.user.services.taffybar.Service.ExecStartPost = ''${pkgs.writeShellScript "kick-nm-applet" ''
         ${pkgs.coreutils}/bin/sleep 2
-        ${pkgs.systemd}/bin/systemctl restart --user network-manager-applet
+        # ${pkgs.procps}/bin/pkill -f nm-applet
       ''}'';
 
       services.network-manager-applet.enable = true;
@@ -339,6 +345,7 @@
           postswitch = {
             taffy = ''${pkgs.systemd}/bin/systemctl restart --user taffybar'';
             bh = ''${pkgs.feh}/bin/feh --bg-scale ${./green_3-wallpaper-5120x1440.jpg}'';
+            picom = ''${pkgs.systemd}/bin/systemctl restart --user picom'';
           };
         };
         profiles = let
@@ -466,6 +473,5 @@
         };
       };
     };
-    nix.trustedUsers = [ "binarin" ];
   };
 }
