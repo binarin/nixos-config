@@ -8,6 +8,8 @@
   home.file.".config/taffybar/taffybar.hs".source = ./taffybar.hs;
   home.file.".config/taffybar/taffybar.css".source = ./taffybar.css;
 
+  home.file."bin/sshmenu".source = ./sshmenu;
+
   programs.emacs = {
     enable = true;
     package = if pkgs.system == "x86_64-linux" then pkgs.emacsPgtkGcc else pkgs.emacsGcc;

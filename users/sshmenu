@@ -1,0 +1,146 @@
+#!/usr/bin/env zsh
+set -x
+exec 2> /tmp/deb
+set -eu
+set -o pipefail
+
+top-level() {
+    item "LOCAL" local-shell "$@"
+    item "HOME" menu:home-servers "$@"
+}
+
+local-shell() {
+    local prefix="$4"
+    switch-or-run-rxvt "$prefix" -e bash -c "tmux attach -t binarin -d || tmux new -s binarin"
+}
+
+home-servers() {
+    item "amon" mosh-amon "$@"
+    item "nabeirus" mosh-naberius "$@"
+    item "aim" mosh-aim "$@"
+    item "barbatos" mosh-barbatos "$@"
+    item "hass" mosh-hass "$@"
+    item "nix-build" ssh-nix-build "$@"
+}
+
+switch-or-run-rxvt() {
+    local title="${1:?}"; shift
+    if ! wmctrl -F -a "$title"; then
+        setopt NO_HUP
+        setopt NO_CHECK_JOBS
+        nohup urxvt -title "$title" "$@" > /dev/null 2>&1 &!
+    fi
+    sleep 0.01
+    exit 0
+}
+
+pixmap() {
+    echo "-pixmap $HOME/.rc/ssh/images/${1:?};0x0+0+0:op=tile"
+}
+
+tmux-command() {
+    local name="${1:?}"
+    echo ": ; tmux -2 attach -t $name -d || tmux -2 new -s $name"
+}
+
+mosh-amon() {
+    local prefix="$4"
+    switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t amon.binarin.ru -- sh -c "$(tmux-command binarin)"
+}
+
+mosh-naberius() {
+    local prefix="$4"
+    switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t 5.9.106.77 -- sh -c "$(tmux-command binarin)"
+}
+
+mosh-aim() {
+    local prefix="$4"
+    switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t aim.localdomain -- sh -c "$(tmux-command binarin)"
+}
+
+mosh-barbatos() {
+    local prefix="$4"
+    switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t root@barbatos.localdomain -- sh -c "$(tmux-command binarin)"
+}
+
+mosh-hass() {
+    local prefix="$4"
+    switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t hass -- sh -c "$(tmux-command binarin)"
+}
+
+ssh-nix-build() {
+    local prefix="$4"
+    switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t nix-build -- sh -c "$(tmux-command binarin)"
+}
+
+item() {
+    local display_name="$1"
+    local function_to_call="$2"
+    local mode="$3"
+    local prefix="$4"
+
+    local our_path
+    local our_idx=$menu_idx
+    menu_idx=$((menu_idx + 1))
+
+    if [[ -z $prefix ]]; then
+        our_path="$display_name"
+    else
+        our_path="$prefix|$display_name"
+    fi
+
+    case "$mode" in
+        list)
+            menu_labels+=("$display_name")
+            ;;
+        run)
+            local run_idx="$5"
+            if [[ $run_idx == $our_idx ]]; then
+                if [[ $function_to_call =~ '^menu:(.+)$' ]]; then
+                    exec-menu "$match[1]" "$our_path"
+                else
+                    $function_to_call $display_name $function_to_call run $our_path
+                fi
+            else
+                return 0
+            fi
+        ;;
+    esac
+}
+
+exec-menu() {
+    local menu_function="$1"
+    local prefix="$2"
+    shift 2
+
+    local -a menu_labels
+    local menu_idx=1
+    $menu_function list "$prefix"
+
+    local idx
+    clear
+    for idx in $(seq 1 ${#menu_labels}); do
+        printf "%s. %s\n" $(printf '%x' "$(($idx + 97 - 1))" | xxd -p -r) "$menu_labels[$idx]"
+    done
+
+    local choice
+    read -sk choice
+    if [[ $choice == $'\n' ]]; then
+        choice='a'
+    fi
+
+    choice=$(( $(printf '%d' "'$choice'") - 97 + 1))
+
+    if [[ $choice -lt 1 || $choice -gt ${#menu_labels} ]]; then
+        exit 1
+    fi
+
+    local menu_idx=1
+    $menu_function run "$prefix" $choice
+}
+
+if [[ "$#" -gt 0 ]]; then
+    exec-menu top-level "SH"
+else
+    urxvt -title "FAST_CHOICE" -fn "xft:Iosevka:pixelsize=70" -geometry 30x10 -e zsh -c "sshmenu go"
+fi
