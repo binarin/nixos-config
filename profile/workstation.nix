@@ -359,7 +359,7 @@ EndSection
   # systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
 
   services.udev.extraRules = ''
-    SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="0892", RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 --device %p"
+    SUBSYSTEM=="video4linux", KERNEL=="video[0-9]*", ACTION=="add", ENV{ID_VENDOR_ID}=="046d", ENV{ID_MODEL_ID}=="0892", RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 -d %N"
   '';
 
   systemd.services."binarin-org-sync" = let
