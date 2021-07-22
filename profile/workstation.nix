@@ -83,6 +83,7 @@ in {
 
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      zoom-us
       vmware-horizon-client
       looking-glass-client
       protonvpn-cli
@@ -101,7 +102,6 @@ in {
       sbt
     ];
     desktopPackages = with pkgs; [
-      zoom-us
       v4l-utils
       youtube-music-desktop-app
       gnome-icon-theme
