@@ -190,7 +190,13 @@
       enable = true;
       plugins = [ "colored-man-pages" "dirpersist" ];
       theme = "gianu";
+      custom = "$HOME/.share/oh-my-zsh/custom";
     };
+  };
+
+  home.file.".share/oh-my-zsh/custom" = {
+    source = ./oh-my-zsh-custom;
+    recursive = true;
   };
 
   home.stateVersion = "20.09";
