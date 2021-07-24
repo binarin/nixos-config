@@ -14,6 +14,7 @@ import System.Taffybar.Widget.Generic.PollingLabel
 import System.Taffybar.Widget.SNITray
 import System.Taffybar.Widget.Util
 import System.Taffybar.Widget.Workspaces
+import System.Log.Logger
 
 transparent = (0.0, 0.0, 0.0, 0.0)
 yellow1 = (0.9453125, 0.63671875, 0.2109375, 1.0)
@@ -55,6 +56,9 @@ cpuCallback = do
   return [totalLoad, systemLoad]
 
 main = do
+  logger <- getLogger "System.Taffybar"
+  saveGlobalLogger $ setLevel DEBUG logger
+
   let myWorkspacesConfig =
         defaultWorkspacesConfig
         { minIcons = 1
@@ -88,7 +92,7 @@ main = do
         , barPadding = 0
         , barHeight = 30
         , widgetSpacing = 0
-        , monitorsAction = pure [1]
+        , monitorsAction = pure [0]
         }
-  dyreTaffybar $ withLogServer $ withToggleServer $
+  startTaffybar $ withLogServer $ withToggleServer $
                toTaffyConfig myConfig

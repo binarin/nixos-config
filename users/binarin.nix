@@ -318,7 +318,7 @@
 
       services.taffybar = {
         enable = true;
-        package = pkgs.bleeding.taffybar.override {packages = p: with p; [safe]; };
+        package = pkgs.bleeding.my-taffybar;
       };
 
       systemd.user.services.taffybar.Service.ExecStartPost = ''${pkgs.writeShellScript "kick-nm-applet" ''

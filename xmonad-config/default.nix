@@ -9,4 +9,6 @@ rec {
       ln -sf ${my-xmonad-config}/bin/xmonad-config $out
     '';
   };
+
+  my-taffybar = pkgs.haskellPackages.callPackage ./taffybar-config.nix {};
 }

@@ -27,7 +27,7 @@
 
   let
     xmonad-config-overlay = final: prev: {
-      inherit (import ./xmonad-config/default.nix { pkgs = final; }) my-xmonad-config my-xmonad-executable;
+      inherit (import ./xmonad-config/default.nix { pkgs = final; }) my-xmonad-config my-xmonad-executable my-taffybar;
     };
 
     # NIX_GHC support, should be not needed when dyre will upgrage past 0.9.1
@@ -60,6 +60,7 @@
               emacs.overlay
               taffybar.overlay
               taffybar-dyre-patch-overlay
+              xmonad-config-overlay
             ];
           };
           emacsPackagesFor = final.bleeding.emacsPackagesFor;

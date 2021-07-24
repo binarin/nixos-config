@@ -1,0 +1,23 @@
+name: taffybar-config
+version: 0.1.0.0
+
+default-extensions:
+  - FlexibleInstances
+  - ScopedTypeVariables
+  - LambdaCase
+  - MultiParamTypeClasses
+  - OverloadedStrings
+  - RankNTypes
+  - RecordWildCards
+
+dependencies:
+  - base
+  - safe
+  - taffybar
+  - hslogger
+
+executables:
+  taffybar:
+    main: Main.hs
+    source-dirs:
+      - .
