@@ -57,7 +57,7 @@ cpuCallback = do
 
 main = do
   logger <- getLogger "System.Taffybar"
-  saveGlobalLogger $ setLevel DEBUG logger
+  saveGlobalLogger $ setLevel WARNING logger
 
   let myWorkspacesConfig =
         defaultWorkspacesConfig
@@ -92,7 +92,7 @@ main = do
         , barPadding = 0
         , barHeight = 30
         , widgetSpacing = 0
-        , monitorsAction = pure [0]
+        , monitorsAction = pure [1]
         }
   startTaffybar $ withLogServer $ withToggleServer $
                toTaffyConfig myConfig

@@ -321,11 +321,6 @@
         package = pkgs.bleeding.my-taffybar;
       };
 
-      systemd.user.services.taffybar.Service.ExecStartPost = ''${pkgs.writeShellScript "kick-nm-applet" ''
-        ${pkgs.coreutils}/bin/sleep 2
-        # ${pkgs.procps}/bin/pkill -f nm-applet
-      ''}'';
-
       services.network-manager-applet.enable = true;
 
       xsession = {
