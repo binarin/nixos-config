@@ -6,8 +6,18 @@
   '';
 
   home.file.".config/taffybar/taffybar.css".source = ./taffybar.css;
-
   home.file."bin/sshmenu".source = ./sshmenu;
+  home.file.".local/share/applications/smart-browser-chooser.desktop".source = ./smart-browser-chooser.desktop;
+  home.file.".local/share/applications/org-protocol.desktop".source = ./org-protocol.desktop;
+
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "x-scheme-handler/https" = "smart-browser-chooser.desktop";
+      "x-scheme-handler/http" = "smart-browser-chooser.desktop";
+      "x-scheme-handler/org-protocol" = "org-protocol.desktop";
+    };
+  };
 
   programs.emacs = {
     enable = true;
