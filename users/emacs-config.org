@@ -688,10 +688,7 @@
                              "~/org/contacts.org"
                              "~/org/blog.org"
                              "~/org/refile.org"
-                             "~/org/booking.org"
-                             "~/org/bcal.org"
-                             "~/org/bcal-evts.org"
-                             "~/.rc/emacs-config.org"
+                             "~/org/vmware.org"
                              "~/org/ference.org"))))
 
      (gsetq org-agenda-include-diary nil
