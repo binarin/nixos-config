@@ -222,8 +222,6 @@
     recursive = true;
   };
 
-
-
   home.stateVersion = "20.09";
 
   home.packages = with pkgs; [
@@ -246,6 +244,23 @@
     package = pkgs.gitAndTools.gitFull;
     userName = "Alexey Lebedeff";
     userEmail = "binarin@binarin.info";
+    delta.enable = true;
+    extraConfig =  {
+      core = {
+        autocrlf = false;
+      };
+      url = {
+        "git@github.com:binarin/" = { insteadOf = "gh:"; pushInsteadOf = "gh:"; };
+      };
+      commit = {
+	      template = "${./git-commit-template.txt}";
+      };
+      "delta \"decorations\"" = {
+        commit-decoration-style = "bold yellow box ul";
+        file-style = "bold yellow ul";
+        file-decoration-style = "none";
+      };
+    };
   };
 
   services.gpg-agent = lib.mkIf (pkgs.system == "x86_64-linux") {
