@@ -1080,8 +1080,8 @@
        '(("personal-next" . "ece10822-11d9-4939-b3e2-2d660c0a29ad")
          ("personal-projects" . "f43d2ba5-e840-4382-85da-ff2bf10ff9de")
          ("personal-scheduled" . "13d7a494-3f80-4ffe-a7b4-bded42335342")
-         ("booking-next" . "b24815d0-c63e-4525-8fc2-bd64b7319db9")
-         ("booking-scheduled" . "ed90c020-04fc-41e4-af5f-256307111d1a")))
+         ("vmware-next" . "5c65a8a1-6086-4591-98b9-29fba7583435")
+         ("vmware-scheduled" . "eeeae81f-a611-47c5-9f18-3a1e30591b55")))
 
      (defun binarin/refile-to-predefined (name)
        (interactive)
@@ -1101,7 +1101,7 @@
 
      (defhydra binarin/org-refile-hydra (:exit t :hint nil :color pink)
        "
-     ^^Personal                    ^^Booking
+     ^^Personal                    ^^VMWare
      ^^------------------------    ^^-----------------------
      _n_ Next Actions              _b_ Next Actions
      _p_ Projects                  _w_ Scheduled and waiting
@@ -1109,9 +1109,9 @@
      "
        ("n" (binarin/refile-to-predefined "personal-next"))
        ("p" (binarin/refile-to-predefined "personal-projects"))
-       ("b" (binarin/refile-to-predefined "booking-next"))
+       ("b" (binarin/refile-to-predefined "vmware-next"))
        ("s" (binarin/refile-to-predefined "personal-scheduled"))
-       ("w" (binarin/refile-to-predefined "booking-scheduled")))
+       ("w" (binarin/refile-to-predefined "vmware-scheduled")))
 
      (general-define-key "C-z C-w" 'binarin/org-refile-hydra/body)
    #+END_SRC
@@ -1190,12 +1190,7 @@
        '(("internet" . "3762fad1-cf8c-40ae-b010-bacc1cf6b879")
          ("daily" . "c7e6c3e1-41a2-4fdc-84ee-d56ca3c8b8e3")
          ("weekly" . "6ddefbe6-9130-4707-94f3-2bc4da826bea")
-         ("organization" . "ece10822-11d9-4939-b3e2-2d660c0a29ad")
-         ("cron-master" . "4e63061d-976e-4038-93f6-657d5622eeeb")
-         ("wbso" . "06985e72-2048-4199-95fd-5dd0722098be")
-         ("break" . "cb2267ea-5143-4601-b409-6f7ac2deee85")
-         ("standup" . "5af61d72-a35d-4951-b6e5-7fd2fc3f7c1f")
-         ("lunch" . "7efa80d2-2cf4-43ab-b201-3bb2b022fc8a")))
+         ("organization" . "ece10822-11d9-4939-b3e2-2d660c0a29ad")))
 
 
      (defvar binarin/default-tasks-stack)
@@ -1235,26 +1230,26 @@
        _n_ Тупление в интернете   ┃ ^^_e_ Current clock   ┃ _i_ In
        _d_ Daily Review           ┃ ^^_l_ Last capture    ┃ _o_ Out
        _w_ Weekly Review          ┃ ^^^^                  ┃ _p_ Punch-In
-       _c_ CronMaster             ┃ ^^^^                  ┃ _P_ Punch-Out
-       _b_ WBSO                   ┃ ^^^^                  ┃ _r_ Recent
-       _k_ Break                  ┃ ^^^^                  ┃
-       _s_ Standup                ┃ ^^^^                  ┃
-       _u_ Lunch                  ┃ ^^^^                  ┃
+       ^^                         ┃ ^^^^                  ┃ _P_ Punch-Out
+       ^^                         ┃ ^^^^                  ┃ _r_ Recent
+       ^^                         ┃ ^^^^                  ┃
+       ^^                         ┃ ^^^^                  ┃
+       ^^                         ┃ ^^^^                  ┃
            "
         ("e" org-clock-goto)
         ("P" binarin/punch-out)
-        ("b" (binarin/clock-in-predefined-and-maybe-open-link "wbso"))
-        ("c" (binarin/clock-in-predefined "cron-master" t))
+        ;; ("b" (binarin/clock-in-predefined-and-maybe-open-link "wbso"))
+        ;; ("c" (binarin/clock-in-predefined "cron-master" t))
         ("d" (binarin/clock-in-predefined "daily" t))
         ("i" org-clock-in)
-        ("k" (binarin/clock-in-predefined "break"))
+        ;; ("k" (binarin/clock-in-predefined "break"))
         ("l" org-capture-goto-last-stored)
         ("n" (binarin/clock-in-predefined "internet"))
         ("o" org-clock-out)
         ("p" binarin/punch-in)
         ("r" (org-clock-in '(4)))
-        ("s" (binarin/clock-in-predefined "standup"))
-        ("u" (binarin/clock-in-predefined "lunch"))
+        ;; ("s" (binarin/clock-in-predefined "standup"))
+        ;; ("u" (binarin/clock-in-predefined "lunch"))
         ("w" (binarin/clock-in-predefined "weekly" t)))
 
       (general-define-key "<f12>" 'binarin/org-clock-hydra/body)
