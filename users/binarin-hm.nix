@@ -7,8 +7,16 @@
 
   home.file.".config/taffybar/taffybar.css".source = ./taffybar.css;
   home.file."bin/sshmenu".source = ./sshmenu;
-  home.file.".local/share/applications/smart-browser-chooser.desktop".source = ./smart-browser-chooser.desktop;
   home.file.".local/share/applications/org-protocol.desktop".source = ./org-protocol.desktop;
+  home.file.".local/share/applications/smart-browser-chooser.desktop".text = ''
+    [Desktop Entry]
+    Name=smart-browser-chooser
+    Exec=sh -c "exec ${./open-link.sh} %u"
+    Type=Application
+    Terminal=false
+    Categories=System;
+    MimeType=x-scheme-handler/viber;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;text/html;application/x-extension-htm;application/x-extension-html;application/x-extension-shtml;application/xhtml+xml;application/x-extension-xhtml;application/x-extension-xht
+  '';
 
   xdg.mimeApps = {
     enable = true;
@@ -200,14 +208,21 @@
       enable = true;
       plugins = [ "colored-man-pages" "dirpersist" ];
       theme = "gianu";
-      custom = "$HOME/.share/oh-my-zsh/custom";
+      custom = "$HOME/.local/share/oh-my-zsh/custom";
     };
   };
 
-  home.file.".share/oh-my-zsh/custom" = {
+  home.file.".local/share/oh-my-zsh/custom" = {
     source = ./oh-my-zsh-custom;
     recursive = true;
   };
+
+  home.file.".local/share/images" = {
+    source = ./images;
+    recursive = true;
+  };
+
+
 
   home.stateVersion = "20.09";
 
@@ -243,5 +258,15 @@
     pinentryFlavor = "gtk2";
   };
 
-  home.file."bin/pass".source = "${pkgs.gopass}/bin/gopass";
+  home.file."bin/pass" = {
+    text = ''
+      #!${pkgs.bash}/bin/bash
+      if [[ $1 == "--clip" ]]; then
+        ${pkgs.gopass}/bin/gopass show "$@"
+      else
+        ${pkgs.gopass}/bin/gopass "$@"
+      fi
+    '';
+    executable = true;
+  };
 }

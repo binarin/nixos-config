@@ -35,7 +35,7 @@ switch-or-run-rxvt() {
 }
 
 pixmap() {
-    echo "-pixmap $HOME/.rc/ssh/images/${1:?};0x0+0+0:op=tile"
+    echo "-pixmap $HOME/.local/share/images/ssh/${1:?};0x0+0+0:op=tile"
 }
 
 tmux-command() {

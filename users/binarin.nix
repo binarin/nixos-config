@@ -260,6 +260,33 @@
         };
       };
 
+      home.file.".urxvt/ext/filter_title_and_paste" = {
+        text = ''
+          #! perl
+          use 5.14.0;
+          use Data::Dumper;
+          use autodie;
+
+          # Prohibit changing terminal title
+          sub on_osc_seq {
+              my ($term, $op, $args, $resp) = @_;
+              if( $op == 0 ) {
+                  return 1;
+              }
+              return;
+          }
+
+          # Strip end-paste ESC-sequence
+          sub on_tt_paste {
+              my ($term, $octets) = @_;
+              $octets =~ s/\[201~/^[[201~/g;
+              $term->tt_paste($octets);
+              return 1;
+          }
+        '';
+        executable = true;
+      };
+
       home.file.".xmonad/build" = {
         text = ''
           #!${pkgs.bash}/bin/bash
@@ -298,7 +325,7 @@
         "URxvt.urgentOnBell" = true;
         "URxvt.visualBell" = true;
         "URxvt.scrollBar" = false;
-        "URxvt.perl-ext" = "filter_title";
+        "URxvt.perl-ext" = "filter_title_and_paste";
         "URxvt.perl-ext-common" = "default,matcher,font-size,selection-to-clipboard";
         "URxvt.url-launcher" = "xdg-open";
 

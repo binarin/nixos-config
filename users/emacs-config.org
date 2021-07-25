@@ -989,7 +989,7 @@
         :title "Link captured"
         :body (cadar org-stored-links)
         :app-name "emacs"
-        :app-icon (expand-file-name "~/.rc/org.svg")
+        :app-icon (expand-file-name "~/.local/share/images/org.svg")
         :timeout 3000
         :urgency 'low))
 
