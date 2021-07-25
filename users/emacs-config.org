@@ -970,14 +970,48 @@
    :END:
    #+BEGIN_SRC emacs-lisp
      (setq org-capture-templates
-                '(("t" "todo" entry
-                   (file "~/org/refile.org")
-                   "* TODO %?\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %u\n  %a"
-                   :clock-in t :clock-resume t)
-                  ("l" "Link" entry
-                   (file "~/org/refile.org")
-                   "* TODO %a\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %i" :immediate-finish t)))
+                     '(("t" "todo" entry
+                        (file "~/org/refile.org")
+                        "* TODO %?\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %u\n  %a"
+                        :clock-in t :clock-resume t)
+                       ("j" "journal" entry
+                        (file+olp+datetree "~/org/journal.org")
+                        "* %U
+       :PROPERTIES:
+       :ID: %(org-id-new)
+       :CONTEXT: %a
+       :CLOCKED: %K
+       :END:
+       %?
+
+     # J:   - What project did I just finish?
+     # J:   - Are there any parts of that project that I’m still thinking about?
+     # J:   - What is the first action of the project I’m about to start?
+     # J:   - How should I approach getting the project done?
+          "
+                        :tree-type week :clock-in t :clock-resume t)
+                       ("n" "comment on clocked" plain
+                        (clock)
+                        "%?")
+                       ("l" "Link" entry
+                        (file "~/org/refile.org")
+                        "* TODO %a\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %i" :immediate-finish t)))
+
      (setq org-default-notes-file "~/org/refile.org")
+
+     (defun binarin/hide-drawers-hook ()
+       (save-excursion
+         (beginning-of-buffer)
+         (org-cycle-hide-drawers 'children)))
+
+     (defun binarin/capture-remove-guidance-comment ()
+       (save-excursion
+         (beginning-of-buffer)
+         (delete-matching-lines "^ \*# J:")))
+
+     (add-hook 'org-capture-mode-hook #'binarin/hide-drawers-hook)
+     (add-hook 'org-capture-mode-hook #'auto-fill-mode)
+     (add-hook 'org-capture-prepare-finalize-hook #'binarin/capture-remove-guidance-comment)
    #+END_SRC
 
    #+BEGIN_SRC emacs-lisp
