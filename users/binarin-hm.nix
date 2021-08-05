@@ -195,8 +195,8 @@
     # '';
     shellAliases = {
       gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';
-      vi = ''emacsclient -nw'';
-      vim = ''emacsclient -nw'';
+      vi = ''emacsclient -nw -a vim'';
+      vim = ''emacsclient -nw -a vim'';
       rgrep = ''grep -R'';
       o = ''xdg-open'';
       pst = ''pstree -ap | less'';
