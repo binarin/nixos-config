@@ -169,7 +169,10 @@
   programs.direnv.nix-direnv.enable = true;
   programs.direnv.enableZshIntegration = true;
 
-  programs.fzf.enable = true;
+  programs.fzf = {
+    enable = true;
+    tmux.enableShellIntegration = true;
+  };
   programs.bat.enable = true;
 
   programs.autojump = {
