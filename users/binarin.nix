@@ -63,8 +63,11 @@
 
       services.picom = {
         enable = true;
-        backend = "xr_glx_hybrid";
+        backend = "glx";
         vSync = true;
+        fade = false;
+        shadow = false;
+        blur = false;
       };
 
       services.dunst = {

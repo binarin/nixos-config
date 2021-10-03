@@ -90,9 +90,9 @@ main = do
           ]
         , barPosition = Top
         , barPadding = 0
-        , barHeight = 30
+        , barHeight = ExactSize 30
         , widgetSpacing = 0
-        , monitorsAction = pure [1]
+        , monitorsAction = pure [0]
         }
   startTaffybar $ withLogServer $ withToggleServer $
                toTaffyConfig myConfig

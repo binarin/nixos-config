@@ -25,6 +25,9 @@
       "x-scheme-handler/http" = "smart-browser-chooser.desktop";
       "x-scheme-handler/org-protocol" = "org-protocol.desktop";
     };
+    associations.added = {
+      "application/pdf" = "org.gnome.Evince.desktop";
+    };
   };
 
   programs.emacs = {
@@ -92,6 +95,7 @@
       # lsp-metals
       magit
       markdown-mode
+      markdown-toc
       mu4e-maildirs-extension
       # multi-libvterm
       nix-mode
@@ -190,9 +194,11 @@
   programs.zsh = {
     enable = true;
     autocd = true;
-    # initExtra = ''
-    #   # source ${pkgs.bleeding.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh
-    # '';
+    initExtra = ''
+      rr() {
+        readlink -f $(which $1)
+      }
+    '';
     shellAliases = {
       gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';
       vi = ''emacsclient -nw -a vim'';
@@ -232,7 +238,9 @@
     comma
     elixir
     erlang
-    erlang-ls
+    (bleeding.erlang-ls.overrideAttrs (oldAttrs: rec {
+      patches = [ ../packages/erlang-ls.diff ];
+    }))
     git-annex
     gnupg
     gopass

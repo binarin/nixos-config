@@ -1,0 +1,15 @@
+diff --git a/apps/els_core/src/els_config.erl b/apps/els_core/src/els_config.erl
+index 5f3b333..eabc60d 100644
+--- a/apps/els_core/src/els_config.erl
++++ b/apps/els_core/src/els_config.erl
+@@ -143,8 +143,8 @@ do_initialize(RootUri, Capabilities, InitOptions, {ConfigPath, Config}) ->
+   ok = set(bsp_enabled, BSPEnabled),
+   ok = set(incremental_sync, IncrementalSync),
+   %% Calculated from the above
+-  ok = set(apps_paths     , project_paths(RootPath, AppsDirs, false)),
+-  ok = set(deps_paths     , project_paths(RootPath, DepsDirs, false)),
++  ok = set(apps_paths     , project_paths(RootPath, AppsDirs, true)),
++  ok = set(deps_paths     , project_paths(RootPath, DepsDirs, true)),
+   ok = set(include_paths  , include_paths(RootPath, IncludeDirs, false)),
+   ok = set(otp_paths      , otp_paths(OtpPath, false) -- ExcludePaths),
+   ok = set(lenses         , Lenses),

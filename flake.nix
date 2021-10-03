@@ -1,5 +1,6 @@
 {
   inputs = {
+
     nixos.url = github:NixOS/nixpkgs/nixos-21.05;
     nixpkgs-master.url = github:NixOS/nixpkgs/master;
     nixpkgs.url = github:nixos/nixpkgs/nixpkgs-21.05-darwin;
@@ -11,7 +12,7 @@
     darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     taffybar.url = github:taffybar/taffybar/master;
-    taffybar.inputs.nixpkgs.follows = "nixos";
+    taffybar.inputs.nixpkgs.follows = "nixpkgs";
 
     emacs.url = github:nix-community/emacs-overlay/master;
 

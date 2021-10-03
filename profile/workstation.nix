@@ -224,6 +224,7 @@ in {
     package = pkgs.pulseaudioFull;
     extraModules = [ pkgs.pulseaudio-modules-bt ];
     support32Bit = true;
+    daemon.config.default-sample-rate = 48000;
   };
 
   # Enable the OpenSSH daemon.
