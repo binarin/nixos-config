@@ -60,7 +60,7 @@ mosh-aim() {
 
 mosh-barbatos() {
     local prefix="$4"
-    switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t root@barbatos.localdomain -- sh -c "$(tmux-command binarin)"
+    switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t root@192.168.2.25 -- sh -c "$(tmux-command binarin)"
 }
 
 mosh-hass() {
