@@ -248,6 +248,11 @@
     httpie
     ripgrep
     ytt
+    kubernetes
+    kubernetes-helm
+    bleeding.k0sctl
+    bleeding.k9s
+    bleeding.kind
   ];
 
   programs.git = {
