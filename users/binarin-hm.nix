@@ -253,6 +253,7 @@
     bleeding.k0sctl
     bleeding.k9s
     bleeding.kind
+    python3
   ];
 
   programs.git = {
