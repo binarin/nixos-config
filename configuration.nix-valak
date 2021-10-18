@@ -5,7 +5,7 @@
   imports = [
     ./profile/server.nix
     ./users/binarin.nix
-    ./profile/emacs.nix
+    # ./profile/emacs.nix
     ./profile/workstation.nix
     ./profile/bkng-kerberos.nix
   ];

@@ -7,7 +7,7 @@ in {
     ../packages/standard-linux-tools.nix
     # ../packages/haskell-packages.nix
     ../packages/user-packages.nix
-    ../profile/emacs.nix
+    # ../profile/emacs.nix
     ../users/binarin.nix
     ../users/binarin-fonts.nix
   ];
