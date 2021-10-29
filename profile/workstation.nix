@@ -100,8 +100,10 @@ in {
       lsyncd
       pkgconfig
       sbt
+      clinfo
     ];
     desktopPackages = with pkgs; [
+      appimage-run
       v4l-utils
       youtube-music-desktop-app
       gnome-icon-theme
@@ -217,6 +219,10 @@ in {
   hardware.opengl = {
     enable = true;
     driSupport32Bit = true;
+    extraPackages = with pkgs; [
+      rocm-opencl-icd
+      rocm-opencl-runtime
+    ];
   };
 
   hardware.pulseaudio = {
@@ -231,6 +237,8 @@ in {
   services.openssh.enable = true;
   services.openssh.permitRootLogin = "yes";
   services.openssh.forwardX11 = true;
+
+  services.trezord.enable = true;
 
   services.cron.enable = true;
 
