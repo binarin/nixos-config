@@ -120,6 +120,7 @@
     nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
 
     darwinConfigurations.vmware-laptop = darwin.lib.darwinSystem {
+      system = "x86_64-darwin";
       modules = [
         home-manager.darwinModules.home-manager
         ./users/binarin-fonts.nix

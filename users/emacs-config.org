@@ -704,6 +704,7 @@
    #+BEGIN_SRC emacs-lisp
      (gsetq org-cycle-separator-lines 0)
      (gsetq org-catch-invisible-edits 'error)
+     (gsetq org-startup-folded t)
    #+END_SRC
 ** Agenda
    Separate block for functions that absolutely require lexical
