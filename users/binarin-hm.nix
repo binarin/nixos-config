@@ -18,18 +18,6 @@
     MimeType=x-scheme-handler/viber;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;text/html;application/x-extension-htm;application/x-extension-html;application/x-extension-shtml;application/xhtml+xml;application/x-extension-xhtml;application/x-extension-xht
   '';
 
-  xdg.mimeApps = {
-    enable = true;
-    defaultApplications = {
-      "x-scheme-handler/https" = "smart-browser-chooser.desktop";
-      "x-scheme-handler/http" = "smart-browser-chooser.desktop";
-      "x-scheme-handler/org-protocol" = "org-protocol.desktop";
-    };
-    associations.added = {
-      "application/pdf" = "org.gnome.Evince.desktop";
-    };
-  };
-
   programs.emacs = {
     enable = true;
     package = if pkgs.system == "x86_64-linux" then pkgs.emacsPgtkGcc else pkgs.emacsGcc;
@@ -254,6 +242,9 @@
     bleeding.k9s
     bleeding.kind
     python3
+    sox
+    gnumake
+    sshfs
   ];
 
   programs.git = {
@@ -278,16 +269,6 @@
         file-decoration-style = "none";
       };
     };
-  };
-
-  services.gpg-agent = lib.mkIf (pkgs.system == "x86_64-linux") {
-    enable = true;
-    defaultCacheTtl = 3600;
-    maxCacheTtl = 14400;
-    extraConfig = ''
-      allow-preset-passphrase
-    '';
-    pinentryFlavor = "gtk2";
   };
 
   home.file."bin/pass" = {

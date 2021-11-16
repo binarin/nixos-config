@@ -35,7 +35,7 @@
     home-manager.users.binarin = {
       imports = [
         ./binarin-hm.nix
-      ];
+      ] ++ lib.optional (pkgs.system == "x86_64-linux") ./binarin-hm-linux.nix;
 
       # fonts.fontconfig.enable = true;
       gtk = {
