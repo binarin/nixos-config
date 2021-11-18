@@ -268,6 +268,9 @@
         file-style = "bold yellow ul";
         file-decoration-style = "none";
       };
+      init = {
+        defaultBranch = "master";
+      };
     };
   };
 
