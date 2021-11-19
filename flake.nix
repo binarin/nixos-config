@@ -141,6 +141,8 @@
 
             home-manager.useGlobalPkgs = true;
 
+            environment.variables.LANG = "en_US.UTF-8";
+
             home-manager.users.alebedeff = {
               imports = [
                 ./users/binarin-hm.nix
