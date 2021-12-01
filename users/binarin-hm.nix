@@ -91,7 +91,7 @@
       org-roam
       org-brain
       org-gcal
-      org-plus-contrib
+      org-contrib
       org-super-agenda
       ob-elixir
       ox-hugo
@@ -132,6 +132,7 @@
       spinner
     ];
     overrides = self: super: with self; rec {
+      org = self.elpaPackages.org;
       # Funnily enough you can't override elpa packages via overrideAttrs', you really need this stupid elpaBuild dance
       spinner = super.spinner.override {
         elpaBuild = args: super.elpaBuild (args // {
