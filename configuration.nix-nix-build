@@ -39,4 +39,6 @@
 
   nix.maxJobs = lib.mkDefault 4;
   nix.buildCores = 4;
+
+  virtualisation.docker.enable = true;
 }
