@@ -83,6 +83,7 @@ in {
 
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      tdesktop
       zoom-us
       vmware-horizon-client
       looking-glass-client
@@ -147,7 +148,6 @@ in {
       slack
       stack
       stalonetray
-      tdesktop
       skype
       workrave
       xdg-user-dirs
