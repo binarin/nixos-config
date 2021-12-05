@@ -5,7 +5,7 @@ in {
   imports = [
     ../packages/use-my-overlays.nix
     ../packages/standard-linux-tools.nix
-    # ../packages/haskell-packages.nix
+    ../packages/haskell-packages.nix
     ../packages/user-packages.nix
     # ../profile/emacs.nix
     ../users/binarin.nix

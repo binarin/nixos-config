@@ -11,10 +11,10 @@ bitvec
 brick
 bytestring
 cabal-doctest
-cassava
+# cassava
 clay
 containers
-criterion
+# criterion
 cryptonite
 data-default
 data-fix
@@ -54,6 +54,7 @@ opaleye
 OpenGLRaw
 optparse-applicative
 optparse-text
+parsec-numbers
 #overload
 #pandoc
 pcre-heavy
@@ -62,9 +63,9 @@ prettyprinter-ansi-terminal
 pretty-show
 process
 process-extras
-pqueue
-psqueues
-PSQueue
+# pqueue
+# psqueues
+# PSQueue
 QuickCheck
 quickcheck-instances
 # quickcheck-state-machine
@@ -85,16 +86,16 @@ text
 text-icu
 text-regex-replace
 text-show
-threepenny-gui
+# threepenny-gui
 time
 uniplate
 unordered-containers
 vector
 vty
-webdriver
+#webdriver
 #wreq
 X11
 # xmonad
-xmonad-contrib
+# xmonad-contrib
 zlib
 ]
