@@ -23,4 +23,6 @@
     pinentryFlavor = "gtk2";
   };
 
+  home.packages = with pkgs; [ arduino ];
+
 }

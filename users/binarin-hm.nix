@@ -249,7 +249,6 @@
     sox
     gnumake
     sshfs
-    arduino
   ];
 
   programs.git = {
