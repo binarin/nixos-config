@@ -35,7 +35,7 @@ in {
       };
 
       ghcEnv = super.pkgs.buildEnv {
-        name = "ghc921";
+        name = "ghc901";
         paths = with myHaskellPackages; [
           (myGhcWithHoogleFiltered ghcWithHoogle)
           alex
@@ -48,6 +48,7 @@ in {
           hlint
           hpack
           hspec
+          ghcid.bin
         ];
       };
     };

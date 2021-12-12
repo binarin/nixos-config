@@ -239,6 +239,9 @@
     ytt
     kubernetes
     kubernetes-helm
+    kubectx
+    kapp
+    krew
     bleeding.k0sctl
     bleeding.k9s
     bleeding.kind

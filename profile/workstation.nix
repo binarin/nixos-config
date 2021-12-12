@@ -104,6 +104,7 @@ in {
       clinfo
     ];
     desktopPackages = with pkgs; [
+      wine
       appimage-run
       v4l-utils
       youtube-music-desktop-app

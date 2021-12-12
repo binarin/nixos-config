@@ -45,6 +45,7 @@ linear
 logging
 loop
 managed
+massiv
 megaparsec
 memoize
 monad-logger
@@ -71,6 +72,7 @@ quickcheck-instances
 # quickcheck-state-machine
 raw-strings-qq
 regex-compat
+string-interpolate
 safe-exceptions
 selda
 selda-sqlite
