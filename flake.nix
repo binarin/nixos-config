@@ -115,7 +115,16 @@
   in rec {
     overlays = globalOverlays;
 
-    nixosConfigurations.valak = linuxSystem ./configuration.nix-valak;
+    nixosConfigurations.valak = linuxSystem {
+      disabledModules = [
+        "system/boot/loader/systemd-boot/systemd-boot.nix"
+      ];
+      imports = [
+        "${nixpkgs-master.outPath}/nixos/modules/system/boot/loader/systemd-boot/systemd-boot.nix"
+        ./configuration.nix-valak
+      ];
+    };
+
     nixosConfigurations.nix-build = linuxSystem ./configuration.nix-nix-build;
     nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
 
