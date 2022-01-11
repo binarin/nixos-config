@@ -5,19 +5,53 @@
   networking.hostName = "ishamael";
   networking.hostId = "eaaf6687";
 
-  # boot = {
-  #   kernelPackages = pkgs.linuxPackages_latest;
-  # };
-
   imports = [
-    <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
-    ./hardware/intel.nix
-    ./hardware/laptop.nix
-    ./partitions/ishamael-crypt.nix
-
-    ./modules/force-my-version.nix
+    # <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
+    ./profile/server.nix
+    ./users/binarin.nix
     ./profile/workstation.nix
-    ./profile/bluetooth.nix
-    ./profile/openvpn-client.nix
   ];
+
+  # Thanks to fucktard who placed power button between 'Del' and 'Backspace'
+  services.logind.extraConfig = ''
+    HandlePowerKey=ignore
+  '';
+
+  boot.initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
+  boot.initrd.kernelModules = [ "dm-snapshot" ];
+  boot.kernelModules = [ "kvm-intel" ];
+  boot.extraModulePackages = [ ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  networking.useDHCP = false;
+  networking.interfaces.wlp0s20f3.useDHCP = true;
+
+  fileSystems."/" =
+    { device = "/dev/disk/by-uuid/a7c3d624-ab20-4a28-b715-585054617520";
+      fsType = "ext4";
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-partlabel/boot";
+      fsType = "vfat";
+    };
+
+  swapDevices =
+    [ { device = "/dev/disk/by-uuid/e557f244-9990-4433-bcd8-3ba32429da5f"; }
+    ];
+
+  boot.initrd.luks.devices = {
+    root = {
+      device = "/dev/disk/by-partlabel/root";
+      preLVM = true;
+    };
+  };
+
+  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  # high-resolution display
+  hardware.video.hidpi.enable = lib.mkDefault true;
+
 }

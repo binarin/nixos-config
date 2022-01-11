@@ -82,7 +82,7 @@ main = do
         , endWidgets = map (>>= buildContentsBox)
           [ clock
           , tray
-          -- , battery
+          , battery
           , cpu
           , mem
           , net
@@ -90,7 +90,7 @@ main = do
           ]
         , barPosition = Top
         , barPadding = 0
-        , barHeight = ExactSize 30
+        , barHeight = ExactSize 60
         , widgetSpacing = 0
         , monitorsAction = pure [0]
         }

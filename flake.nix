@@ -127,6 +127,7 @@
 
     nixosConfigurations.nix-build = linuxSystem ./configuration.nix-nix-build;
     nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
+    nixosConfigurations.ishamael = linuxSystem ./configuration.nix-ishamael;
 
     darwinConfigurations.vmware-laptop = darwin.lib.darwinSystem {
       system = "x86_64-darwin";

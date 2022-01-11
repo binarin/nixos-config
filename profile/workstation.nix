@@ -161,6 +161,11 @@ in {
     ];
     in bleedingEdgePackages ++ desktopPackages ++ developmentPackages;
 
+  # environment.variables = {
+  #   GDK_SCALE = "2";
+  #   GDK_DPI_SCALE = "0.5";
+  #   _JAVA_OPTIONS = "-Dsun.java2d.uiScale=2";
+  # };
 
   environment.systemPackages = let
     nixDevPackages = with pkgs; [
@@ -241,6 +246,10 @@ in {
   services.openssh.permitRootLogin = "yes";
   services.openssh.forwardX11 = true;
 
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+  };
   services.trezord.enable = true;
 
   services.cron.enable = true;
@@ -250,6 +259,8 @@ in {
   services.printing.drivers = [ pkgs.hplip pkgs.postscript-lexmark pkgs.epson-escpr ];
 
   services.xserver = {
+    dpi = 200;
+
     gdk-pixbuf.modulePackages = [ pkgs.librsvg ];
     modules = [ pkgs.xorg.xf86inputlibinput ];
     videoDrivers = [ "amdgpu" "modesetting" ];
@@ -310,7 +321,7 @@ EndSection
 
     # xkbDir = "${pkgs.xorg.xkeyboardconfig_dvp}/share/X11/xkb";
     xkbVariant = ",winkeys";
-    xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,ctrl:ralt_rctrl";
+    xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle";
 
     # libinput = {
     #   enable = lib.mkForce false;
