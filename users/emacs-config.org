@@ -1466,6 +1466,12 @@
      (setf (alist-get 'file org-link-frame-setup) 'find-file)
    #+end_src
 * Communication
+** Gnus
+#+begin_src emacs-lisp
+  (gsetq gnus-select-method '(nnmaildir "pm" (:directory "~/.mail")))
+  (gsetq gnus-save-newsrc-file nil)
+#+end_src
+
 ** IRC
    #+begin_src emacs-lisp
      (defun binarin/get-bitlbee-password ()

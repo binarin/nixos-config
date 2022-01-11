@@ -1,6 +1,6 @@
 {
   ishamael = {
-    description = "Dell e7440";
+    description = "Dell Precision 5560";
     lan = {
       mac = "ec:f4:bb:5b:9a:84";
       ip = "192.168.2.12";

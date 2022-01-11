@@ -18,6 +18,7 @@
     MimeType=x-scheme-handler/viber;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;text/html;application/x-extension-htm;application/x-extension-html;application/x-extension-shtml;application/xhtml+xml;application/x-extension-xhtml;application/x-extension-xht
   '';
 
+  programs.info.enable = true;
   programs.emacs = {
     enable = true;
     package = if pkgs.system == "x86_64-linux" then pkgs.emacsPgtkGcc else pkgs.emacsGcc;
@@ -281,10 +282,16 @@
   home.file."bin/pass" = {
     text = ''
       #!${pkgs.bash}/bin/bash
-      if [[ $1 == "--clip" ]]; then
-        ${pkgs.gopass}/bin/gopass show "$@"
+      if [[ $1 == "ls" && $# == 1 ]]; then
+          exec ${pkgs.gopass}/bin/gopass ls -f
+      elif [[ $1 == "rm" && $2 == "-rf" ]]; then
+          shift 2
+          exec ${pkgs.gopass}/bin/gopass rm -r -f "$@"
+      elif [[ $1 == "show" && $# == 2 ]]; then
+          shift
+          exec ${pkgs.gopass}/bin/gopass show -o "$@"
       else
-        ${pkgs.gopass}/bin/gopass "$@"
+        exec ${pkgs.gopass}/bin/gopass "$@"
       fi
     '';
     executable = true;

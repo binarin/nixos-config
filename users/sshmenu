@@ -7,6 +7,7 @@ set -o pipefail
 top-level() {
     item "LOCAL" local-shell "$@"
     item "HOME" menu:home-servers "$@"
+    item "RABBIT" menu:rabbit-servers "$@"
 }
 
 local-shell() {
@@ -22,6 +23,11 @@ home-servers() {
     item "hass" mosh-hass "$@"
     item "nix-build" ssh-nix-build "$@"
 }
+
+rabbit-servers() {
+    item "gcloud-shell" ssh-rabbit-gcloud-shell "$@"
+}
+
 
 switch-or-run-rxvt() {
     local title="${1:?}"; shift
@@ -72,6 +78,12 @@ ssh-nix-build() {
     local prefix="$4"
     switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t nix-build -- sh -c "$(tmux-command binarin)"
 }
+
+ssh-rabbit-gcloud-shell() {
+    local prefix="$4"
+    switch-or-run-rxvt "$prefix" -bg '#001800' -e gcloud beta compute ssh --zone "europe-west1-b" "alebedeff-shell"  --tunnel-through-iap --project "cf-rabbitmq-core" -- -t -- sh -c "$(tmux-command binarin)"
+}
+
 
 item() {
     local display_name="$1"

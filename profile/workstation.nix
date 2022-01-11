@@ -83,6 +83,8 @@ in {
 
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
+      isync
+      protonmail-bridge
       tdesktop
       zoom-us
       vmware-horizon-client
