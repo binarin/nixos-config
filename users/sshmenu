@@ -25,9 +25,13 @@ home-servers() {
 }
 
 rabbit-servers() {
-    item "gcloud-shell" ssh-rabbit-gcloud-shell "$@"
-}
+    local GCP_ZONE=europe-central2-a
+    local GCP_PROJECT=cf-rabbitmq-core
 
+    item "gke-perf-test-1" gcloud-ssh "$@"
+    item "gke-perf-test-2" gcloud-ssh "$@"
+    item "gke-perf-test-3" gcloud-ssh "$@"
+}
 
 switch-or-run-rxvt() {
     local title="${1:?}"; shift
@@ -79,9 +83,11 @@ ssh-nix-build() {
     switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t nix-build -- sh -c "$(tmux-command binarin)"
 }
 
-ssh-rabbit-gcloud-shell() {
+gcloud-ssh() {
+    local display_name="$1"
     local prefix="$4"
-    switch-or-run-rxvt "$prefix" -bg '#001800' -e gcloud beta compute ssh --zone "europe-west1-b" "alebedeff-shell"  --tunnel-through-iap --project "cf-rabbitmq-core" -- -t -- sh -c "$(tmux-command binarin)"
+
+    switch-or-run-rxvt "$prefix" -bg '#001800' -e gcloud beta compute ssh --zone $GCP_ZONE $display_name --tunnel-through-iap --project $GCP_PROJECT -- -t -- sh -c "$(tmux-command binarin)"
 }
 
 
@@ -154,5 +160,5 @@ exec-menu() {
 if [[ "$#" -gt 0 ]]; then
     exec-menu top-level "SH"
 else
-    urxvt -title "FAST_CHOICE" -fn "xft:Iosevka:pixelsize=70" -geometry 30x10 -e zsh -c "sshmenu go"
+    urxvt -title "FAST_CHOICE" -fn "xft:Iosevka:pixelsize=70" -geometry 30x10 -e zsh -c "./sshmenu go"
 fi
