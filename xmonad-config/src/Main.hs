@@ -514,7 +514,7 @@ onRescreen u (ConfigureEvent {ev_window = w}) = do
 onRescreen _ _ = return (All True)
 
 getPassword = passPrompt def { font = "xft:Arial:size=20"
-                             , height = 40
+                             , height = 80
                              , searchPredicate = \input variant -> input `isInfixOf` variant
                              , position = Top
                              }
