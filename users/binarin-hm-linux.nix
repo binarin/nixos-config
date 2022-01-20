@@ -25,9 +25,9 @@
 
   home.packages = with pkgs; [ arduino ];
 
-  xsession.pointerCursor = {
-    package = pkgs.xorg.xcursorthemes;
-    name = "whiteglass";
-    size = 64;
-  };
+  # xsession.pointerCursor = {
+  #   package = pkgs.xorg.xcursorthemes;
+  #   name = "whiteglass";
+  #   size = 64;
+  # };
 }
