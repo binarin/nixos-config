@@ -15,7 +15,7 @@ in {
     ];
 
     nixpkgs.config.packageOverrides = super: rec {
-      myHaskellPackages = pkgs.bleeding.haskell.packages.ghc901.override {
+      myHaskellPackages = pkgs.bleeding.haskell.packages.ghc902.override {
         overrides = haskellOverrides;
       };
 
@@ -35,7 +35,7 @@ in {
       };
 
       ghcEnv = super.pkgs.buildEnv {
-        name = "ghc901";
+        name = "ghc902";
         paths = with myHaskellPackages; [
           (myGhcWithHoogleFiltered ghcWithHoogle)
           alex

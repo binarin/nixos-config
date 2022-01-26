@@ -17,9 +17,6 @@ let
     # };
   };
 
-  customEmacsPackages = pkgs.emacsPackagesNg.overrideScope' overrides;
-  gitEmacsPackages    = pkgs.emacsPackagesGen pkgs.emacsGit;
-
   packages = (p: with p; [
     ace-window
     alchemist

@@ -85,7 +85,6 @@ in {
     bleedingEdgePackages = with pkgs.bleeding; [
       isync
       protonmail-bridge
-      tdesktop
       zoom-us
       vmware-horizon-client
       looking-glass-client
@@ -106,7 +105,6 @@ in {
       clinfo
     ];
     desktopPackages = with pkgs; [
-      wine
       appimage-run
       v4l-utils
       youtube-music-desktop-app

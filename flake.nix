@@ -64,7 +64,10 @@
               xmonad-config-overlay
             ];
           };
+
+          # NOTE: This one is picked up by home-manager emacs module
           emacsPackagesFor = final.bleeding.emacsPackagesFor;
+
           comma = import comma { inherit (prev) pkgs; };
 
           ytt = prev.ytt.overrideAttrs (oldAttrs: {

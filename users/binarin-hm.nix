@@ -21,7 +21,7 @@
   programs.info.enable = true;
   programs.emacs = {
     enable = true;
-    package = if pkgs.system == "x86_64-linux" then pkgs.emacsPgtkGcc else pkgs.emacsGcc;
+    package = if pkgs.system == "x86_64-linux" then pkgs.bleeding.emacsPgtkGcc else pkgs.emacsGcc;
     extraPackages = epkgs: with epkgs; [
       bazel
       ace-window
@@ -250,6 +250,11 @@
     sox
     gnumake
     sshfs
+    docker-compose
+    bleeding.tdesktop
+    bleeding.yt-dlp
+    bleeding.yandex-disk
+    wineFull
   ];
 
   programs.git = {
