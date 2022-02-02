@@ -163,6 +163,8 @@
   programs.direnv.nix-direnv.enable = true;
   programs.direnv.enableZshIntegration = true;
 
+  programs.zoxide.enable = true;
+
   programs.fzf = {
     enable = true;
     tmux.enableShellIntegration = true;
