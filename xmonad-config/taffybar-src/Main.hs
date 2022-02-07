@@ -90,7 +90,7 @@ main = do
           ]
         , barPosition = Top
         , barPadding = 0
-        , barHeight = ExactSize 60
+        , barHeight = ExactSize 30
         , widgetSpacing = 0
         , monitorsAction = pure [0]
         }

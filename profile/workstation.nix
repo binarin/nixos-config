@@ -124,7 +124,7 @@ in {
       goldendict
       openscad
       vscode
-      pkgs.bleeding.idea.idea-community
+      # pkgs.bleeding.idea.idea-community
       prusa-slicer
       anki
       aspell
@@ -257,8 +257,6 @@ in {
   services.printing.drivers = [ pkgs.hplip pkgs.postscript-lexmark pkgs.epson-escpr ];
 
   services.xserver = {
-    dpi = 200;
-
     gdk-pixbuf.modulePackages = [ pkgs.librsvg ];
     modules = [ pkgs.xorg.xf86inputlibinput ];
     videoDrivers = [ "amdgpu" "modesetting" ];

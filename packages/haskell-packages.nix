@@ -45,7 +45,7 @@ in {
           ghc-core
           happy
           hasktags
-          hlint
+          # hlint
           hpack
           hspec
           ghcid.bin
