@@ -119,6 +119,9 @@
       smart-mode-line-powerline-theme
       solarized-theme
       symbol-overlay
+      terraform-mode
+      company-terraform
+      terraform-doc
       tide
       # typescript-mode
       undo-tree
@@ -250,6 +253,10 @@
     bleeding.kind
     python3
     sox
+    bleeding.terraform_1
+    bleeding.terraform-ls
+    bleeding.terraform-providers.google
+    packer
     gnumake
     sshfs
     docker-compose
