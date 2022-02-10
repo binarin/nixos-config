@@ -17,6 +17,7 @@
     HandlePowerKey=ignore
   '';
 
+  boot.kernelPackages = pkgs.bleeding.linuxPackages_latest; # opengl broken at 2022-02-07
   boot.initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.initrd.kernelModules = [ "dm-snapshot" ];
   boot.kernelModules = [ "kvm-intel" ];
@@ -51,7 +52,7 @@
 
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-  services.xserver.videoDrivers = [ "nvidia" "modesetting" ];
+  services.xserver.videoDrivers = [ "nouveau" "modesetting" ];
 
   specialisation.hidpi.configuration = {
       home-manager.users.binarin.xsession.pointerCursor = {
