@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
+import System.Environment (lookupEnv)
 import           Control.Lens
 
 import           Control.Monad (when, join, void)
@@ -179,7 +180,10 @@ gsconfig1 = def
 
 main :: IO ()
 main = do
-  xmonad $ debugManageHookOn "M-u" myConfig
+  passHeight <- lookupEnv "XMONAD_PASS_PROMPT_HEIGHT" >>= \case
+    Nothing -> pure 40
+    Just str -> pure $ read str
+  xmonad $ debugManageHookOn "M-u" (myConfig passHeight)
 
 myManageFloats :: ManageHook
 myManageFloats = placeHook $ inBounds $ withGaps (16,0,16,0) (fixed (0.5,0.5))
@@ -248,7 +252,7 @@ showWSOnProperScreen ws = case classifyWorkspace ws of
   Secondary -> switchToSecondary ws
   Tertiary -> switchToTertiary ws
 
-myConfig =  configModifiers def
+myConfig passHeight =  configModifiers def
   { modMask = mod4Mask
   , workspaces = map fst allWorkspaces
   , terminal           = "urxvt"
@@ -267,7 +271,7 @@ myConfig =  configModifiers def
         `additionalKeysP`
         ([ ("M-p", spawn "exe=$(yeganesh -x) && exec $exe")
          , ("C-\\", sendMessage (XkbToggle Nothing))
-         , ("M-i", getPassword)
+         , ("M-i", getPassword passHeight)
          , ("M-;", spawn "sshmenu")
          , ("M-<Backspace>", windows W.swapMaster)
          , ("M-<Tab>", rotSlavesUp)
@@ -513,8 +517,8 @@ onRescreen u (ConfigureEvent {ev_window = w}) = do
     _ -> return (All True)
 onRescreen _ _ = return (All True)
 
-getPassword = passPrompt def { font = "xft:Arial:size=20"
-                             , height = 40
+getPassword passHeight = passPrompt def { font = "xft:Arial:size=20"
+                             , height = passHeight
                              , searchPredicate = \input variant -> input `isInfixOf` variant
                              , position = Top
                              }

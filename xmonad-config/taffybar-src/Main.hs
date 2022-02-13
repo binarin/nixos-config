@@ -1,5 +1,6 @@
 -- -*- mode:haskell -*-
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 module Main where
 
 import System.Taffybar
@@ -15,6 +16,7 @@ import System.Taffybar.Widget.SNITray
 import System.Taffybar.Widget.Util
 import System.Taffybar.Widget.Workspaces
 import System.Log.Logger
+import System.Environment (lookupEnv)
 
 transparent = (0.0, 0.0, 0.0, 0.0)
 yellow1 = (0.9453125, 0.63671875, 0.2109375, 1.0)
@@ -59,6 +61,11 @@ main = do
   logger <- getLogger "System.Taffybar"
   saveGlobalLogger $ setLevel WARNING logger
 
+  bHeight <- lookupEnv "TAFFYBAR_HEIGHT" >>= \case
+    Nothing -> pure 30
+    Just str -> pure $ read str
+
+
   let myWorkspacesConfig =
         defaultWorkspacesConfig
         { minIcons = 1
@@ -90,7 +97,7 @@ main = do
           ]
         , barPosition = Top
         , barPadding = 0
-        , barHeight = ExactSize 30
+        , barHeight = ExactSize bHeight
         , widgetSpacing = 0
         , monitorsAction = pure [0]
         }
