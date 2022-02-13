@@ -310,4 +310,6 @@
     '';
     executable = true;
   };
+
+  home.keyboard = null;
 }
