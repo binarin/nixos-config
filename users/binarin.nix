@@ -62,7 +62,7 @@
       home.packages = config.userPackages;
 
       services.picom = {
-        enable = false;
+        enable = true;
         backend = "glx";
         vSync = true;
         fade = false;

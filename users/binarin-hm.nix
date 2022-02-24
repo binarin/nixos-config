@@ -202,6 +202,7 @@
       o = ''xdg-open'';
       pst = ''pstree -ap | less'';
       zzz = ''sudo systemctl suspend'';
+      sshi = ''ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'';
     };
     enableAutosuggestions = true;
     history = {
@@ -312,4 +313,5 @@
   };
 
   home.keyboard = null;
+  home.sessionVariables.EDITOR = "emacsclient -nw -a";
 }
