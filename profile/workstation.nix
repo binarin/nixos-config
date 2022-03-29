@@ -90,6 +90,7 @@ in {
       looking-glass-client
       protonvpn-cli
       flameshot
+      geeqie
     ];
     developmentPackages = with pkgs; [
       autoconf
@@ -137,7 +138,6 @@ in {
       evince
       freecad
       imagemagickBig
-      geeqie
       gimp
       gitg
       glxinfo
@@ -178,8 +178,10 @@ in {
       pdftk
       # syncthing
       (texlive.combine {
-        inherit (texlive) scheme-full beamer;
+        inherit (texlive) scheme-full beamer ps2eps;
       })
+      lilypond-with-fonts
+      abcm2ps
       # vagrant
       virt-viewer
       virtmanager

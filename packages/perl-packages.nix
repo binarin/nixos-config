@@ -9,6 +9,7 @@ in {
       PathTiny
       JSONXS
       JSON
+      TextCSV
     ];
   };
 }
