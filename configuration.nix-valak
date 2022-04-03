@@ -175,4 +175,6 @@
       yearly = -1;
     };
   };
+
+  programs.sway.enable = true;
 }

@@ -54,7 +54,7 @@ in {
     resolvconf.dnsExtensionMechanism = false;
     extraHosts = ''
       127.0.0.1 ${config.networking.hostName}
-      0.0.0.0 pikabu.ru leprosorium.ru shovinist.leprosorim.ru idiod.leprosorium.ru games.leprosorium.ru meduza.io
+      0.0.0.0 pikabu.ru leprosorium.ru shovinist.leprosorim.ru idiod.leprosorium.ru games.leprosorium.ru meduza.io d3.ru
     '';
     nat = {
       enable = true;
