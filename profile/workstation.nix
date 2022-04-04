@@ -338,9 +338,12 @@ EndSection
     desktopManager.gnome.enable = true;
 
     displayManager = {
-      gdm.enable = lib.mkForce false;
-      lightdm.enable = true;
-      defaultSession = "none+xmonad";
+      # gdm.enable = lib.mkForce false;
+      # lightdm.enable = true;
+      # defaultSession = "none+xmonad";
+      gdm.enable = true;
+      lightdm.enable = false;
+      defaultSession = "sway";
     };
   };
 
