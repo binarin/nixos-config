@@ -16,6 +16,11 @@ in {
     };
   };
 
+  xsession.importedVariables = [
+    "WAYLAND_DISPLAY"
+    "SWAYSOCK"
+  ];
+
   services.gpg-agent = {
     enable = true;
     defaultCacheTtl = 3600;
@@ -105,16 +110,29 @@ in {
     };
   };
 
-  # services.swayidle = {
-  #   enable = true;
-  #   timeouts = [
-  #     { timeout = 300; command = ''swaymsg "output * dpms off"''; }
-  #     { timeout = 360; command = "swaylock -f -c 000000"; }
-  #   ];
-  #   events = [
-  #     { event = "resume"; command = ''swaymsg "output * dpms on"''; }
-  #     { event = "before-sleep"; command = "swaylock -f -c 000000"; }
-  #   ];
-  # };
+  services.swayidle = {
+    enable = true;
+    timeouts = [
+      { timeout = 300; command = ''swaymsg "output * dpms off"''; resumeCommand = ''swaymsg "output * dpms on"''; }
+      { timeout = 360; command = "swaylock -f -c 000000"; }
+    ];
+    events = [
+      { event = "before-sleep"; command = "swaylock -f -c 000000"; }
+    ];
+  };
+
+  systemd.user.services.swaykbdd = {
+    Unit = {
+      PartOf = [ "graphical-session.target" ];
+    };
+
+    Service = {
+      Type = "simple";
+      ExecStart =
+        "${pkgs.bleeding.swaykbdd}/bin/swaykbdd";
+    };
+
+    Install = { WantedBy = [ "sway-session.target" ]; };
+  };
 
 }
