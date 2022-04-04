@@ -51,6 +51,14 @@ in {
   wayland.windowManager.sway = {
     enable = true;
     wrapperFeatures.gtk = true ;
+    extraSessionCommands = ''
+      source ~/.nix-profile/etc/profile.d/hm-session-vars.sh
+      export _JAVA_AWT_WM_NONREPARENTING=1
+    '';
+    extraConfig = ''
+      exec "pkill -f kanshi"
+    '';
+
     config = {
       terminal = "urxvt";
       menu = "yeganesh -x | ${pkgs.findutils}/bin/xargs swaymsg exec --";
@@ -88,7 +96,9 @@ in {
           "Mod4+semicolon" = "exec sshmenu";
           "Mod4+x" = "[urgent=latest] focus";
           "Mod4+Shift+c" = "kill";
-          "Ctrl+Backslash" = "exec ${./sway-layout-switch.sh}";
+          "Mod4+g" = "gaps horizontal current plus 500";
+          "Mod4+Shift+g" = "gaps horizontal current minus 500";
+          "Ctrl+Backslash" = "exec ${./sway-layout-switch.sh} doit";
       };
     };
   };
@@ -135,4 +145,16 @@ in {
     Install = { WantedBy = [ "sway-session.target" ]; };
   };
 
+  systemd.user.services.sway-layout-switch = {
+    Unit = {
+      PartOf = [ "graphical-session.target" ];
+    };
+
+    Service = {
+      Type = "simple";
+      ExecStart = "${./sway-layout-switch.sh}";
+    };
+
+    Install = { WantedBy = [ "sway-session.target" ]; };
+  };
 }

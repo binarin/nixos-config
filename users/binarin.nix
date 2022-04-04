@@ -61,14 +61,14 @@
       home.sessionPath = [ "$HOME/bin" ];
       home.packages = config.userPackages;
 
-      services.picom = {
-        enable = true;
-        backend = "glx";
-        vSync = true;
-        fade = false;
-        shadow = false;
-        blur = false;
-      };
+      # services.picom = {
+      #   enable = true;
+      #   backend = "glx";
+      #   vSync = true;
+      #   fade = false;
+      #   shadow = false;
+      #   blur = false;
+      # };
 
       services.dunst = {
         enable = true;
