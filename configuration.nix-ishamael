@@ -79,4 +79,6 @@
   };
 
   hardware.enableAllFirmware = true;
+
+  programs.sway.enable = true;
 }

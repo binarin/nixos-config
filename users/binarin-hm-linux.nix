@@ -16,10 +16,10 @@ in {
     };
   };
 
-  xsession.importedVariables = [
-    "WAYLAND_DISPLAY"
-    "SWAYSOCK"
-  ];
+  # xsession.importedVariables = [
+  #   "WAYLAND_DISPLAY"
+  #   "SWAYSOCK"
+  # ];
 
   services.gpg-agent = {
     enable = true;

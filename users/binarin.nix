@@ -355,7 +355,7 @@
 
       xsession = {
         preferStatusNotifierItems = true;
-        enable = true;
+        enable = false;
         windowManager.command = ''${pkgs.xmonad-with-packages}/bin/xmonad'';
         initExtra = ''
           autorandr -c
