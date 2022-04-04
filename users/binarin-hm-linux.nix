@@ -83,6 +83,10 @@ in {
             command = "border pixel 0";
             criteria = { title = "SWAY_SPACER"; };
           }
+          {
+            command = "floating enable";
+            criteria = { app_id = "pavucontrol"; };
+          }
         ];
       };
 
@@ -156,5 +160,62 @@ in {
     };
 
     Install = { WantedBy = [ "sway-session.target" ]; };
+  };
+
+  programs.waybar = {
+    enable = true;
+    systemd.enable = true;
+    settings = {
+      mainBar = {
+        layer = "top";
+        position = "top";
+        height = 30;
+        output = [
+          "eDP-1"
+          "HDMI-A-1"
+        ];
+        modules-left = [ "sway/workspaces" "sway/mode" "wlr/taskbar" ];
+        modules-center = [ "sway/window" ];
+        modules-right = [ "tray" "idle_inhibitor" "pulseaudio" "clock" ];
+
+        "sway/workspaces" = {
+          disable-scroll = true;
+          all-outputs = true;
+        };
+
+        clock = {
+          format = "{:%Y-%m-%d %H:%M:%S}";
+          interval = 1;
+        };
+
+        idle_inhibitor = {
+          format = "{icon}";
+          "format-icons" = {
+            activated = "💤";
+            deactivated = "👌";
+          };
+        };
+
+        pulseaudio = {
+          "format" = "{volume}% {icon}";
+          "format-bluetooth" = "{volume}% {icon}";
+          "format-muted" = "🔇";
+          "format-icons" = {
+            "headphone" = "🎧";
+            "hands-free" = "🎧";
+          };
+          "scroll-step" = 1;
+          "on-click" = "pavucontrol";
+        };
+      };
+    };
+    style = ''
+      #clock {
+        font-size: 25px;
+      }
+      #pulseaudio {
+        background: @theme_base_color;
+      }
+    '';
   };
 }
