@@ -50,21 +50,19 @@ in {
       terminal = "urxvt";
       menu = "yeganesh -x | ${pkgs.findutils}/bin/xargs swaymsg exec --";
       modifier = "Mod4";
-      output = {
-        "HDMI-A-1" = {
-          "mode" = "5120x1440";
-        };
-      };
+
       input = {
-        "1160:640:Cirque_Corporation_9925_AG_Touchpad" = {
-          calibration_matrix = "0 1 0 -1 0 1";
-        };
+        # TODO Calibration matrix only works for absolute positioning devices
+        # "1160:640:Cirque_Corporation_9925_AG_Touchpad" = {
+        #   calibration_matrix = "0 1 0 -1 0 1";
+        # };
         "*" = {
           xkb_layout = "us,ru";
           xkb_variant = ",winkeys";
           xkb_options = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle";
         };
       };
+
       window = {
         border = 3;
         commands = [
@@ -74,6 +72,7 @@ in {
           }
         ];
       };
+
       keybindings = lib.mkOptionDefault {
           "Mod4+Ctrl+h" = "resize shrink width 10";
           "Mod4+Ctrl+j" = "resize shrink height 10";
@@ -84,9 +83,38 @@ in {
           "Mod4+semicolon" = "exec sshmenu";
           "Mod4+x" = "[urgent=latest] focus";
           "Mod4+Shift+c" = "kill";
+          "Ctrl+Backslash" = "exec ${./sway-layout-switch.sh}";
       };
     };
   };
 
   home.file."bin/sway-clear".source = ./sway-clear.py;
+
+  services.kanshi = {
+    enable = true;
+    profiles = {
+      uw = {
+        outputs = [
+          {
+            criteria = "Samsung Electric Company C49RG9x H4ZMC00473";
+            mode = "5120x1440";
+            status = "enable";
+          }
+        ];
+      };
+    };
+  };
+
+  # services.swayidle = {
+  #   enable = true;
+  #   timeouts = [
+  #     { timeout = 300; command = ''swaymsg "output * dpms off"''; }
+  #     { timeout = 360; command = "swaylock -f -c 000000"; }
+  #   ];
+  #   events = [
+  #     { event = "resume"; command = ''swaymsg "output * dpms on"''; }
+  #     { event = "before-sleep"; command = "swaylock -f -c 000000"; }
+  #   ];
+  # };
+
 }
