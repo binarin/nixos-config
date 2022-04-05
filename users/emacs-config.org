@@ -227,6 +227,10 @@
      (defvar binarin/auto-save-directory "~/.emacs.d/auto-save-list/")
      (make-directory binarin/auto-save-directory t)
      (setq auto-save-file-name-transforms `((".*" ,binarin/auto-save-directory t)))
+
+     (defvar binarin/undo-tree-history-directory "~/.emacs.d/undo-tree/")
+     (make-directory binarin/undo-tree-history-directory t)
+     (setq undo-tree-history-directory-alist `(("." . ,binarin/undo-tree-history-directory)))
    #+END_SRC
 
    Never delete backup files and never re-use them (this generates
