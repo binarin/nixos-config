@@ -162,60 +162,75 @@ in {
     Install = { WantedBy = [ "sway-session.target" ]; };
   };
 
+  home.file.".config/waybar/base16-zenburn.css".source = ./base16-zenburn.css;
+
   programs.waybar = {
     enable = true;
     systemd.enable = true;
     settings = {
       mainBar = {
+        position = "bottom";
         layer = "top";
-        position = "top";
-        height = 30;
-        output = [
-          "eDP-1"
-          "HDMI-A-1"
-        ];
+        height = 34;
+        # output = [
+        #   "eDP-1"
+        #   "HDMI-A-1"
+        # ];
+
         modules-left = [ "sway/workspaces" "sway/mode" "wlr/taskbar" ];
         modules-center = [ "sway/window" ];
         modules-right = [ "tray" "idle_inhibitor" "pulseaudio" "clock" ];
 
+        "wlr/taskbar" = {
+          on-click = "activate";
+        };
+
         "sway/workspaces" = {
           disable-scroll = true;
           all-outputs = true;
+          persistent_workspaces = {
+            "1" = [];
+            "2" = [];
+            "3" = [];
+            "4" = [];
+            "5" = [];
+            "6" = [];
+            "7" = [];
+            "8" = [];
+            "9" = [];
+          };
+        };
+
+        "sway/mode" = {
+          format = " {} ";
         };
 
         clock = {
-          format = "{:%Y-%m-%d %H:%M:%S}";
+          format = "{:%a, %Y-%m-%d %H:%M:%S}";
           interval = 1;
         };
 
         idle_inhibitor = {
           format = "{icon}";
-          "format-icons" = {
-            activated = "💤";
-            deactivated = "👌";
+          format-icons = {
+            activated = "🛑";
+            deactivated = "";
           };
         };
 
         pulseaudio = {
-          "format" = "{volume}% {icon}";
-          "format-bluetooth" = "{volume}% {icon}";
-          "format-muted" = "🔇";
-          "format-icons" = {
-            "headphone" = "🎧";
-            "hands-free" = "🎧";
+          format = "{volume}% {icon}🔊";
+          format-bluetooth = "{volume}% {icon}";
+          format-muted = "🔇";
+          format-icons = {
+            headphone = "🎧";
+            hands-free = "🎧";
           };
-          "scroll-step" = 1;
-          "on-click" = "pavucontrol";
+          scroll-step = 1;
+          on-click = "pavucontrol";
         };
       };
     };
-    style = ''
-      #clock {
-        font-size: 25px;
-      }
-      #pulseaudio {
-        background: @theme_base_color;
-      }
-    '';
+    style = ./waybar-style.css;
   };
 }
