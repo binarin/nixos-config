@@ -59,9 +59,9 @@ in {
       exec "pkill -f kanshi"
     '';
 
-    bars = [ ];
 
     config = {
+      bars = [ ];
       terminal = "urxvt";
       menu = "yeganesh -x | ${pkgs.findutils}/bin/xargs swaymsg exec --";
       modifier = "Mod4";
