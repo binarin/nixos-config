@@ -362,7 +362,7 @@
         '';
       };
 
-      services.status-notifier-watcher.enable = true;
+      # services.status-notifier-watcher.enable = true;
 
       programs.autorandr = {
         enable = true;

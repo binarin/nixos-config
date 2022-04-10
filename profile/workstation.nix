@@ -413,14 +413,14 @@ EndSection
     };
   };
 
-  systemd.user.services.status-notifier-watcher = {
-    description = "https://www.freedesktop.org/wiki/Specifications/StatusNotifierItem/StatusNotifierWatcher/";
-    wantedBy = [ "default.target" ];
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = "${(pkgs.haskell.lib.justStaticExecutables pkgs.haskellPackages.status-notifier-item)}/bin/status-notifier-watcher";
-    };
-  };
+  # systemd.user.services.status-notifier-watcher = {
+  #   description = "https://www.freedesktop.org/wiki/Specifications/StatusNotifierItem/StatusNotifierWatcher/";
+  #   wantedBy = [ "default.target" ];
+  #   serviceConfig = {
+  #     Type = "simple";
+  #     ExecStart = "${(pkgs.haskell.lib.justStaticExecutables pkgs.haskellPackages.status-notifier-item)}/bin/status-notifier-watcher";
+  #   };
+  # };
 
   # TLP brings you the benefits of advanced power management for Linux without the need to understand every technical detail.
   # services.tlp.enable = true;

@@ -59,6 +59,8 @@ in {
       exec "pkill -f kanshi"
     '';
 
+    bars = [ ];
+
     config = {
       terminal = "urxvt";
       menu = "yeganesh -x | ${pkgs.findutils}/bin/xargs swaymsg exec --";
@@ -180,6 +182,10 @@ in {
         modules-left = [ "sway/workspaces" "sway/mode" "wlr/taskbar" ];
         modules-center = [ "sway/window" ];
         modules-right = [ "tray" "idle_inhibitor" "pulseaudio" "clock" ];
+
+        "tray" = {
+          icon-size = 32;
+        };
 
         "wlr/taskbar" = {
           on-click = "activate";
