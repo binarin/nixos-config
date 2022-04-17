@@ -36,6 +36,8 @@ in {
   };
 
   home.packages = with pkgs; [
+    ydotool
+    dmenu-wayland
     arduino
     texlive-combined
     abcm2ps
@@ -105,6 +107,8 @@ in {
           "Mod4+g" = "gaps horizontal current plus 500";
           "Mod4+Shift+g" = "gaps horizontal current minus 500";
           "Ctrl+Backslash" = "exec ${./sway-layout-switch.sh} doit";
+          "Mod4+i" = "exec ${./passmenu}";
+          "Mod4+Shift+i" = "exec ${./passmenu} --type";
       };
     };
   };

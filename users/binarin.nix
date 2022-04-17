@@ -346,10 +346,10 @@
         "xscreensaver.dpmsQuickOff" = true;
       };
 
-      services.taffybar = {
-        enable = true;
-        package = pkgs.bleeding.my-taffybar;
-      };
+      # services.taffybar = {
+      #   enable = true;
+      #   package = pkgs.bleeding.my-taffybar;
+      # };
 
       services.network-manager-applet.enable = true;
 
