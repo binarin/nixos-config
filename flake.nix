@@ -20,11 +20,10 @@
 
     flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };
 
-    comma = { url = "github:Shopify/comma"; flake = false; };
   };
 
   outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat,
-              darwin, home-manager, taffybar, emacs, cq, comma}@inputs:
+              darwin, home-manager, taffybar, emacs, cq}@inputs:
 
   let
     xmonad-config-overlay = final: prev: {
@@ -67,8 +66,6 @@
 
           # NOTE: This one is picked up by home-manager emacs module
           emacsPackagesFor = final.bleeding.emacsPackagesFor;
-
-          comma = import comma { inherit (prev) pkgs; };
 
           ytt = prev.ytt.overrideAttrs (oldAttrs: {
             src = final.fetchFromGitHub {

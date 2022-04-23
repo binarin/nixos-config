@@ -231,9 +231,11 @@
   home.stateVersion = "20.09";
 
   home.packages = with pkgs; [
+    signal-desktop
+    entr
     bleeding.anki-bin
     bazel
-    comma
+    bleeding.comma
     elixir
     erlang
     (bleeding.erlang-ls.overrideAttrs (oldAttrs: rec {
