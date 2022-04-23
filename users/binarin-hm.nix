@@ -23,6 +23,7 @@
     enable = true;
     package = if pkgs.system == "x86_64-linux" then pkgs.bleeding.emacsPgtkGcc else pkgs.emacsGcc;
     extraPackages = epkgs: with epkgs; [
+      anki-editor
       bazel
       ace-window
       alchemist
@@ -230,6 +231,7 @@
   home.stateVersion = "20.09";
 
   home.packages = with pkgs; [
+    bleeding.anki-bin
     bazel
     comma
     elixir
@@ -265,6 +267,8 @@
     bleeding.yt-dlp
     bleeding.yandex-disk
     wineFull
+    bleeding.lilypond-with-fonts
+    bleeding.vlc
   ];
 
   programs.git = {

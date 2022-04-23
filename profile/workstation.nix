@@ -127,7 +127,6 @@ in {
       vscode
       # pkgs.bleeding.idea.idea-community
       prusa-slicer
-      anki
       aspell
       aspellDicts.ru
       aspellDicts.en

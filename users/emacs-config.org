@@ -4,6 +4,10 @@
   #+begin_src emacs-lisp
     ;; -*- lexical-binding: t -*-
   #+end_src
+** Load path
+  #+begin_src emacs-lisp
+    (add-to-list 'load-path "~/.nix-profile/share/emacs/site-lisp")
+  #+end_src
 ** Early load of installed packages autoloads
   #+BEGIN_SRC emacs-lisp
     (package-initialize)
