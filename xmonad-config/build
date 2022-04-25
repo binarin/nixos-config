@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-nix build --no-link -f '<nixpkgs>' my-xmonad-config
-
-rm -f $1
-nix build -f '<nixpkgs>' -o $1 my-xmonad-executable

@@ -11,9 +11,6 @@
     darwin.url = "github:LnL7/nix-darwin";
     darwin.inputs.nixpkgs.follows = "nixpkgs";
 
-    taffybar.url = github:taffybar/taffybar/master;
-    taffybar.inputs.nixpkgs.follows = "nixpkgs";
-
     emacs.url = github:nix-community/emacs-overlay/master;
 
     cq.url = github:marcus7070/cq-flake;
@@ -23,34 +20,11 @@
   };
 
   outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat,
-              darwin, home-manager, taffybar, emacs, cq}@inputs:
+              darwin, home-manager, emacs, cq}@inputs:
 
   let
-    xmonad-config-overlay = final: prev: {
-      inherit (import ./xmonad-config/default.nix { pkgs = final; }) my-xmonad-config my-xmonad-executable my-taffybar;
-    };
-
-    # NIX_GHC support, should be not needed when dyre will upgrage past 0.9.1
-    taffybar-dyre-patch-overlay = (
-      final: prev: {
-        haskellPackages = prev.haskellPackages.override (old: {
-          overrides = prev.lib.composeExtensions (old.overrides or (_: _: {})) (s: super: {
-            dyre = prev.haskell.lib.appendPatch super.dyre (
-              final.fetchpatch {
-                url = "https://github.com/willdonnelly/dyre/commit/c7f29d321aae343d6b314f058812dffcba9d7133.patch";
-                sha256 = "10m22k35bi6cci798vjpy4c2l08lq5nmmj24iwp0aflvmjdgscdb";
-              }
-            );
-          });
-        });
-      }
-    );
-
     globalOverlays = [
       emacs.overlay
-      taffybar.overlay
-      taffybar-dyre-patch-overlay
-      xmonad-config-overlay
       (
         final: prev: {
           bleeding = import nixpkgs-master {
@@ -58,9 +32,6 @@
             config = nixpkgsConfig;
             overlays = [
               emacs.overlay
-              taffybar.overlay
-              taffybar-dyre-patch-overlay
-              xmonad-config-overlay
             ];
           };
 

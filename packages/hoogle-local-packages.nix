@@ -80,7 +80,6 @@ selda-sqlite
 sqlite-simple
 stm
 structured-haskell-mode
-# taffybar
 template-haskell
 temporary
 terminal-size
@@ -97,7 +96,5 @@ vty
 #webdriver
 #wreq
 X11
-# xmonad
-# xmonad-contrib
 zlib
 ]

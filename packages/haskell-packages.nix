@@ -20,24 +20,11 @@ in {
       };
 
       myGhcWithHoogle = ghcWithHoogle: ghcWithHoogle (import ./hoogle-local-packages.nix);
-      myGhcWithHoogleFiltered = ghcWithHoogle: pkgs.stdenv.mkDerivation {
-        name = "ghc-without-some-binaries";
-        src = myGhcWithHoogle ghcWithHoogle;
-        builder = pkgs.writeScript "my-filtered-ghc-builder" ''
-          . $stdenv/setup
-          mkdir -p $out/bin
-          for binary in $(find $src/bin -type f -or -type l) ; do
-            if [[ ! $binary =~ (taffybar|xmonad) ]]; then
-              ln -s $binary $out/bin/
-            fi
-          done
-        '';
-      };
 
       ghcEnv = super.pkgs.buildEnv {
         name = "ghc902";
         paths = with myHaskellPackages; [
-          (myGhcWithHoogleFiltered ghcWithHoogle)
+          (myGhcWithHoogle ghcWithHoogle)
           alex
           cabal-install
           cabal2nix

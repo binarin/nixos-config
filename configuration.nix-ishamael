@@ -62,20 +62,10 @@
   hardware.video.hidpi.enable = lib.mkDefault true;
   services.xserver.dpi = 200;
 
-  home-manager.users.binarin.systemd.user.services.taffybar.Service.Environment = ["TAFFYBAR_HEIGHT=60"];
-
-  home-manager.users.binarin.home.sessionVariables = {
-    XMONAD_PASS_PROMPT_HEIGHT = "80";
-  };
-
   specialisation.desktop.configuration = {
       home-manager.users.binarin.xsession.pointerCursor = lib.mkForce null;
       hardware.video.hidpi.enable = lib.mkForce false;
       services.xserver.dpi = lib.mkForce null;
-      home-manager.users.binarin.systemd.user.services.taffybar.Serivce.Environment = lib.mkForce ["TAFFYBAR_HEIGHT=30"];
-      home-manager.users.binarin.home.sessionVariables = {
-        XMONAD_PASS_PROMPT_HEIGHT = lib.mkForce "40";
-      };
   };
 
   hardware.enableAllFirmware = true;

@@ -108,7 +108,6 @@ in {
     desktopPackages = with pkgs; [
       appimage-run
       v4l-utils
-      youtube-music-desktop-app
       gnome-icon-theme
       hicolor-icon-theme
       gnome3.adwaita-icon-theme
@@ -119,7 +118,6 @@ in {
       usbutils.python
       xorg.xf86inputlibinput
       wally-cli
-      my-xmonad-config
       graphviz
       firefox-bin
       goldendict
@@ -327,19 +325,11 @@ EndSection
     #   tapping = false;
     # };
 
-    windowManager.xmonad = {
-      enable = true;
-      enableContribAndExtras = true;
-    };
-
     desktopManager.xterm.enable = false;
 
     desktopManager.gnome.enable = true;
 
     displayManager = {
-      # gdm.enable = lib.mkForce false;
-      # lightdm.enable = true;
-      # defaultSession = "none+xmonad";
       gdm.enable = true;
       lightdm.enable = false;
       defaultSession = "sway";
