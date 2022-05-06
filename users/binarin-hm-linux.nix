@@ -59,8 +59,8 @@ in {
     '';
     extraConfig = ''
       exec "pkill -f kanshi"
+      exec "xrdb -merge ~/.Xresources"
     '';
-
 
     config = {
       bars = [ ];
