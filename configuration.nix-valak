@@ -83,7 +83,36 @@
   networking.hostId = "55f9cd65";
 
   networking.useDHCP = false;
-  networking.interfaces.enp8s0.useDHCP = true;
+
+  networking.bridges.br0.interfaces = [ "enp8s0" ];
+
+  networking.defaultGateway = {
+    address = "192.168.2.1";
+    interface = "br0";
+  };
+
+  networking.nameservers = [ "192.168.2.23" "192.168.2.1" ];
+
+  networking.interfaces = {
+    br0 = {
+      ipv4 = {
+        addresses = [
+          {
+            address = "192.168.2.26";
+            prefixLength = 24;
+          }
+        ];
+      };
+    };
+  };
+  # networking.interfaces.enp8s0.useDHCP = true;
+  # networking.interfaces.br0.useDHCP = true;
+  # networking.bridges = {
+  #   "br0" = {
+  #     interfaces = [ "enp8s0" ];
+  #   };
+  # };
+
 
   networking.bridges.smb-sketchup.interfaces = [];
   networking.interfaces.smb-sketchup.ipv4.addresses = [{ address = "172.16.242.2"; prefixLength = 24; } ];

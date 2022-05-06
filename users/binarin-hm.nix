@@ -20,7 +20,7 @@
   programs.info.enable = true;
   programs.emacs = {
     enable = true;
-    package = if pkgs.system == "x86_64-linux" then pkgs.bleeding.emacsPgtkGcc else pkgs.emacsGcc;
+    package = if pkgs.system == "x86_64-linux" then pkgs.bleeding.emacsPgtkNativeComp else pkgs.emacsGcc;
     extraPackages = epkgs: with epkgs; [
       anki-editor
       bazel

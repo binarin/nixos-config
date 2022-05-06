@@ -76,7 +76,7 @@ in {
         "*" = {
           xkb_layout = "us,ru";
           xkb_variant = ",winkeys";
-          xkb_options = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle";
+          xkb_options = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,compose:paus";
         };
       };
 

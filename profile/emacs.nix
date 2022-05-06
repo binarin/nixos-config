@@ -133,7 +133,7 @@ in
       emacs = {
         package = mkOption {
           type = types.package;
-          default = pkgs.bleeding.emacsPgtkGcc;
+          default = pkgs.bleeding.emacsPgtkNativeComp;
           description = ''
             Emacs package to bundle with all the modes
           '';
