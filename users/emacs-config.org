@@ -30,6 +30,12 @@
      (fset 'gsetq 'general-setq)
    #+END_SRC
 * Appearance
+** Frame size
+Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
+#+begin_src emacs-lisp
+  (add-to-list 'default-frame-alist '(height . 24))
+  (add-to-list 'default-frame-alist '(width . 80))
+#+end_src
 ** No toolbars/scrollbars
    #+BEGIN_SRC emacs-lisp
      (when (window-system)
@@ -109,6 +115,14 @@
    #+END_SRC
 
 * Behaviour
+** Windows-specific
+#+begin_src emacs-lisp
+  (when (getenv "WSL_DISTRO_NAME")
+    (gsetq browse-url-browser-function 'browse-url-generic
+           browse-url-generic-program "wslview")
+    (add-hook 'after-init-hook '(lambda ()
+                                  (set-frame-size (selected-frame) 80 24))))
+#+end_src
 ** Disable startup screen
    #+BEGIN_SRC emacs-lisp
      (gsetq inhibit-startup-screen t)

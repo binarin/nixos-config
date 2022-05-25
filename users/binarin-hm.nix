@@ -1,10 +1,9 @@
 {lib, pkgs, config, system, ...}:
 
 {
-  home.file.".emacs".source = pkgs.runCommand "emacs-config-tangled" {} ''
-    ${config.programs.emacs.finalPackage}/bin/emacs --batch --eval '(progn (package-initialize) (require (quote ob-tangle)) (org-babel-tangle-file "${./emacs-config.org}" "'$out'" "emacs-lisp") (kill-emacs))'
-  '';
-
+  imports = [
+    ./emacs-hm.nix
+  ];
   home.file."bin/sshmenu".source = ./sshmenu;
   home.file.".local/share/applications/org-protocol.desktop".source = ./org-protocol.desktop;
   home.file.".local/share/applications/smart-browser-chooser.desktop".text = ''
@@ -17,139 +16,6 @@
     MimeType=x-scheme-handler/viber;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;text/html;application/x-extension-htm;application/x-extension-html;application/x-extension-shtml;application/xhtml+xml;application/x-extension-xhtml;application/x-extension-xht
   '';
 
-  programs.info.enable = true;
-  programs.emacs = {
-    enable = true;
-    package = if pkgs.system == "x86_64-linux" then pkgs.bleeding.emacsPgtkNativeComp else pkgs.emacsGcc;
-    extraPackages = epkgs: with epkgs; [
-      anki-editor
-      bazel
-      ace-window
-      alchemist
-      amx
-      anaphora
-      # auctex
-      auto-complete  # edts dep
-      auto-highlight-symbol # edts dep
-      avy
-      # cider
-      circe
-      company
-      counsel
-      counsel-projectile
-      dante
-      dash
-      easy-escape
-      editorconfig
-      eglot
-      elisp-slime-nav
-      direnv
-      elm-mode
-      elpy
-      poetry
-      vterm
-      emojify
-      eproject  # edts dep
-      erlang
-      evil
-      eyebrowse
-      f
-      firestarter
-      fsm
-      # geiser
-      general
-      go-mode flycheck-gometalinter company-go go-eldoc
-      haskell-mode
-      helm
-      helm-dash
-      helm-projectile
-      helpful
-      highlight-parentheses
-      htmlize
-      hydra
-      hyperbole
-      impatient-mode
-      indium
-      ivy-hydra
-      ivy-rich
-      jabber
-      key-chord
-      keyfreq
-      key-seq
-      kill-or-bury-alive
-      less-css-mode
-      # lsp-haskell
-      lsp-mode
-      # lsp-ui
-      # lsp-metals
-      magit
-      markdown-mode
-      markdown-toc
-      mu4e-maildirs-extension
-      # multi-libvterm
-      nix-mode
-      origami
-      org-roam
-      org-brain
-      org-gcal
-      org-contrib
-      org-super-agenda
-      ob-elixir
-      ox-hugo
-      paredit
-      pdf-tools
-      perspeen
-      popup  # edts dep
-      projectile
-      projectile-ripgrep
-      pt
-      puppet-mode
-      recursive-narrow
-      request
-      restclient
-      ripgrep
-      s
-      sbt-mode
-      scad-mode
-      scala-mode
-      shm
-      skewer-mode
-      slime
-      smart-mode-line
-      smart-mode-line-powerline-theme
-      solarized-theme
-      symbol-overlay
-      terraform-mode
-      company-terraform
-      terraform-doc
-      tide
-      # typescript-mode
-      undo-tree
-      vue-mode
-      web-mode
-      which-key
-      ws-butler
-      yaml-mode
-      yasnippet
-      zenburn-theme
-      wgrep
-      spinner
-    ];
-    overrides = self: super: with self; rec {
-      org = self.elpaPackages.org;
-      # Funnily enough you can't override elpa packages via overrideAttrs', you really need this stupid elpaBuild dance
-      spinner = super.spinner.override {
-        elpaBuild = args: super.elpaBuild (args // {
-          src = let srcLz = builtins.fetchurl {
-            url = "https://elpa.gnu.org/packages/spinner-1.7.3.el.lz";
-            sha256 = "188i2r7ixva78qd99ksyh3jagnijpvzzjvvx37n57x8nkp8jc4i4";
-          };
-          in pkgs.runCommand "spinner-unpacked" {} ''${pkgs.lzip}/bin/lzip -d -o $out ${srcLz}'';
-        });
-      };
-    };
-  };
-
   programs.tmux = {
     baseIndex = 1;
     clock24 = true;
@@ -161,6 +27,8 @@
       set -g allow-rename off
     '';
   };
+
+  fonts.fontconfig.enable = true;
 
   programs.direnv.enable = true;
   programs.direnv.nix-direnv.enable = true;
@@ -193,6 +61,9 @@
       rr() {
         readlink -f $(which $1)
       }
+      if [ -f $HOME/.nix-profile/etc/profile.d/nix.sh ] ; then
+        source /home/binarin/.nix-profile/etc/profile.d/nix.sh
+      fi
     '';
     shellAliases = {
       gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';
@@ -226,8 +97,6 @@
     source = ./images;
     recursive = true;
   };
-
-  home.stateVersion = "20.09";
 
   home.packages = with pkgs; [
     signal-desktop
@@ -266,10 +135,35 @@
     docker-compose
     bleeding.tdesktop
     bleeding.yt-dlp
-    bleeding.yandex-disk
+    # bleeding.yandex-disk
     wineFull
     bleeding.lilypond-with-fonts
     bleeding.vlc
+
+    # fonts
+    corefonts
+    dejavu_fonts
+    emacs-all-the-icons-fonts
+    fira
+    fira-code
+    font-awesome-ttf
+    inconsolata
+    iosevka
+    jetbrains-mono
+    liberation_ttf
+    mplus-outline-fonts
+    noto-fonts
+    powerline-fonts
+    roboto
+    roboto-mono
+    roboto-slab
+    source-code-pro
+    terminus_font_ttf
+    ubuntu_font_family
+    unifont
+    vistafonts
+    terminus_font
+    # google-fonts
   ];
 
   programs.git = {

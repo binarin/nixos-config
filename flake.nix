@@ -100,6 +100,19 @@
     nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
     nixosConfigurations.ishamael = linuxSystem ./configuration.nix-ishamael;
 
+    homeConfigurations.binarin = home-manager.lib.homeManagerConfiguration {
+      configuration = {
+        imports = [ ./users/binarin-hm.nix ];
+        nixpkgs.overlays = globalOverlays;
+        nixpkgs.config = nixpkgsConfig;
+        programs.home-manager.enable = true;
+      };
+      system = "x86_64-linux";
+      username = "binarin";
+      homeDirectory = "/home/binarin";
+      stateVersion = "21.11";
+    };
+
     darwinConfigurations.vmware-laptop = darwin.lib.darwinSystem {
       system = "x86_64-darwin";
       modules = [
