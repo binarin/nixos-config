@@ -73,6 +73,9 @@
 
   hardware.enableAllFirmware = true;
 
-  programs.sway.enable = true;
+  programs.sway = {
+    enable = true;
+    inherit (config.home-manager.users.binarin.wayland.windowManager.sway) extraSessionCommands wrapperFeatures extraOptions;
+  };
   system.stateVersion = "22.05";
 }
