@@ -146,8 +146,8 @@ in {
       slack
       stack
       stalonetray
-      skype
-      workrave
+      skypeforlinux
+      # workrave
       xdg-user-dirs
       xdotool
       xlsfonts
@@ -187,7 +187,7 @@ in {
     otherPackages = with pkgs; [
       youtube-dl
       gnuplot
-      gnome3.dconf
+      dconf
       gnome3.dconf-editor
       gnome3.gnome-tweaks
       dmenu
@@ -233,7 +233,7 @@ in {
   hardware.pulseaudio = {
     enable = true;
     package = pkgs.pulseaudioFull;
-    extraModules = [ pkgs.pulseaudio-modules-bt ];
+    # extraModules = [ pkgs.pulseaudio-modules-bt ];
     support32Bit = true;
     daemon.config.default-sample-rate = 48000;
   };

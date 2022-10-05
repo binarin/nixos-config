@@ -37,7 +37,7 @@ in
       gnum4
       gnumake
       gnupg1orig # some scripts expect this version
-      gnupg22
+      # gnupg22
       htop
       httpie
       iftop
@@ -49,7 +49,7 @@ in
       libosinfo # osinfo-query
       libxml2 # xmllint
       lsof
-      manpages
+      man-pages
       mc
       mosh
       nethogs
@@ -71,7 +71,7 @@ in
       sudo
       sysstat
       tcpdump
-      telnet
+      inetutils
       tiptop
       unrar
       unzip

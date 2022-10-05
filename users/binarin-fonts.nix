@@ -7,12 +7,12 @@
     emacs-all-the-icons-fonts
     fira
     fira-code
-    font-awesome-ttf
+    font-awesome
     inconsolata
     iosevka
     jetbrains-mono
     liberation_ttf
-    mplus-outline-fonts
+    # mplus-outline-fonts
     noto-fonts
     powerline-fonts
     roboto

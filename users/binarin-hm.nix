@@ -28,7 +28,7 @@
     '';
   };
 
-  fonts.fontconfig.enable = true;
+  # fonts.fontconfig.enable = true;
 
   programs.direnv.enable = true;
   programs.direnv.nix-direnv.enable = true;
@@ -106,9 +106,10 @@
     bleeding.comma
     elixir
     erlang
-    (bleeding.erlang-ls.overrideAttrs (oldAttrs: rec {
-      patches = [ ../packages/erlang-ls.diff ];
-    }))
+    # (bleeding.erlang-ls.overrideAttrs (oldAttrs: rec {
+    #   patches = [ ../packages/erlang-ls.diff ];
+    # }))
+    erlang-ls
     git-annex
     gnupg
     gopass
@@ -136,7 +137,7 @@
     bleeding.tdesktop
     bleeding.yt-dlp
     # bleeding.yandex-disk
-    wineFull
+    winePackages.full
     bleeding.lilypond-with-fonts
     bleeding.vlc
 
@@ -146,12 +147,12 @@
     emacs-all-the-icons-fonts
     fira
     fira-code
-    font-awesome-ttf
+    font-awesome
     inconsolata
     iosevka
     jetbrains-mono
     liberation_ttf
-    mplus-outline-fonts
+    # mplus-outline-fonts
     noto-fonts
     powerline-fonts
     roboto

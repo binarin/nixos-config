@@ -12,7 +12,7 @@
     });
   in     {
     enable = true;
-    package = if pkgs.system == "x86_64-linux" then patchedWin32Emacs else pkgs.emacsGcc;
+    package = pkgs.emacsPgtkNativeComp; # if pkgs.system == "x86_64-linux" then patchedWin32Emacs else pkgs.emacsGcc;
     extraPackages = epkgs: with epkgs; [
       anki-editor
       bazel

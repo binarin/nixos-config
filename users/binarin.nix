@@ -37,7 +37,7 @@
         ./binarin-hm.nix
       ] ++ lib.optional (pkgs.system == "x86_64-linux") ./binarin-hm-linux.nix;
 
-      # fonts.fontconfig.enable = true;
+      fonts.fontconfig.enable = true;
       gtk = {
         enable = true;
         iconTheme = {
@@ -57,7 +57,7 @@
         };
       };
 
-      home.stateVersion = "20.09";
+      home.stateVersion = "22.05";
       home.sessionPath = [ "$HOME/bin" ];
       home.packages = config.userPackages;
 
