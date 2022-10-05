@@ -85,6 +85,7 @@
       org-brain
       org-gcal
       org-contrib
+      org-contacts
       org-super-agenda
       ob-elixir
       ox-hugo
