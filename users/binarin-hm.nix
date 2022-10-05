@@ -28,7 +28,7 @@
     '';
   };
 
-  # fonts.fontconfig.enable = true;
+  fonts.fontconfig.enable = lib.mkForce true;
 
   programs.direnv.enable = true;
   programs.direnv.nix-direnv.enable = true;
