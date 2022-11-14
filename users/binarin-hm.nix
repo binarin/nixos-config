@@ -1,6 +1,43 @@
 {lib, pkgs, config, system, ...}:
 
-{
+let
+
+  libcaption = pkgs.stdenv.mkDerivation rec {
+    pname = "libcaption";
+    version = "e8b6261090eb3f2012427cc6b151c923f82453db";
+    src = pkgs.fetchFromGitHub {
+      owner = "szatmary";
+      repo = "libcaption";
+      rev = version;
+      sha256 = "sha256-9tszEKR30GHoGQ3DE9ejU3yOdtDiZwSZHiIJUPLgOdU=";
+    };
+
+    nativeBuildInputs = with pkgs; [ cmake ];
+  };
+
+  obs-gphoto = pkgs.stdenv.mkDerivation rec {
+    pname = "osb-gphoto";
+    version = "0.4.0";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "adlerweb";
+      repo = "obs-gphoto";
+      rev = "bd88ff79c6be412963d94303a7f92509a69d2751";
+      sha256 = "sha256-oDdLOu3qL+L3sK9GJTj3pM/AKb9nUZw0AfPoJT4h10E=";
+    };
+
+    preConfigure = ''
+      substituteInPlace CMakeLists.txt \
+        --replace \$\{LIBOBS_PLUGIN_DESTINATION\} $out/lib/obs-plugins
+      '';
+
+    nativeBuildInputs = with pkgs; [ cmake pkg-config ninja ];
+    buildInputs = with pkgs; [ wayland obs-studio xorg.libX11 libgphoto2 libjpeg udev libcaption ];
+    cmakeFlags = [
+      "-DSYSTEM_INSTALL=ON"
+    ];
+  };
+in {
   imports = [
     ./emacs-hm.nix
   ];
@@ -16,6 +53,14 @@
     MimeType=x-scheme-handler/viber;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;text/html;application/x-extension-htm;application/x-extension-html;application/x-extension-shtml;application/xhtml+xml;application/x-extension-xhtml;application/x-extension-xht
   '';
 
+  programs.atuin = {
+    enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
+    settings = {
+      search_mode = "fuzzy";
+    };
+  };
   programs.tmux = {
     baseIndex = 1;
     clock24 = true;
@@ -99,13 +144,22 @@
   };
 
   home.packages = with pkgs; [
+    bleeding.kind
+    bleeding.skaffold
+    krew
+    helix
+    gphoto2
+    ffmpeg
+    wdisplays
+    (wrapOBS { plugins = with pkgs.obs-studio-plugins; [ wlroots obs-gphoto ]; })
+    thunderbird
     signal-desktop
     entr
     bleeding.anki-bin
-    bazel
+    bleeding.bazel_6
     bleeding.comma
-    elixir
-    erlang
+    elixir_1_14
+    erlangR25
     # (bleeding.erlang-ls.overrideAttrs (oldAttrs: rec {
     #   patches = [ ../packages/erlang-ls.diff ];
     # }))

@@ -71,7 +71,7 @@
       # };
 
       services.dunst = {
-        enable = true;
+        enable = false;
         settings = {
           global = {
             font = "sans bold 40";

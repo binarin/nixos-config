@@ -16,6 +16,7 @@ in {
     };
   };
 
+  xsession.preferStatusNotifierItems = true;
   # xsession.importedVariables = [
   #   "WAYLAND_DISPLAY"
   #   "SWAYSOCK"
@@ -36,6 +37,7 @@ in {
   };
 
   home.packages = with pkgs; [
+    hunspellDicts.nl_nl
     ydotool
     dmenu-wayland
     arduino
@@ -48,6 +50,8 @@ in {
     alacritty # Alacritty is the default terminal in the config
     dmenu # Dmenu is the default in the config but i recommend wofi since its wayland native
     swaykbdd
+    fuzzel
+    swaynotificationcenter
   ];
 
   wayland.windowManager.sway = {
@@ -65,7 +69,8 @@ in {
     config = {
       bars = [ ];
       terminal = "urxvt";
-      menu = "yeganesh -x | ${pkgs.findutils}/bin/xargs swaymsg exec --";
+      # menu = "yeganesh -x | ${pkgs.findutils}/bin/xargs swaymsg exec --";
+      menu = "fuzzel";
       modifier = "Mod4";
 
       input = {
@@ -91,9 +96,28 @@ in {
             command = "floating enable";
             criteria = { app_id = "pavucontrol"; };
           }
+
+          {
+            criteria = { app_id = "zoom"; title="^zoom$"; };
+            command = "border none, floating enable";
+          }
+          {
+            criteria = { app_id = "zoom"; title="^(Zoom|About)$"; };
+            command = "border pixel, floating enable";
+          }
+          {
+            criteria = { app_id = "zoom"; title="Settings"; };
+            command = "floating enable, floating_minimum_size 960 x 700";
+          }
+          {
+            # Open Zoom Meeting windows on a new workspace (a bit hacky)
+            criteria = { app_id = "zoom"; title="Zoom Meeting(.*)?"; };
+            command = "workspace zoom, move container to workspace zoom, floating disable, inhibit_idle open";
+          }
         ];
       };
 
+      bindkeysToCode = true;
       keybindings = lib.mkOptionDefault {
           "Mod4+Ctrl+h" = "resize shrink width 10";
           "Mod4+Ctrl+j" = "resize shrink height 10";
@@ -121,7 +145,7 @@ in {
       uw = {
         outputs = [
           {
-            criteria = "Samsung Electric Company C49RG9x H4ZMC00473";
+            criteria = "Samsung Electric Company C49RG9x H1AK500000";
             mode = "5120x1440";
             status = "enable";
           }
@@ -150,6 +174,20 @@ in {
       Type = "simple";
       ExecStart =
         "${pkgs.bleeding.swaykbdd}/bin/swaykbdd";
+    };
+
+    Install = { WantedBy = [ "sway-session.target" ]; };
+  };
+
+  systemd.user.services.swaync = {
+    Unit = {
+      PartOf = [ "graphical-session.target" ];
+    };
+
+    Service = {
+      Type = "simple";
+      ExecStart =
+        "${pkgs.bleeding.swaynotificationcenter}/bin/swaync";
     };
 
     Install = { WantedBy = [ "sway-session.target" ]; };

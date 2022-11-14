@@ -131,7 +131,7 @@ in {
       aspellDicts.nl
       chromium
       desktop-file-utils
-      dunst
+      # dunst
       evince
       freecad
       imagemagickBig
