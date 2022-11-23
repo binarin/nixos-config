@@ -16,11 +16,8 @@ in {
     };
   };
 
+  home.sessionVariables.MOZ_ENABLE_WAYLAND = "1";
   xsession.preferStatusNotifierItems = true;
-  # xsession.importedVariables = [
-  #   "WAYLAND_DISPLAY"
-  #   "SWAYSOCK"
-  # ];
 
   services.gpg-agent = {
     enable = true;
@@ -98,21 +95,8 @@ in {
           }
 
           {
-            criteria = { app_id = "zoom"; title="^zoom$"; };
-            command = "border none, floating enable";
-          }
-          {
-            criteria = { app_id = "zoom"; title="^(Zoom|About)$"; };
-            command = "border pixel, floating enable";
-          }
-          {
-            criteria = { app_id = "zoom"; title="Settings"; };
-            command = "floating enable, floating_minimum_size 960 x 700";
-          }
-          {
-            # Open Zoom Meeting windows on a new workspace (a bit hacky)
-            criteria = { app_id = "zoom"; title="Zoom Meeting(.*)?"; };
-            command = "workspace zoom, move container to workspace zoom, floating disable, inhibit_idle open";
+            criteria = { workspace = "9"; };
+            command = "floating enable";
           }
         ];
       };
@@ -142,12 +126,25 @@ in {
   services.kanshi = {
     enable = true;
     profiles = {
-      uw = {
+      ishamael-uw = {
         outputs = [
           {
             criteria = "Samsung Electric Company C49RG9x H1AK500000";
             mode = "5120x1440";
             status = "enable";
+          }
+          {
+            criteria = "Sharp Corporation 0x1516 0x00000000";
+            status = "disable";
+          }
+        ];
+      };
+      ishamael-internal = {
+        outputs = [
+          {
+            criteria = "Sharp Corporation 0x1516 0x00000000";
+            status = "enable";
+            mode = "3840x2400";
           }
         ];
       };
@@ -208,6 +205,34 @@ in {
 
   home.file.".config/waybar/base16-zenburn.css".source = ./base16-zenburn.css;
 
+  programs.foot = {
+    enable = true;
+    settings = {
+      main = {
+        font = "Iosevka:size=20";
+        locked-title = true;
+      };
+      colors = {
+        background = "000000";
+        regular0 = "000000";
+        regular1 = "cd0000";
+        regular2 = "00cd00";
+        regular3 = "cdcd00";
+        regular4 = "0000cd";
+        regular5 = "cd00cd";
+        regular6 = "00cdcd";
+        regular7 = "faebd7";
+        bright0 = "404040";
+        bright1 = "ff0000";
+        bright2 = "00ff00";
+        bright3 = "ffff00";
+        bright4 = "0000ff";
+        bright5 = "ff00ff";
+        bright6 = "00ffff";
+        bright7 = "ffffff";
+      };
+    };
+  };
   programs.waybar = {
     enable = true;
     systemd.enable = true;

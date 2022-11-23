@@ -53,6 +53,7 @@ in {
     MimeType=x-scheme-handler/viber;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;text/html;application/x-extension-htm;application/x-extension-html;application/x-extension-shtml;application/xhtml+xml;application/x-extension-xhtml;application/x-extension-xht
   '';
 
+  home.sessionVariables.ATUIN_NOBIND = "1";
   programs.atuin = {
     enable = true;
     enableZshIntegration = true;
@@ -61,6 +62,7 @@ in {
       search_mode = "fuzzy";
     };
   };
+
   programs.tmux = {
     baseIndex = 1;
     clock24 = true;
@@ -109,6 +111,7 @@ in {
       if [ -f $HOME/.nix-profile/etc/profile.d/nix.sh ] ; then
         source /home/binarin/.nix-profile/etc/profile.d/nix.sh
       fi
+      bindkey '^r' _atuin_search_widget
     '';
     shellAliases = {
       gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';
@@ -144,8 +147,15 @@ in {
   };
 
   home.packages = with pkgs; [
+    shntool
+    flac
+    cuetools
+    kid3
+    picard
+    moonlight-qt
     bleeding.kind
     bleeding.skaffold
+    bleeding.jetbrains.idea-community
     krew
     helix
     gphoto2

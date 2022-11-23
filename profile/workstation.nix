@@ -227,6 +227,7 @@ in {
     extraPackages = with pkgs; [
       rocm-opencl-icd
       rocm-opencl-runtime
+      intel-media-driver
     ];
   };
 

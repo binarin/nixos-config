@@ -10,15 +10,24 @@
     ./profile/server.nix
     ./users/binarin.nix
     ./profile/workstation.nix
+    ./hardware/vfio.nix
   ];
+
+  virtualization.vfio = {
+    enable = true;
+    devices = [
+      "0000:01:00.0" # NVidia
+    ];
+  };
 
   # Thanks to fucktard who placed power button between 'Del' and 'Backspace'
   services.logind.extraConfig = ''
     HandlePowerKey=ignore
   '';
 
+  boot.kernelParams = [ "kvm.ignore_msrs=1" "intel_iommu=on" ];
   boot.kernelPackages = pkgs.bleeding.linuxPackages_latest; # opengl broken at 2022-02-07
-  boot.initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc"  ];
   boot.initrd.kernelModules = [ "dm-snapshot" ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];

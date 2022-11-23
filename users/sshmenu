@@ -14,7 +14,7 @@ top-level() {
 
 local-shell() {
     local prefix="$4"
-    switch-or-run-rxvt "$prefix" -e bash -c "tmux attach -t binarin -d || tmux new -s binarin"
+    switch-or-run-foot "$prefix" -e bash -c "tmux attach -t binarin -d || tmux new -s binarin"
 }
 
 home-servers() {
@@ -43,6 +43,17 @@ switch-or-run-rxvt() {
         nohup urxvt -title "$title" "$@" > /dev/null 2>&1 &!
     fi
     sleep 0.01
+    exit 0
+}
+
+switch-or-run-foot() {
+    local title="${1:?}"; shift
+    if ! wmctrl -F -a "$title"; then
+        setopt NO_HUP
+        setopt NO_CHECK_JOBS
+        nohup foot --title "$title" "$@" > /dev/null 2>&1 &!
+    fi
+    sleep 0.1
     exit 0
 }
 
