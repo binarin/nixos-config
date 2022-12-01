@@ -16,8 +16,8 @@ in {
     supportedFilesystems = [ "exfat" "nfs" "cifs" ];
     kernelModules = [ "fuse" "v4l2loopback" ];
     extraModprobeConfig = ''
-      options v4l2loopback video_nr=7
-      options v4l2loopback card_label="video loopback"
+      options v4l2loopback video_nr=7,8
+      options v4l2loopback card_label="Canon","OBS"
     '';
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
     kernel.sysctl."vm.swappiness" = 1;
@@ -372,10 +372,6 @@ EndSection
   # XXX Try disabling, maybe already fixed
   # systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
 
-  services.udev.extraRules = ''
-    SUBSYSTEM=="video4linux", KERNEL=="video[0-9]*", ACTION=="add", ENV{ID_VENDOR_ID}=="046d", ENV{ID_MODEL_ID}=="0892", RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 -d %N"
-  '';
-
   systemd.services."binarin-org-sync" = let
     script = pkgs.writeScript "binarin-org-sync" ''
       #!${pkgs.bash}/bin/bash
@@ -429,4 +425,30 @@ EndSection
       capabilities = "cap_sys_tty_config+ep";
     };
   };
+
+  services.udev.extraRules = ''
+    ACTION=="add", \
+    ATTR{idVendor}=="04a9", \
+    ATTR{idProduct}=="3218", \
+    ENV{SYSTEMD_WANTS}+="external_webcam.service", \
+    SUBSYSTEM=="usb", \
+    TAG+="systemd"
+
+    SUBSYSTEM=="video4linux", \
+    KERNEL=="video[0-9]*", \
+    ACTION=="add", \
+    ENV{ID_VENDOR_ID}=="046d",
+    ENV{ID_MODEL_ID}=="0892", \
+    RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 -d %N"
+  '';
+
+  systemd.services.external_webcam = {
+    enable = true;
+    script = ''
+      ${pkgs.gphoto2}/bin/gphoto2 --stdout --capture-movie |
+        ${pkgs.ffmpeg}/bin/ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2  /dev/video7
+    '';
+    wantedBy = ["multi-user.target"];
+  };
+
 }
