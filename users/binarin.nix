@@ -24,6 +24,7 @@
           "transmission"
           "lxd"
           "video"
+          "i2c"
         ];
       };
     };
