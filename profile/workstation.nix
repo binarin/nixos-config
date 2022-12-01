@@ -216,6 +216,8 @@ in {
     enableGhostscriptFonts = true;
   };
 
+  hardware.i2c.enable = true;
+
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;

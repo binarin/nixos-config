@@ -35,6 +35,7 @@ in {
 
   home.packages = with pkgs; [
     hunspellDicts.nl_nl
+    ddcutil
     ydotool
     dmenu-wayland
     arduino
