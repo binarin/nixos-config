@@ -15,8 +15,8 @@ swaymsg -m -t subscribe '["window"]' |
 jq --unbuffered -r 'select(.change == "focus") | .container.app_id' |
 while read new_app; do
     if [[ "$new_app" == "emacs" ]]; then
-        swaymsg -- "unbindsym --to-code Ctrl+Backslash"
+        swaymsg -- "unbindsym --to-code Ctrl+Backslash" 2>&1 > /dev/null
     else
-        swaymsg -- "bindsym --to-code Ctrl+Backslash exec $0 doit"
+        swaymsg -- "bindsym --to-code Ctrl+Backslash exec $0 doit" 2>&1 > /dev/null
     fi
 done
