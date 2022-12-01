@@ -212,6 +212,10 @@ in {
       main = {
         font = "Iosevka:size=20";
         locked-title = true;
+        selection-target = "both";
+      };
+      url = {
+        osc8-underline = "always";
       };
       colors = {
         background = "000000";
