@@ -5,7 +5,7 @@
   ];
 
   config = {
-    nix.trustedUsers = [ "binarin" ];
+    nix.settings.trusted-users = [ "binarin" ];
 
     users.extraUsers = {
       binarin = {

@@ -14,6 +14,7 @@
     enable = true;
     package = pkgs.emacsPgtkNativeComp; # if pkgs.system == "x86_64-linux" then patchedWin32Emacs else pkgs.emacsGcc;
     extraPackages = epkgs: with epkgs; [
+      unicode-fonts
       anki-editor
       bazel
       ace-window

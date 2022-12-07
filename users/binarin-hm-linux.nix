@@ -155,11 +155,11 @@ in {
   services.swayidle = {
     enable = true;
     timeouts = [
-      { timeout = 300; command = ''swaymsg "output * dpms off"''; resumeCommand = ''swaymsg "output * dpms on"''; }
-      { timeout = 360; command = "swaylock -f -c 000000"; }
+      { timeout = 300; command = ''${pkgs.sway}/bin/swaymsg "output * dpms off"''; resumeCommand = ''${pkgs.sway}/bin/swaymsg "output * dpms on"''; }
+      { timeout = 360; command = ''${pkgs.swaylock}/bin/swaylock -f -c 000000''; }
     ];
     events = [
-      { event = "before-sleep"; command = "swaylock -f -c 000000"; }
+      { event = "before-sleep"; command = "${pkgs.swaylock}/bin/swaylock -f -c 000000"; }
     ];
   };
 
@@ -171,7 +171,7 @@ in {
     Service = {
       Type = "simple";
       ExecStart =
-        "${pkgs.bleeding.swaykbdd}/bin/swaykbdd";
+        "${pkgs.swaykbdd}/bin/swaykbdd";
     };
 
     Install = { WantedBy = [ "sway-session.target" ]; };
@@ -185,7 +185,7 @@ in {
     Service = {
       Type = "simple";
       ExecStart =
-        "${pkgs.bleeding.swaynotificationcenter}/bin/swaync";
+        "${pkgs.swaynotificationcenter}/bin/swaync";
     };
 
     Install = { WantedBy = [ "sway-session.target" ]; };
@@ -204,13 +204,18 @@ in {
     Install = { WantedBy = [ "sway-session.target" ]; };
   };
 
-  home.file.".config/waybar/base16-zenburn.css".source = ./base16-zenburn.css;
+  home.file.".config/swaync/config.json".text = ''
+    {
+      "scripts": {
+      }
+    }
+  '';
 
   programs.foot = {
     enable = true;
     settings = {
       main = {
-        font = "Iosevka:size=20";
+        font = "Iosevka:size=20, Noto Color Emoji:size=16";
         locked-title = true;
         selection-target = "both";
       };
@@ -253,7 +258,24 @@ in {
 
         modules-left = [ "sway/workspaces" "sway/mode" "wlr/taskbar" ];
         modules-center = [ "sway/window" ];
-        modules-right = [ "tray" "idle_inhibitor" "pulseaudio" "clock" ];
+        modules-right = [ "tray" "idle_inhibitor" "pulseaudio" "clock" "custom/notification" ];
+
+        "custom/notification" = {
+          tooltip = false;
+          format = "{icon}";
+          format-icons = {
+            notification = "<span foreground='red'><sup></sup></span>";
+            none = "";
+            dnd-notification = "<span foreground='red'><sup></sup></span>";
+            dnd-none = "";
+          };
+          return-type = "json";
+          exec-if = "which swaync-client";
+          exec = "swaync-client -swb";
+          on-click = "swaync-client -t -sw";
+          on-click-right = "swaync-client -d -sw";
+          escape = true;
+        };
 
         "tray" = {
           icon-size = 32;
@@ -311,4 +333,5 @@ in {
     };
     style = ./waybar-style.css;
   };
+  home.file.".config/waybar/base16-zenburn.css".source = ./base16-zenburn.css;
 }

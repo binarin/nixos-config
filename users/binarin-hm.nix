@@ -15,6 +15,17 @@ let
     nativeBuildInputs = with pkgs; [ cmake ];
   };
 
+  erlang-ls-patched = pkgs.beam.packages.erlang.erlang-ls.overrideAttrs (prev: rec {
+    version = "0.46.0";
+    name = "erlang-ls-${version}";
+    src = pkgs.fetchFromGitHub {
+      owner = "erlang-ls";
+      repo = "erlang_ls";
+      sha256 = "sha256-4h+wD/JwUulejezyHnZFrR8GF5UmdZG1DhRjjg/CkyM=";
+      rev = version;
+    };
+  });
+
   obs-gphoto = pkgs.stdenv.mkDerivation rec {
     pname = "osb-gphoto";
     version = "0.4.0";
@@ -112,7 +123,22 @@ in {
         source /home/binarin/.nix-profile/etc/profile.d/nix.sh
       fi
       bindkey '^r' _atuin_search_widget
-    '';
+      function osc7 {
+          local LC_ALL=C
+          export LC_ALL
+
+          setopt localoptions extendedglob
+          input=( ''${(s::)PWD} )
+          uri=''${(j::)input/(#b)([^A-Za-z0-9_.\!~*\'\(\)-\/])/%''${(l:2::0:)$(([##16]#match))}}
+          print -n "\e]7;file://''${HOSTNAME}''${uri}\e\\"
+      }
+      add-zsh-hook -Uz chpwd osc7
+
+      precmd() {
+          print -Pn "\e]133;A\e\\"
+      }
+
+     '';
     shellAliases = {
       gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';
       vi = ''emacsclient -nw -a vim'';
@@ -153,27 +179,28 @@ in {
     kid3
     picard
     moonlight-qt
-    bleeding.kind
-    bleeding.skaffold
-    bleeding.jetbrains.idea-community
+    kind
+    skaffold
+    jetbrains.idea-community
     krew
     helix
     gphoto2
     ffmpeg
     wdisplays
-    (wrapOBS { plugins = with pkgs.obs-studio-plugins; [ wlroots obs-gphoto ]; })
+    (wrapOBS { plugins = with pkgs.obs-studio-plugins; [ wlroots ]; })
     thunderbird
     signal-desktop
     entr
-    bleeding.anki-bin
-    bleeding.bazel_6
-    bleeding.comma
+    anki-bin
+    bazel_6
+    comma
     elixir_1_14
     erlangR25
+    # nodePackages.browser-sync
     # (bleeding.erlang-ls.overrideAttrs (oldAttrs: rec {
     #   patches = [ ../packages/erlang-ls.diff ];
     # }))
-    erlang-ls
+    erlang-ls-patched
     git-annex
     gnupg
     gopass
@@ -186,48 +213,49 @@ in {
     kubectx
     kapp
     krew
-    bleeding.k0sctl
-    bleeding.k9s
-    bleeding.kind
+    k0sctl
+    k9s
+    kind
     python3
     sox
-    bleeding.terraform_1
-    bleeding.terraform-ls
-    bleeding.terraform-providers.google
+    terraform_1
+    terraform-ls
+    terraform-providers.google
     packer
     gnumake
     sshfs
     docker-compose
-    bleeding.tdesktop
+    tdesktop
     bleeding.yt-dlp
     # bleeding.yandex-disk
     winePackages.full
-    bleeding.lilypond-with-fonts
-    bleeding.vlc
+    lilypond-with-fonts
+    vlc
 
     # fonts
-    corefonts
-    dejavu_fonts
-    emacs-all-the-icons-fonts
-    fira
-    fira-code
-    font-awesome
-    inconsolata
-    iosevka
-    jetbrains-mono
-    liberation_ttf
-    # mplus-outline-fonts
-    noto-fonts
-    powerline-fonts
-    roboto
-    roboto-mono
-    roboto-slab
-    source-code-pro
-    terminus_font_ttf
-    ubuntu_font_family
-    unifont
-    vistafonts
-    terminus_font
+    # corefonts
+    # dejavu_fonts
+    # emacs-all-the-icons-fonts
+    # fira
+    # fira-code
+    # font-awesome
+    # inconsolata
+    # iosevka
+    # jetbrains-mono
+    # liberation_ttf
+    # # mplus-outline-fonts
+    # noto-fonts
+    # noto-fonts-emoji
+    # powerline-fonts
+    # roboto
+    # roboto-mono
+    # roboto-slab
+    # source-code-pro
+    # terminus_font_ttf
+    # ubuntu_font_family
+    # unifont
+    # vistafonts
+    # terminus_font
     # google-fonts
   ];
 

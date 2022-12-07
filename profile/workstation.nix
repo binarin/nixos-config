@@ -24,16 +24,18 @@ in {
   };
 
   nix = {
-    binaryCaches = [
-      "https://cache.nixos.org"
-      "https://nixcache.reflex-frp.org"
-    ];
 
-    binaryCachePublicKeys = [
-      "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
-    ];
+    settings = {
+      sandbox = true;
+      substituters = [
+        "https://cache.nixos.org"
+        "https://nixcache.reflex-frp.org"
+      ];
 
-    useSandbox = true;
+      trusted-public-keys = [
+        "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
+      ];
+    };
 
     extraOptions = ''
       gc-keep-outputs = true
@@ -67,6 +69,25 @@ in {
 
   console.font = "UniCyr_8x16";
 
+  # fonts.fontconfig = {
+  #   useEmbeddedBitmaps = true;
+  #   defaultFonts = {
+  #     emoji = [ "Noto Color Emoji" ];
+  #     monospace = [
+  #       "Noto Sans Mono"
+  #       "emoji"
+  #     ];
+  #     sansSerif = [
+  #       "Noto Sans"
+  #       "emoji"
+  #     ];
+  #     serif = [
+  #       "Noto Serif"
+  #       "emoji"
+  #     ];
+  #   };
+  # };
+
   i18n = {
     defaultLocale = "ru_RU.UTF-8";
   };
@@ -83,14 +104,8 @@ in {
 
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
-      isync
-      protonmail-bridge
       zoom-us
       vmware-horizon-client
-      looking-glass-client
-      protonvpn-cli
-      flameshot
-      geeqie
     ];
     developmentPackages = with pkgs; [
       autoconf
@@ -106,6 +121,12 @@ in {
       clinfo
     ];
     desktopPackages = with pkgs; [
+      isync
+      protonmail-bridge
+      looking-glass-client
+      protonvpn-cli
+      flameshot
+      geeqie
       appimage-run
       v4l-utils
       gnome-icon-theme
@@ -120,7 +141,7 @@ in {
       wally-cli
       graphviz
       firefox-bin
-      goldendict
+      # goldendict
       openscad
       vscode
       # pkgs.bleeding.idea.idea-community
@@ -450,7 +471,13 @@ EndSection
       ${pkgs.gphoto2}/bin/gphoto2 --stdout --capture-movie |
         ${pkgs.ffmpeg}/bin/ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2  /dev/video7
     '';
-    wantedBy = ["multi-user.target"];
+    # wantedBy = ["multi-user.target"];
+  };
+
+  xdg.portal = {
+    enable = true;
+    # extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    wlr.enable = true;
   };
 
 }

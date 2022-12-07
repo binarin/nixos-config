@@ -619,8 +619,8 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
 ** Erlang
    #+begin_src emacs-lisp
      (defun binarin/erlang-mode-hook ()
-       (lsp)
-       (yas-minor-mode-on))
+       ;; (lsp)
+       (yas-minor-mode 1))
 
      (add-hook 'erlang-mode-hook #'binarin/erlang-mode-hook)
    #+end_src
@@ -1382,7 +1382,7 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
                                       ("i" org-clock-in)))
    #+END_SRC
 ** Calendar Sync
-   #+BEGIN_SRC emacs-lisp
+   +BEGIN_SRC emacs-lisp
      (require 'org-gcal)
      (setq org-gcal-client-id (awhen (auth-source-search :host "booking-gcal" :max 1)
                                 (plist-get (car it) :user))
@@ -1390,7 +1390,7 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
                                     (funcall (plist-get (car it) :secret)))
            org-gcal-file-alist '(("alexey.lebedeff@booking.com" .  "~/org/bcal.org")
                                  ("7pgunlpa0t36dtkhpcuhhhmddcnt9b8d@import.calendar.google.com" . "~/org/bcal-evts.org")))
-   #+END_SRC
+   +END_SRC
 
 ** Blogging
    #+BEGIN_SRC emacs-lisp

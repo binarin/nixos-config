@@ -5,7 +5,7 @@ let
 in {
   options = {};
   config = {
-    environment.systemPackages = with pkgs.perl532Packages; [
+    environment.systemPackages = with pkgs.perl536Packages; [
       PathTiny
       JSONXS
       JSON

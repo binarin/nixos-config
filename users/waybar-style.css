@@ -63,3 +63,11 @@
     border-radius: 4px;
     padding: 0 20px;
 }
+
+#custom-notification {
+    font-size: 20px;
+    font-family: "NotoSansMono Nerd Font";
+    background: @base01;
+    color: @base05;
+    padding: 0 10px;
+}

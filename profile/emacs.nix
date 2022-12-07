@@ -149,7 +149,7 @@ in
         # xprintidle-ng
         sqlite # for helm-dash
         # gometalinter
-        bleeding.metals # scala LSP
+        metals # scala LSP
       ]);
   };
 }
