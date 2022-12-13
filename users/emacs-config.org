@@ -619,7 +619,6 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
 ** Erlang
    #+begin_src emacs-lisp
      (defun binarin/erlang-mode-hook ()
-       ;; (lsp)
        (yas-minor-mode 1))
 
      (add-hook 'erlang-mode-hook #'binarin/erlang-mode-hook)
