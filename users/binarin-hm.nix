@@ -47,7 +47,11 @@ let
     cmakeFlags = [
       "-DSYSTEM_INSTALL=ON"
     ];
+
   };
+
+  ignoringVulns = x: x // { meta = (x.meta // { knownVulnerabilities = []; }); };
+  qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
 in {
   imports = [
     ./emacs-hm.nix
@@ -137,7 +141,6 @@ in {
       precmd() {
           print -Pn "\e]133;A\e\\"
       }
-
      '';
     shellAliases = {
       gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';
@@ -173,6 +176,7 @@ in {
   };
 
   home.packages = with pkgs; [
+    (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; })
     shntool
     flac
     cuetools
