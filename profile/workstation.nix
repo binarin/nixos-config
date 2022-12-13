@@ -479,5 +479,5 @@ EndSection
     # extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     wlr.enable = true;
   };
-
+  services.flatpak.enable = true;
 }
