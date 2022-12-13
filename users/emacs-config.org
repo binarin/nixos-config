@@ -726,6 +726,7 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
      (gsetq org-cycle-separator-lines 0)
      (gsetq org-catch-invisible-edits 'error)
      (gsetq org-startup-folded t)
+     (gsetq org-adapt-indentation 'headline-data)
    #+END_SRC
 ** Agenda
    Separate block for functions that absolutely require lexical
