@@ -50,6 +50,9 @@ in {
     swaykbdd
     fuzzel
     swaynotificationcenter
+    (pkgs.writeShellScriptBin "x-www-browser" ''
+      exec firefox "$@"
+    '')
   ];
 
   wayland.windowManager.sway = {
