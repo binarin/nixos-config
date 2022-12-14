@@ -61,7 +61,7 @@
     };
   };
   epson = {
-    description = "epson MFD";
+    description = "epson WF-2750";
     wlan = {
       ip = "192.168.2.16";
       mac = "64:eb:8c:91:b2:2f";
@@ -268,4 +268,5 @@
       ip = "192.168.2.46";
     };
   };
+
 }
