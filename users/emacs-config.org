@@ -530,6 +530,14 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
                 new-fname))))))
 
    #+end_src
+** Text navigation
+   #+begin_src emacs-lisp
+     (global-set-key (kbd "C-;") 'avy-goto-char)
+     (global-set-key (kbd "C-:") 'avy-goto-char-timer)
+     (global-set-key (kbd "M-g g") 'avy-goto-line)
+     (avy-setup-default)
+     (gsetq avy-background t)
+   #+end_src
 * Programming
 ** Projects
    #+BEGIN_SRC emacs-lisp
