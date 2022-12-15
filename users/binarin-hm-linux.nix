@@ -10,9 +10,11 @@ in {
       "x-scheme-handler/https" = "smart-browser-chooser.desktop";
       "x-scheme-handler/http" = "smart-browser-chooser.desktop";
       "x-scheme-handler/org-protocol" = "org-protocol.desktop";
+      "image/jpeg" = "geeqie.desktop";
     };
     associations.added = {
       "application/pdf" = "org.gnome.Evince.desktop";
+      "image/jpeg" = "geeqie.desktop";
     };
   };
 
