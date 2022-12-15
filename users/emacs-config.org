@@ -538,6 +538,10 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
      (avy-setup-default)
      (gsetq avy-background t)
    #+end_src
+** Embark
+   #+begin_src emacs-lisp
+     (general-define-key "C-'" 'embark-act)
+   #+end_src
 * Programming
 ** Projects
    #+BEGIN_SRC emacs-lisp
