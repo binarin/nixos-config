@@ -197,6 +197,7 @@ in {
   };
 
   systemd.user.services.sway-layout-switch = {
+
     Unit = {
       PartOf = [ "graphical-session.target" ];
     };
@@ -204,6 +205,7 @@ in {
     Service = {
       Type = "simple";
       ExecStart = "${./sway-layout-switch.sh}";
+      Environment = [ "PATH=${lib.makeBinPath (with pkgs; [ bash sway jq ])}" ];
     };
 
     Install = { WantedBy = [ "sway-session.target" ]; };
