@@ -450,27 +450,42 @@ EndSection
   };
 
   services.udev.extraRules = ''
-    ACTION=="add", \
-    ATTR{idVendor}=="04a9", \
-    ATTR{idProduct}=="3218", \
-    ENV{SYSTEMD_WANTS}+="external_webcam.service", \
-    SUBSYSTEM=="usb", \
-    TAG+="systemd"
+      ACTION=="add", \
+      ATTR{idVendor}=="04a9", \
+      ATTR{idProduct}=="3218", \
+      ENV{SYSTEMD_WANTS}+="external_webcam.service", \
+      SUBSYSTEM=="usb", \
+      TAG+="systemd"
 
-    SUBSYSTEM=="video4linux", \
-    KERNEL=="video[0-9]*", \
-    ACTION=="add", \
-    ENV{ID_VENDOR_ID}=="046d",
-    ENV{ID_MODEL_ID}=="0892", \
-    RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 -d %N"
+      SUBSYSTEM=="video4linux", \
+      KERNEL=="video[0-9]*", \
+      ACTION=="add", \
+      ENV{ID_VENDOR_ID}=="046d",
+      ENV{ID_MODEL_ID}=="0892", \
+      RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 -d %N"
   '';
 
-  systemd.services.external_webcam = {
-    enable = true;
-    script = ''
-      ${pkgs.gphoto2}/bin/gphoto2 --stdout --capture-movie |
+  systemd.services.external_webcam =
+    let
+      hosts = import ../nixops/personal-hosts.nix;
+      lightsOn = pkgs.writeShellScript "elgatos-on" ''
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights
+      '';
+      lightsOff = pkgs.writeShellScript "elgatos-off" ''
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights
+      '';
+    in {
+      enable = true;
+      script = ''
+        ${pkgs.gphoto2}/bin/gphoto2 --stdout --capture-movie |
         ${pkgs.ffmpeg}/bin/ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2  /dev/video7
-    '';
+      '';
+      serviceConfig = {
+        ExecStopPost = "${lightsOff}";
+        ExecStartPost = "${lightsOn}";
+      };
     # wantedBy = ["multi-user.target"];
   };
 
