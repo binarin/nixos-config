@@ -7,14 +7,21 @@
 
 
   programs.emacs = let
-    patchedWin32Emacs = pkgs.bleeding.emacsPgtkNativeComp.overrideAttrs (oldAttrs: {
+    patchedWin32Emacs = pkgs.bleeding.emacsPgtk.overrideAttrs (oldAttrs: {
       patches = oldAttrs.patches ++ [ ./win32.diff ];
     });
   in     {
     enable = true;
-    package = pkgs.emacsPgtkNativeComp; # if pkgs.system == "x86_64-linux" then patchedWin32Emacs else pkgs.emacsGcc;
+    package = pkgs.emacsPgtk; # if pkgs.system == "x86_64-linux" then patchedWin32Emacs else pkgs.emacsGcc;
     extraPackages = epkgs: with epkgs; [
+      sudo-edit
+      corfu
+      consult
+      marginalia
+      orderless
+      vertico
       embark
+      embark-consult
       unicode-fonts
       anki-editor
       bazel

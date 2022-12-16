@@ -181,11 +181,25 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
    different font.
 
    #+BEGIN_SRC emacs-lisp
-     (general-define-key "M-x" 'counsel-M-x)
+     ;; (general-define-key "M-x" 'counsel-M-x)
    #+END_SRC
 
 ** Completion everywhere
-   #+BEGIN_SRC emacs-lisp
+   #+begin_src emacs-lisp
+     (vertico-mode)
+     (marginalia-mode)
+     (require 'orderless)
+     (gsetq completion-styles '(orderless basic)
+            completion-category-defaults nil
+            completion-category-overrides '((file (styles partial-completion))))
+     (general-define-key "C-x b" 'consult-buffer)
+     (gsetq completion-in-region-function #'consult-completion-in-region)
+     (global-corfu-mode)
+     (general-define-key "M-y" 'consult-yank-pop)
+     (general-define-key "C-;" 'embark-act)
+     (define-key embark-file-map (kbd "S") 'sudo-edit)
+   #+end_src
+   +BEGIN_SRC emacs-lisp
      (ivy-mode 1)
 
      (setf (alist-get 't ivy-re-builders-alist) 'ivy--regex-ignore-order
@@ -216,7 +230,7 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
 
      (general-define-key :keymaps 'ivy-minibuffer-map
                          "C-l" 'ivy-backward-kill-word)
-   #+END_SRC
+   +END_SRC
 ** External shell
    #+BEGIN_SRC emacs-lisp
      (gsetq shell-file-name "/bin/sh") ;; mostly for TRAMP, should work everywhere
@@ -284,12 +298,12 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
      (add-hook 'prog-mode-hook #'binarin/show-trailing-whitespace)
      (ws-butler-global-mode +1)
      (gsetq require-final-newline 'ask-me)
+     (gsetq tab-always-indent 'complete)
    #+END_SRC
 ** Killing
    #+BEGIN_SRC emacs-lisp
      (gsetq kill-do-not-save-duplicates t
             kill-ring-max 256)
-     (general-define-key "M-y" 'helm-show-kill-ring)
    #+END_SRC
 ** Clipboard
    #+BEGIN_SRC emacs-lisp
@@ -490,57 +504,42 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
                              tramp-file-name-regexp))
 
      (gsetq tramp-use-ssh-controlmaster-options nil)
-
-     (defun spacemacs/sudo-edit (&optional arg)
-       (interactive "P")
-       (require 'tramp)
-       (let ((fname (if (or arg (not buffer-file-name))
-                        (read-file-name "File: ")
-                      buffer-file-name)))
-         (find-file
-          (if (not (tramp-tramp-file-p fname))
-              (concat "/sudo:root@localhost:" fname)
-            (with-parsed-tramp-file-name fname parsed
-              (when (equal parsed-user "root")
-                (error "Already root!"))
-              (let* ((new-hop (tramp-make-tramp-file-name
-                               ;; Try to retrieve a tramp method suitable for
-                               ;; multi-hopping
-                               (cond ((tramp-get-method-parameter
-                                       parsed 'tramp-login-program))
-                                     ((tramp-get-method-parameter
-                                       parsed 'tramp-copy-program))
-                                     (t parsed-method))
-                               parsed-user
-                               parsed-domain
-                               parsed-host
-                               parsed-port
-                               nil
-                               parsed-hop))
-                     (new-hop (substring new-hop 1 -1))
-                     (new-hop (concat new-hop "|"))
-                     (new-fname (tramp-make-tramp-file-name
-                                 "sudo"
-                                 parsed-user
-                                 parsed-domain
-                                 parsed-host
-                                 parsed-port
-                                 parsed-localname
-                                 new-hop)))
-                new-fname))))))
-
    #+end_src
 ** Text navigation
    #+begin_src emacs-lisp
-     (global-set-key (kbd "C-;") 'avy-goto-char)
-     (global-set-key (kbd "C-:") 'avy-goto-char-timer)
+     (global-set-key (kbd "C-'") 'avy-goto-char)
+     (global-set-key (kbd "C-\"") 'avy-goto-char-timer)
      (global-set-key (kbd "M-g g") 'avy-goto-line)
      (avy-setup-default)
      (gsetq avy-background t)
    #+end_src
 ** Embark
    #+begin_src emacs-lisp
-     (general-define-key "C-'" 'embark-act)
+   #+end_src
+** Direnv
+   #+begin_src emacs-lisp
+     (direnv-mode)
+     (gsetq direnv-always-show-summary t
+            direnv-show-paths-in-summary nil)
+
+
+     (defvar binarin/direnv-boring-items
+       '("AR" "AS" "CC" "CONFIG_SHELL" "CXX" "DEVENV_DOTFILE" "DEVENV_STATE" "HOST_PATH" "IN_NIX_SHELL" "LD"
+         "NIX_BINTOOLS" "NIX_BINTOOLS_WRAPPER_TARGET_HOST_x86_64_unknown_linux_gnu"
+         "NIX_BUILD_CORES" "NIX_CC" "NIX_CC_WRAPPER_TARGET_HOST_x86_64_unknown_linux_gnu"
+         "NIX_CFLAGS_COMPILE" "NIX_ENFORCE_NO_NATIVE" "NIX_HARDENING_ENABLE" "NIX_INDENT_MAKE"
+         "NIX_LDFLAGS" "NIX_STORE" "NM" "OBJCOPY" "OBJDUMP" "RANLIB" "READELF" "SIZE"
+         "SOURCE_DATE_EPOCH" "STRINGS" "STRIP" "XML_CATALOG_FILES"
+         "buildInputs" "buildPhase" "builder" "cmakeFlags" "configureFlags" "depsBuildBuild"
+         "depsBuildBuildPropagated" "depsBuildTarget" "depsBuildTargetPropagated"
+         "depsHostHost" "depsHostHostPropagated" "depsTargetTarget" "depsTargetTargetPropagated"
+         "doCheck" "doInstallCheck" "dontAddDisableDepTrack" "mesonFlags" "name" "nativeBuildInputs"
+         "out" "outputs" "patches" "phases" "propagatedBuildInputs" "propagatedNativeBuildInputs"
+         "shell" "shellHook" "stdenv" "strictDeps" "system" "XDG_DATA_DIRS"))
+
+     (defun binarin/cleanup_direnv--summarise-changes (orig-fun items)
+       (funcall orig-fun (-remove (lambda (elt) (-elem-index (car elt) binarin/direnv-boring-items)) items)))
+     (advice-add 'direnv--summarise-changes :around #'binarin/cleanup_direnv--summarise-changes)
    #+end_src
 * Programming
 ** Projects
@@ -548,7 +547,7 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
      (projectile-mode +1)
 
      (gsetq projectile-enable-caching t
-            projectile-completion-system 'ivy)
+            projectile-completion-system 'default)
 
      (general-define-key
       :keymaps 'projectile-mode-map
@@ -739,6 +738,7 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
      (gsetq org-catch-invisible-edits 'error)
      (gsetq org-startup-folded t)
      (gsetq org-adapt-indentation 'headline-data)
+     (gsetq org-goto-interface 'outline-path-completion)
    #+END_SRC
 ** Agenda
    Separate block for functions that absolutely require lexical
@@ -1049,12 +1049,14 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
                        ("j" "journal" entry
                         (file+olp+datetree "~/org/journal.org")
                         "* %U
-       :PROPERTIES:
-       :ID: %(org-id-new)
-       :CONTEXT: %a
-       :CLOCKED: %K
-       :END:
-       %?
+     :PROPERTIES:
+     :ID: %(org-id-new)
+     :CONTEXT: %a
+     :CLOCKED: %K
+     :END:
+     :CLOCK:
+     :END:
+     %?
 
      # J:   - What project did I just finish?
      # J:   - Are there any parts of that project that I’m still thinking about?
