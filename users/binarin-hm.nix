@@ -98,17 +98,17 @@ in {
 
   programs.zoxide.enable = true;
 
-  programs.fzf = {
-    enable = true;
-    tmux.enableShellIntegration = true;
-  };
+  # programs.fzf = {
+  #   enable = true;
+  #   tmux.enableShellIntegration = true;
+  # };
   programs.bat.enable = true;
 
-  programs.autojump = {
-    enable = true;
-    enableZshIntegration = true;
-    enableBashIntegration = true;
-  };
+  # programs.autojump = {
+  #   enable = true;
+  #   enableZshIntegration = true;
+  #   enableBashIntegration = true;
+  # };
 
   programs.broot = {
     enable = true;
@@ -263,6 +263,7 @@ in {
     # google-fonts
   ];
 
+  programs.gh.enable = true;
   programs.git = {
     enable = true;
     package = pkgs.gitAndTools.gitFull;

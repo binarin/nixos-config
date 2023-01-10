@@ -79,7 +79,7 @@ selda-sqlite
 #simple-effects
 sqlite-simple
 stm
-structured-haskell-mode
+# structured-haskell-mode
 template-haskell
 temporary
 terminal-size

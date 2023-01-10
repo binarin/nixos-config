@@ -19,6 +19,7 @@ in {
   };
 
   home.sessionVariables.MOZ_ENABLE_WAYLAND = "1";
+  home.sessionVariables.NIXOS_OZONE_WL = "1";
   xsession.preferStatusNotifierItems = true;
 
   services.gpg-agent = {
@@ -36,6 +37,7 @@ in {
   };
 
   home.packages = with pkgs; [
+    bleeding.distrobox
     hunspellDicts.nl_nl
     ddcutil
     ydotool
@@ -59,6 +61,7 @@ in {
 
   wayland.windowManager.sway = {
     enable = true;
+    package = pkgs.bleeding.sway;
     wrapperFeatures.gtk = true ;
     extraSessionCommands = ''
       source ~/.nix-profile/etc/profile.d/hm-session-vars.sh

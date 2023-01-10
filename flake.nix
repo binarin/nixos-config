@@ -48,6 +48,9 @@
           });
         }
       )
+      (final: prev: {
+        sway = final.bleeding.sway;
+      })
     ];
 
     nixpkgsConfig = {

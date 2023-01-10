@@ -114,7 +114,6 @@
       sbt-mode
       scad-mode
       scala-mode
-      shm
       skewer-mode
       slime
       smart-mode-line

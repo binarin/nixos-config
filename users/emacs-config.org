@@ -190,14 +190,19 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
      (marginalia-mode)
      (require 'orderless)
      (gsetq completion-styles '(orderless basic)
-            completion-category-defaults nil
-            completion-category-overrides '((file (styles partial-completion))))
+	    completion-category-defaults nil
+	    completion-category-overrides '((file (styles partial-completion))))
      (general-define-key "C-x b" 'consult-buffer)
      (gsetq completion-in-region-function #'consult-completion-in-region)
      (global-corfu-mode)
      (general-define-key "M-y" 'consult-yank-pop)
      (general-define-key "C-;" 'embark-act)
-     (define-key embark-file-map (kbd "S") 'sudo-edit)
+
+     (eval-after-load "embark"
+       (lambda () (define-key embark-file-map (kbd "S") 'sudo-edit)))
+
+     (general-define-key :keymaps 'minibuffer-mode-map
+			 "C-l" 'vertico-directory-delete-word)
    #+end_src
    +BEGIN_SRC emacs-lisp
      (ivy-mode 1)

@@ -5,9 +5,7 @@ in {
   imports = [
     ../packages/use-my-overlays.nix
     ../packages/standard-linux-tools.nix
-    ../packages/haskell-packages.nix
     ../packages/user-packages.nix
-    # ../profile/emacs.nix
     ../users/binarin.nix
     ../users/binarin-fonts.nix
   ];
@@ -215,7 +213,7 @@ in {
       dmidecode
       gmrun
       # haskellPackages.xmobar
-      haskellPackages.yeganesh
+      # haskellPackages.yeganesh
       hsetroot
       quasselClient
       keychain
@@ -231,13 +229,13 @@ in {
      nixDevPackages ++
      utilityPackages;
 
-
   fonts = {
     fontDir.enable = true;
     enableGhostscriptFonts = true;
   };
 
-  hardware.i2c.enable = true;
+  # For ddcutil
+  # hardware.i2c.enable = true;
 
   hardware.bluetooth = {
     enable = true;
@@ -281,6 +279,7 @@ in {
 
   services.xserver = {
     gdk-pixbuf.modulePackages = [ pkgs.librsvg ];
+
     modules = [ pkgs.xorg.xf86inputlibinput ];
     videoDrivers = [ "amdgpu" "modesetting" ];
     config = ''
@@ -375,9 +374,14 @@ EndSection
   networking.firewall.allowedUDPPorts = [27031 27036];
 
   virtualisation = {
-    docker.enable = true;
+    # docker.enable = true;
     # docker.storageDriver = "overlay2";
     libvirtd.enable = true;
+    podman = {
+      enable = true;
+      dockerCompat = true;
+      defaultNetwork.dnsname.enable = true;
+    };
   };
 
   zramSwap = {
@@ -391,9 +395,6 @@ EndSection
 
   programs.ssh.startAgent = true;
   programs.light.enable = true;
-
-  # XXX Try disabling, maybe already fixed
-  # systemd.services.systemd-udev-settle.serviceConfig.ExecStart = ["" "${pkgs.coreutils}/bin/true"];
 
   systemd.services."binarin-org-sync" = let
     script = pkgs.writeScript "binarin-org-sync" ''
@@ -422,15 +423,6 @@ EndSection
     };
   };
 
-  # systemd.user.services.status-notifier-watcher = {
-  #   description = "https://www.freedesktop.org/wiki/Specifications/StatusNotifierItem/StatusNotifierWatcher/";
-  #   wantedBy = [ "default.target" ];
-  #   serviceConfig = {
-  #     Type = "simple";
-  #     ExecStart = "${(pkgs.haskell.lib.justStaticExecutables pkgs.haskellPackages.status-notifier-item)}/bin/status-notifier-watcher";
-  #   };
-  # };
-
   # TLP brings you the benefits of advanced power management for Linux without the need to understand every technical detail.
   # services.tlp.enable = true;
 
@@ -438,15 +430,6 @@ EndSection
     lidSwitch = "suspend";
     lidSwitchExternalPower = "ignore";
     lidSwitchDocked = "ignore";
-  };
-
-  security.wrappers = {
-    fbterm = {
-      source = "${pkgs.fbterm}/bin/fbterm";
-      owner   = "nobody";
-      group   = "nogroup";
-      capabilities = "cap_sys_tty_config+ep";
-    };
   };
 
   services.udev.extraRules = ''
@@ -494,5 +477,6 @@ EndSection
     # extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     wlr.enable = true;
   };
+
   services.flatpak.enable = true;
 }

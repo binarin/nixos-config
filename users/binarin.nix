@@ -7,13 +7,20 @@
   config = {
     nix.settings.trusted-users = [ "binarin" ];
 
+    users.extraGroups = {
+      binarin = {
+        gid = 1000;
+      };
+    };
     users.extraUsers = {
       binarin = {
         description = "Alexey Lebedeff";
         uid = 1000;
         isNormalUser = true;
+        group = "binarin";
         shell = "/run/current-system/sw/bin/zsh";
         extraGroups = [
+          "users"
           "networkmanager"
           "docker"
           "libvirtd"
