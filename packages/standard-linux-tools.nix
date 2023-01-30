@@ -17,6 +17,7 @@ in
   };
   config = {
     environment.systemPackages = with pkgs; [
+      reptyr
       apg
       bat
       bind # for dig

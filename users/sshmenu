@@ -4,8 +4,6 @@ exec 2> /tmp/deb
 set -eu
 set -o pipefail
 
-root=$(readlink -f $(dirname $0))
-
 top-level() {
     item "LOCAL" local-shell "$@"
     item "HOME" menu:home-servers "$@"
@@ -173,5 +171,5 @@ exec-menu() {
 if [[ "$#" -gt 0 ]]; then
     exec-menu top-level "SH"
 else
-    urxvt -title "FAST_CHOICE" -fn "xft:Iosevka:pixelsize=70" -geometry 30x10 -e zsh -c "$root/sshmenu go"
+    urxvt -title "FAST_CHOICE" -fn "xft:Iosevka:pixelsize=70" -geometry 30x10 -e zsh -c "$0 go"
 fi

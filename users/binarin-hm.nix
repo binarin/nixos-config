@@ -141,6 +141,32 @@ in {
       precmd() {
           print -Pn "\e]133;A\e\\"
       }
+
+      wt() {
+          WORKTREE=$(git rev-parse --show-toplevel)
+          BRANCHES_DIR=$(dirname $WORKTREE)
+
+          if ! [[ $BRANCHES_DIR =~ '-branches$' ]] ; then
+              BRANCHES_DIR=$WORKTREE-branches
+          fi
+
+          if [[ -z "$1" ]]; then
+              echo "$0 <new-branch-name>"
+              return 1
+          fi
+
+          NEW_WT=$BRANCHES_DIR/$1
+          git fetch
+          git worktree add $NEW_WT -b $1 $(git rev-parse origin/main)
+          cd $NEW_WT
+
+          if [[ -f user-template.bazelrc ]]; then
+              cat user-template.bazelrc | sed -e "/:ct_logdir/s,=.*$,=$NEW_WT/ct_logs," > user.bazelrc
+              echo 'build --disk_cache=~/.cache/bazel-shared-cache' >> user.bazelrc
+          fi
+
+          bazel run //tools:symlink_deps_for_erlang_ls || true
+      }
      '';
     shellAliases = {
       gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';

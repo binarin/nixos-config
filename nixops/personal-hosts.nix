@@ -269,4 +269,10 @@
     };
   };
 
+  raum-nginx-proxy-manager-container = {
+    lan = {
+      ip = "192.168.2.47";
+    };
+  };
+
 }

@@ -117,8 +117,9 @@ in {
           "Mod4+Ctrl+k" = "resize grow height 10";
           "Mod4+Ctrl+l" = "resize grow width 10";
           "Mod4+Shift+Return" = "exec urxvt";
-          "Mod4+Return" = "exec sway-clear";
-          "Mod4+semicolon" = "exec sshmenu";
+          "Mod4+Return" = "exec ~/bin/sway-clear";
+          "Mod4+semicolon" = "exec ${./sshmenu}";
+          "Mod4+n" = "exec swaync-client -t";
           "Mod4+x" = "[urgent=latest] focus";
           "Mod4+Shift+c" = "kill";
           "Mod4+g" = "gaps horizontal current plus 500";
@@ -134,16 +135,20 @@ in {
 
   services.kanshi = {
     enable = true;
-    profiles = {
+    package = pkgs.bleeding.kanshi; # at least 1.3.1
+    profiles = let
+      out-ishamael-edp = "Sharp Corporation 0x1516 Unknown";
+      out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
+    in {
       ishamael-uw = {
         outputs = [
           {
-            criteria = "Samsung Electric Company C49RG9x H1AK500000";
+            criteria = out-c49rg90;
             mode = "5120x1440";
             status = "enable";
           }
           {
-            criteria = "Sharp Corporation 0x1516 0x00000000";
+            criteria = out-ishamael-edp;
             status = "disable";
           }
         ];
@@ -151,7 +156,7 @@ in {
       ishamael-internal = {
         outputs = [
           {
-            criteria = "Sharp Corporation 0x1516 0x00000000";
+            criteria = out-ishamael-edp;
             status = "enable";
             mode = "3840x2400";
           }
