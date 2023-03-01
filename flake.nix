@@ -35,6 +35,8 @@
             ];
           };
 
+          wt-maker = final.callPackage ./packages/wt-maker.nix {};
+
           # NOTE: This one is picked up by home-manager emacs module
           emacsPackagesFor = final.bleeding.emacsPackagesFor;
 
@@ -46,6 +48,13 @@
               sha256 = "sha256-hSs+kKefhth8hvR13+Lqg8lC/pvPScXAhSOtHDl8ax0=";
             };
           });
+          # cups = prev.cups.overrideAttrs (oldAttrs: {
+          #   patchd = final.fetchpatch {
+          #     name = "expiring-subscriptions.patch";
+          #     url = "https://github.com/OpenPrinting/cups/commit/7225df2a2a52309dcb11922d718f79329cbdaefb.patch";
+          #     sha256 = "sha256-gnii0aGND+6aS59PUcdU4WtH4uQTpQ8G1/U3WNFK97c=";
+          #   };
+          # });
         }
       )
       (final: prev: {

@@ -99,6 +99,7 @@
       ob-elixir
       ox-hugo
       paredit
+      parinfer-rust-mode
       pdf-tools
       perspeen
       popup  # edts dep

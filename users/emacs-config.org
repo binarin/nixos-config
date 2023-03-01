@@ -921,7 +921,7 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
      (gsetq org-habit-graph-column 50
             org-habit-show-all-today t
             org-habit-completed-glyph  ?✓
-            org-habit-today-glyph  ??
+            org-habit-today-glyph  ?？
             binarin/org-habit-missed-day-glyph ?✗
             org-habit-preceding-days 35
             org-habit-following-days 1)

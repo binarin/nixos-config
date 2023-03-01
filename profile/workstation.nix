@@ -92,6 +92,7 @@ in {
 
   time.timeZone = "Europe/Amsterdam";
 
+  programs.nix-ld.enable = true;
   programs.wireshark.enable = true;
   programs.wireshark.package = pkgs.wireshark-qt;
 
@@ -373,15 +374,18 @@ EndSection
   networking.firewall.allowedTCPPorts = [27036 27037];
   networking.firewall.allowedUDPPorts = [27031 27036];
 
+  services.tailscale.enable = true;
+
   virtualisation = {
-    # docker.enable = true;
-    # docker.storageDriver = "overlay2";
+    docker.enable = true;
+    docker.storageDriver = "overlay2";
     libvirtd.enable = true;
-    podman = {
-      enable = true;
-      dockerCompat = true;
-      defaultNetwork.dnsname.enable = true;
-    };
+    # podman = {
+    #   enable = true;
+    #   package = pkgs.bleeding.podman;
+    #   dockerCompat = true;
+    #   defaultNetwork.dnsname.enable = true;
+    # };
   };
 
   zramSwap = {
@@ -452,12 +456,12 @@ EndSection
     let
       hosts = import ../nixops/personal-hosts.nix;
       lightsOn = pkgs.writeShellScript "elgatos-on" ''
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights || true
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights || true
       '';
       lightsOff = pkgs.writeShellScript "elgatos-off" ''
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights || true
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights || true
       '';
     in {
       enable = true;
