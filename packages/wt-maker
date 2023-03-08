@@ -26,7 +26,8 @@ if [[ -z $BASE_REF ]]; then
     BASE_REF=origin/$HEAD_BRANCH
 fi
 
-WORKTREE=$(git rev-parse --show-toplevel)
+# first worktree in the list is the main one
+WORKTREE=$(git worktree list --porcelain | head -n1 | sed -e 's/^worktree //')
 BRANCHES_DIR=$(dirname $WORKTREE)
 
 if ! [[ $BRANCHES_DIR =~ '-branches$' ]] ; then
