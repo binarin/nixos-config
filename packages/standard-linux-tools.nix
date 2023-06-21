@@ -84,6 +84,7 @@ in
       wol
       zip
       zsh
+      nix-output-monitor
     ];
 
     services.locate = {

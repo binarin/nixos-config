@@ -46,10 +46,14 @@ in {
     oraclejdk.accept_license = true;
   };
 
+  services.resolved = {
+    enable = true;
+  };
+
   networking = {
     networkmanager = {
       enable = true;
-      dns = "dnsmasq";
+      dns = "systemd-resolved";
     };
     resolvconf.dnsExtensionMechanism = false;
     extraHosts = ''
@@ -121,7 +125,6 @@ in {
     ];
     desktopPackages = with pkgs; [
       isync
-      protonmail-bridge
       looking-glass-client
       protonvpn-cli
       flameshot

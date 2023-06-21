@@ -184,6 +184,8 @@ in {
   };
 
   home.packages = with pkgs; [
+    discord
+    bleeding.protonmail-bridge
     mitmproxy
     aws-iam-authenticator
     awscli2
@@ -192,10 +194,12 @@ in {
     bleeding.ov
     parinfer-rust
     shntool
+    mac
     flac
     cuetools
     kid3
     picard
+    recode
     moonlight-qt
     kind
     skaffold
@@ -325,4 +329,22 @@ in {
 
   home.keyboard = null;
   home.sessionVariables.EDITOR = "emacsclient -nw -a";
+
+  programs.ssh = {
+    enable = true;
+    matchBlocks = {
+      "raum-annex" = {
+        hostname = "raum";
+        user = "git";
+        identityFile = "~/.ssh/id_annex";
+      };
+    };
+  };
+
+  programs.rtorrent = {
+    enable = true;
+    extraConfig = ''
+      encoding.add=utf-8
+    '';
+  };
 }
