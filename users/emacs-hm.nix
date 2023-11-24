@@ -7,12 +7,12 @@
 
 
   programs.emacs = let
-    patchedWin32Emacs = pkgs.bleeding.emacsPgtk.overrideAttrs (oldAttrs: {
+    patchedWin32Emacs = pkgs.bleeding.emacs-pgtk.overrideAttrs (oldAttrs: {
       patches = oldAttrs.patches ++ [ ./win32.diff ];
     });
   in     {
     enable = true;
-    package = pkgs.emacsPgtk; # if pkgs.system == "x86_64-linux" then patchedWin32Emacs else pkgs.emacsGcc;
+    package = pkgs.emacs-pgtk; # if pkgs.system == "x86_64-linux" then patchedWin32Emacs else pkgs.emacsGcc;
     extraPackages = epkgs: with epkgs; [
       sudo-edit
       corfu
@@ -86,7 +86,7 @@
       magit
       markdown-mode
       markdown-toc
-      mu4e-maildirs-extension
+      # mu4e-maildirs-extension
       # multi-libvterm
       nix-mode
       origami

@@ -67,6 +67,7 @@
       mac = "64:eb:8c:91:b2:2f";
     };
   };
+
   dir632 = {
     description = "D-Link DIR-632 router";
     wlan = {
@@ -74,6 +75,7 @@
       mac = "00:11:22:33:44:55";
     };
   };
+
   marax = {
     description = "Old Asus laptop (ul20ft)";
     wlan = {
@@ -85,11 +87,13 @@
       mac = "20:cf:30:53:4d:e5";
     };
   };
+
   unify-cloud-key = {
     lan = {
       ip = "192.168.2.19";
     };
   };
+
   balthamel = {
     description = "e7270 workstation";
     known-as = {
@@ -100,9 +104,11 @@
       root = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJLK34Ge9j6oabaCk9cuGyGk8oZvbN9t0tXuoaKEzo39f6n2Sef4Na8hT9pFrcDR34esmc5byh6uqAuZIzwjyh3+OQe6TDbzjHEYGnMBjXSKaEKxRna8BFroc0saYG8/KHyc0A6kTEF72LJ0iDcYxqrzVO1TzFpgaB4vVNUu2GiWoYHqUWA2DcOQBcyBiyjRRThXRs28ISN+lAoexQzAL20KnvJ5GmJ9anelOmIdfHxitcdmu/goxFjml6CgYoFtIY4Oo711rWErXmjmFuHIDiu0M+ufLZtj/dl153qMi9BGLY9HH3LHkd7FZjGWIwA2TLdKO+L6Ra8AVePIe3G4KL 20180926 - balthamel (root)";
     };
   };
+
   naberius = {
     description = "hetzner host";
   };
+
   philips-hue-bridge = {
     lan = {
       ip = "192.168.2.20";

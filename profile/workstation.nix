@@ -147,7 +147,7 @@ in {
       openscad
       vscode
       # pkgs.bleeding.idea.idea-community
-      prusa-slicer
+      pkgs.bleeding.prusa-slicer
       aspell
       aspellDicts.ru
       aspellDicts.en
