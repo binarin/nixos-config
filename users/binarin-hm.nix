@@ -185,13 +185,13 @@ in {
 
   home.packages = with pkgs; [
     discord
-    bleeding.protonmail-bridge
+    protonmail-bridge
     mitmproxy
     aws-iam-authenticator
     awscli2
     wt-maker
     (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; })
-    bleeding.ov
+    ov
     parinfer-rust
     shntool
     mac
@@ -222,7 +222,7 @@ in {
     # (bleeding.erlang-ls.overrideAttrs (oldAttrs: rec {
     #   patches = [ ../packages/erlang-ls.diff ];
     # }))
-    erlang-ls-patched
+    # erlang-ls-patched
     git-annex
     gnupg
     gopass

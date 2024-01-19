@@ -38,7 +38,7 @@ in {
   };
 
   home.packages = with pkgs; [
-    bleeding.distrobox
+    distrobox
     hunspellDicts.nl_nl
     ddcutil
     ydotool
@@ -62,7 +62,7 @@ in {
 
   wayland.windowManager.sway = {
     enable = true;
-    package = pkgs.bleeding.sway;
+    package = pkgs.sway;
     wrapperFeatures.gtk = true ;
     extraSessionCommands = ''
       source ~/.nix-profile/etc/profile.d/hm-session-vars.sh
@@ -136,7 +136,7 @@ in {
 
   services.kanshi = {
     enable = true;
-    package = pkgs.bleeding.kanshi; # at least 1.3.1
+    package = pkgs.kanshi; # at least 1.3.1
     profiles = let
       out-ishamael-edp = "Sharp Corporation 0x1516 Unknown";
       out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";

@@ -71,7 +71,7 @@
     x11.enable = true;
   };
 
-  hardware.video.hidpi.enable = lib.mkDefault true;
+  #hardware.video.hidpi.enable = lib.mkDefault true;
   # services.xserver.dpi = 200;
 
   # specialisation.desktop.configuration = {

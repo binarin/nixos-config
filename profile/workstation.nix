@@ -14,8 +14,7 @@ in {
     supportedFilesystems = [ "exfat" "nfs" "cifs" ];
     kernelModules = [ "fuse" "v4l2loopback" ];
     extraModprobeConfig = ''
-      options v4l2loopback video_nr=7,8
-      options v4l2loopback card_label="Canon","OBS"
+      options v4l2loopback video_nr=7,8      options v4l2loopback card_label=Canon,OBS
     '';
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
     kernel.sysctl."vm.swappiness" = 1;
@@ -58,7 +57,7 @@ in {
     resolvconf.dnsExtensionMechanism = false;
     extraHosts = ''
       127.0.0.1 ${config.networking.hostName}
-      0.0.0.0 pikabu.ru leprosorium.ru shovinist.leprosorim.ru idiod.leprosorium.ru games.leprosorium.ru meduza.io d3.ru
+#      0.0.0.0 pikabu.ru leprosorium.ru shovinist.leprosorim.ru idiod.leprosorium.ru games.leprosorium.ru meduza.io d3.ru
     '';
     nat = {
       enable = true;
@@ -266,8 +265,8 @@ in {
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
-  services.openssh.permitRootLogin = "yes";
-  services.openssh.forwardX11 = true;
+  services.openssh.settings.PermitRootLogin = "yes";
+  services.openssh.settings.X11Forwarding = true;
 
   services.avahi = {
     enable = true;
@@ -481,9 +480,9 @@ EndSection
 
   xdg.portal = {
     enable = true;
-    # extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = lib.mkForce [ pkgs.xdg-desktop-portal-wlr ];
     wlr.enable = true;
   };
-
+  services.gnome.gnome-keyring.enable = lib.mkForce false;
   services.flatpak.enable = true;
 }
