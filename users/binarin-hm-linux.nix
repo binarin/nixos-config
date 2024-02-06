@@ -38,6 +38,7 @@ in {
   };
 
   home.packages = with pkgs; [
+    bleeding.grapejuice
     distrobox
     hunspellDicts.nl_nl
     ddcutil

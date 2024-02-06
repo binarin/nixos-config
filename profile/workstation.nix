@@ -113,12 +113,12 @@ in {
       autoconf
       automake
       gcc
-      godot
+      # godot
       hugo
       kubernetes
       leiningen
       lsyncd
-      pkgconfig
+      pkg-config
       sbt
       clinfo
     ];
@@ -203,7 +203,7 @@ in {
       abcm2ps
       # vagrant
       virt-viewer
-      virtmanager
+      virt-manager
       borgbackup
     ];
     otherPackages = with pkgs; [
