@@ -255,12 +255,22 @@ in {
     ];
   };
 
-  hardware.pulseaudio = {
+  # hardware.pulseaudio = {
+  #   enable = true;
+  #   package = pkgs.pulseaudioFull;
+  #   # extraModules = [ pkgs.pulseaudio-modules-bt ];
+  #   support32Bit = true;
+  #   daemon.config.default-sample-rate = 48000;
+  # };
+
+  security.rtkit.enable = true;
+  services.pipewire = {
     enable = true;
-    package = pkgs.pulseaudioFull;
-    # extraModules = [ pkgs.pulseaudio-modules-bt ];
-    support32Bit = true;
-    daemon.config.default-sample-rate = 48000;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # If you want to use JACK applications, uncomment this
+    #jack.enable = true;
   };
 
   # Enable the OpenSSH daemon.
@@ -351,16 +361,19 @@ EndSection
     #   tapping = false;
     # };
 
-    desktopManager.xterm.enable = false;
-
-    desktopManager.gnome.enable = true;
+    desktopManager.xterm.enable = true;
+    desktopManager.gnome.enable = false;
+    desktopManager.plasma5.enable = true;
 
     displayManager = {
-      gdm.enable = true;
+      gdm.enable = false;
       lightdm.enable = false;
+      sddm.enable = true;
       defaultSession = "sway";
     };
   };
+
+  programs.hyprland.enable = true;
 
   location.latitude = 52.3702;
   location.longitude = 4.8952;
@@ -452,6 +465,15 @@ EndSection
       ENV{ID_VENDOR_ID}=="046d",
       ENV{ID_MODEL_ID}=="0892", \
       RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 -d %N"
+
+      KERNEL=="hidraw*", \
+      SUBSYSTEM=="hidraw", \
+      ATTRS{idVendor}=="19f5", \
+      ATTRS{idProduct}=="3255", \
+      MODE="0660", \
+      GROUP="users", \
+      TAG+="uaccess", \
+      TAG+="udev-acl"
   '';
 
   systemd.services.external_webcam =
@@ -478,11 +500,12 @@ EndSection
     # wantedBy = ["multi-user.target"];
   };
 
-  xdg.portal = {
-    enable = true;
-    extraPortals = lib.mkForce [ pkgs.xdg-desktop-portal-wlr ];
-    wlr.enable = true;
-  };
+  # xdg.portal = {
+  #   enable = true;
+  #   extraPortals = lib.mkForce [ pkgs.xdg-desktop-portal-wlr pkgs.xdg-desktop-portal-hyprland ];
+  #   wlr.enable = true;
+  # };
+
   services.gnome.gnome-keyring.enable = lib.mkForce false;
   services.flatpak.enable = true;
 }

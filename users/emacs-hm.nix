@@ -140,15 +140,15 @@
     overrides = self: super: with self; rec {
       org = self.elpaPackages.org;
       # Funnily enough you can't override elpa packages via overrideAttrs', you really need this stupid elpaBuild dance
-      spinner = super.spinner.override {
-        elpaBuild = args: super.elpaBuild (args // {
-          src = let srcLz = builtins.fetchurl {
-            url = "https://elpa.gnu.org/packages/spinner-1.7.3.el.lz";
-            sha256 = "188i2r7ixva78qd99ksyh3jagnijpvzzjvvx37n57x8nkp8jc4i4";
-          };
-          in pkgs.runCommand "spinner-unpacked" {} ''${pkgs.lzip}/bin/lzip -d -o $out ${srcLz}'';
-        });
-      };
+      # spinner = super.spinner.override {
+      #   elpaBuild = args: super.elpaBuild (args // {
+      #     src = let srcLz = builtins.fetchurl {
+      #       url = "https://elpa.gnu.org/packages/spinner-1.7.3.el.lz";
+      #       sha256 = "188i2r7ixva78qd99ksyh3jagnijpvzzjvvx37n57x8nkp8jc4i4";
+      #     };
+      #     in pkgs.runCommand "spinner-unpacked" {} ''${pkgs.lzip}/bin/lzip -d -o $out ${srcLz}'';
+      #   });
+      # };
     };
   };
 }

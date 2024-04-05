@@ -7,18 +7,19 @@
     ./users/binarin.nix
     # ./profile/emacs.nix
     ./profile/workstation.nix
-    ./profile/bkng-kerberos.nix
+    # ./profile/bkng-kerberos.nix
     ./hardware/vfio.nix
   ];
 
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "amdgpu" ];
-
+  boot.supportedFilesystems = [ "zfs" ];
   virtualization.vfio = {
     enable = true;
     devices = [
-      "0000:01:00.0" # NVMe
-      "0000:0d:00.0" # RTX
-      "0000:0d:00.1"
+      "0000:0a:00.0" # pci-e usb
+      "0000:0e:00.0" # NVMe
+      "0000:0f:00.0" # RTX
+      "0000:0f:00.1"
     ];
   };
 
@@ -27,10 +28,10 @@
   specialisation.headless.configuration = {
     virtualization.vfio = {
       devices = [
-        "0000:10:00.0" # Radeon
-        "0000:10:00.1"
-        "0000:10:00.2"
-        "0000:10:00.3"
+        "0000:12:00.0" # Radeon
+        "0000:12:00.1"
+        "0000:12:00.2"
+        "0000:12:00.3"
       ];
     };
   };
@@ -50,30 +51,44 @@
 
   services.xserver = {
     deviceSection = ''
-      BusID "PCI:16:0:0"
+      BusID "PCI:18:0:0"
     '';
   };
 
-  fileSystems."/" =
-    { device = "valak-rpool/root/nixos";
-      fsType = "zfs";
-    };
+  # fileSystems."/" =
+  #   { device = "valak-rpool/root/nixos";
+  #     fsType = "zfs";
+  #   };
 
-  fileSystems."/home" =
-    { device = "valak-rpool/home";
-      fsType = "zfs";
+  # fileSystems."/home" =
+  #   { device = "valak-rpool/home";
+  #     fsType = "zfs";
+  #   };
+
+  # fileSystems."/boot" =
+  #   { device = "/dev/disk/by-label/VALAK-BOOT";
+  #     fsType = "vfat";
+  #   };
+
+  # swapDevices =
+  #   [ { device = "/dev/disk/by-label/valak-swap"; }
+  #   ];
+
+  fileSystems."/" =
+    { device = "/dev/disk/by-uuid/ac216764-ac4b-4a69-aa4e-22051798e14d";
+      fsType = "ext4";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-label/VALAK-BOOT";
+    { device = "/dev/disk/by-uuid/DC51-7F5A";
       fsType = "vfat";
     };
 
   swapDevices =
-    [ { device = "/dev/disk/by-label/valak-swap"; }
+    [ { device = "/dev/disk/by-uuid/27420222-5cdb-440f-9b32-0f2668db7d68"; }
     ];
 
-  nix.maxJobs = lib.mkDefault 8;
+  nix.settings.max-jobs = lib.mkDefault 8;
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -161,48 +176,48 @@
 
   system.stateVersion = "20.09";
 
-  systemd.services."borgbackup-job-rsync-net".serviceConfig.ExecStartPre = ''${pkgs.coreutils}/bin/sleep 30'';
-  systemd.timers."borgbackup-job-rsync-net".timerConfig.Persistent = true;
+  # systemd.services."borgbackup-job-rsync-net".serviceConfig.ExecStartPre = ''${pkgs.coreutils}/bin/sleep 30'';
+  # systemd.timers."borgbackup-job-rsync-net".timerConfig.Persistent = true;
 
-  services.borgbackup.jobs.rsync-net = {
-    paths = [ "/home/vm-shared/sketchup/models" "/home/binarin" ];
-    exclude = [
-      "/home/binarin/.litecoin"
-      "/home/binarin/booking-workspace"
-      "**/*.qcow2.bz2"
-      "**/.cache"
-      "/home/binarin/Downloads"
-      "**/.cabal"
-      "**/.ivy2"
-      "/home/binarin/tmp"
-      "/home/binarin/.config/Slack"
-      "/home/binarin/.config/google-chrome"
-      "/home/binarin/.config/skypeforlinux"
-      "/home/binarin/.cabal"
-      "/home/binarin/.mozilla"
-      "/home/binarin/.ivy2"
-      "/home/binarin/.sbt"
-      "/home/binarin/.cargo"
-      "/home/binarin/.tabnine"
-    ];
-    repo = "18830@ch-s011.rsync.net:valak";
-    doInit = false;
-    encryption = {
-      mode = "repokey";
-      passCommand = "cat /root/.borg-pass";
-    };
-    environment = { BORG_RSH = "ssh -i /root/.ssh/rsync.net"; };
-    extraArgs = "--remote-path=borg1";
-    compression = "zstd,22";
-    startAt = "daily";
-    prune.keep = {
-      within = "1d"; # Keep all archives from the last day
-      daily = 7;
-      weekly = 5;
-      monthly = 12;
-      yearly = -1;
-    };
-  };
+  # services.borgbackup.jobs.rsync-net = {
+  #   paths = [ "/home/vm-shared/sketchup/models" "/home/binarin" ];
+  #   exclude = [
+  #     "/home/binarin/.litecoin"
+  #     "/home/binarin/booking-workspace"
+  #     "**/*.qcow2.bz2"
+  #     "**/.cache"
+  #     "/home/binarin/Downloads"
+  #     "**/.cabal"
+  #     "**/.ivy2"
+  #     "/home/binarin/tmp"
+  #     "/home/binarin/.config/Slack"
+  #     "/home/binarin/.config/google-chrome"
+  #     "/home/binarin/.config/skypeforlinux"
+  #     "/home/binarin/.cabal"
+  #     "/home/binarin/.mozilla"
+  #     "/home/binarin/.ivy2"
+  #     "/home/binarin/.sbt"
+  #     "/home/binarin/.cargo"
+  #     "/home/binarin/.tabnine"
+  #   ];
+  #   repo = "18830@ch-s011.rsync.net:valak";
+  #   doInit = false;
+  #   encryption = {
+  #     mode = "repokey";
+  #     passCommand = "cat /root/.borg-pass";
+  #   };
+  #   environment = { BORG_RSH = "ssh -i /root/.ssh/rsync.net"; };
+  #   extraArgs = "--remote-path=borg1";
+  #   compression = "zstd,22";
+  #   startAt = "daily";
+  #   prune.keep = {
+  #     within = "1d"; # Keep all archives from the last day
+  #     daily = 7;
+  #     weekly = 5;
+  #     monthly = 12;
+  #     yearly = -1;
+  #   };
+  # };
 
   programs.sway = {
     enable = true;

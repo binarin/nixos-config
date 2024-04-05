@@ -38,7 +38,7 @@
 
     programs.zsh.enable = true;
 
-    services.autorandr.enable = true;
+    services.autorandr.enable = false;
 
     home-manager.users.binarin = {
       imports = [
@@ -340,7 +340,7 @@
         "xscreensaver.dpmsQuickOff" = true;
       };
 
-      services.network-manager-applet.enable = true;
+      services.network-manager-applet.enable = false;
     };
   };
 }

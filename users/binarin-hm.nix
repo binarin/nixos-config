@@ -184,8 +184,11 @@ in {
   };
 
   home.packages = with pkgs; [
+    moonlight-qt
+    remmina
+    electrum
     discord
-    protonmail-bridge
+    bleeding.protonmail-bridge
     mitmproxy
     aws-iam-authenticator
     awscli2
@@ -195,12 +198,12 @@ in {
     parinfer-rust
     shntool
     mac
+    gparted
     flac
     cuetools
     kid3
     picard
     recode
-    moonlight-qt
     kind
     skaffold
     jetbrains.idea-community

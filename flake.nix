@@ -91,7 +91,10 @@
         nixCommonConfigModule
 	      home-manager.nixosModules.home-manager
 	      nixos.nixosModules.notDetected
-        { home-manager.useGlobalPkgs = true; }
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.backupFileExtension = "backup";
+        }
 	    ];
     };
 
