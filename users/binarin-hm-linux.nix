@@ -42,9 +42,9 @@ in {
   };
 
   home.packages = with pkgs; [
+    grimblast
+    bleeding.trezor-agent
     kanshi
-    # home-manager
-    bleeding.grapejuice
     distrobox
     hunspellDicts.nl_nl
     ddcutil
@@ -76,6 +76,7 @@ in {
 
   wayland.windowManager.hyprland = {
     enable = true;
+    # package = pkgs.hyprland;
     settings = {
       misc = {
         force_default_wallpaper = 0;
@@ -86,21 +87,39 @@ in {
       "$menu" = "fuzzel";
       "$fileManager" = "dolphin";
       "$mod" = "SUPER";
+      "$hyper" = "SUPER SHIFT ALT CTRL";
+
+      exec-once = [
+        "${pkgs.kwallet-pam}/libexec/pam_kwallet_init --no-startup-id"
+        "protonmail-bridge -n"
+        "[workspace 1 silent] foot"
+        "[workspace 2 silent] emacs"
+        "[workspace 4 silent] firefox"
+        "[workspace 5 silent; togglegroup] thunderbird"
+        "[workspace 5 silent] telegram-desktop"
+        "waybar"
+      ];
 
       general = {
         resize_on_border = true;
+        layout = "master";
       };
+
+      animation = [
+        "workspaces,0"
+      ];
+
       input = {
         kb_layout = "us,ru";
         kb_variant = ",winkeys";
         kb_options = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,compose:pause";
       };
       workspace = [
-        "1, persistent:true, monitor:desc:${out-u4025qw}, default:true"
-        "2, persistent:true, monitor:desc:${out-u4025qw}, on-created-empty:emacs"
-        "3, persistent:true, monitor:desc:${out-u4025qw}"
-        "4, persistent:true, monitor:desc:${out-u4025qw}, on-created-empty:firefox"
-        "5, persistent:true, monitor:desc:${out-u4025qw}"
+        "1, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center, default:true"
+        "2, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center"
+        "3, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center"
+        "4, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center"
+        "5, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center"
 
         "6, persistent:true, monitor:desc:${out-lg-dualup-left}, default:true"
         "7, persistent:true, monitor:desc:${out-lg-dualup-left}"
@@ -109,49 +128,56 @@ in {
         "9, persistent:true, monitor:desc:${out-lg-dualup-right}"
       ];
 
-      bind = [
-        "$mod, return, exec, $terminal"
-        "$mod SHIFT, C, killactive"
-        "$mod, E, exec, $fileManager"
-        "$mod SHIFT, Q, exit"
-        "$mod, D, exec, $menu"
-        "$mod, F, fullscreen, 0"
-        "$mod SHIFT, left, movewindow, l"
-        "$mod SHIFT, right, movewindow, r"
-        "$mod SHIFT, down, movewindow, d"
-        "$mod SHIFT, up, movewindow, u"
+      master = {
+        always_center_master = true;
+        new_is_master = false;
+      };
 
-        "$mod, V, togglefloating,"
-        "$mod, P, pseudo, # dwindle"
-        "$mod, J, togglesplit, # dwindle"
-        "$mod, left, movefocus, l"
-        "$mod, right, movefocus, r"
-        "$mod, up, movefocus, u"
-        "$mod, down, movefocus, d"
-        "$mod, 1, workspace, 1"
-        "$mod, 2, workspace, 2"
-        "$mod, 3, workspace, 3"
-        "$mod, 4, workspace, 4"
-        "$mod, 5, workspace, 5"
-        "$mod, 6, workspace, 6"
-        "$mod, 7, workspace, 7"
-        "$mod, 8, workspace, 8"
-        "$mod, 9, workspace, 9"
-        "$mod, 0, workspace, 10"
-        "$mod SHIFT, 1, movetoworkspace, 1"
-        "$mod SHIFT, 2, movetoworkspace, 2"
-        "$mod SHIFT, 3, movetoworkspace, 3"
-        "$mod SHIFT, 4, movetoworkspace, 4"
-        "$mod SHIFT, 5, movetoworkspace, 5"
-        "$mod SHIFT, 6, movetoworkspace, 6"
-        "$mod SHIFT, 7, movetoworkspace, 7"
-        "$mod SHIFT, 8, movetoworkspace, 8"
-        "$mod SHIFT, 9, movetoworkspace, 9"
-        "$mod SHIFT, 0, movetoworkspace, 10"
-        "$mod, S, togglespecialworkspace, magic"
-        "$mod SHIFT, S, movetoworkspace, special:magic"
-        "$mod, mouse_down, workspace, e+1"
-        "$mod, mouse_up, workspace, e-1"
+      bind = [
+        "$mod SHIFT , 0, movetoworkspace, 10"
+        "$mod       , 0, workspace, 10"
+        "$mod SHIFT , 1, movetoworkspace, 1"
+        "$mod       , 1, workspace, 1"
+        "$mod SHIFT , 2, movetoworkspace, 2"
+        "$mod       , 2, workspace, 2"
+        "$mod SHIFT , 3, movetoworkspace, 3"
+        "$mod       , 3, workspace, 3"
+        "$mod SHIFT , 4, movetoworkspace, 4"
+        "$mod       , 4, workspace, 4"
+        "$mod SHIFT , 5, movetoworkspace, 5"
+        "$mod       , 5, workspace, 5"
+        "$mod SHIFT , 6, movetoworkspace, 6"
+        "$mod       , 6, workspace, 6"
+        "$mod SHIFT , 7, movetoworkspace, 7"
+        "$mod       , 7, workspace, 7"
+        "$mod SHIFT , 8, movetoworkspace, 8"
+        "$mod       , 8, workspace, 8"
+        "$mod SHIFT , 9, movetoworkspace, 9"
+        "$mod       , 9, workspace, 9"
+        "$mod SHIFT , C, killactive"
+        "$hyper     , C, layoutmsg, orientationcenter"
+        "$mod       , D, exec, $menu"
+        "$mod       , E, exec, $fileManager"
+        "$mod       , F, fullscreen, 0"
+        "$mod CTRL  , G, togglegroup"
+        "$mod       , J, changegroupactive, f"
+        "$mod       , K, changegroupactive, b"
+        "$mod       , N, exec, swaync-client -t"
+        "$mod SHIFT , Q, exit"
+        "$mod SHIFT , S, movetoworkspace, special:magic"
+        "$mod       , S, togglespecialworkspace, magic"
+        "$mod       , V, togglefloating,"
+        "$mod       , down, movefocus, d"
+        "$mod SHIFT , down, movewindoworgroup, d"
+        "$mod       , left, movefocus, l"
+        "$mod SHIFT , left, movewindoworgroup, l"
+        "$mod       , mouse_down, workspace, e+1"
+        "$mod       , mouse_up, workspace, e-1"
+        "$mod       , return, exec, $terminal"
+        "$mod       , right, movefocus, r"
+        "$mod SHIFT , right, movewindoworgroup, r"
+        "$mod       , up, movefocus, u"
+        "$mod SHIFT , up, movewindoworgroup, u"
       ];
       bindm = [
         "$mod, mouse:272, movewindow"
@@ -292,7 +318,7 @@ in {
   services.swayidle = {
     enable = true;
     timeouts = [
-      { timeout = 300; command = ''${pkgs.sway}/bin/swaymsg "output * dpms off"''; resumeCommand = ''${pkgs.sway}/bin/swaymsg "output * dpms on"''; }
+      { timeout = 300; command = ''${pkgs.hyprland}/bin/hyprctl dispatch dpms off''; resumeCommand = ''${pkgs.hyprland}/bin/hyprctl dispatch dpms on''; }
       { timeout = 360; command = ''${pkgs.swaylock}/bin/swaylock -f -c 000000''; }
     ];
     events = [
@@ -384,7 +410,7 @@ in {
   };
   programs.waybar = {
     enable = true;
-    systemd.enable = true;
+    # systemd.enable = true;
     settings = {
       mainBar = {
         position = "bottom";
@@ -458,6 +484,13 @@ in {
     };
     style = ./waybar-style.css;
   };
+
   home.file.".config/waybar/base16-zenburn.css".source = ./base16-zenburn.css;
+
+  xdg.dataFile."dbus-1/services/org.freedesktop.secrets.service".text = ''
+    [D-BUS Service]
+    Name=org.freedesktop.secrets
+    Exec=${lib.getBin pkgs.plasma5Packages.kwallet}/bin/kwalletd5
+  '';
 
 }

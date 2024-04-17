@@ -264,6 +264,7 @@ in {
   # };
 
   security.rtkit.enable = true;
+
   services.pipewire = {
     enable = true;
     alsa.enable = true;
@@ -374,6 +375,7 @@ EndSection
   };
 
   programs.hyprland.enable = true;
+  programs.hyprland.package = pkgs.hyprland;
 
   location.latitude = 52.3702;
   location.longitude = 4.8952;

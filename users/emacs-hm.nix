@@ -6,13 +6,9 @@
   '';
 
 
-  programs.emacs = let
-    patchedWin32Emacs = pkgs.bleeding.emacs-pgtk.overrideAttrs (oldAttrs: {
-      patches = oldAttrs.patches ++ [ ./win32.diff ];
-    });
-  in     {
+  programs.emacs = {
     enable = true;
-    package = pkgs.emacs-pgtk; # if pkgs.system == "x86_64-linux" then patchedWin32Emacs else pkgs.emacsGcc;
+    package = pkgs.emacs-pgtk;
     extraPackages = epkgs: with epkgs; [
       sudo-edit
       corfu

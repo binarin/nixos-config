@@ -1,12 +1,21 @@
 {
   inputs = {
 
+
     nixos.url = github:NixOS/nixpkgs/nixos-23.11;
+
     nixpkgs-master.url = github:NixOS/nixpkgs/master;
+
     nixpkgs.url = github:nixos/nixpkgs/nixos-23.11;
 
     home-manager.url = github:nix-community/home-manager/release-23.11;
     home-manager.inputs.nixpkgs.follows = "nixos";
+
+    hyprland.url = github:hyprwm/Hyprland/v0.39.0;
+    hyprland.inputs.nixpkgs.follows = "nixos";
+
+    hyprland-contrib.url = github:hyprwm/contrib;
+    hyprland-contrib.inputs.nixpkgs.follows = "nixos";
 
     darwin.url = "github:LnL7/nix-darwin";
     darwin.inputs.nixpkgs.follows = "nixpkgs";
@@ -20,11 +29,31 @@
   };
 
   outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat,
-              darwin, home-manager, emacs, cq}@inputs:
+              darwin, home-manager, emacs, cq, hyprland, hyprland-contrib}@inputs:
 
   let
     globalOverlays = [
       emacs.overlay
+
+      hyprland.overlays.default
+      hyprland-contrib.overlays.default
+      (final: prev: {
+        hyprland = prev.hyprland.override {
+          libdrm = final.bleeding.libdrm;
+          wayland-protocols = final.bleeding.wayland-protocols;
+        };
+        wlroots-hyprland = prev.wlroots-hyprland.override {
+          wlroots = (prev.wlroots.override {
+            wayland-protocols = final.bleeding.wayland-protocols;
+            mesa = prev.mesa.override {
+              libdrm = final.bleeding.libdrm;
+            };
+          }).overrideAttrs (a: {
+            buildInputs = a.buildInputs ++ [final.bleeding.hwdata final.bleeding.libdisplay-info];
+          });
+        };
+      })
+
       (
         final: prev: {
           bleeding = import nixpkgs-master {
@@ -38,16 +67,16 @@
           wt-maker = final.callPackage ./packages/wt-maker.nix {};
 
           # NOTE: This one is picked up by home-manager emacs module
-          emacsPackagesFor = final.bleeding.emacsPackagesFor;
+          # emacsPackagesFor = final.bleeding.emacsPackagesFor;
 
-          ytt = prev.ytt.overrideAttrs (oldAttrs: {
-            src = final.fetchFromGitHub {
-              owner = "vmware-tanzu";
-              repo = "carvel-ytt";
-              rev = "v0.35.1";
-              sha256 = "sha256-hSs+kKefhth8hvR13+Lqg8lC/pvPScXAhSOtHDl8ax0=";
-            };
-          });
+          # ytt = prev.ytt.overrideAttrs (oldAttrs: {
+          #   src = final.fetchFromGitHub {
+          #     owner = "vmware-tanzu";
+          #     repo = "carvel-ytt";
+          #     rev = "v0.35.1";
+          #     sha256 = "sha256-hSs+kKefhth8hvR13+Lqg8lC/pvPScXAhSOtHDl8ax0=";
+          #   };
+          # });
           # cups = prev.cups.overrideAttrs (oldAttrs: {
           #   patchd = final.fetchpatch {
           #     name = "expiring-subscriptions.patch";
@@ -57,9 +86,6 @@
           # });
         }
       )
-      # (final: prev: {
-      #   sway = final.bleeding.sway;
-      # })
     ];
 
     nixpkgsConfig = {

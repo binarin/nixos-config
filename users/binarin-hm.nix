@@ -184,7 +184,6 @@ in {
   };
 
   home.packages = with pkgs; [
-    moonlight-qt
     remmina
     electrum
     discord
@@ -221,11 +220,6 @@ in {
     comma
     elixir_1_14
     erlangR25
-    # nodePackages.browser-sync
-    # (bleeding.erlang-ls.overrideAttrs (oldAttrs: rec {
-    #   patches = [ ../packages/erlang-ls.diff ];
-    # }))
-    # erlang-ls-patched
     git-annex
     gnupg
     gopass
@@ -252,7 +246,6 @@ in {
     docker-compose
     tdesktop
     bleeding.yt-dlp
-    # bleeding.yandex-disk
     winePackages.full
     lilypond-with-fonts
     vlc

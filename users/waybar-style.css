@@ -19,7 +19,11 @@
     padding: 0px 8px;
 }
 
+/* 'focused' for sway, 'active' for hyprland */
 #workspaces button.focused {
+    background: @base02;
+}
+#workspaces button.active {
     background: @base02;
 }
 

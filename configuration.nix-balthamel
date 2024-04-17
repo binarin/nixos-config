@@ -5,7 +5,7 @@
   networking.hostName = "balthamel";
   networking.hostId = "d4a5542e";
 
-  boot.kernelPackages = pkgs.bleeding.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   imports = [
     ./hardware/intel.nix

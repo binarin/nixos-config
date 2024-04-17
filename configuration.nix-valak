@@ -11,6 +11,7 @@
     ./hardware/vfio.nix
   ];
 
+  boot.kernelPackages = pkgs.linuxPackages_6_6;
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "amdgpu" ];
   boot.supportedFilesystems = [ "zfs" ];
   virtualization.vfio = {
@@ -166,9 +167,9 @@
     ${pkgs.systemd}/bin/systemd-tmpfiles --create --prefix=/dev/shm/
   '';
 
-  # services.logind.extraConfig = ''
-  #   HandlePowerKey=suspend
-  # '';
+  services.logind.extraConfig = ''
+    HandlePowerKey=poweroff
+  '';
 
   systemd.tmpfiles.rules = [
     "f /dev/shm/looking-glass 0660 binarin qemu-libvirtd -"
