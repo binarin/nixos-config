@@ -42,6 +42,7 @@ in {
   };
 
   home.packages = with pkgs; [
+    steam-run
     grimblast
     bleeding.trezor-agent
     kanshi
@@ -83,11 +84,14 @@ in {
         disable_hyprland_logo = true;
         background_color = "0x00807F";
       };
+
       "$terminal" = "foot";
       "$menu" = "fuzzel";
       "$fileManager" = "dolphin";
       "$mod" = "SUPER";
       "$hyper" = "SUPER SHIFT ALT CTRL";
+      "$col_active" = "0xffaaffaa";
+      "$col_inactive" = "0xff999999";
 
       exec-once = [
         "${pkgs.kwallet-pam}/libexec/pam_kwallet_init --no-startup-id"
@@ -101,8 +105,20 @@ in {
       ];
 
       general = {
+        border_size = 3;
+        "col.active_border" = "$col_active";
+        "col.inactive_border" = "$col_inactive";
         resize_on_border = true;
         layout = "master";
+      };
+
+      group = {
+        "col.border_active" = "$col_active";
+        "col.border_inactive" = "$col_inactive";
+        groupbar = {
+          "col.active" = "0xff66bb66";
+          "col.inactive" = "$col_inactive";
+        };
       };
 
       animation = [
