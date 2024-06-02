@@ -4,7 +4,7 @@ let
   texlive-combined = pkgs.texlive.combine {
     inherit (pkgs.texlive) scheme-full beamer ps2eps;
   };
-  out-u4025qw = "Dell Inc. DELL U4025QW 6KKHDP3";
+  out-u4025qw = "Dell Inc. DELL U4025QW J7Q6FP3";
   out-lg-dualup-left = "LG Electronics LG SDQHD 311NTQDAC572";
   out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
 in {
@@ -42,6 +42,7 @@ in {
   };
 
   home.packages = with pkgs; [
+    ryujinx
     steam-run
     grimblast
     bleeding.trezor-agent
@@ -466,6 +467,7 @@ in {
         };
 
         "hyprland/window" = {
+          separate-outputs = true;
         };
 
         "wlr/taskbar" = {

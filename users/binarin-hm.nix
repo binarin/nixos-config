@@ -184,6 +184,8 @@ in {
   };
 
   home.packages = with pkgs; [
+    esphome
+    kdenlive
     remmina
     electrum
     discord

@@ -502,12 +502,22 @@ EndSection
     # wantedBy = ["multi-user.target"];
   };
 
-  # xdg.portal = {
-  #   enable = true;
-  #   extraPortals = lib.mkForce [ pkgs.xdg-desktop-portal-wlr pkgs.xdg-desktop-portal-hyprland ];
-  #   wlr.enable = true;
-  # };
+  xdg.portal = {
+    enable = true;
+    extraPortals = lib.mkForce [
+      pkgs.xdg-desktop-portal-kde
+      pkgs.xdg-desktop-portal-hyprland
+    ];
+    wlr.enable = true;
+  };
 
   services.gnome.gnome-keyring.enable = lib.mkForce false;
   services.flatpak.enable = true;
+  services.joycond.enable = true;
+
+  # programs.streamdeck-ui = {
+  #   enable = true;
+  #   package = pkgs.bleeding.streamdeck-ui;
+  #   #autoStart = true; # optional
+  # };
 }
