@@ -106,8 +106,6 @@ in {
 
   userPackages = let
     bleedingEdgePackages = with pkgs.bleeding; [
-      zoom-us
-      vmware-horizon-client
     ];
     developmentPackages = with pkgs; [
       autoconf
@@ -146,7 +144,7 @@ in {
       openscad
       vscode
       # pkgs.bleeding.idea.idea-community
-      pkgs.bleeding.prusa-slicer
+      prusa-slicer
       aspell
       aspellDicts.ru
       aspellDicts.en
@@ -281,7 +279,7 @@ in {
 
   services.avahi = {
     enable = true;
-    nssmdns = true;
+    nssmdns4 = true;
   };
   services.trezord.enable = true;
 
@@ -349,11 +347,11 @@ Section "Device"
 EndSection
     '';
     enable = true;
-    layout = "us,ru";
+    xkb.layout = "us,ru";
 
     # xkbDir = "${pkgs.xorg.xkeyboardconfig_dvp}/share/X11/xkb";
-    xkbVariant = ",winkeys";
-    xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle";
+    xkb.variant = ",winkeys";
+    xkb.options = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle";
 
     # libinput = {
     #   enable = lib.mkForce false;
@@ -369,10 +367,12 @@ EndSection
     displayManager = {
       gdm.enable = false;
       lightdm.enable = false;
-      sddm.enable = true;
-      defaultSession = "sway";
     };
   };
+
+  services.displayManager.sddm.enable = true;
+
+  services.displayManager.defaultSession = "hyprland";
 
   programs.hyprland.enable = true;
   programs.hyprland.package = pkgs.hyprland;

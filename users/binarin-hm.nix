@@ -61,7 +61,7 @@ in {
   home.file.".local/share/applications/smart-browser-chooser.desktop".text = ''
     [Desktop Entry]
     Name=smart-browser-chooser
-    Exec=sh -c "exec ${./open-link.sh} %u"
+    Exec=${./open-link.sh} %u
     Type=Application
     Terminal=false
     Categories=System;
@@ -160,7 +160,7 @@ in {
       zzz = ''sudo systemctl suspend'';
       sshi = ''ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'';
     };
-    enableAutosuggestions = true;
+    autosuggestion.enable = true;
     history = {
       size = 20000;
       save = 20000;
@@ -184,99 +184,71 @@ in {
   };
 
   home.packages = with pkgs; [
-    esphome
-    kdenlive
-    remmina
-    electrum
-    discord
-    bleeding.protonmail-bridge
-    mitmproxy
-    aws-iam-authenticator
-    awscli2
-    wt-maker
     (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; })
-    ov
-    parinfer-rust
-    shntool
-    mac
-    gparted
-    flac
-    cuetools
-    kid3
-    picard
-    recode
-    kind
-    skaffold
-    jetbrains.idea-community
-    krew
-    helix
-    gphoto2
-    ffmpeg
-    wdisplays
     (wrapOBS { plugins = with pkgs.obs-studio-plugins; [ wlroots ]; })
-    thunderbird
-    signal-desktop
-    entr
     anki-bin
+    # aws-iam-authenticator
+    # awscli2
     bazel_6
+    bleeding.yt-dlp
     comma
-    elixir_1_14
-    erlangR25
+    cuetools
+    discord
+    docker-compose
+    electrum
+    # elixir_1_14
+    # entr
+    # erlangR25
+    esphome
+    ffmpeg
+    flac
     git-annex
+    gnumake
     gnupg
     gopass
+    gparted
+    gphoto2
+    # helix
     htop
     httpie
-    ripgrep
-    ytt
-    kubernetes
-    kubernetes-helm
-    kubectx
-    kapp
-    krew
+    jetbrains.idea-community
     k0sctl
     k9s
+    kapp
+    kdenlive
+    kid3
     kind
-    python3
-    sox
-    terraform_1
-    terraform-ls
-    terraform-providers.google
+    krew
+    kubectx
+    kubernetes
+    kubernetes-helm
+    # lilypond-with-fonts
+    mac
+    mitmproxy
+    ov
     packer
-    gnumake
+    parinfer-rust
+    picard
+    protonmail-bridge
+    python3
+    recode
+    remmina
+    ripgrep
+    shntool
+    signal-desktop
+    skaffold
+    sox
     sshfs
-    docker-compose
     tdesktop
-    bleeding.yt-dlp
-    winePackages.full
-    lilypond-with-fonts
+    # terraform-ls
+    # terraform-providers.google
+    # terraform_1
+    thunderbird
     vlc
-
-    # fonts
-    # corefonts
-    # dejavu_fonts
-    # emacs-all-the-icons-fonts
-    # fira
-    # fira-code
-    # font-awesome
-    # inconsolata
-    # iosevka
-    # jetbrains-mono
-    # liberation_ttf
-    # # mplus-outline-fonts
-    # noto-fonts
-    # noto-fonts-emoji
-    # powerline-fonts
-    # roboto
-    # roboto-mono
-    # roboto-slab
-    # source-code-pro
-    # terminus_font_ttf
-    # ubuntu_font_family
-    # unifont
-    # vistafonts
-    # terminus_font
-    # google-fonts
+    wdisplays
+    winePackages.full
+    wt-maker
+    ytt
   ];
 
   programs.gh.enable = true;

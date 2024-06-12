@@ -7,6 +7,8 @@ let
   out-u4025qw = "Dell Inc. DELL U4025QW J7Q6FP3";
   out-lg-dualup-left = "LG Electronics LG SDQHD 311NTQDAC572";
   out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
+  out-ishamael-edp = "Sharp Corporation 0x1516 Unknown";
+  out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
 in {
   xdg.mimeApps = {
     enable = true;
@@ -34,18 +36,64 @@ in {
     extraConfig = ''
       allow-preset-passphrase
     '';
-    pinentryFlavor = "gtk2";
+    #pinentryFlavor = "gtk2";
+    pinentryPackage = pkgs.pinentry-gtk2;
   };
 
   home.file."bin/ps2eps" = {
     source = "${texlive-combined}/share/texmf/scripts/ps2eps/ps2eps.pl";
   };
 
+  home.file.".config/looking-glass/client.ini".text = ''
+    [app]
+    shmFile=/dev/shm/looking-glass
+    renderer=auto
+    allowDMA=yes
+
+    [win]
+    title=looking-glass-client
+    autoResize=yes
+    keepAspect=yes
+    dontUpscale=yes
+    noScreensaver=yes
+    quickSplash=yes
+    borderless=no
+    fullScreen=yes
+    uiFont=pango:Iosevka
+    uiSize=16
+    maximize=no
+    showFPS=no
+
+    [egl]
+    vsync=yes
+    multisample=yes
+    scale=2
+
+    [wayland]
+    warpSupport=yes
+    fractionScale=no
+
+    # [input]
+    # escapeKey=70
+    # grabKeyboardOnFocus=yes
+    # releaseKeysOnFocusLoss=yes
+    # autoCapture=yes
+    # rawMouse=yes
+
+    # [spice]
+    # enable=yes
+    # host=/dev/shm/win10-4game_spice
+    # port=5900
+    # clipboard=yes
+    # clipboardToVM=yes
+    # clipboardToLocal=yes
+  '';
+
   home.packages = with pkgs; [
     ryujinx
     steam-run
     grimblast
-    bleeding.trezor-agent
+    trezor-agent
     kanshi
     distrobox
     hunspellDicts.nl_nl
@@ -281,55 +329,61 @@ in {
     enable = true;
     # package = pkgs.kanshi; # at least 1.3.1
     systemdTarget = "hyprland-session.target";
-    profiles = let
-      out-ishamael-edp = "Sharp Corporation 0x1516 Unknown";
-      out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
-    in {
-      ishamael-uw = {
-        outputs = [
-          {
-            criteria = out-c49rg90;
-            mode = "5120x1440";
-            status = "enable";
-          }
-          {
-            criteria = out-ishamael-edp;
-            status = "disable";
-          }
-        ];
-      };
-      ishamael-internal = {
-        outputs = [
-          {
-            criteria = out-ishamael-edp;
-            status = "enable";
-            mode = "3840x2400";
-          }
-        ];
-      };
-      valak = {
-        outputs = [
-          {
-            criteria = out-lg-dualup-left;
-            status = "enable";
-            mode = "2560x2880@60Hz";
-            position = "0,0";
-          }
-          {
-            criteria = out-u4025qw;
-            status = "enable";
-            mode = "5120x2160@120Hz";
-            position = "2560,332";
-          }
-          {
-            criteria = out-lg-dualup-right;
-            status = "enable";
-            mode = "2560x2880@60Hz";
-            position = "7680,0";
-          }
-        ];
-      };
-    };
+    settings = [
+      {
+        profile = {
+          name = "ishamael-uw";
+          outputs = [
+            {
+              criteria = out-c49rg90;
+              mode = "5120x1440";
+              status = "enable";
+            }
+            {
+              criteria = out-ishamael-edp;
+              status = "disable";
+            }
+          ];
+        };
+      }
+      {
+        profile = {
+          name = "ishamael-internal";
+          outputs = [
+            {
+              criteria = out-ishamael-edp;
+              status = "enable";
+              mode = "3840x2400";
+            }
+          ];
+        };
+      }
+      {
+        profile = {
+          name = "valak";
+          outputs = [
+            {
+              criteria = out-lg-dualup-left;
+              status = "enable";
+              mode = "2560x2880@60Hz";
+              position = "0,0";
+            }
+            {
+              criteria = out-u4025qw;
+              status = "enable";
+              mode = "5120x2160@120Hz";
+              position = "2560,332";
+            }
+            {
+              criteria = out-lg-dualup-right;
+              status = "enable";
+              mode = "2560x2880@60Hz";
+              position = "7680,0";
+            }
+          ];
+        };
+      }
+    ];
   };
 
   services.swayidle = {

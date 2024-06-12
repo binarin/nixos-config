@@ -2,17 +2,22 @@
   inputs = {
 
 
-    nixos.url = github:NixOS/nixpkgs/nixos-23.11;
+    nixos.url = github:NixOS/nixpkgs/nixos-24.05;
 
     nixpkgs-master.url = github:NixOS/nixpkgs/master;
 
-    nixpkgs.url = github:nixos/nixpkgs/nixos-23.11;
+    nixpkgs.url = github:nixos/nixpkgs/nixos-24.05;
 
-    home-manager.url = github:nix-community/home-manager/release-23.11;
+    home-manager.url = github:nix-community/home-manager/release-24.05;
     home-manager.inputs.nixpkgs.follows = "nixos";
 
-    hyprland.url = github:hyprwm/Hyprland/v0.39.0;
-    hyprland.inputs.nixpkgs.follows = "nixos";
+    hyprland = {
+      url = "https://github.com/hyprwm/Hyprland";
+      ref = "refs/tags/v0.41.0";
+      type = "git";
+      submodules = true;
+      inputs.nixpkgs.follows = "nixos";
+    };
 
     hyprland-contrib.url = github:hyprwm/contrib;
     hyprland-contrib.inputs.nixpkgs.follows = "nixos";
@@ -37,22 +42,23 @@
 
       hyprland.overlays.default
       hyprland-contrib.overlays.default
-      (final: prev: {
-        hyprland = prev.hyprland.override {
-          libdrm = final.bleeding.libdrm;
-          wayland-protocols = final.bleeding.wayland-protocols;
-        };
-        wlroots-hyprland = prev.wlroots-hyprland.override {
-          wlroots = (prev.wlroots.override {
-            wayland-protocols = final.bleeding.wayland-protocols;
-            mesa = prev.mesa.override {
-              libdrm = final.bleeding.libdrm;
-            };
-          }).overrideAttrs (a: {
-            buildInputs = a.buildInputs ++ [final.bleeding.hwdata final.bleeding.libdisplay-info];
-          });
-        };
-      })
+
+      # (final: prev: {
+      #   hyprland = prev.hyprland.override {
+      #     libdrm = final.bleeding.libdrm;
+      #     wayland-protocols = final.bleeding.wayland-protocols;
+      #   };
+      #   wlroots-hyprland = prev.wlroots-hyprland.override {
+      #     wlroots = (prev.wlroots.override {
+      #       wayland-protocols = final.bleeding.wayland-protocols;
+      #       mesa = prev.mesa.override {
+      #         libdrm = final.bleeding.libdrm;
+      #       };
+      #     }).overrideAttrs (a: {
+      #       buildInputs = a.buildInputs ++ [final.bleeding.hwdata final.bleeding.libdisplay-info];
+      #     });
+      #   };
+      # })
 
       (
         final: prev: {
@@ -99,7 +105,7 @@
         overlays = globalOverlays;
       };
       nix = {
-        package = pkgs.nixUnstable;
+        # package = pkgs.nixUnstable;
         extraOptions = ''
           experimental-features = nix-command flakes
         '';

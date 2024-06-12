@@ -25,9 +25,9 @@
   services.xserver = {
     desktopManager.plasma5.enable = true;
     enable = true;
-    layout = "us,ru";
-    xkbVariant = "dvp,";
-    xkbOptions = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,ctrl:ralt_rctrl";
+    xkb.layout = "us,ru";
+    xkb.variant = "dvp,";
+    xkb.options = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,ctrl:ralt_rctrl";
     synaptics = {
       enable = true;
       twoFingerScroll = true;
