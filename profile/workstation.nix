@@ -141,7 +141,8 @@ in {
       graphviz
       firefox-bin
       # goldendict
-      openscad
+      openscad-unstable
+      onedrive
       vscode
       # pkgs.bleeding.idea.idea-community
       prusa-slicer

@@ -14,6 +14,9 @@
   boot.kernelPackages = pkgs.linuxPackages_6_6;
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "amdgpu" ];
   boot.supportedFilesystems = [ "zfs" ];
+  boot.zfs.allowHibernation = true;
+  boot.zfs.forceImportRoot = false;
+  boot.zfs.forceImportAll = false;
   virtualization.vfio = {
     enable = true;
     devices = [
@@ -156,12 +159,18 @@
     iptables -A INPUT -i smb-sketchup -p tcp -m multiport --dports 139,445 -j ACCEPT || true
     iptables -A INPUT -i smb-sketchup -p udp -m multiport --dports 137,138 -j ACCEPT || true
     iptables -A INPUT -i virbr0 -p tcp -m multiport --dports 24800 -j ACCEPT || true
+    iptables -A FORWARD -i tailscale+ -o smb-sketchup -j ACCEPT || true
+    iptables -A FORWARD -i smb-sketchup -o tailscale+ -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT || true
+    iptables -t nat -A POSTROUTING -s 100.64.0.0/10 -o smb-sketchup -j MASQUERADE || true
   '';
 
   networking.firewall.extraStopCommands = ''
     iptables -D INPUT -i smb-sketchup -p tcp -m multiport --dports 139,445 -j ACCEPT || true
     iptables -D INPUT -i smb-sketchup -p udp -m multiport --dports 137,138 -j ACCEPT || true
     iptables -D INPUT -i virbr0 -p tcp -m multiport --dports 24800 -j ACCEPT || true
+    iptables -D FORWARD -i tailscale+ -o smb-sketchup -j ACCEPT || true
+    iptables -D FORWARD -i smb-sketchup -o tailscale+ -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT || true
+    iptables -t nat -D POSTROUTING -s 100.64.0.0/10 -o smb-sketchup -j MASQUERADE || true
   '';
 
   # '--exclude-prefix=/dev' is everywhere, kick off looking-glass manually
@@ -170,7 +179,7 @@
   '';
 
   services.logind.extraConfig = ''
-    HandlePowerKey=poweroff
+    HandlePowerKey=hibernate
   '';
 
   systemd.tmpfiles.rules = [
