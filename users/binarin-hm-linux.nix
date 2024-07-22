@@ -195,7 +195,7 @@ in {
 
       master = {
         always_center_master = true;
-        new_is_master = false;
+        new_status = "inherited";
       };
 
       bind = [

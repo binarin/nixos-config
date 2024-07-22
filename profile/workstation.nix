@@ -206,7 +206,7 @@ in {
       borgbackup
     ];
     otherPackages = with pkgs; [
-      youtube-dl
+      yt-dlp
       gnuplot
       dconf
       gnome3.dconf-editor
