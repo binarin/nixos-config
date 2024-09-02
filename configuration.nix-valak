@@ -155,8 +155,9 @@
     };
   };
 
+  # port 1688 is for KMS server for windows
   networking.firewall.extraCommands = ''
-    iptables -A INPUT -i smb-sketchup -p tcp -m multiport --dports 139,445 -j ACCEPT || true
+    iptables -A INPUT -i smb-sketchup -p tcp -m multiport --dports 139,445,1688 -j ACCEPT || true
     iptables -A INPUT -i smb-sketchup -p udp -m multiport --dports 137,138 -j ACCEPT || true
     iptables -A INPUT -i virbr0 -p tcp -m multiport --dports 24800 -j ACCEPT || true
     iptables -A FORWARD -i tailscale+ -o smb-sketchup -j ACCEPT || true
@@ -165,7 +166,7 @@
   '';
 
   networking.firewall.extraStopCommands = ''
-    iptables -D INPUT -i smb-sketchup -p tcp -m multiport --dports 139,445 -j ACCEPT || true
+    iptables -D INPUT -i smb-sketchup -p tcp -m multiport --dports 139,445,1688 -j ACCEPT || true
     iptables -D INPUT -i smb-sketchup -p udp -m multiport --dports 137,138 -j ACCEPT || true
     iptables -D INPUT -i virbr0 -p tcp -m multiport --dports 24800 -j ACCEPT || true
     iptables -D FORWARD -i tailscale+ -o smb-sketchup -j ACCEPT || true

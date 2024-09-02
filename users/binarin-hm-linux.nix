@@ -44,6 +44,11 @@ in {
     source = "${texlive-combined}/share/texmf/scripts/ps2eps/ps2eps.pl";
   };
 
+  home.file.".config/libvirt/libvirt.conf".text = ''
+    uri_default = "qemu:///system"
+  '';
+
+
   home.file.".config/looking-glass/client.ini".text = ''
     [app]
     shmFile=/dev/shm/looking-glass
@@ -90,7 +95,7 @@ in {
   '';
 
   home.packages = with pkgs; [
-    ryujinx
+    # ryujinx
     steam-run
     grimblast
     trezor-agent
@@ -145,7 +150,7 @@ in {
       exec-once = [
         "${pkgs.kwallet-pam}/libexec/pam_kwallet_init --no-startup-id"
         "protonmail-bridge -n"
-        "[workspace 1 silent] foot"
+        "[workspace 1 silent] foot tmux new-session -A -s binarin"
         "[workspace 2 silent] emacs"
         "[workspace 4 silent] firefox"
         "[workspace 5 silent; togglegroup] thunderbird"
