@@ -1487,25 +1487,33 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
    :ID:       50517a18-e858-4bc1-8304-0aff3951e8ac
    :END:
    #+begin_src emacs-lisp
-     (gsetq org-roam-directory (concat (file-name-as-directory org-directory) "roam"))
-     (setq org-roam-v2-ack t)
-     ;; (org-roam-setup)
-     (require 'org-roam-protocol)
-
-     (general-define-key
-      :keymaps 'org-roam-mode-map
-      "C-c n r" 'org-roam-db-build-cache
-      "C-c n l" 'org-roam
-      "C-c n f" 'org-roam-find-file
-      "C-c n g" 'org-roam-graph)
-
-     (general-define-key
-      :keymaps 'org-mode-map
-      "C-c n i" 'org-roam-insert
-      "C-c n I" 'org-roam-insert-immediate)
-
-     (setf (alist-get 'file org-link-frame-setup) 'find-file)
-   #+end_src
+     (use-package org-roam
+       :after org
+       :ensure t
+       :custom
+       (org-roam-directory (concat (file-name-as-directory org-directory) "roam"))
+       (org-roam-completion-everywhere t)
+       ;; (org-roam-node-display-template "${directories:10} ${tags:10} ${title:100} ${backlinkscount:6}")
+       (org-roam-capture-templates
+        '(("d" "default" plain
+           "%?"
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
+           :unnarrowed t)))
+       (org-roam-dailies-capture-templates
+        '(("d" "default" entry "* %<%H:%M>: %?"
+           :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
+       :bind (("C-c n f" . org-roam-node-find)
+              ("C-c n i" . org-roam-node-insert)
+              ("C-c n l" . org-roam-buffer-toggle)
+              :map org-roam-dailies-map
+              ("Y" . org-roam-dailies-capture-yesterday)
+              ("T" . org-roam-dailies-capture-tomorrow))
+       :bind-keymap
+       ("C-c n d" . org-roam-dailies-map)
+       :config
+       (require 'org-roam-dailies)
+       (org-roam-setup))
+#+end_src
 * Communication
 ** Gnus
 #+begin_src emacs-lisp

@@ -232,6 +232,12 @@
   #   };
   # };
 
+  environment.systemPackages = with pkgs; [
+    # syncoid works better with those
+    lzop
+    mbuffer
+  ];
+
   programs.sway = {
     enable = true;
     inherit (config.home-manager.users.binarin.wayland.windowManager.sway) extraSessionCommands wrapperFeatures extraOptions;
