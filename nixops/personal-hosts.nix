@@ -353,4 +353,12 @@
   paperless-ngx = {
     ip = "192.168.2.59";
   };
+
+  shelly-plus-plug-s-1 = {
+    ip = "192.168.2.60";
+  };
+
+  shelly-plus-plug-s-2 = {
+    ip = "192.168.2.61";
+  };
 }

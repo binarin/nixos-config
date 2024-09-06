@@ -117,6 +117,7 @@ in {
     swaykbdd
     fuzzel
     swaynotificationcenter
+    xorg.xhost
     (pkgs.writeShellScriptBin "x-www-browser" ''
       exec firefox "$@"
     '')
@@ -184,6 +185,7 @@ in {
         kb_variant = ",winkeys";
         kb_options = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,compose:pause";
       };
+
       workspace = [
         "1, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center, default:true"
         "2, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center"
@@ -202,6 +204,11 @@ in {
         always_center_master = true;
         new_status = "inherited";
       };
+
+      windowrule = [
+        "float, title:^(FAST_CHOICE)$"
+        "center, title:^(FAST_CHOICE)$"
+      ];
 
       bind = [
         "$mod SHIFT , 0, movetoworkspace, 10"
@@ -248,6 +255,7 @@ in {
         "$mod SHIFT , right, movewindoworgroup, r"
         "$mod       , up, movefocus, u"
         "$mod SHIFT , up, movewindoworgroup, u"
+        "$mod       , semicolon, exec, ${./sshmenu}"
       ];
       bindm = [
         "$mod, mouse:272, movewindow"

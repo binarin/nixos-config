@@ -29,6 +29,7 @@ in
       dpkg
       elinks
       file
+      fio
       fzf
       gdb
       gitAndTools.diff-so-fancy

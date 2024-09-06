@@ -12,11 +12,12 @@ top-level() {
 
 local-shell() {
     local prefix="$4"
-    switch-or-run-foot "$prefix" -e bash -c "tmux attach -t binarin -d || tmux new -s binarin"
+    switch-or-run-foot "$prefix" -e tmux new-session -A -s binarin
 }
 
 home-servers() {
     item "amon" mosh-amon "$@"
+    item "amon-root" mosh-amon-root "$@"
     item "nabeirus" mosh-naberius "$@"
     item "aim" mosh-aim "$@"
     item "barbatos" mosh-barbatos "$@"
@@ -66,7 +67,12 @@ tmux-command() {
 
 mosh-amon() {
     local prefix="$4"
-    switch-or-run-rxvt "$prefix" -bg '#001800' -e ssh -t amon.binarin.ru -- sh -c "$(tmux-command binarin)"
+    switch-or-run-foot "$prefix" -e ssh -t amon.binarin.ru -- sh -c "$(tmux-command binarin)"
+}
+
+mosh-amon-root() {
+    local prefix="$4"
+    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh root@amon.ts.binarin.info -- tmux new-session -A -s binarin
 }
 
 mosh-naberius() {

@@ -17,6 +17,9 @@
   boot.zfs.allowHibernation = true;
   boot.zfs.forceImportRoot = false;
   boot.zfs.forceImportAll = false;
+
+  boot.zfs.extraPools = [ "valak-vm-rpool" ];
+
   virtualization.vfio = {
     enable = true;
     devices = [
