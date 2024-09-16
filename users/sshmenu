@@ -18,7 +18,10 @@ local-shell() {
 home-servers() {
     item "amon" mosh-amon "$@"
     item "amon-root" mosh-amon-root "$@"
-    item "nabeirus" mosh-naberius "$@"
+    item "naberius-root" mosh-naberius-root "$@"
+    item "raum-root" mosh-raum-root "$@"
+    item "bael-root" mosh-bael-root "$@"
+    item "hass" mosh-ts "$@"
     item "aim" mosh-aim "$@"
     item "barbatos" mosh-barbatos "$@"
     item "hass" mosh-hass "$@"
@@ -47,7 +50,13 @@ switch-or-run-rxvt() {
 
 switch-or-run-foot() {
     local title="${1:?}"; shift
-    if ! wmctrl -F -a "$title"; then
+
+    local titleEscaped
+    titleEscaped=$(sed 's/[^^]/[&]/g; s/\^/\\^/g' <<<"$title")
+
+    if hyprctl clients -j | jq -r '.[].title' | grep -q -F "$title"; then
+        hyprctl dispatch focuswindow title:"$titleEscaped"
+    else
         setopt NO_HUP
         setopt NO_CHECK_JOBS
         nohup foot --title "$title" "$@" > /dev/null 2>&1 &!
@@ -67,12 +76,34 @@ tmux-command() {
 
 mosh-amon() {
     local prefix="$4"
-    switch-or-run-foot "$prefix" -e ssh -t amon.binarin.ru -- sh -c "$(tmux-command binarin)"
+    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh binarin@amon.ts.binarin.info -- tmux new-session -A -s binarin
 }
 
 mosh-amon-root() {
     local prefix="$4"
     switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh root@amon.ts.binarin.info -- tmux new-session -A -s binarin
+}
+
+mosh-naberius-root() {
+    local prefix="$4"
+    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh root@barbatos.ts.binarin.info -- tmux new-session -A -s binarin
+}
+
+mosh-raum-root() {
+    local prefix="$4"
+    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh root@raum.ts.binarin.info -- tmux new-session -c /usr/local/bin/zsh -A -s binarin
+}
+
+mosh-bael-root() {
+    local prefix="$4"
+    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh root@192.168.2.68 -- tmux new-session -c /usr/local/bin/zsh -A -s binarin
+}
+
+mosh-ts() {
+    local display_name="$1"
+    local prefix="$4"
+
+    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh $display_name.lynx-lizard.ts.net -- tmux new-session -A -s binarin
 }
 
 mosh-naberius() {

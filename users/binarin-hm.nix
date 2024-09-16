@@ -186,6 +186,7 @@ in {
   home.packages = with pkgs; [
     (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; })
     (wrapOBS { plugins = with pkgs.obs-studio-plugins; [ wlroots ]; })
+    docker-credential-helpers
     anki-bin
     # aws-iam-authenticator
     # awscli2
@@ -237,6 +238,7 @@ in {
     shntool
     signal-desktop
     skaffold
+    sops
     sox
     sshfs
     tdesktop

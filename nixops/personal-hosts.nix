@@ -358,7 +358,56 @@
     ip = "192.168.2.60";
   };
 
+  # bricked
   shelly-plus-plug-s-2 = {
     ip = "192.168.2.61";
+  };
+
+  amon-macvlan-iface = {
+    ip = "192.168.2.62";
+  };
+
+  shelly-plus-plug-s-3 = {
+    ip = "192.168.2.63";
+  };
+
+  shelly-plus-plug-s-4 = {
+    ip = "192.168.2.64";
+  };
+
+  shelly-plus-plug-s-5 = {
+    ip = "192.168.2.65";
+  };
+
+  shelly-plus-plug-s-6 = {
+    ip = "192.168.2.66";
+  };
+
+  raum-macvlan-iface = {
+    ip = "192.168.2.67";
+  };
+
+  cwwk-n305-nas-enp2s0 = {
+    ip = "192.168.2.68";
+  };
+
+  raum-pbs = {
+    ip = "192.168.2.69";
+  };
+
+  shelly-plus-plug-s-7 = {
+    ip = "192.168.2.70";
+  };
+
+  shelly-plus-plug-s-8 = {
+    ip = "192.168.2.71";
+  };
+
+  shelly-plus-plug-s-9 = {
+    ip = "192.168.2.72";
+  };
+
+  shelly-plus-plug-s-10 = {
+    ip = "192.168.2.73";
   };
 }

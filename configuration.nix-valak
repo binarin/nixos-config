@@ -58,6 +58,21 @@
     onShutdown = "shutdown";
   };
 
+  systemd.services.libvirtd = {
+      path = let
+        env = pkgs.buildEnv {
+          name = "qemu-hook-env";
+          paths = with pkgs; [
+            bash
+            libvirt
+            kmod
+            systemd
+          ];
+        };
+      in [ env ];
+    };
+
+
   services.xserver = {
     deviceSection = ''
       BusID "PCI:18:0:0"
@@ -149,7 +164,7 @@
     '';
     shares = {
       public = {
-        path = "/home/vm-shared/sketchup";
+        path = "/home/vm-shared/current";
         "guest ok" = "yes";
         writeable = "yes";
         public = "yes";
