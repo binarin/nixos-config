@@ -13,7 +13,7 @@
 
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
-      ref = "refs/tags/v0.41.2";
+      ref = "refs/tags/v0.43.0";
       type = "git";
       submodules = true;
       inputs.nixpkgs.follows = "nixos";

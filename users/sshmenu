@@ -22,10 +22,7 @@ home-servers() {
     item "raum-root" mosh-raum-root "$@"
     item "bael-root" mosh-bael-root "$@"
     item "hass" mosh-ts "$@"
-    item "aim" mosh-aim "$@"
-    item "barbatos" mosh-barbatos "$@"
-    item "hass" mosh-hass "$@"
-    item "nix-build" ssh-nix-build "$@"
+    item "barbatos-root" mosh-ts "$@"
 }
 
 rabbit-servers() {
@@ -60,8 +57,8 @@ switch-or-run-foot() {
         setopt NO_HUP
         setopt NO_CHECK_JOBS
         nohup foot --title "$title" "$@" > /dev/null 2>&1 &!
+        sleep 0.1
     fi
-    sleep 0.1
     exit 0
 }
 
@@ -103,7 +100,15 @@ mosh-ts() {
     local display_name="$1"
     local prefix="$4"
 
-    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh $display_name.lynx-lizard.ts.net -- tmux new-session -A -s binarin
+    local host="$display_name"
+    local user_part=""
+
+    if [[ "$host" =~ ^(.*)-root$ ]]; then
+        user_part="root@"
+        host="${match[1]}"
+    fi
+
+    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh $user_part$host.lynx-lizard.ts.net -- tmux new-session -A -s binarin
 }
 
 mosh-naberius() {

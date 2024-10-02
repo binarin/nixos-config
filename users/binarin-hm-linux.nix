@@ -151,7 +151,7 @@ in {
       exec-once = [
         "${pkgs.kwallet-pam}/libexec/pam_kwallet_init --no-startup-id"
         "protonmail-bridge -n"
-        "[workspace 1 silent] foot tmux new-session -A -s binarin"
+        "nm-applet"
         "[workspace 2 silent] emacs"
         "[workspace 4 silent] firefox"
         "[workspace 5 silent; togglegroup] thunderbird"
@@ -239,6 +239,7 @@ in {
         "$mod CTRL  , G, togglegroup"
         "$mod       , J, changegroupactive, f"
         "$mod       , K, changegroupactive, b"
+        "$mod       , M, layoutmsg, swapwithmaster"
         "$mod       , N, exec, swaync-client -t"
         "$mod SHIFT , Q, exit"
         "$mod SHIFT , S, movetoworkspace, special:magic"

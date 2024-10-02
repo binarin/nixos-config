@@ -145,7 +145,7 @@ in {
       onedrive
       vscode
       # pkgs.bleeding.idea.idea-community
-      prusa-slicer
+      pkgs.bleeding.prusa-slicer
       aspell
       aspellDicts.ru
       aspellDicts.en
@@ -253,6 +253,7 @@ in {
       intel-media-driver
     ];
   };
+  hardware.flipperzero.enable = true;
 
   # hardware.pulseaudio = {
   #   enable = true;
