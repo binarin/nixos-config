@@ -249,7 +249,7 @@ in {
     vlc
     wdisplays
     winePackages.full
-    wt-maker
+    # wt-maker
     ytt
   ];
 

@@ -16,7 +16,7 @@
       ref = "refs/tags/v0.43.0";
       type = "git";
       submodules = true;
-      inputs.nixpkgs.follows = "nixos";
+      # inputs.nixpkgs.follows = "nixpkgs-master";
     };
 
     hyprland-contrib.url = github:hyprwm/contrib;
@@ -40,8 +40,8 @@
     globalOverlays = [
       emacs.overlay
 
-      hyprland.overlays.default
-      hyprland-contrib.overlays.default
+      # hyprland.overlays.default
+      # hyprland-contrib.overlays.default
 
       # (final: prev: {
       #   hyprland = prev.hyprland.override {
@@ -67,10 +67,11 @@
             config = nixpkgsConfig;
             overlays = [
               emacs.overlay
+              (bf: bp: { mesa = final.mesa; })
             ];
           };
 
-          wt-maker = final.callPackage ./packages/wt-maker.nix {};
+          # wt-maker = final.callPackage ./packages/wt-maker.nix {};
 
           # NOTE: This one is picked up by home-manager emacs module
           # emacsPackagesFor = final.bleeding.emacsPackagesFor;
@@ -118,6 +119,7 @@
 
     linuxSystem = configuration: nixos.lib.nixosSystem {
       system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
 	    modules = [
 	      configuration
         nixCommonConfigModule
@@ -133,16 +135,7 @@
   in rec {
     overlays = globalOverlays;
 
-    nixosConfigurations.valak = linuxSystem {
-      disabledModules = [
-        "system/boot/loader/systemd-boot/systemd-boot.nix"
-      ];
-      imports = [
-        "${nixpkgs-master.outPath}/nixos/modules/system/boot/loader/systemd-boot/systemd-boot.nix"
-        ./configuration.nix-valak
-      ];
-    };
-
+    nixosConfigurations.valak = linuxSystem ./configuration.nix-valak;
     nixosConfigurations.nix-build = linuxSystem ./configuration.nix-nix-build;
     nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
     nixosConfigurations.ishamael = linuxSystem ./configuration.nix-ishamael;

@@ -1,4 +1,4 @@
-{ config, pkgs, lib, bleeding, stdenv, ... }:
+{ inputs, config, pkgs, lib, bleeding, stdenv, ... }:
 
 let
 in {
@@ -376,8 +376,14 @@ EndSection
 
   services.displayManager.defaultSession = "hyprland";
 
-  programs.hyprland.enable = true;
-  programs.hyprland.package = pkgs.hyprland;
+  programs.hyprland = {
+    enable = true;
+    package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
+
+   # make sure to also set the portal package, so that they are in sync
+    portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
+  };
+
 
   location.latitude = 52.3702;
   location.longitude = 4.8952;
@@ -504,14 +510,14 @@ EndSection
     # wantedBy = ["multi-user.target"];
   };
 
-  xdg.portal = {
-    enable = true;
-    extraPortals = lib.mkForce [
-      pkgs.xdg-desktop-portal-kde
-      pkgs.xdg-desktop-portal-hyprland
-    ];
-    wlr.enable = true;
-  };
+  # xdg.portal = {
+  #   enable = true;
+  #   extraPortals = lib.mkForce [
+  #     pkgs.xdg-desktop-portal-kde
+  #     inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland
+  #   ];
+  #   wlr.enable = true;
+  # };
 
   services.gnome.gnome-keyring.enable = lib.mkForce false;
   services.flatpak.enable = true;
@@ -522,4 +528,6 @@ EndSection
   #   package = pkgs.bleeding.streamdeck-ui;
   #   #autoStart = true; # optional
   # };
+
+  programs.adb.enable = true;
 }

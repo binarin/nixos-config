@@ -608,6 +608,13 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
        (lambda ()
 	 (general-define-key :keymaps 'paredit-mode-map "M-s" nil)))
    #+END_SRC
+
+
+   Doesn't play good with paredit, can't press Enter in ~M-:~
+   #+begin_src emacs-lisp
+     (electric-indent-mode -1)
+   #+end_src
+
 ** Nix
    #+BEGIN_SRC emacs-lisp
      (gsetq nix-indent-function 'nix-indent-line)
