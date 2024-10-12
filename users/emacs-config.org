@@ -604,9 +604,24 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
 
    Prevent ~paredit~ from replacing standard search-related binding:
    #+BEGIN_SRC emacs-lisp
-     (eval-after-load "paredit"
-       (lambda ()
-	 (general-define-key :keymaps 'paredit-mode-map "M-s" nil)))
+     (use-package paredit
+       :hook
+       (emacs-lisp-mode                  . paredit-mode) ; Elisp buffers.
+       (lisp-mode                        . paredit-mode) ; Common Lisp buffers.
+       (lisp-interaction-mode            . paredit-mode) ; Scratch buffers.
+       (ielm-mode-hook                   . paredit-mode) ; ELM buffers.
+       (eval-expression-minibuffer-setup . paredit-mode) ; Eval minibuffers.
+       :bind
+       (:map paredit-mode-map
+             ("<return>" . binarin/paredit-RET)
+             ("M-s" . nil))
+       :config
+       (defun binarin/paredit-RET ()
+         "Wraps `paredit-RET' to provide a sensible minibuffer experience."
+         (interactive)
+         (if (minibufferp)
+             (read--expression-try-read)
+           (paredit-RET))))
    #+END_SRC
 
 
