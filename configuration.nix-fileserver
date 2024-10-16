@@ -5,12 +5,21 @@
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
 
+  imports = [
+    ./profile/server.nix
+  ];
+
   environment.systemPackages = with pkgs; [
     vim
+    docker-compose
   ];
+
+  virtualisation.docker.enable = true;
+  virtualisation.docker.autoPrune.enable = true;
 
   users.users."root".openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
   ];
 
+  system.stateVersion = "24.05";
 }

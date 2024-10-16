@@ -12,6 +12,7 @@
     home-manager.inputs.nixpkgs.follows = "nixos";
 
     deploy-rs.url = "github:serokell/deploy-rs";
+    deploy-rs.inputs.nixpkgs.follows = "nixpkgs-master";
 
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
@@ -119,6 +120,21 @@
       };
     };
 
+    unmodifiedPkgs = import nixpkgs {
+      system = "x86_64-linux";
+      config = nixpkgsConfig;
+      overlays = globalOverlays;
+    };
+
+    deployPkgs = import nixpkgs {
+      system = "x86_64-linux";
+      config = nixpkgsConfig;
+      overlays = globalOverlays ++ [
+        deploy-rs.overlay
+        (self: super: { deploy-rs = { inherit (unmodifiedPkgs) deploy-rs; lib = super.deploy-rs.lib; }; })
+      ];
+    };
+
     linuxSystem = configuration: nixos.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit inputs; };
@@ -134,27 +150,45 @@
 	    ];
     };
 
-    proxmoxLXCSystem = configuration: linuxSystem {
-      modules = [
-        configuration
-        ({ pkgs, modulesPath, ... }:
-
+    proxmoxLXCSystem = configuration: nixos.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+	    modules = [
+	      configuration
+        nixCommonConfigModule
+	      home-manager.nixosModules.home-manager
+	      nixos.nixosModules.notDetected
         {
+          home-manager.useGlobalPkgs = true;
+          home-manager.backupFileExtension = "backup";
+        }
+        ({pkgs, modulesPath, ...}: {
           imports = [
             (modulesPath + "/virtualisation/proxmox-lxc.nix")
           ];
           proxmoxLXC.enable = true;
         })
-      ];
+	    ];
     };
+
   in rec {
-    overlays = globalOverlays;
+    # overlays = { default = globalOverlays; };
 
     nixosConfigurations.valak = linuxSystem ./configuration.nix-valak;
-    nixosConfigurations.nix-build = linuxSystem ./configuration.nix-nix-build;
-    nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
-    nixosConfigurations.ishamael = linuxSystem ./configuration.nix-ishamael;
+    # nixosConfigurations.nix-build = linuxSystem ./configuration.nix-nix-build;
+    # nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
+    # nixosConfigurations.ishamael = linuxSystem ./configuration.nix-ishamael;
     nixosConfigurations.fileserver = proxmoxLXCSystem ./configuration.nix-fileserver;
+
+    deploy.nodes.fileserver = {
+      hostname = "192.168.2.79";
+      profiles.system = {
+        sshUser = "root";
+        path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.fileserver;
+      };
+    };
+
+    checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
 
     homeConfigurations.binarin = home-manager.lib.homeManagerConfiguration {
       configuration = {
@@ -167,54 +201,6 @@
       username = "binarin";
       homeDirectory = "/home/binarin";
       stateVersion = "21.11";
-    };
-
-    darwinConfigurations.vmware-laptop = darwin.lib.darwinSystem {
-      system = "x86_64-darwin";
-      modules = [
-        home-manager.darwinModules.home-manager
-        ./users/binarin-fonts.nix
-        nixCommonConfigModule
-        (
-          {pkgs, ... }: {
-            services.nix-daemon.enable = true;
-
-            users.users.alebedeff.home = "/Users/alebedeff";
-
-            programs.zsh.enable = true; # Make `nix-darwin` play together with `zsh`
-
-            environment.systemPackages = with pkgs; [
-              coreutils
-              procps
-              findutils
-            ];
-
-            home-manager.useGlobalPkgs = true;
-
-            environment.variables.LANG = "en_US.UTF-8";
-
-            home-manager.users.alebedeff = {
-              imports = [
-                ./users/binarin-hm.nix
-              ];
-            };
-
-            fonts.enableFontDir = true;
-            nix = {
-              binaryCaches = [
-                "https://cache.nixos.org"
-                "https://nixcache.reflex-frp.org"
-              ];
-
-              binaryCachePublicKeys = [
-                "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
-              ];
-
-              useSandbox = false;
-            };
-          }
-        )
-      ];
     };
   };
 }
