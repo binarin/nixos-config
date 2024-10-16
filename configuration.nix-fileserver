@@ -1,0 +1,16 @@
+# -*- nix -*-
+{ pkgs, ... }:
+{
+
+  services.openssh.enable = true;
+  services.openssh.settings.PermitRootLogin = "yes";
+
+  environment.systemPackages = with pkgs; [
+    vim
+  ];
+
+  users.users."root".openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
+  ];
+
+}

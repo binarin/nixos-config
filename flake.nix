@@ -11,6 +11,8 @@
     home-manager.url = github:nix-community/home-manager/release-24.05;
     home-manager.inputs.nixpkgs.follows = "nixos";
 
+    deploy-rs.url = "github:serokell/deploy-rs";
+
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
       ref = "refs/tags/v0.43.0";
@@ -33,7 +35,7 @@
 
   };
 
-  outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat,
+  outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat, deploy-rs,
               darwin, home-manager, emacs, cq, hyprland, hyprland-contrib}@inputs:
 
   let
@@ -132,6 +134,19 @@
 	    ];
     };
 
+    proxmoxLXCSystem = configuration: linuxSystem {
+      modules = [
+        configuration
+        ({ pkgs, modulesPath, ... }:
+
+        {
+          imports = [
+            (modulesPath + "/virtualisation/proxmox-lxc.nix")
+          ];
+          proxmoxLXC.enable = true;
+        })
+      ];
+    };
   in rec {
     overlays = globalOverlays;
 
@@ -139,6 +154,7 @@
     nixosConfigurations.nix-build = linuxSystem ./configuration.nix-nix-build;
     nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
     nixosConfigurations.ishamael = linuxSystem ./configuration.nix-ishamael;
+    nixosConfigurations.fileserver = proxmoxLXCSystem ./configuration.nix-fileserver;
 
     homeConfigurations.binarin = home-manager.lib.homeManagerConfiguration {
       configuration = {

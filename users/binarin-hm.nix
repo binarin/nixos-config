@@ -221,6 +221,7 @@ in {
     kind
     krew
     kubectx
+    deploy-rs
     kubernetes
     kubernetes-helm
     # lilypond-with-fonts
