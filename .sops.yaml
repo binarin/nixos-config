@@ -1,0 +1,11 @@
+keys:
+  - &admin_binarin age1ec9gz6f685mn8pdrz48qm4vq7qzpzcz48vgkcty9aa665evra9lq2uz3s2
+  - &server_valak age1q6dc2xlcqul6pj3nr5rkpzncatcfdw5xhpw8v0cvp3r2u27xypzsjq885x
+  - &server_fileserver age1hke3wvqndu8wnsxdsefjsu5e7r9szkprtjeu8ey48fhyutxpcsvsglmv2q
+
+creation_rules:
+  - path_regex: secrets/fileserver/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *server_fileserver

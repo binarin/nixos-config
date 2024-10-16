@@ -9,6 +9,10 @@
     ./profile/server.nix
   ];
 
+  services.getty.autologinUser = "root";
+
+  sops.defaultSopsFile = ./secrets/
+
   environment.systemPackages = with pkgs; [
     vim
     docker-compose

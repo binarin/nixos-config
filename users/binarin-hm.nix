@@ -221,6 +221,7 @@ in {
     kind
     krew
     kubectx
+    age
     deploy-rs
     kubernetes
     kubernetes-helm
@@ -301,7 +302,7 @@ in {
   };
 
   home.keyboard = null;
-  home.sessionVariables.EDITOR = "emacsclient -nw -a";
+  home.sessionVariables.EDITOR = "emacsclient -nw -a ''";
 
   programs.ssh = {
     enable = true;

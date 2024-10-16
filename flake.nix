@@ -14,6 +14,9 @@
     deploy-rs.url = "github:serokell/deploy-rs";
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs-master";
 
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
       ref = "refs/tags/v0.43.0";
@@ -36,7 +39,7 @@
 
   };
 
-  outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat, deploy-rs,
+  outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat, deploy-rs, sops-nix,
               darwin, home-manager, emacs, cq, hyprland, hyprland-contrib}@inputs:
 
   let
@@ -143,6 +146,7 @@
         nixCommonConfigModule
 	      home-manager.nixosModules.home-manager
 	      nixos.nixosModules.notDetected
+        sops-nix.nixosModules.sops
         {
           home-manager.useGlobalPkgs = true;
           home-manager.backupFileExtension = "backup";
@@ -158,6 +162,7 @@
         nixCommonConfigModule
 	      home-manager.nixosModules.home-manager
 	      nixos.nixosModules.notDetected
+        sops-nix.nixosModules.sops
         {
           home-manager.useGlobalPkgs = true;
           home-manager.backupFileExtension = "backup";
