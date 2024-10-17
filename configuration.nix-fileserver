@@ -1,6 +1,20 @@
 # -*- nix -*-
 { config, pkgs, ... }:
-{
+
+
+let smbShareStandartOptions = {
+  browseable = "yes";
+  "read only" = "yes";
+  "guest ok" = "no";
+  "write list" = "binarin";
+  "force user" = "binarin";
+  "force group" = "binarin";
+  "create mask" = "0664";
+  "force create mode" = "0664";
+  "directory mask" = "2775";
+  "force directory mode" = "2775";
+};
+in {
 
   networking.hostName = "media";
 
@@ -54,6 +68,16 @@
 
   services.getty.autologinUser = "root";
 
+  hardware.opengl = {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+      intel-ocl
+      intel-vaapi-driver
+      onevpl-intel-gpu
+    ];
+  };
+
   sops.defaultSopsFile = ./secrets/fileserver/secrets.yaml;
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
   sops.secrets.tailscale-auth = {};
@@ -70,6 +94,7 @@
   environment.systemPackages = with pkgs; [
     vim
     docker-compose
+    libva-utils
   ];
 
   virtualisation.docker.enable = true;
@@ -86,8 +111,8 @@
     isNormalUser = true;
     home = "/home/binarin";
     group = "binarin";
+    uid = 1000;
   };
-
 
   systemd.services.update-samba-passwords = {
     script = ''
@@ -110,39 +135,30 @@
     };
   };
 
-  # services.avahi.enable = true;
-
   services.navidrome = {
     enable = true;
     settings = {
       MusicFolder = "/media/music";
-      ReverseProxyWhitelist = "127.0.0.1";
+      ReverseProxyWhitelist = "127.0.0.1/32";
     };
   };
+
+  systemd.services.navidrome.serviceConfig.BindReadOnlyPaths = ["/run/systemd/resolve/stub-resolv.conf"];
 
   services.samba = {
     enable = true;
     openFirewall = true;
 
     shares = {
-      "Music" = {
+      "Music" = smbShareStandartOptions // {
         path = "/media/music";
-        browseable = "yes";
-        "read only" = "yes";
-        "guest ok" = "no";
-        "write list" = "binarin";
-        "force user" = "binarin";
-        "force group" = "binarin";
-        "create mask" = "0664";
-        "force create mode" = "0664";
-        "directory mask" = "2775";
-        "force directory mode" = "2775";
       };
     };
   };
 
   systemd.tmpfiles.rules = [
     "z- /media/music 02775 1000 1000 -"
+    "z- /media/movies 02775 992 992 -"
   ];
 
   nix.gc = {
@@ -173,6 +189,49 @@
       };
     };
   };
+
+  users.groups.render.gid = 303;
+  # given that 'render' gid on host is 104, this should be added to lxc config:
+  # lxc.cgroup2.devices.allow: c 226:128 rwm
+  # lxc.mount.entry: /dev/dri/renderD128 dev/dri/renderD128 none bind,optional,create=file
+  # lxc.idmap: u 0 100000 65536
+  # lxc.idmap: g 0 100000 303
+  # lxc.idmap: g 303 104 1
+  # lxc.idmap: g 304 100304 65232
+
+  users.groups.jellyfin.gid = 992;
+  users.users.jellyfin.uid = 993;
+  users.users.jellyfin.extraGroups = [ "render" ];
+
+  services.jellyfin = {
+    enable = true;
+    openFirewall = true;
+
+    # To use QSV
+    package = pkgs.jellyfin.override {
+      jellyfin-ffmpeg = pkgs.jellyfin-ffmpeg.override {
+        ffmpeg_6-full = pkgs.ffmpeg_6-full.override {
+          withMfx = false;
+          withVpl = true;
+        };
+      };
+    };
+  };
+
+  services.samba.shares.Movies = smbShareStandartOptions // {
+    path = "/media/movies";
+    "force user" = "jellyfin";
+    "force group" = "jellyfin";
+  };
+
+  services.caddy.virtualHosts."jellyfin.binarin.info".extraConfig = ''
+    reverse_proxy http://127.0.0.1:8096
+    tls {
+        dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
+        resolvers 1.1.1.1
+    }
+  '';
+
 
   system.stateVersion = "24.05";
 }
