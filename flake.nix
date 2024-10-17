@@ -8,7 +8,7 @@
 
     nixpkgs.url = github:nixos/nixpkgs/nixos-24.05;
 
-    caddy-cloudflare.url = ./caddy-with-plugins;
+    caddy-cloudflare.url = "./caddy-with-plugins";
     caddy-cloudflare.inputs.nixpkgs.follows = "nixpkgs"; #  golang < 1.23 - see https://github.com/nix-community/gomod2nix/issues/117
 
     home-manager.url = github:nix-community/home-manager/release-24.05;

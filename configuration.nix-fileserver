@@ -109,6 +109,7 @@
     options = "--delete-older-than 30d";
   };
 
+  systemd.services.caddy.serviceConfig.AmbientCapabilities = "CAP_NET_ADMIN CAP_NET_BIND_SERVICE";
   services.caddy = {
     enable = true;
     package = pkgs.caddy-cloudflare;
