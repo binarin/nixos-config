@@ -44,11 +44,11 @@
       "locked": {
         "lastModified": 1,
         "narHash": "sha256-U+hIqxVhwzF9tqCBpDSo+1BhEiXmdqLCyoB4MWESSyw=",
-        "path": "/nix/store/5md8wqmqhgnqch2s14z6jy9dfxvzbyn4-source/caddy-with-plugins",
+        "path": "/nix/store/js30yww8w1jm546y8p2iqcq9iw9qfhm8-source/caddy-with-plugins",
         "type": "path"
       },
       "original": {
-        "path": "/nix/store/5md8wqmqhgnqch2s14z6jy9dfxvzbyn4-source/caddy-with-plugins",
+        "path": "/nix/store/js30yww8w1jm546y8p2iqcq9iw9qfhm8-source/caddy-with-plugins",
         "type": "path"
       }
     },

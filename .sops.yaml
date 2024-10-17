@@ -9,3 +9,8 @@ creation_rules:
       - age:
           - *admin_binarin
           - *server_fileserver
+  - path_regex: secrets/webservers.yaml
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *server_fileserver

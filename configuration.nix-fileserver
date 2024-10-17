@@ -1,6 +1,8 @@
 # -*- nix -*-
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
+
+  networking.hostName = "media";
 
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
@@ -8,6 +10,47 @@
   imports = [
     ./profile/server.nix
   ];
+
+  services.avahi = {
+    enable = true;
+    allowInterfaces = [ "eth0" ];
+    publish.enable = true;
+    publish.addresses = true;
+    extraServiceFiles = {
+      smb = ''
+        <?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+        <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+        <service-group>
+          <name replace-wildcards="yes">%h</name>
+          <service>
+            <type>_smb._tcp</type>
+            <port>445</port>
+          </service>
+        </service-group>
+      '';
+    };
+  };
+
+  # I want to disable mDNS and set nameservers, and it's not possible to override .network file provided by Proxmox
+  proxmoxLXC.manageNetwork = true;
+  networking.useNetworkd = true;
+  networking.useHostResolvConf = false;
+  networking.useDHCP = false;
+  systemd.network.networks."40-eth0" = {
+    matchConfig.Name = "eth0";
+    dns = [ "192.168.2.46" "192.168.2.53" ];
+    address = [ "192.168.2.79/24" ];
+    routes = [
+      { routeConfig.Gateway = "192.168.2.1"; }
+    ];
+    networkConfig = {
+      # Description = "My Network";
+      MulticastDNS = false;
+    };
+    # networkConfig = {
+    #   MulticastDNS = "false";
+    # };
+  };
 
   services.getty.autologinUser = "root";
 
@@ -45,8 +88,6 @@
     group = "binarin";
   };
 
-  # Proxmox LXC integration doesn't play well with dns, it's a bug
-  networking.nameservers = ["192.168.2.46" "192.168.2.53"];
 
   systemd.services.update-samba-passwords = {
     script = ''
@@ -69,7 +110,7 @@
     };
   };
 
-  services.avahi.enable = true;
+  # services.avahi.enable = true;
 
   services.navidrome = {
     enable = true;
@@ -81,13 +122,14 @@
 
   services.samba = {
     enable = true;
+    openFirewall = true;
 
     shares = {
       "Music" = {
         path = "/media/music";
         browseable = "yes";
         "read only" = "yes";
-        "guest ok" = "yes";
+        "guest ok" = "no";
         "write list" = "binarin";
         "force user" = "binarin";
         "force group" = "binarin";
@@ -109,7 +151,13 @@
     options = "--delete-older-than 30d";
   };
 
+  sops.secrets.cloudflare-api-key = {
+    sopsFile = ./secrets/webservers.yaml;
+    restartUnits = [ "caddy.service" ];
+  };
+
   systemd.services.caddy.serviceConfig.AmbientCapabilities = "CAP_NET_ADMIN CAP_NET_BIND_SERVICE";
+  systemd.services.caddy.serviceConfig.LoadCredential = "cloudflare-api-token:${config.sops.secrets.cloudflare-api-key.path}";
   services.caddy = {
     enable = true;
     package = pkgs.caddy-cloudflare;
@@ -118,7 +166,7 @@
         extraConfig = ''
             reverse_proxy http://127.0.0.1:4533
             tls {
-                dns cloudflare {env.CF_API_TOKEN}
+                dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
                 resolvers 1.1.1.1
             }
         '';
