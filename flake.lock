@@ -42,14 +42,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1,
+        "lastModified": 1729180150,
         "narHash": "sha256-U+hIqxVhwzF9tqCBpDSo+1BhEiXmdqLCyoB4MWESSyw=",
-        "path": "/nix/store/414dg7jmgk9cqh5lg22jkbsj7wvb0b9b-source/caddy-with-plugins",
-        "type": "path"
+        "owner": "binarin",
+        "repo": "caddy-with-plugins",
+        "rev": "88079f38e60823fecd91e24d0cdae88e4c9944f8",
+        "type": "github"
       },
       "original": {
-        "path": "/nix/store/414dg7jmgk9cqh5lg22jkbsj7wvb0b9b-source/caddy-with-plugins",
-        "type": "path"
+        "owner": "binarin",
+        "repo": "caddy-with-plugins",
+        "type": "github"
       }
     },
     "cadquery-src": {
