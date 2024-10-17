@@ -8,6 +8,9 @@
 
     nixpkgs.url = github:nixos/nixpkgs/nixos-24.05;
 
+    caddy-cloudflare.url = ./caddy-with-plugins;
+    caddy-cloudflare.inputs.nixpkgs.follows = "nixpkgs"; #  golang < 1.23 - see https://github.com/nix-community/gomod2nix/issues/117
+
     home-manager.url = github:nix-community/home-manager/release-24.05;
     home-manager.inputs.nixpkgs.follows = "nixos";
 
@@ -36,15 +39,16 @@
     cq.url = github:marcus7070/cq-flake;
 
     flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };
-
   };
 
   outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat, deploy-rs, sops-nix,
-              darwin, home-manager, emacs, cq, hyprland, hyprland-contrib}@inputs:
+              darwin, home-manager, emacs, cq, caddy-cloudflare,
+              hyprland, hyprland-contrib }@inputs:
 
   let
     globalOverlays = [
       emacs.overlay
+      (final: prev: { caddy-cloudflare = caddy-cloudflare.packages.${prev.system}.default; })
 
       # hyprland.overlays.default
       # hyprland-contrib.overlays.default

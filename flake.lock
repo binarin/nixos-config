@@ -33,6 +33,28 @@
         "type": "github"
       }
     },
+    "caddy-cloudflare": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "gomod2nix": "gomod2nix",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1729150078,
+        "narHash": "sha256-3BHTpKbycuOfcYuN1GGFrffC5CyU++8hfEoN/pbpOhE=",
+        "owner": "binarin",
+        "repo": "caddy-with-plugins",
+        "rev": "d959ddc3a14a7165b983e0cc7879346dc8dd1b5a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "binarin",
+        "repo": "caddy-with-plugins",
+        "type": "github"
+      }
+    },
     "cadquery-src": {
       "flake": false,
       "locked": {
@@ -54,7 +76,7 @@
       "inputs": {
         "cadquery-src": "cadquery-src",
         "cq-editor-src": "cq-editor-src",
-        "flake-utils": "flake-utils",
+        "flake-utils": "flake-utils_2",
         "nixpkgs": "nixpkgs",
         "ocp-src": "ocp-src",
         "ocp-stubs-src": "ocp-stubs-src",
@@ -136,7 +158,7 @@
     },
     "emacs": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils_3",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-stable": "nixpkgs-stable"
       },
@@ -192,6 +214,24 @@
         "systems": "systems"
       },
       "locked": {
+        "lastModified": 1726560853,
+        "narHash": "sha256-X6rJYSESBVr3hBoH0WbKE5KvhPU5bloyZ2L4K60/fPQ=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_2": {
+      "inputs": {
+        "systems": "systems_2"
+      },
+      "locked": {
         "lastModified": 1701680307,
         "narHash": "sha256-kAuep2h5ajznlPMD9rnQyffWG8EM/C73lejGofXvdM8=",
         "owner": "numtide",
@@ -205,9 +245,9 @@
         "type": "github"
       }
     },
-    "flake-utils_2": {
+    "flake-utils_3": {
       "inputs": {
-        "systems": "systems_3"
+        "systems": "systems_4"
       },
       "locked": {
         "lastModified": 1726560853,
@@ -220,6 +260,31 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "gomod2nix": {
+      "inputs": {
+        "flake-utils": [
+          "caddy-cloudflare",
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "caddy-cloudflare",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1728509152,
+        "narHash": "sha256-tQo1rg3TlwgyI8eHnLvZSlQx9d/o2Rb4oF16TfaTOw0=",
+        "owner": "nix-community",
+        "repo": "gomod2nix",
+        "rev": "d5547e530464c562324f171006fc8f639aa01c9f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "gomod2nix",
         "type": "github"
       }
     },
@@ -281,7 +346,7 @@
         "hyprutils": "hyprutils",
         "hyprwayland-scanner": "hyprwayland-scanner",
         "nixpkgs": "nixpkgs_3",
-        "systems": "systems_4",
+        "systems": "systems_5",
         "xdph": "xdph"
       },
       "locked": {
@@ -622,6 +687,7 @@
     },
     "root": {
       "inputs": {
+        "caddy-cloudflare": "caddy-cloudflare",
         "cq": "cq",
         "darwin": "darwin",
         "deploy-rs": "deploy-rs",
@@ -704,6 +770,21 @@
     },
     "systems_4": {
       "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_5": {
+      "locked": {
         "lastModified": 1689347949,
         "narHash": "sha256-12tWmuL2zgBgZkdoB6qXZsgJEH9LR3oUgpaQq2RbI80=",
         "owner": "nix-systems",
@@ -719,7 +800,7 @@
     },
     "utils": {
       "inputs": {
-        "systems": "systems_2"
+        "systems": "systems_3"
       },
       "locked": {
         "lastModified": 1701680307,

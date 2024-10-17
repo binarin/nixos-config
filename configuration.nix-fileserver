@@ -11,7 +11,18 @@
 
   services.getty.autologinUser = "root";
 
-  sops.defaultSopsFile = ./secrets/
+  sops.defaultSopsFile = ./secrets/fileserver/secrets.yaml;
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  sops.secrets.tailscale-auth = {};
+  sops.secrets."samba-passwords/binarin" = {
+    restartUnits = [ "update-samba-passwords.service" ];
+  };
+
+  services.tailscale = {
+    enable = true;
+    authKeyFile = "/run/secrets/tailscale-auth";
+    extraUpFlags = ["--hostname" "fileserver"];
+  };
 
   environment.systemPackages = with pkgs; [
     vim
@@ -24,6 +35,95 @@
   users.users."root".openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
   ];
+
+  users.mutableUsers = false;
+  users.extraGroups.binarin.gid = 1000;
+
+  users.users.binarin = {
+    isNormalUser = true;
+    home = "/home/binarin";
+    group = "binarin";
+  };
+
+  # Proxmox LXC integration doesn't play well with dns, it's a bug
+  networking.nameservers = ["192.168.2.46" "192.168.2.53"];
+
+  systemd.services.update-samba-passwords = {
+    script = ''
+      set -euxo pipefail
+      double() {
+        ${pkgs.coreutils}/bin/cat $1
+        echo
+        ${pkgs.coreutils}/bin/cat $1
+        echo
+      }
+      shopt -s nullglob
+      for file in /run/secrets/samba-passwords/*; do
+        user=$(basename $file)
+        double $file | ${pkgs.samba}/bin/smbpasswd -L -a -s binarin
+        rm -f $file
+      done
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+    };
+  };
+
+  services.avahi.enable = true;
+
+  services.navidrome = {
+    enable = true;
+    settings = {
+      MusicFolder = "/media/music";
+      ReverseProxyWhitelist = "127.0.0.1";
+    };
+  };
+
+  services.samba = {
+    enable = true;
+
+    shares = {
+      "Music" = {
+        path = "/media/music";
+        browseable = "yes";
+        "read only" = "yes";
+        "guest ok" = "yes";
+        "write list" = "binarin";
+        "force user" = "binarin";
+        "force group" = "binarin";
+        "create mask" = "0664";
+        "force create mode" = "0664";
+        "directory mask" = "2775";
+        "force directory mode" = "2775";
+      };
+    };
+  };
+
+  systemd.tmpfiles.rules = [
+    "z- /media/music 02775 1000 1000 -"
+  ];
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
+
+  services.caddy = {
+    enable = true;
+    package = pkgs.caddy-cloudflare;
+    virtualHosts = {
+      "navidrome.binarin.info" = {
+        extraConfig = ''
+            reverse_proxy http://127.0.0.1:4533
+            tls {
+                dns cloudflare {env.CF_API_TOKEN}
+                resolvers 1.1.1.1
+            }
+        '';
+      };
+    };
+  };
 
   system.stateVersion = "24.05";
 }
