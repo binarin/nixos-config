@@ -530,4 +530,6 @@ EndSection
   # };
 
   programs.adb.enable = true;
+
+  services.pcscd.enable = true;
 }
