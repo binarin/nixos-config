@@ -28,6 +28,9 @@
       # inputs.nixpkgs.follows = "nixpkgs-master";
     };
 
+    arion.url = github:hercules-ci/arion;
+    arion.inputs.nixpkgs.follows = "nixpkgs";
+
     hyprland-contrib.url = github:hyprwm/contrib;
     hyprland-contrib.inputs.nixpkgs.follows = "nixos";
 
@@ -42,7 +45,7 @@
   };
 
   outputs = { self, nixos, nixpkgs, nixpkgs-master, flake-compat, deploy-rs, sops-nix,
-              darwin, home-manager, emacs, cq, caddy-cloudflare,
+              darwin, home-manager, emacs, cq, caddy-cloudflare, arion,
               hyprland, hyprland-contrib }@inputs:
 
   let
@@ -151,6 +154,7 @@
 	      home-manager.nixosModules.home-manager
 	      nixos.nixosModules.notDetected
         sops-nix.nixosModules.sops
+        arion.nixosModules.arion
         {
           home-manager.useGlobalPkgs = true;
           home-manager.backupFileExtension = "backup";
@@ -167,6 +171,7 @@
 	      home-manager.nixosModules.home-manager
 	      nixos.nixosModules.notDetected
         sops-nix.nixosModules.sops
+        arion.nixosModules.arion
         {
           home-manager.useGlobalPkgs = true;
           home-manager.backupFileExtension = "backup";

@@ -157,8 +157,11 @@ in {
   };
 
   systemd.tmpfiles.rules = [
-    "z- /media/music 02775 1000 1000 -"
-    "z- /media/movies 02775 992 992 -"
+    "Z- /media/music 02775 1000 1000 -"
+    "Z- /media/movies 02775 992 992 -"
+    "Z- /var/lib/tubearchivist/es 0775 1000 0 -"
+    "Z- /var/lib/tubearchivist/redis 0775 999 100 -"
+    "Z- /media/tubearchivist 2775 1000 1000 -"
   ];
 
   nix.gc = {
@@ -232,6 +235,111 @@ in {
     }
   '';
 
+  virtualisation.arion.backend = "docker";
+
+  sops.secrets."tubearchivist/elastic-password" = {};
+  sops.secrets."tubearchivist/initial-username" = {};
+  sops.secrets."tubearchivist/initial-password" = {};
+
+  sops.templates."tubearchivist-elastic-env".content = ''
+    ELASTIC_PASSWORD="${config.sops.placeholder."tubearchivist/elastic-password"}"
+  '';
+  sops.templates."tubearchivist-env".content = ''
+    TA_USERNAME="${config.sops.placeholder."tubearchivist/initial-username"}"
+    TA_PASSWORD="${config.sops.placeholder."tubearchivist/initial-password"}"
+  '';
+
+  virtualisation.arion.projects.tubearchivist = {
+    serviceName = "tubearchivist-docker-compose";
+    settings = {
+      services = {
+        tubearchivist = {
+          service = {
+            container_name = "tubearchivist";
+            restart = "unless-stopped";
+            image = "bbilly1/tubearchivist";
+            ports = [ "8001:8000" ];
+            volumes = [
+              "/media/tubearchivist:/youtube"
+              "/var/lib/tubearchivist/cache:/cache"
+            ];
+            environment = {
+              ES_URL = "http://archivist-es:9200";     # needs protocol e.g. http and port
+              REDIS_HOST = "archivist-redis";          # don't add protocol
+              HOST_UID = "1000";
+              HOST_GID = "1000";
+              TA_HOST = "ta.binarin.info";
+              TZ = "Europe/Amsterdam";                 # set your time zone
+            };
+            env_file = [
+              config.sops.templates.tubearchivist-elastic-env.path
+              config.sops.templates.tubearchivist-env.path
+            ];
+            healthcheck = {
+              test = ["CMD" "curl" "-f" "http://localhost:8000/health"];
+              interval = "2m";
+              timeout = "10s";
+              retries = 3;
+              start_period = "30s";
+            };
+            depends_on = [
+              "archivist-es"
+              "archivist-redis"
+            ];
+          };
+        };
+
+        archivist-es = {
+          service = {
+            image = "bbilly1/tubearchivist-es";
+            container_name = "archivist-es";
+            restart = "unless-stopped";
+            env_file = [ config.sops.templates.tubearchivist-elastic-env.path ];
+            environment = {
+              ES_JAVA_OPTS = "-Xms1g -Xmx1g";
+              "xpack.security.enabled" = "true";
+              "discovery.type" = "single-node";
+              "path.repo" = "/usr/share/elasticsearch/data/snapshot";
+            };
+            expose = [ "9200" ];
+            volumes = [
+              "/var/lib/tubearchivist/es:/usr/share/elasticsearch/data"
+            ];
+          };
+          # XXX reboot bael for new limits, maybe add them to nixos config too
+          # out.service.ulimits = {
+          #   memlock = {
+          #     soft = "-1";
+          #     hard = "-1";
+          #   };
+          # };
+        };
+        archivist-redis = {
+          service = {
+            image = "redis/redis-stack-server";
+            container_name = "archivist-redis";
+            restart = "unless-stopped";
+            environment = {
+              REDISEARCH_ARGS = "MAXSEARCHRESULTS 30000";
+            };
+            expose = ["6379"];
+            volumes = [
+              "/var/lib/tubearchivist/redis:/data"
+            ];
+            depends_on = ["archivist-es"];
+          };
+        };
+      };
+    };
+  };
+
+  services.caddy.virtualHosts."ta.binarin.info".extraConfig = ''
+    reverse_proxy http://127.0.0.1:8001
+    tls {
+        dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
+        resolvers 1.1.1.1
+    }
+  '';
 
   system.stateVersion = "24.05";
 }
