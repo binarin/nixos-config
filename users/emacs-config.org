@@ -288,6 +288,17 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
      (global-auto-revert-mode +1)
    #+END_SRC
 
+   #+begin_src emacs-lisp
+     (defun binarin/setup-gpg-maybe ()
+       (when (and buffer-file-name (string-match epa-file-name-regexp buffer-file-name))
+         (message "Backup inhibited for this file")
+         (setq-local backup-inhibited t)
+         (auto-save-mode -1)
+         (undo-tree-mode -1)))
+
+     (add-hook 'find-file-hook 'binarin/setup-gpg-maybe)
+   #+end_src
+
 ** Mark
    #+BEGIN_SRC emacs-lisp
      (gsetq mark-ring-max 64
@@ -1535,6 +1546,12 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
        :config
        (require 'org-roam-dailies)
        (org-roam-setup))
+#+end_src
+** Encryption
+#+begin_src emacs-lisp
+  (require 'org-crypt)
+  (org-crypt-use-before-save-magic)
+  (add-to-list 'org-tags-exclude-from-inheritance "crypt" t)
 #+end_src
 * Communication
 ** Gnus
