@@ -1,5 +1,5 @@
 # -*- nix -*-
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 
 let smbShareStandartOptions = {
@@ -95,6 +95,7 @@ in {
     vim
     docker-compose
     libva-utils
+    emacs-nox
   ];
 
   virtualisation.docker.enable = true;
@@ -158,7 +159,8 @@ in {
 
   systemd.tmpfiles.rules = [
     "Z- /media/music 02775 1000 1000 -"
-    "Z- /media/movies 02775 992 992 -"
+    "Z- /media/movies 02775 ${toString config.users.users.jellyfin.uid} ${toString config.users.groups.jellyfin.gid}  -"
+    "Z- /media/torrents 02775 ${toString config.users.users.jellyfin.uid} ${toString config.users.groups.jellyfin.gid}  -"
     "Z- /var/lib/tubearchivist/es 0775 1000 0 -"
     "Z- /var/lib/tubearchivist/redis 0775 999 100 -"
     "Z- /media/tubearchivist 2775 1000 1000 -"
@@ -179,6 +181,7 @@ in {
   systemd.services.caddy.serviceConfig.LoadCredential = "cloudflare-api-token:${config.sops.secrets.cloudflare-api-key.path}";
   services.caddy = {
     enable = true;
+    enableReload = false; # fails to reload when new hosts are added
     package = pkgs.caddy-cloudflare;
     virtualHosts = {
       "navidrome.binarin.info" = {
@@ -206,6 +209,7 @@ in {
   users.users.jellyfin.uid = 993;
   users.users.jellyfin.extraGroups = [ "render" ];
 
+  systemd.services.jellyfin.serviceConfig.UMask = lib.mkForce "0002";
   services.jellyfin = {
     enable = true;
     openFirewall = true;
@@ -287,6 +291,12 @@ in {
               "archivist-redis"
             ];
           };
+          out.service.ulimits = {
+            nofile = {
+              soft = "4096";
+              hard = "4096";
+            };
+          };
         };
 
         archivist-es = {
@@ -340,6 +350,57 @@ in {
         resolvers 1.1.1.1
     }
   '';
+
+  virtualisation.arion.projects.qbittorrent = {
+    serviceName = "qbittorrent-docker-compose";
+    settings.services.qbittorrent = {
+      service = {
+        image = "lscr.io/linuxserver/qbittorrent:latest";
+        container_name = "qbittorrent";
+        environment = {
+          # So I can move files directly to jellyfin folders using qbittorent itself
+          # It would be more correct to only use group, but I don't want to mess with samba permissions anymore
+          PUID = config.users.users.jellyfin.uid;
+          PGID = config.users.groups.jellyfin.gid;
+          TZ = "Europe/Amsterdam";
+          UMASK = "0002";
+          WEBUI_PORT = 8080;
+          TORRENTING_PORT = 6881;
+        };
+        volumes = [
+          "/var/lib/qbittorrent/appdata:/config"
+          "/media/torrents:/downloads"
+          "/media/movies:/media/movies"
+        ];
+        ports = [
+          "8080:8080"
+          "6881:6881"
+          "6881:6881/udp"
+        ];
+        restart = "unless-stopped";
+      };
+      out.service.ulimits = {
+        nofile = {
+          soft = "4096";
+          hard = "4096";
+        };
+      };
+    };
+  };
+
+  services.caddy.virtualHosts."qbittorrent.binarin.info".extraConfig = ''
+    reverse_proxy http://127.0.0.1:8080
+    tls {
+        dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
+        resolvers 1.1.1.1
+    }
+  '';
+
+  services.samba.shares.Torrents = smbShareStandartOptions // {
+    path = "/media/torrents";
+    "force user" = "jellyfin";
+    "force group" = "jellyfin";
+  };
 
   system.stateVersion = "24.05";
 }
