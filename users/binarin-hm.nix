@@ -188,6 +188,7 @@ in {
     (wrapOBS { plugins = with pkgs.obs-studio-plugins; [ wlroots ]; })
     docker-credential-helpers
     anki-bin
+    ansible
     # aws-iam-authenticator
     # awscli2
     bazel_6
