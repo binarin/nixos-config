@@ -1,4 +1,5 @@
 # -*- nix -*-
+# don't forget to run: nix-channel --update
 { pkgs, modulesPath, ... }:
 {
   imports = [

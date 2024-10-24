@@ -15,7 +15,6 @@ let smbShareStandartOptions = {
   "force directory mode" = "2775";
 };
 in {
-
   networking.hostName = "media";
 
   services.openssh.enable = true;

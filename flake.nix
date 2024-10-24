@@ -164,10 +164,11 @@
 	    ];
     };
 
-    proxmoxLXCSystem = configuration: nixos.lib.nixosSystem {
+    proxmoxLXCSystem = configuration: hostName: nixos.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inherit inputs; };
+      specialArgs = { inherit inputs; hostConfig = hosts.${hostName}; };
 	    modules = [
+        { networking.hostName = hostName;  }
 	      configuration
         nixCommonConfigModule
 	      home-manager.nixosModules.home-manager
@@ -194,8 +195,9 @@
     # nixosConfigurations.nix-build = linuxSystem ./configuration.nix-nix-build;
     # nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
     # nixosConfigurations.ishamael = linuxSystem ./configuration.nix-ishamael;
-    nixosConfigurations.fileserver = proxmoxLXCSystem ./configuration.nix-fileserver;
-    nixosConfigurations.monitor = proxmoxLXCSystem ./configuration.nix-monitor;
+    nixosConfigurations.fileserver = proxmoxLXCSystem ./configuration.nix-fileserver "fileserver";
+    nixosConfigurations.monitor = proxmoxLXCSystem ./configuration.nix-monitor "monitor";
+    nixosConfigurations.forgejo = proxmoxLXCSystem ./configuration.nix-forgejo "forgejo";
 
     deploy.nodes.fileserver = {
       hostname = "192.168.2.79";
@@ -210,6 +212,14 @@
       profiles.system = {
         sshUser = "root";
         path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.monitor;
+      };
+    };
+
+    deploy.nodes.forgejo = {
+      hostname = hosts.forgejo.ip;
+      profiles.system = {
+        sshUser = "root";
+        path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.forgejo;
       };
     };
 

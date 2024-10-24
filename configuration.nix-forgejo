@@ -1,0 +1,53 @@
+# -*- nix -*-
+{ hostConfig, config, lib, pkgs, ... }:
+
+{
+  services.openssh.enable = true;
+  services.openssh.settings.PermitRootLogin = "yes";
+
+  imports = [
+    ./profile/server.nix
+  ];
+
+  # I want to disable mDNS and set nameservers, and it's not possible to override .network file provided by Proxmox
+  proxmoxLXC.manageNetwork = true;
+  networking.useNetworkd = true;
+  networking.useHostResolvConf = false;
+  networking.useDHCP = false;
+  systemd.network.networks."40-eth0" = {
+    matchConfig.Name = "eth0";
+    dns = [ "192.168.2.46" "192.168.2.53" ];
+    address = [ "${hostConfig.ip}/24" ];
+    routes = [
+      { routeConfig.Gateway = "192.168.2.1"; }
+    ];
+  };
+
+  services.getty.autologinUser = "root";
+
+  sops.defaultSopsFile = ./secrets/forgejo/secrets.yaml;
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
+  sops.secrets.tailscale-auth = {};
+  services.tailscale = {
+    enable = true;
+    authKeyFile = "/run/secrets/tailscale-auth";
+    extraUpFlags = ["--hostname" "${config.networking.hostName}"];
+  };
+
+  environment.systemPackages = with pkgs; [
+    emacs-nox
+  ];
+
+  users.users."root".openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
+  ];
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
+
+  system.stateVersion = "24.05";
+}

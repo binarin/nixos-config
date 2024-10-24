@@ -3,6 +3,7 @@ keys:
   - &server_valak age1q6dc2xlcqul6pj3nr5rkpzncatcfdw5xhpw8v0cvp3r2u27xypzsjq885x
   - &server_fileserver age1hke3wvqndu8wnsxdsefjsu5e7r9szkprtjeu8ey48fhyutxpcsvsglmv2q
   - &server_monitor age1y74a28z6tpym2c0wpqnhwaegqlns8z3t286wxjhms86vxdttnvws2lev3r
+  - &server_forgejo age17jnj7kvw0wn0nfk02wll05yhe8xnu86u489tfks6hgnd4gfs4f2qy9chtv
 
 creation_rules:
   - path_regex: secrets/fileserver/[^/]+\.(yaml|json|env|ini)$
@@ -15,6 +16,11 @@ creation_rules:
       - age:
           - *admin_binarin
           - *server_monitor
+  - path_regex: secrets/forgejo/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *server_forgejo
   - path_regex: secrets/webservers.yaml
     key_groups:
       - age:

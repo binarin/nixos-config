@@ -3,6 +3,11 @@
     ip = "192.168.2.2";
     mac = "BC:24:11:77:88:63";
   };
+  forgejo = {
+    ip = "192.168.2.3";
+    mac = "BC:24:11:D9:78:49";
+  };
+
   ishamael = {
     description = "Dell Precision 5560";
     lan = {
