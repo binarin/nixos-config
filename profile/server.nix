@@ -20,4 +20,6 @@
   };
 
   networking.firewall.enable = true;
+
+  environment.enableAllTerminfo = true;
 }
