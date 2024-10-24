@@ -1,4 +1,8 @@
 {
+  monitor = {
+    ip = "192.168.2.2";
+    mac = "BC:24:11:77:88:63";
+  };
   ishamael = {
     description = "Dell Precision 5560";
     lan = {
@@ -25,21 +29,21 @@
       ip = "192.168.2.4";
     };
   };
-  amon = rec {
-    description = "HP Proliant MicroServer";
-    lan = {
-      mac = "3c:d9:2b:0c:1d:e0";
-      ip = "192.168.2.11";
-    };
-    ipmi = {
-      ip = "192.168.2.27";
-      mac = "44:1e:a1:3d:fa:15";
-    };
-    deployTarget = {
-      default = "amon.binarin.ru";
-      home = lan.ip;
-    };
-  };
+  # amon = rec {
+  #   description = "HP Proliant MicroServer";
+  #   lan = {
+  #     mac = "3c:d9:2b:0c:1d:e0";
+  #     ip = "192.168.2.11";
+  #   };
+  #   ipmi = {
+  #     ip = "192.168.2.27";
+  #     mac = "44:1e:a1:3d:fa:15";
+  #   };
+  #   deployTarget = {
+  #     default = "amon.binarin.ru";
+  #     home = lan.ip;
+  #   };
+  # };
   h315 = {
     wan = {
       mac = "48:db:50:be:e7:fb";
@@ -387,7 +391,7 @@
     ip = "192.168.2.67";
   };
 
-  cwwk-n305-nas-enp2s0 = {
+  bael = {
     ip = "192.168.2.68";
   };
 

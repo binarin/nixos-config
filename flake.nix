@@ -84,6 +84,8 @@
             ];
           };
 
+          grafana-victoriametrics-datasource = final.callPackage ./packages/victoriametrics-datasource.nix {};
+
           # wt-maker = final.callPackage ./packages/wt-maker.nix {};
 
           # NOTE: This one is picked up by home-manager emacs module
@@ -193,12 +195,21 @@
     # nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
     # nixosConfigurations.ishamael = linuxSystem ./configuration.nix-ishamael;
     nixosConfigurations.fileserver = proxmoxLXCSystem ./configuration.nix-fileserver;
+    nixosConfigurations.monitor = proxmoxLXCSystem ./configuration.nix-monitor;
 
     deploy.nodes.fileserver = {
       hostname = "192.168.2.79";
       profiles.system = {
         sshUser = "root";
         path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.fileserver;
+      };
+    };
+
+    deploy.nodes.monitor = {
+      hostname = "192.168.2.2";
+      profiles.system = {
+        sshUser = "root";
+        path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.monitor;
       };
     };
 
