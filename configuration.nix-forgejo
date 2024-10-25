@@ -1,12 +1,14 @@
 # -*- nix -*-
-{ hostConfig, config, lib, pkgs, ... }:
+{ hostConfig, config, lib, pkgs, inputs, ... }:
 
 {
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
 
+  disabledModules = [ "services/misc/forgejo.nix" ];
   imports = [
     ./profile/server.nix
+    "${inputs.nixpkgs-master}/nixos/modules/services/misc/forgejo.nix"
   ];
 
   # I want to disable mDNS and set nameservers, and it's not possible to override .network file provided by Proxmox
@@ -31,12 +33,13 @@
   sops.secrets.tailscale-auth = {};
   services.tailscale = {
     enable = true;
-    authKeyFile = "/run/secrets/tailscale-auth";
+    authKeyFile = "${config.sops.secrets.tailscale-auth.path}";
     extraUpFlags = ["--hostname" "${config.networking.hostName}"];
   };
 
   environment.systemPackages = with pkgs; [
     emacs-nox
+    forgejo
   ];
 
   users.users."root".openssh.authorizedKeys.keys = [
@@ -49,8 +52,42 @@
     options = "--delete-older-than 30d";
   };
 
+  sops.secrets.smtp2go-username = {};
+  sops.secrets.smtp2go-password = {};
+
   services.forgejo = {
     enable = true;
+    package = pkgs.bleeding.forgejo-lts; # this version plays with file-based passwords (sops-nix, LoadCredential in systemd), but not the one in 24.05
+    settings = {
+      service = {
+        DISABLE_REGISTRATION = true;
+      };
+      repository = {
+        DEFAULT_BRANCH = "master";
+        DEFAULT_PRIVATE = "private";
+      };
+      server = {
+        HTTP_ADDR = "127.0.0.1";
+        DOMAIN = "forgejo.lynx-lizard.ts.net";
+        ROOT_URL = "https://forgejo.lynx-lizard.ts.net/";
+      };
+      mailer = {
+        ENABLED = true;
+        PROTOCOL = "smtps";
+        SMTP_ADDR = "mail.smtp2go.com";
+        SMTP_PORT = 465;
+        FROM = "host-forgejo@binarin.info";
+      };
+      time = {
+        DEFAULT_UI_LOCATION = "Europe/Amsterdam";
+      };
+    };
+    secrets = {
+      mailer = {
+        USER = "${config.sops.secrets.smtp2go-username.path}";
+        PASSWD = "${config.sops.secrets.smtp2go-password.path}";
+      };
+    };
   };
 
   system.stateVersion = "24.05";
