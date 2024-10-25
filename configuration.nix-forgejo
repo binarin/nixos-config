@@ -55,8 +55,17 @@
   sops.secrets.smtp2go-username = {};
   sops.secrets.smtp2go-password = {};
 
+  users.users.git = {
+    home = config.services.forgejo.stateDir;
+    group = "forgejo";
+    useDefaultShell = true;
+    isSystemUser = true;
+  };
+
   services.forgejo = {
     enable = true;
+    user = "git";
+
     package = pkgs.bleeding.forgejo-lts; # this version plays with file-based passwords (sops-nix, LoadCredential in systemd), but not the one in 24.05
     settings = {
       service = {
