@@ -9,6 +9,7 @@
     ./profile/workstation.nix
     # ./profile/bkng-kerberos.nix
     ./hardware/vfio.nix
+    ./packages/keep-flake-sources.nix
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_6_6;
