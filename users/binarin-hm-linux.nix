@@ -122,13 +122,8 @@ in {
     arduino
     texlive-combined
     abcm2ps
-    swaylock
-    swayidle
     wl-clipboard
-    mako # notification daemon
-    alacritty # Alacritty is the default terminal in the config
     dmenu # Dmenu is the default in the config but i recommend wofi since its wayland native
-    swaykbdd
     fuzzel
     swaynotificationcenter
     xorg.xhost
@@ -292,80 +287,6 @@ in {
     };
   };
 
-  wayland.windowManager.sway = {
-    enable = true;
-    package = pkgs.sway;
-    wrapperFeatures.gtk = true ;
-    extraSessionCommands = ''
-      source ~/.nix-profile/etc/profile.d/hm-session-vars.sh
-      export _JAVA_AWT_WM_NONREPARENTING=1
-    '';
-    extraConfig = ''
-      exec "pkill -f kanshi"
-      exec "xrdb -merge ~/.Xresources"
-    '';
-
-    config = {
-      bars = [ ];
-      terminal = "urxvt";
-      # menu = "yeganesh -x | ${pkgs.findutils}/bin/xargs swaymsg exec --";
-      menu = "fuzzel";
-      modifier = "Mod4";
-
-      input = {
-        # TODO Calibration matrix only works for absolute positioning devices
-        # "1160:640:Cirque_Corporation_9925_AG_Touchpad" = {
-        #   calibration_matrix = "0 1 0 -1 0 1";
-        # };
-        "*" = {
-          xkb_layout = "us,ru";
-          xkb_variant = ",winkeys";
-          xkb_options = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,compose:paus";
-        };
-      };
-
-      window = {
-        border = 3;
-        commands = [
-          {
-            command = "border pixel 0";
-            criteria = { title = "SWAY_SPACER"; };
-          }
-          {
-            command = "floating enable";
-            criteria = { app_id = "pavucontrol"; };
-          }
-
-          {
-            criteria = { workspace = "9"; };
-            command = "floating enable";
-          }
-        ];
-      };
-
-      bindkeysToCode = true;
-      keybindings = lib.mkOptionDefault {
-          "Mod4+Ctrl+h" = "resize shrink width 10";
-          "Mod4+Ctrl+j" = "resize shrink height 10";
-          "Mod4+Ctrl+k" = "resize grow height 10";
-          "Mod4+Ctrl+l" = "resize grow width 10";
-          "Mod4+Shift+Return" = "exec urxvt";
-          "Mod4+Return" = "exec ~/bin/sway-clear";
-          "Mod4+semicolon" = "exec ${./sshmenu}";
-          "Mod4+n" = "exec swaync-client -t";
-          "Mod4+x" = "[urgent=latest] focus";
-          "Mod4+Shift+c" = "kill";
-          "Mod4+g" = "gaps horizontal current plus 500";
-          "Mod4+Shift+g" = "gaps horizontal current minus 500";
-          "Ctrl+Backslash" = "exec ${./sway-layout-switch.sh} doit";
-          "Mod4+i" = "exec ${./passmenu}";
-          "Mod4+Shift+i" = "exec ${./passmenu} --type";
-      };
-    };
-  };
-
-  home.file."bin/sway-clear".source = ./sway-clear.py;
-
   services.kanshi = {
     enable = true;
     # package = pkgs.kanshi; # at least 1.3.1
@@ -427,31 +348,6 @@ in {
     ];
   };
 
-  services.swayidle = {
-    enable = true;
-    timeouts = [
-      { timeout = 300; command = ''${pkgs.hyprland}/bin/hyprctl dispatch dpms off''; resumeCommand = ''${pkgs.hyprland}/bin/hyprctl dispatch dpms on''; }
-      { timeout = 360; command = ''${pkgs.swaylock}/bin/swaylock -f -c 000000''; }
-    ];
-    events = [
-      { event = "before-sleep"; command = "${pkgs.swaylock}/bin/swaylock -f -c 000000"; }
-    ];
-  };
-
-  systemd.user.services.swaykbdd = {
-    Unit = {
-      PartOf = [ "graphical-session.target" ];
-    };
-
-    Service = {
-      Type = "simple";
-      ExecStart =
-        "${pkgs.swaykbdd}/bin/swaykbdd";
-    };
-
-    Install = { WantedBy = [ "sway-session.target" ]; };
-  };
-
   systemd.user.services.swaync = {
     Unit = {
       PartOf = [ "graphical-session.target" ];
@@ -466,27 +362,13 @@ in {
     Install = { WantedBy = [ "hyprland-session.target" ]; };
   };
 
-  systemd.user.services.sway-layout-switch = {
-
-    Unit = {
-      PartOf = [ "graphical-session.target" ];
-    };
-
-    Service = {
-      Type = "simple";
-      ExecStart = "${./sway-layout-switch.sh}";
-      Environment = [ "PATH=${lib.makeBinPath (with pkgs; [ bash sway jq ])}" ];
-    };
-
-    Install = { WantedBy = [ "sway-session.target" ]; };
-  };
-
   home.file.".config/swaync/config.json".text = ''
     {
       "scripts": {
       }
     }
   '';
+
   programs.home-manager.enable = true;
   programs.foot = {
     enable = true;
@@ -612,5 +494,71 @@ in {
     size = 48;
     x11.enable = true;
     gtk.enable = true;
+  };
+
+  programs.hyprlock = {
+    enable = true;
+    settings = {
+      general = {
+        disable_loading_bar = true;
+        grace = 30;
+        hide_cursor = true;
+        ignore_empty_input = true;
+      };
+
+      background = [
+        {
+          path = "screenshot";
+          blur_passes = 3;
+          blur_size = 8;
+        }
+      ];
+
+      input-field = [
+        {
+          size = "200, 50";
+          position = "0, -80";
+          monitor = "";
+          dots_center = true;
+          fade_on_empty = false;
+          font_color = "rgb(202, 211, 245)";
+          inner_color = "rgb(91, 96, 120)";
+          outer_color = "rgb(24, 25, 38)";
+          outline_thickness = 5;
+          placeholder_text = ''<span foreground="##cad3f5">Password...</span>'';
+          shadow_passes = 2;
+        }
+      ];
+    };
+  };
+
+  services.hypridle = {
+    enable = true;
+    settings = {
+      general = {
+        lock_cmd = "pidof hyprlock || hyprlock";        # avoid starting multiple hyprlock instances.
+        before_sleep_cmd = "loginctl lock-session";     # lock before suspend.
+        after_sleep_cmd = "hyprctl dispatch dpms on";   # to avoid having to press a key twice to turn on the display.
+      };
+      listener = [
+
+        {
+          timeout = 150;                                # 2.5min.
+          on-timeout = "brightnessctl-all -s set 10";   # set monitor backlight to minimum, avoid 0 on OLED monitor.
+          on-resume = "brightnessctl-all -r";           # monitor backlight restore.
+        }
+
+        {
+          timeout = 300;                                # 5min
+          on-timeout = "loginctl lock-session";         # lock screen when timeout has passed
+        }
+
+        {
+          timeout = "330";                              # 5.5min
+          on-timeout = "hyprctl dispatch dpms off";     # screen off when timeout has passed
+          on-resume = "hyprctl dispatch dpms on";       # screen on when activity is detected after timeout has fired.
+        }
+      ];
+    };
   };
 }

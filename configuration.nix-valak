@@ -333,7 +333,7 @@
     ''
       mapfile -t all < <(brightnessctl -l -c backlight -m | cut -d , -f1)
       exit_code=0
-      for my dev in ''${all[@]} ; do
+      for dev in ''${all[@]} ; do
         if ! brightnessctl -d $dev "$@"; then
           exit_code=$?
         fi
