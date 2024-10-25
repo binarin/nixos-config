@@ -22,7 +22,7 @@
 
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
-      ref = "refs/tags/v0.43.0";
+      ref = "refs/tags/v0.44.1";
       type = "git";
       submodules = true;
       # inputs.nixpkgs.follows = "nixpkgs-master";
@@ -53,9 +53,17 @@
       emacs.overlay
       (final: prev: { caddy-cloudflare = caddy-cloudflare.packages.${prev.system}.default; })
 
-      # hyprland.overlays.default
-      # hyprland-contrib.overlays.default
+      hyprland.overlays.default
+      hyprland-contrib.overlays.default
 
+      (final: prev: {
+        aquamarine = prev.aquamarine.override { libinput = final.bleeding.libinput; };
+        hyprland = prev.hyprland.override {
+          wayland = final.bleeding.wayland;
+          wayland-scanner = final.bleeding.wayland-scanner;
+          libinput = final.bleeding.libinput;
+        };
+      })
       # (final: prev: {
       #   hyprland = prev.hyprland.override {
       #     libdrm = final.bleeding.libdrm;
