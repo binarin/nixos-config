@@ -20,6 +20,11 @@
 
   boot.zfs.extraPools = [ "valak-vm-rpool" ];
 
+  boot.extraModprobeConfig = ''
+    # options ddcci dyndbg
+    # options ddcci-backlight dyndbg
+  '';
+
   virtualization.vfio = {
     enable = true;
     devices = [
@@ -43,10 +48,56 @@
     };
   };
 
+  hardware.i2c.enable = true;
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-amd"  ];
+  boot.kernelModules = [
+    "kvm-amd"
+    "i2c-dev"
+    "ddcci"
+    "ddcci-backlight"
+  ];
   boot.kernelParams = [ "amd_iommu=on" "iommu=pt" "pcie_aspm=off" "video=efifb:off" "pci=realloc" "usbcore.autosuspend=-1" ];
-  boot.extraModulePackages = [ ];
+  boot.extraModulePackages = with config.boot.kernelPackages; [
+    (ddcci-driver.overrideAttrs (oldAttrs: {
+      patches = [./hardware/valak/ddcci-quirk.patch] ++ oldAttrs.patches;
+    }))
+  ];
+
+  services.udev.extraRules = ''
+    SUBSYSTEM=="i2c-dev", ACTION=="add",\
+    ATTR{name}=="AMDGPU DM*",\
+    TAG+="ddcci",\
+    TAG+="systemd",\
+    ENV{SYSTEMD_WANTS}+="ddcci@$kernel.service"
+  '';
+
+  systemd.services."ddcci@" = let
+    script = pkgs.writers.writeBash "try-forcing-ddcci" ''
+      dev=$1
+      set -x
+      echo Trying to attach ddcci to $dev
+      success=0
+      i=0
+      id=$(echo $dev | cut -d "-" -f 2)
+      while ((success < 1)) && ((i++ < 5)); do
+        if ddcutil getvcp 10 -b $id; then
+          success=1
+          echo ddcci 0x37 > /sys/bus/i2c/devices/$dev/new_device
+          echo "ddcci attached to %i"
+        else
+          sleep 5
+        fi
+      done
+    '';
+    in {
+    path = with pkgs; [ bash ddcutil coreutils ];
+    serviceConfig = {
+      ExecStart=''
+        ${script} %i
+      '';
+    };
+  };
+
 
   virtualisation.libvirtd = {
     enable = true;
@@ -271,10 +322,27 @@
     # syncoid works better with those
     lzop
     mbuffer
+
+    (pkgs.writers.writeBashBin "brightnessctl-all"
+    {
+      makeWrapperArgs = [
+        "--prefix" "PATH" ":" (lib.makeBinPath (with pkgs; [brightnessctl coreutils]))
+      ];
+    }
+    ''
+      mapfile -t all < <(brightnessctl -l -c backlight -m | cut -d , -f1)
+      exit_code=0
+      for my dev in ''${all[@]} ; do
+        if ! brightnessctl -d $dev "$@"; then
+          exit_code=$?
+        fi
+      done
+      exit $exit_code
+    '')
   ];
 
-  programs.sway = {
-    enable = true;
-    inherit (config.home-manager.users.binarin.wayland.windowManager.sway) extraSessionCommands wrapperFeatures extraOptions;
-  };
+  # programs.sway = {
+  #   enable = true;
+  #   inherit (config.home-manager.users.binarin.wayland.windowManager.sway) extraSessionCommands wrapperFeatures extraOptions;
+  # };
 }

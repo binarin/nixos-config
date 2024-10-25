@@ -21,7 +21,6 @@ in {
   };
 
   nix = {
-
     settings = {
       sandbox = true;
       substituters = [
@@ -121,6 +120,7 @@ in {
       clinfo
     ];
     desktopPackages = with pkgs; [
+      brightnessctl
       qt5.qtwayland # QT_QPA_PLATFORM=wayland in home.sessionVariables
       isync
       looking-glass-client
@@ -235,9 +235,6 @@ in {
     fontDir.enable = true;
     enableGhostscriptFonts = true;
   };
-
-  # For ddcutil
-  # hardware.i2c.enable = true;
 
   hardware.bluetooth = {
     enable = true;
@@ -462,28 +459,28 @@ EndSection
   };
 
   services.udev.extraRules = ''
-      ACTION=="add", \
-      ATTR{idVendor}=="04a9", \
-      ATTR{idProduct}=="3218", \
-      ENV{SYSTEMD_WANTS}+="external_webcam.service", \
-      SUBSYSTEM=="usb", \
-      TAG+="systemd"
+    ACTION=="add", \
+    ATTR{idVendor}=="04a9", \
+    ATTR{idProduct}=="3218", \
+    ENV{SYSTEMD_WANTS}+="external_webcam.service", \
+    SUBSYSTEM=="usb", \
+    TAG+="systemd"
 
-      SUBSYSTEM=="video4linux", \
-      KERNEL=="video[0-9]*", \
-      ACTION=="add", \
-      ENV{ID_VENDOR_ID}=="046d",
-      ENV{ID_MODEL_ID}=="0892", \
-      RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 -d %N"
+    SUBSYSTEM=="video4linux", \
+    KERNEL=="video[0-9]*", \
+    ACTION=="add", \
+    ENV{ID_VENDOR_ID}=="046d",
+    ENV{ID_MODEL_ID}=="0892", \
+    RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 -d %N"
 
-      KERNEL=="hidraw*", \
-      SUBSYSTEM=="hidraw", \
-      ATTRS{idVendor}=="19f5", \
-      ATTRS{idProduct}=="3255", \
-      MODE="0660", \
-      GROUP="users", \
-      TAG+="uaccess", \
-      TAG+="udev-acl"
+    KERNEL=="hidraw*", \
+    SUBSYSTEM=="hidraw", \
+    ATTRS{idVendor}=="19f5", \
+    ATTRS{idProduct}=="3255", \
+    MODE="0660", \
+    GROUP="users", \
+    TAG+="uaccess", \
+    TAG+="udev-acl"
   '';
 
   systemd.services.external_webcam =
