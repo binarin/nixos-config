@@ -307,13 +307,6 @@ in {
 
   programs.ssh = {
     enable = true;
-    matchBlocks = {
-      "raum-annex" = {
-        hostname = "raum";
-        user = "git";
-        identityFile = "~/.ssh/id_annex";
-      };
-    };
   };
 
   programs.rtorrent = {
@@ -322,4 +315,7 @@ in {
       encoding.add=utf-8
     '';
   };
+
+  nix.gc.automatic = true;
+  nix.gc.options = "-d --delete-older-than 30d";
 }
