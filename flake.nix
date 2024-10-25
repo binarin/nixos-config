@@ -49,6 +49,7 @@
               hyprland, hyprland-contrib }@inputs:
 
   let
+    hosts = import ./nixops/personal-hosts.nix;
     globalOverlays = [
       emacs.overlay
       (final: prev: { caddy-cloudflare = caddy-cloudflare.packages.${prev.system}.default; })

@@ -49,5 +49,9 @@
     options = "--delete-older-than 30d";
   };
 
+  services.forgejo = {
+    enable = true;
+  };
+
   system.stateVersion = "24.05";
 }
