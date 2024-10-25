@@ -36,3 +36,8 @@
           - sysstat
           - iotop
           - net-tools #netstat
+    - name: Copy sanoid config
+      copy:
+        src: "{{ inventory_hostname }}-sanoid.conf"
+        dest: /etc/sanoid/sanoid.conf
+        mode: '0644'

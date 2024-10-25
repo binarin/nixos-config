@@ -204,15 +204,15 @@
     # nixosConfigurations.nix-build = linuxSystem ./configuration.nix-nix-build;
     # nixosConfigurations.fusion-vm = linuxSystem ./configuration.nix-fusion-vm;
     # nixosConfigurations.ishamael = linuxSystem ./configuration.nix-ishamael;
-    nixosConfigurations.fileserver = proxmoxLXCSystem ./configuration.nix-fileserver "fileserver";
+    nixosConfigurations.media = proxmoxLXCSystem ./configuration.nix-fileserver "media";
     nixosConfigurations.monitor = proxmoxLXCSystem ./configuration.nix-monitor "monitor";
     nixosConfigurations.forgejo = proxmoxLXCSystem ./configuration.nix-forgejo "forgejo";
 
-    deploy.nodes.fileserver = {
-      hostname = "192.168.2.79";
+    deploy.nodes.media = {
+      hostname = hosts.media.ip;
       profiles.system = {
         sshUser = "root";
-        path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.fileserver;
+        path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.media;
       };
     };
 

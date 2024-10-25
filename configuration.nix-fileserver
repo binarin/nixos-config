@@ -1,5 +1,5 @@
 # -*- nix -*-
-{ config, lib, pkgs, ... }:
+{ hostConfig, config, lib, pkgs, ... }:
 
 
 let smbShareStandartOptions = {
@@ -15,8 +15,6 @@ let smbShareStandartOptions = {
   "force directory mode" = "2775";
 };
 in {
-  networking.hostName = "media";
-
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
 
@@ -52,7 +50,7 @@ in {
   systemd.network.networks."40-eth0" = {
     matchConfig.Name = "eth0";
     dns = [ "192.168.2.46" "192.168.2.53" ];
-    address = [ "192.168.2.79/24" ];
+    address = [ "${hostConfig.ip}/24" ];
     routes = [
       { routeConfig.Gateway = "192.168.2.1"; }
     ];
@@ -399,6 +397,17 @@ in {
     path = "/media/torrents";
     "force user" = "jellyfin";
     "force group" = "jellyfin";
+  };
+
+  users.groups.annex = {};
+  users.users.annex = {
+    isNormalUser = true;
+    group = "annex";
+    home = "/media/annex";
+    createHome = true;
+    openssh.authorizedKeys.keys = [
+      ''command="GIT_ANNEX_SHELL_DIRECTORY=/media/annex/annex.git GIT_ANNEX_SHELL_APPENDONLY=true git-annex-shell -c \"$SSH_ORIGINAL_COMMAND\"",restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos''
+    ];
   };
 
   system.stateVersion = "24.05";
