@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+datasets=(
+    bpool/BOOT/debian
+    rpool/ROOT/debian
+    rpool/home
+    rpool/home/root
+    rpool/var
+    rpool/var/lib
+    rpool/var/spool
+    spinning-zfs/pve-data/subvol-111-disk-0 #,mp=/media/movies
+    spinning-zfs/pve-data/subvol-111-disk-1 #,mp=/media/music,backup=1
+    spinning-zfs/pve-data/subvol-111-disk-2 #,mp=/media/torrents/regular
+    spinning-zfs/pve-data/subvol-111-disk-3 #,mp=/media/torrents/incomplete,replicate=0
+    spinning-zfs/pve-data/subvol-111-disk-4 #,mp=/media/torrents/rare,backup=1
+    spinning-zfs/pve-data/subvol-111-disk-5 #,mp=/media/tubearchivist
+    spinning-zfs/pve-data/subvol-111-disk-6 #,mp=/media/annex
+)
+target=spinning-zfs/raum-oob-backups
+
+for dataset in ${datasets[@]}
+do
+    # zfs create -p $target/$(dirname $dataset)
+    syncoid --quiet --insecure-direct-connection=192.168.2.68:63333 --no-rollback root@192.168.2.44:$dataset $target/$dataset
+done
