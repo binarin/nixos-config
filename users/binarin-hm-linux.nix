@@ -108,6 +108,7 @@ in {
 
   home.packages = with pkgs; [
     # ryujinx
+    (bleeding.flameshot.override { enableWlrSupport = true; })
     bibata-cursors
     steam-run
     grimblast
@@ -222,6 +223,17 @@ in {
       windowrulev2 = [
         "float, title:^(FAST_CHOICE)$"
         "center, title:^(FAST_CHOICE)$"
+
+        # noanim isn't necessary but animations with these rules might look bad. use at your own discretion.
+        "noanim, class:^(flameshot)$"
+        "float, class:^(flameshot)$"
+        "move 0 0, class:^(flameshot)$"
+        "pin, class:^(flameshot)$"
+
+        # set this to your leftmost monitor id, otherwise you have to move your cursor to the leftmost monitor
+        # before executing flameshot
+        "monitor 2, class:^(flameshot)$"
+        # "suppressevent fullscreen,title:^(flameshot)"
       ];
 
       bind = [
@@ -255,6 +267,7 @@ in {
         "$mod       , K, changegroupactive, b"
         "$mod       , M, layoutmsg, swapwithmaster"
         "$mod       , N, exec, swaync-client -t"
+        "$mod       , P, exec, XDG_CURRENT_DESKTOP=sway flameshot gui"
         "$mod SHIFT , Q, exit"
         "$mod SHIFT , S, movetoworkspace, special:magic"
         "$mod       , S, togglespecialworkspace, magic"

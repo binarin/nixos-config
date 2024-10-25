@@ -125,7 +125,6 @@ in {
       isync
       looking-glass-client
       protonvpn-cli
-      flameshot
       geeqie
       appimage-run
       v4l-utils
