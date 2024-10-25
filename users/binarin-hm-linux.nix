@@ -25,8 +25,20 @@ in {
     };
   };
 
-  home.sessionVariables.MOZ_ENABLE_WAYLAND = "1";
-  home.sessionVariables.NIXOS_OZONE_WL = "1";
+  home.sessionVariables = {
+    MOZ_ENABLE_WAYLAND = "1";
+    NIXOS_OZONE_WL = "1";
+    SDL_VIDEODRIVER = "wayland";
+
+    # needs qt5.qtwayland in systemPackages
+    QT_QPA_PLATFORM = "wayland";
+    QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+
+    # Fix for some Java AWT applications (e.g. Android Studio),
+    # use this if they aren't displayed properly:
+    "_JAVA_AWT_WM_NONREPARENTING" = "1";
+  };
+
   xsession.preferStatusNotifierItems = true;
 
   services.gpg-agent = {
@@ -96,6 +108,7 @@ in {
 
   home.packages = with pkgs; [
     # ryujinx
+    bibata-cursors
     steam-run
     grimblast
     trezor-agent
@@ -150,12 +163,13 @@ in {
 
       exec-once = [
         "${pkgs.kwallet-pam}/libexec/pam_kwallet_init --no-startup-id"
+        "hyprctl setcursor Bibata-Modern-Amber 48"
         "protonmail-bridge -n"
         "nm-applet"
         "[workspace 2 silent] emacs"
         "[workspace 4 silent] firefox"
-        "[workspace 5 silent; togglegroup] thunderbird"
-        "[workspace 5 silent] telegram-desktop"
+        "[workspace 5 silent] sleep 5; exec thunderbird" # give protonmail-bridge time to startup
+        "[workspace 5 silent; group new] telegram-desktop"
         "waybar"
       ];
 
@@ -205,7 +219,7 @@ in {
         new_status = "inherited";
       };
 
-      windowrule = [
+      windowrulev2 = [
         "float, title:^(FAST_CHOICE)$"
         "center, title:^(FAST_CHOICE)$"
       ];
@@ -579,4 +593,11 @@ in {
     Exec=${lib.getBin pkgs.plasma5Packages.kwallet}/bin/kwalletd5
   '';
 
+  home.pointerCursor = {
+    package = pkgs.bibata-cursors;
+    name = "Bibata-Modern-Amber";
+    size = 48;
+    x11.enable = true;
+    gtk.enable = true;
+  };
 }

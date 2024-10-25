@@ -121,6 +121,7 @@ in {
       clinfo
     ];
     desktopPackages = with pkgs; [
+      qt5.qtwayland # QT_QPA_PLATFORM=wayland in home.sessionVariables
       isync
       looking-glass-client
       protonvpn-cli
