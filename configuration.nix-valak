@@ -22,8 +22,8 @@
   boot.zfs.extraPools = [ "valak-vm-rpool" ];
 
   boot.extraModprobeConfig = ''
-    # options ddcci dyndbg
-    # options ddcci-backlight dyndbg
+    options ddcci dyndbg
+    options ddcci-backlight dyndbg
   '';
 
   virtualization.vfio = {
@@ -53,9 +53,7 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [
     "kvm-amd"
-    "i2c-dev"
-    "ddcci"
-    "ddcci-backlight"
+    "i2c_dev"
   ];
   boot.kernelParams = [ "amd_iommu=on" "iommu=pt" "pcie_aspm=off" "video=efifb:off" "pci=realloc" "usbcore.autosuspend=-1" ];
   boot.extraModulePackages = with config.boot.kernelPackages; [
@@ -96,6 +94,20 @@
       ExecStart=''
         ${script} %i
       '';
+    };
+  };
+
+  systemd.services."late-load-ddcci-driver" = {
+    path = [ pkgs.kmod ];
+    script = ''
+      modprobe ddcci || true
+    '';
+    serviceConfig = {
+      # ddcci doesn't support hotplug, it only initializes what it sees at the moment of driver loading.
+      # This looks like a good time to load it, amdgpu and i2c_dev should've definitely settled by now.
+      # But just in case I'm also keeping the udev hack above.
+      after = ["display-manager.service"];
+      wantedBy = ["graphical.target"];
     };
   };
 
