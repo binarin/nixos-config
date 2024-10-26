@@ -27,6 +27,14 @@
     - victoriametrics.cluster.vmagent
     - prometheus.prometheus.node_exporter
     - aroberts.zfs_exporter
+  handlers:
+    - name: Update initramfs
+      listen:
+        - update initramfs
+        - update initrd
+      ansible.builtin.command:
+        cmd: >
+          update-initramfs -k all -u
   tasks:
     - name: Install some generic linux tools
       package:
@@ -36,11 +44,62 @@
           - sysstat
           - iotop
           - net-tools #netstat
+          - tmux
+          - mosh
     - name: Copy sanoid config
       copy:
         src: "{{ inventory_hostname }}-sanoid.conf"
         dest: /etc/sanoid/sanoid.conf
         mode: '0644'
+    - name: Install Clevis with necessary pins/integrations
+      notify: update initramfs
+      package:
+        state: present
+        name:
+          - clevis
+          - clevis-tpm2
+          - clevis-initramfs
+          - clevis-luks
+
+- hosts: pve
+  become: true
+  tags: authorized_keys
+  vars_files:
+    ./ssh-public-keys.yaml
+  tasks:
+    - name: Copy public keys to the hosts
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        exclusive: true
+        key: |
+          {%+ for key, value in ssh_keys.items() %}
+          {% if ('operator' in value and value.operator and value.secure)
+             or ('force_install_on' in value and inventory_hostname in value.force_install_on)
+          %}
+          {{ value.public_key }} {{ value.name }}
+          {% endif %}
+          {% endfor %}
+
+- hosts: raum.lynx-lizard.ts.net
+  become: true
+  tasks:
+    - name: Install packages to use SSH key in tpm 2.0
+      package:
+        state: present
+        name:
+          - libtpm2-pkcs11-tools
+          - libtpm2-pkcs11-1
+    - name: Use SSH key from tpm 2.0 by default
+      copy:
+        content: |
+          Host *
+            PKCS11Provider /usr/lib/x86_64-linux-gnu/libtpm2_pkcs11.so.1
+        dest: /etc/ssh/ssh_config.d/enable-tpm2-pkcs11.conf
+        mode: '0644'
+        owner: root
+
+
 - hosts: bael.lynx-lizard.ts.net
   become: true
   tasks:
