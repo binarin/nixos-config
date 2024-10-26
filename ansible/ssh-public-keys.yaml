@@ -35,11 +35,6 @@ ssh_keys:
     secure: false
     operator: true
 
-  raum.lynx-lizard.ts.net-self-root:
-    name: root RSA key at raum - needed for ProxmoxVE operations
-    public_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDQTbQktKmnxfeKrnR9vpS5tu56UvdqPSFFIwh26oeVybOHHif/Qra5rELkZ7mdQOorsUW0p8dp9jV4/BaF8BKVEQCIfgtOuI6lTjhUZ6iUp5SyUGdDFyROfz5CgRb4HEJIAXBcXXBhz8gd2Oh+RX9IKFlwBaKDsDys8P4YXODsJOBegApGVe9aDZ7O/9hYAt0p9v59VKdo91kV2lYsRy1TI2EN3H/co8UerKL6MWW2oN7QWiGMuI2o7R9wq01E5DU7YZIOwQNxw83NRqvABJMfWa+pgQKAEeeDT+3JklqRKYNf/FL5JF5L69zeFgEcjICXoNrvyY4BkL808uGsdVkqNW33PUMCsQGdCeF4HuvGilCyk45i53rFlh3GKuYKxfbfznD5BKipgx03We+h76jAPNwokd0rASWpcGx1QXSi2lZRCBtmgNr4wxJ3HQHTtrkLxaHZ2lad7Vmh8k9lpGS/b6nOMSYq/cvlweUYro8s0dmebsC1uxmWFxFmT/B1tSsYT/NYy+0V03K2LT9Kp4m8VP91I2bWC9lCpO8lpKhVkJRQiRpfH2LXGmQWXJTjZqTfDpWwpshGkCSJw+7Un86hKj7qjJoqbXSKa+uVTuGbZhI+kxwPtZb+akzQFB7uafwr8MsPD+xDiTTbmoJjX+qOZkhH+BH0hEbOQb8BZf3yKw==
-    secure: false
-
   raum.lynx-lizard.ts.net-pkcs11-root:
     name: root SSH key in pkcs11 at raum - needed for ProxmoxVE operations
     public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPKyEXbiRblfl23aNjy73yHjFfV/xct885HH4eIzuW3X2VT0BS/jMEFhNJE7eFJE5vO/QIwJ1FKbEonPRGOvNBI=
@@ -47,12 +42,10 @@ ssh_keys:
     force_install_on:
       - raum.lynx-lizard.ts.net  # self should be always here, for Proxmox's sake
 
-  bael.lynx-lizard.ts.net-self-root:
-    name: root RSA key at bael - needed for ProxmoxVE operations
-    public_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCO3P0RWg/Y8E6QtGY4oVpSTD87deXIf4JgSMxlxd6j1ZIjy9KPC+QOcKISjeFos1VI2aey+wh3X7RQqWDQM90E8AZmbDJrx/ZGnQ0Oso9HR2ZqGjzYaXZ0aDOsO4wfKw1tcIgZr9o7SRjRDupIQyHpuWr/sZf60v00H9KFIUUdLC7wsJhxdzp9YbLvOuYYnFfNilQhDVJlf/KS2wvC0S0cIryNX+NQtf6LSwBMUB/fwVSwxPDfFuKvszMg09BHkGbMIr0cnjekWwM7HJJge0M0VuISkKS0KG1M51p2Yv3VvDwyHlHujSkGReUxTT4hTgS2UzNROGz/DRfn1HgocXXmcb2jMAYy9mRos+Udfl7XVrZIIwhKIbOCZnnh8kAbKInNuKehsm9Kw5pbE8yNjBTi3sjFE76XnoFg5Fpr4sz68uaQeZcORtPoUnT128IPDLne/4WsP/x67Y3szkgoHbzSyn7EEYSallaIS2ZCK40LBaHGWKzAv5CDBmG2ILuQqcjN6alt4CBFvbi1897OaIoz8eABuoPLmaXYX2anCXhnWUB52r1yDKX+wiKOQIBUTYTG1L8fxBa6iUWfUPQ5BtO5z/47lhr8ARwOrkot4GDx86hQ4sYhK68QD1AHlypNdcN7nmoFDAZ4MJZbVcL4IPsb2SjTyCl/BfJwENygO+uzJw== root@bael
+  bael.lynx-lizard.ts.net-pkcs11-root:
+    name: root SSH key in pkcs11 at raum - needed for ProxmoxVE operations
+    public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBB2KztRbE1TXYv26vLcezAhNRGw1h2XDzwES0eoARXhtvC2q2JLGNEYyej84wUBi8MkLOmdS1qBxp+24w5dxWDo=
+    secure: true
     force_install_on:
-      - bael.lynx-lizard.ts.net # self should be always here, for Proxmox's sake
+      - bael.lynx-lizard.ts.net  # self should be always here, for Proxmox's sake
       - raum.lynx-lizard.ts.net
-    # No TPM2.0 here, need alternative solution
-    secure: false
-    active: true
