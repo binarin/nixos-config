@@ -7,7 +7,7 @@
 {% endif %}
 {% endfor %}
 
-# Operators
+# Other hosts
 {%+ for key, value in ssh_keys.items() %}
 {% if ('force_install_on' in value and inventory_hostname in value.force_install_on) %}
 {{ value.public_key }} {{ value.name }}

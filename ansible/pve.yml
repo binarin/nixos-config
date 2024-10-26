@@ -61,10 +61,15 @@
           - clevis-initramfs
           - clevis-luks
 
-- hosts: pve
+- hosts: manage_root_ssh_access
   become: true
+  tags: ssh
   vars_files:
     ./ssh-public-keys.yaml
+  handlers:
+    - name: Restart sshd
+      listen: restart sshd
+      ansible.builtin.service: name=sshd state=reloaded
   tasks:
     - name: Ensure root .ssh directory
       file:
@@ -73,7 +78,6 @@
         owner: root
         group: root
         mode: "0700"
-
     - name: Set authorized_keys for root
       template:
         src: authorized_keys.j2
@@ -81,7 +85,18 @@
         owner: root
         group: root
         mode: "0644"
-
+    - name: Clean-up multiple PermitRootLogin lines (just in case)
+      notify: restart sshd
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        state: absent
+        regexp: '^\s*PermitRootLogin\s+(?!prohibit-password).+'
+    - name: Enforce public-key auth for root user
+      notify: restart sshd
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "PermitRootLogin prohibit-password"
+        regexp: '^(\s|#)*PermitRootLogin'
 
 - hosts: pve
   become: true
