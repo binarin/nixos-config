@@ -162,6 +162,7 @@ in {
         "hyprctl setcursor Bibata-Modern-Amber 48"
         "protonmail-bridge -n"
         "nm-applet"
+        "[workspace 1 silent] foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
         "[workspace 2 silent] emacs"
         "[workspace 4 silent] firefox"
         "[workspace 5 silent] sleep 5; exec thunderbird" # give protonmail-bridge time to startup
