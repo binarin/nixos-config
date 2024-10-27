@@ -1,7 +1,7 @@
-{config, pkgs, ...}:
+{ config, pkgs, ... }:
 {
   programs.info.enable = true;
-  home.file.".emacs".source = pkgs.runCommand "emacs-config-tangled" {} ''
+  home.file.".emacs".source = pkgs.runCommand "emacs-config-tangled" { } ''
     ${config.programs.emacs.finalPackage}/bin/emacs --batch --eval '(progn (package-initialize) (require (quote ob-tangle)) (org-babel-tangle-file "${./emacs-config.org}" "'$out'" "emacs-lisp") (kill-emacs))'
   '';
 
@@ -26,7 +26,7 @@
       amx
       anaphora
       # auctex
-      auto-complete  # edts dep
+      auto-complete # edts dep
       auto-highlight-symbol # edts dep
       avy
       # cider
@@ -46,7 +46,7 @@
       poetry
       vterm
       emojify
-      eproject  # edts dep
+      eproject # edts dep
       erlang
       evil
       eyebrowse
@@ -55,7 +55,10 @@
       fsm
       # geiser
       general
-      go-mode flycheck-gometalinter company-go go-eldoc
+      go-mode
+      flycheck-gometalinter
+      company-go
+      go-eldoc
       haskell-mode
       helm
       helm-dash
@@ -98,7 +101,7 @@
       parinfer-rust-mode
       pdf-tools
       perspeen
-      popup  # edts dep
+      popup # edts dep
       projectile
       projectile-ripgrep
       pt

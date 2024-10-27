@@ -55,8 +55,8 @@ in {
     };
     resolvconf.dnsExtensionMechanism = false;
     extraHosts = ''
-      127.0.0.1 ${config.networking.hostName}
-#      0.0.0.0 pikabu.ru leprosorium.ru shovinist.leprosorim.ru idiod.leprosorium.ru games.leprosorium.ru meduza.io d3.ru
+            127.0.0.1 ${config.networking.hostName}
+      #      0.0.0.0 pikabu.ru leprosorium.ru shovinist.leprosorim.ru idiod.leprosorium.ru games.leprosorium.ru meduza.io d3.ru
     '';
     nat = {
       enable = true;
@@ -103,79 +103,81 @@ in {
     ExternalProtocolDialogShowAlwaysOpenCheckbox = true;
   };
 
-  userPackages = let
-    bleedingEdgePackages = with pkgs.bleeding; [
-    ];
-    developmentPackages = with pkgs; [
-      autoconf
-      automake
-      gcc
-      # godot
-      hugo
-      kubernetes
-      leiningen
-      lsyncd
-      pkg-config
-      sbt
-      clinfo
-    ];
-    desktopPackages = with pkgs; [
-      brightnessctl
-      qt5.qtwayland # QT_QPA_PLATFORM=wayland in home.sessionVariables
-      isync
-      looking-glass-client
-      protonvpn-cli
-      geeqie
-      appimage-run
-      v4l-utils
-      gnome-icon-theme
-      hicolor-icon-theme
-      gnome3.adwaita-icon-theme
-      gnome2.gnome_icon_theme
-      gnome-themes-extra
-      zafiro-icons
-      networkmanagerapplet
-      usbutils.python
-      xorg.xf86inputlibinput
-      wally-cli
-      graphviz
-      firefox-bin
-      # goldendict
-      openscad-unstable
-      onedrive
-      vscode
-      # pkgs.bleeding.idea.idea-community
-      pkgs.bleeding.prusa-slicer
-      aspell
-      aspellDicts.ru
-      aspellDicts.en
-      aspellDicts.nl
-      chromium
-      desktop-file-utils
-      # dunst
-      evince
-      freecad
-      imagemagickBig
-      gimp
-      gitg
-      glxinfo
-      google-chrome
-      google-cloud-sdk
-      libnotify
-      mplayer
-      escrotum
-      slack
-      stack
-      stalonetray
-      skypeforlinux
-      # workrave
-      xdg-user-dirs
-      xdotool
-      xlsfonts
-      xorg.xdpyinfo
-      xorg.xev
-    ];
-    in bleedingEdgePackages ++ desktopPackages ++ developmentPackages;
+  userPackages =
+    let
+      bleedingEdgePackages = with pkgs.bleeding; [
+      ];
+      developmentPackages = with pkgs; [
+        autoconf
+        automake
+        gcc
+        # godot
+        hugo
+        kubernetes
+        leiningen
+        lsyncd
+        pkg-config
+        sbt
+        clinfo
+      ];
+      desktopPackages = with pkgs; [
+        brightnessctl
+        qt5.qtwayland # QT_QPA_PLATFORM=wayland in home.sessionVariables
+        isync
+        looking-glass-client
+        protonvpn-cli
+        geeqie
+        appimage-run
+        v4l-utils
+        gnome-icon-theme
+        hicolor-icon-theme
+        gnome3.adwaita-icon-theme
+        gnome2.gnome_icon_theme
+        gnome-themes-extra
+        zafiro-icons
+        networkmanagerapplet
+        usbutils.python
+        xorg.xf86inputlibinput
+        wally-cli
+        graphviz
+        firefox-bin
+        # goldendict
+        openscad-unstable
+        onedrive
+        vscode
+        # pkgs.bleeding.idea.idea-community
+        pkgs.bleeding.prusa-slicer
+        aspell
+        aspellDicts.ru
+        aspellDicts.en
+        aspellDicts.nl
+        chromium
+        desktop-file-utils
+        # dunst
+        evince
+        freecad
+        imagemagickBig
+        gimp
+        gitg
+        glxinfo
+        google-chrome
+        google-cloud-sdk
+        libnotify
+        mplayer
+        escrotum
+        slack
+        stack
+        stalonetray
+        skypeforlinux
+        # workrave
+        xdg-user-dirs
+        xdotool
+        xlsfonts
+        xorg.xdpyinfo
+        xorg.xev
+      ];
+    in
+    bleedingEdgePackages ++ desktopPackages ++ developmentPackages;
 
   # environment.variables = {
   #   GDK_SCALE = "2";
@@ -183,53 +185,55 @@ in {
   #   _JAVA_OPTIONS = "-Dsun.java2d.uiScale=2";
   # };
 
-  environment.systemPackages = let
-    nixDevPackages = with pkgs; [
-      patchelf
-    ];
-    utilityPackages = with pkgs; [
-      pbzip2
-      pigz
-      ntfs3g
-      gopass
-      jekyll
-      pdftk
-      # syncthing
-      (texlive.combine {
-        inherit (texlive) scheme-full beamer ps2eps;
-      })
-      lilypond-with-fonts
-      abcm2ps
-      # vagrant
-      virt-viewer
-      virt-manager
-      borgbackup
-    ];
-    otherPackages = with pkgs; [
-      yt-dlp
-      gnuplot
-      dconf
-      gnome3.dconf-editor
-      gnome3.gnome-tweaks
-      dmenu
-      dmidecode
-      gmrun
-      # haskellPackages.xmobar
-      # haskellPackages.yeganesh
-      hsetroot
-      quasselClient
-      keychain
-      libreoffice
-      mu
-      pavucontrol
-      wmctrl
-      xclip
-      xscreensaver
-      xsel
-    ];
-  in otherPackages ++
-     nixDevPackages ++
-     utilityPackages;
+  environment.systemPackages =
+    let
+      nixDevPackages = with pkgs; [
+        patchelf
+      ];
+      utilityPackages = with pkgs; [
+        pbzip2
+        pigz
+        ntfs3g
+        gopass
+        jekyll
+        pdftk
+        # syncthing
+        (texlive.combine {
+          inherit (texlive) scheme-full beamer ps2eps;
+        })
+        lilypond-with-fonts
+        abcm2ps
+        # vagrant
+        virt-viewer
+        virt-manager
+        borgbackup
+      ];
+      otherPackages = with pkgs; [
+        yt-dlp
+        gnuplot
+        dconf
+        gnome3.dconf-editor
+        gnome3.gnome-tweaks
+        dmenu
+        dmidecode
+        gmrun
+        # haskellPackages.xmobar
+        # haskellPackages.yeganesh
+        hsetroot
+        quasselClient
+        keychain
+        libreoffice
+        mu
+        pavucontrol
+        wmctrl
+        xclip
+        xscreensaver
+        xsel
+      ];
+    in
+    otherPackages ++
+    nixDevPackages ++
+    utilityPackages;
 
   fonts = {
     fontDir.enable = true;
@@ -294,56 +298,56 @@ in {
     modules = [ pkgs.xorg.xf86inputlibinput ];
     videoDrivers = [ "amdgpu" "modesetting" ];
     config = ''
-Section "Device"
-     Identifier "AMD"
-     Driver "amdgpu"
-     Option "VariableRefresh" "true"
-     Option "TearFree" "on"
-EndSection
+      Section "Device"
+           Identifier "AMD"
+           Driver "amdgpu"
+           Option "VariableRefresh" "true"
+           Option "TearFree" "on"
+      EndSection
 
-Section "InputClass"
-	Identifier "CirqueTouchpad1"
-	MatchProduct "GlidePoint"
-	Option "SwapAxes" "True"
-	Option "Emulate3Buttons" "True"
-	Option "InvertY" "True"
-  Option "Tapping" "False"
-  Option "TappingDrag" "False"
-EndSection
+      Section "InputClass"
+      	Identifier "CirqueTouchpad1"
+      	MatchProduct "GlidePoint"
+      	Option "SwapAxes" "True"
+      	Option "Emulate3Buttons" "True"
+      	Option "InvertY" "True"
+        Option "Tapping" "False"
+        Option "TappingDrag" "False"
+      EndSection
 
-Section "InputClass"
-	Identifier "CirqueTouchpad2"
-  MatchUSBID "0488:0280"
-  Option "TransformationMatrix" "0 1 0 -1 0 1 0 0 1"
-  Option "MiddleEmulation" "True"
-	Option "Emulate3Buttons" "True"
-  Option "Tapping" "False"
-  Option "TappingDrag" "False"
-EndSection
+      Section "InputClass"
+      	Identifier "CirqueTouchpad2"
+        MatchUSBID "0488:0280"
+        Option "TransformationMatrix" "0 1 0 -1 0 1 0 0 1"
+        Option "MiddleEmulation" "True"
+      	Option "Emulate3Buttons" "True"
+        Option "Tapping" "False"
+        Option "TappingDrag" "False"
+      EndSection
 
-Section "InputClass"
-  Identifier "Yubikey"
-  MatchUSBID "1050:0403"
-  Option "XkbModel" "pc104"
-  Option "XkbLayout" "us"
-  Option "XkbOptions" ""
-  Option "XkbVariant" ""
-EndSection
+      Section "InputClass"
+        Identifier "Yubikey"
+        MatchUSBID "1050:0403"
+        Option "XkbModel" "pc104"
+        Option "XkbLayout" "us"
+        Option "XkbOptions" ""
+        Option "XkbVariant" ""
+      EndSection
 
-Section "InputClass"
-    Identifier      "Marble Mouse"
-    MatchUSBID      "046d:c408"
-    Driver          "libinput"
-    Option "ScrollMethod" "button"
-    Option "ScrollButton" "8"
-    Option "MiddleEmulation" "on"
-EndSection
+      Section "InputClass"
+          Identifier      "Marble Mouse"
+          MatchUSBID      "046d:c408"
+          Driver          "libinput"
+          Option "ScrollMethod" "button"
+          Option "ScrollButton" "8"
+          Option "MiddleEmulation" "on"
+      EndSection
 
-Section "Device"
-        Identifier  "Intel Graphics"
-        Driver      "intel"
-        Option      "TearFree" "true"
-EndSection
+      Section "Device"
+              Identifier  "Intel Graphics"
+              Driver      "intel"
+              Option      "TearFree" "true"
+      EndSection
     '';
     enable = true;
     xkb.layout = "us,ru";
@@ -378,7 +382,7 @@ EndSection
     enable = true;
     package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
 
-   # make sure to also set the portal package, so that they are in sync
+    # make sure to also set the portal package, so that they are in sync
     portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
   };
 
@@ -394,8 +398,8 @@ EndSection
 
   networking.firewall.enable = true;
   networking.firewall.checkReversePath = false; # I want my DHCP for VM's
-  networking.firewall.allowedTCPPorts = [27036 27037];
-  networking.firewall.allowedUDPPorts = [27031 27036];
+  networking.firewall.allowedTCPPorts = [ 27036 27037 ];
+  networking.firewall.allowedUDPPorts = [ 27031 27036 ];
 
   services.tailscale.enable = true;
 
@@ -412,7 +416,7 @@ EndSection
   };
 
   zramSwap = {
-     enable = true;
+    enable = true;
   };
 
   programs.java = {
@@ -423,23 +427,25 @@ EndSection
   programs.ssh.startAgent = true;
   programs.light.enable = true;
 
-  systemd.services."binarin-org-sync" = let
-    script = pkgs.writeScript "binarin-org-sync" ''
-      #!${pkgs.bash}/bin/bash
-      set -euo pipefail
-      if [[ -f /home/binarin/org/push.sh ]]; then
-        exec /home/binarin/org/push.sh
-      fi
-    '';
-  in {
-    description = "Syncs org-mode files via git";
-    path = [ pkgs.gitAndTools.gitFull pkgs.wget pkgs.coreutils pkgs.bash ];
-    serviceConfig = {
-      Type = "oneshot";
-      User = "binarin";
-      ExecStart = script;
+  systemd.services."binarin-org-sync" =
+    let
+      script = pkgs.writeScript "binarin-org-sync" ''
+        #!${pkgs.bash}/bin/bash
+        set -euo pipefail
+        if [[ -f /home/binarin/org/push.sh ]]; then
+          exec /home/binarin/org/push.sh
+        fi
+      '';
+    in
+    {
+      description = "Syncs org-mode files via git";
+      path = [ pkgs.gitAndTools.gitFull pkgs.wget pkgs.coreutils pkgs.bash ];
+      serviceConfig = {
+        Type = "oneshot";
+        User = "binarin";
+        ExecStart = script;
+      };
     };
-  };
 
   systemd.timers."binarin-org-sync" = {
     description = "Periodically updates org-mode files via git";
@@ -495,7 +501,8 @@ EndSection
         ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights || true
         ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights || true
       '';
-    in {
+    in
+    {
       enable = true;
       script = ''
         ${pkgs.gphoto2}/bin/gphoto2 --stdout --capture-movie |
@@ -505,8 +512,8 @@ EndSection
         ExecStopPost = "${lightsOff}";
         ExecStartPost = "${lightsOn}";
       };
-    # wantedBy = ["multi-user.target"];
-  };
+      # wantedBy = ["multi-user.target"];
+    };
 
   # xdg.portal = {
   #   enable = true;

@@ -1,4 +1,4 @@
-{config, pkgs, lib,  ...}:
+{ config, pkgs, lib, ... }:
 
 with lib;
 
@@ -19,10 +19,19 @@ let
   };
   hassPackage = pkgs.bleeding.home-assistant.override {
     extraPackages = ps: with ps; [
-      xmltodict paho-mqtt netdisco (pyatmo ps) keyring keyrings-alt jsonrpc-async jsonrpc-websocket aiohue
+      xmltodict
+      paho-mqtt
+      netdisco
+      (pyatmo ps)
+      keyring
+      keyrings-alt
+      jsonrpc-async
+      jsonrpc-websocket
+      aiohue
     ];
   };
-in {
+in
+{
   services.home-assistant = {
     enable = true;
     package = hassPackage;
@@ -56,7 +65,7 @@ in {
   '';
 
   services.nginx.upstreams."hass.binarin.ru".servers = {
-    "192.168.2.14:8123" = {};
+    "192.168.2.14:8123" = { };
   };
 
   services.nginx.virtualHosts."hass.binarin.ru" = {

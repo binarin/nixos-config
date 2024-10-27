@@ -8,7 +8,8 @@ let
   bins = "${arch}-ubuntu-1604";
   libPath = lib.makeLibraryPath [ stdenv.cc.cc utillinux libusb1 evdi ];
 
-in stdenv.mkDerivation rec {
+in
+stdenv.mkDerivation rec {
   name = "displaylink-${version}";
   version = "1.3.54";
 

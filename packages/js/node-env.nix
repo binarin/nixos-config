@@ -1,12 +1,12 @@
 # This file originates from node2nix
 
-{stdenv, nodejs, python2, utillinux, runCommand, writeTextFile}:
+{ stdenv, nodejs, python2, utillinux, runCommand, writeTextFile }:
 
 let
   python = if nodejs ? python then nodejs.python else python2;
 
   # Create a tar wrapper that filters all the 'Ignoring unknown extended header keyword' noise
-  tarWrapper = runCommand "tarWrapper" {} ''
+  tarWrapper = runCommand "tarWrapper" { } ''
     mkdir -p $out/bin
 
     cat > $out/bin/tar <<EOF
@@ -37,26 +37,28 @@ let
       '';
     };
 
-  includeDependencies = {dependencies}:
-    stdenv.lib.optionalString (dependencies != [])
-      (stdenv.lib.concatMapStrings (dependency:
-        ''
-          # Bundle the dependencies of the package
-          mkdir -p node_modules
-          cd node_modules
+  includeDependencies = { dependencies }:
+    stdenv.lib.optionalString (dependencies != [ ])
+      (stdenv.lib.concatMapStrings
+        (dependency:
+          ''
+            # Bundle the dependencies of the package
+            mkdir -p node_modules
+            cd node_modules
 
-          # Only include dependencies if they don't exist. They may also be bundled in the package.
-          if [ ! -e "${dependency.name}" ]
-          then
-              ${composePackage dependency}
-          fi
+            # Only include dependencies if they don't exist. They may also be bundled in the package.
+            if [ ! -e "${dependency.name}" ]
+            then
+                ${composePackage dependency}
+            fi
 
-          cd ..
-        ''
-      ) dependencies);
+            cd ..
+          ''
+        )
+        dependencies);
 
   # Recursively composes the dependencies of a package
-  composePackage = { name, packageName, src, dependencies ? [], ... }@args:
+  composePackage = { name, packageName, src, dependencies ? [ ], ... }@args:
     ''
       DIR=$(pwd)
       cd $TMPDIR
@@ -103,7 +105,7 @@ let
       ${stdenv.lib.optionalString (builtins.substring 0 1 packageName == "@") "cd .."}
     '';
 
-  pinpointDependencies = {dependencies, production}:
+  pinpointDependencies = { dependencies, production }:
     let
       pinpointDependenciesFromPackageJSON = writeTextFile {
         name = "pinpointDependencies.js";
@@ -171,12 +173,12 @@ let
           fi
         ''}
     '';
-  
+
   # Recursively traverses all dependencies of a package and pinpoints all
   # dependencies in the package.json file to the versions that are actually
   # being used.
-  
-  pinpointDependenciesOfPackage = { packageName, dependencies ? [], production ? true, ... }@args:
+
+  pinpointDependenciesOfPackage = { packageName, dependencies ? [ ], production ? true, ... }@args:
     ''
       if [ -d "${packageName}" ]
       then
@@ -189,17 +191,17 @@ let
 
   # Extract the Node.js source code which is used to compile packages with
   # native bindings
-  nodeSources = runCommand "node-sources" {} ''
+  nodeSources = runCommand "node-sources" { } ''
     tar --no-same-owner --no-same-permissions -xf ${nodejs.src}
     mv node-* $out
   '';
 
   # Builds and composes an NPM package including all its dependencies
-  buildNodePackage = { name, packageName, version, dependencies ? [], production ? true, npmFlags ? "", dontNpmInstall ? false, preRebuild ? "", ... }@args:
+  buildNodePackage = { name, packageName, version, dependencies ? [ ], production ? true, npmFlags ? "", dontNpmInstall ? false, preRebuild ? "", ... }@args:
 
     stdenv.lib.makeOverridable stdenv.mkDerivation (builtins.removeAttrs args [ "dependencies" ] // {
       name = "node-${name}-${version}";
-      buildInputs = [ tarWrapper python nodejs ] ++ stdenv.lib.optional (stdenv.isLinux) utillinux ++ args.buildInputs or [];
+      buildInputs = [ tarWrapper python nodejs ] ++ stdenv.lib.optional (stdenv.isLinux) utillinux ++ args.buildInputs or [ ];
       dontStrip = args.dontStrip or true; # Striping may fail a build for some package deployments
 
       inherit dontNpmInstall preRebuild;
@@ -210,7 +212,7 @@ let
 
       compositionScript = composePackage args;
       pinpointDependenciesScript = pinpointDependenciesOfPackage args;
-      
+
       passAsFile = [ "compositionScript" "pinpointDependenciesScript" ];
 
       installPhase = args.installPhase or ''
@@ -278,16 +280,16 @@ let
     });
 
   # Builds a development shell
-  buildNodeShell = { name, packageName, version, src, dependencies ? [], production ? true, npmFlags ? "", dontNpmInstall ? false, ... }@args:
+  buildNodeShell = { name, packageName, version, src, dependencies ? [ ], production ? true, npmFlags ? "", dontNpmInstall ? false, ... }@args:
     let
       nodeDependencies = stdenv.mkDerivation {
         name = "node-dependencies-${name}-${version}";
 
-        buildInputs = [ tarWrapper python nodejs ] ++ stdenv.lib.optional (stdenv.isLinux) utillinux ++ args.buildInputs or [];
+        buildInputs = [ tarWrapper python nodejs ] ++ stdenv.lib.optional (stdenv.isLinux) utillinux ++ args.buildInputs or [ ];
 
         includeScript = includeDependencies { inherit dependencies; };
         pinpointDependenciesScript = pinpointDependenciesOfPackage args;
-        
+
         passAsFile = [ "includeScript" "pinpointDependenciesScript" ];
 
         buildCommand = ''
@@ -328,7 +330,7 @@ let
     stdenv.lib.makeOverridable stdenv.mkDerivation {
       name = "node-shell-${name}-${version}";
 
-      buildInputs = [ python nodejs ] ++ stdenv.lib.optional (stdenv.isLinux) utillinux ++ args.buildInputs or [];
+      buildInputs = [ python nodejs ] ++ stdenv.lib.optional (stdenv.isLinux) utillinux ++ args.buildInputs or [ ];
       buildCommand = ''
         mkdir -p $out/bin
         cat > $out/bin/shell <<EOF
@@ -341,7 +343,7 @@ let
 
       # Provide the dependencies in a development shell through the NODE_PATH environment variable
       inherit nodeDependencies;
-      shellHook = stdenv.lib.optionalString (dependencies != []) ''
+      shellHook = stdenv.lib.optionalString (dependencies != [ ]) ''
         export NODE_PATH=$nodeDependencies/lib/node_modules
       '';
     };

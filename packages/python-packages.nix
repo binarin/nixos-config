@@ -1,4 +1,4 @@
-{pkgs, stdenv, ...}:
+{ pkgs, stdenv, ... }:
 
 let
   packageOverrides = self: super: {
@@ -14,14 +14,15 @@ let
       };
     };
   };
-  python = pkgs.python27.override {inherit packageOverrides; };
+  python = pkgs.python27.override { inherit packageOverrides; };
   packagesToInstall = ps: with ps; [
     # QSTK
     ipython
     jupyter
   ];
-in {
-  options = {};
+in
+{
+  options = { };
   config = {
     environment.systemPackages = [ pkgs.myPython27 ];
     nixpkgs.config.packageOverrides = super: rec {

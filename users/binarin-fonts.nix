@@ -1,4 +1,4 @@
-{pkgs, ...}:
+{ pkgs, ... }:
 
 {
   fonts.packages = with pkgs; [
@@ -24,7 +24,7 @@
     ubuntu_font_family
     unifont
     vistafonts
-    (nerdfonts.override {fonts = ["Noto"];})
+    (nerdfonts.override { fonts = [ "Noto" ]; })
   ] ++ lib.optionals (system == "x86_64-linux") [
     terminus_font
     # google-fonts

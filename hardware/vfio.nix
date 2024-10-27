@@ -1,8 +1,9 @@
-{pkgs, config, lib, ...}:
+{ pkgs, config, lib, ... }:
 with lib;
 let
   cfg = config.virtualization.vfio;
-in {
+in
+{
 
   options = {
     virtualization.vfio = {
@@ -23,7 +24,7 @@ in {
     };
   };
   config = mkIf cfg.enable {
-    boot.initrd.availableKernelModules = [ "vfio-pci"];
+    boot.initrd.availableKernelModules = [ "vfio-pci" ];
 
     boot.initrd.preDeviceCommands = mkIf (cfg.devices != null) ''
       DEVS="${builtins.concatStringsSep " " cfg.devices}"

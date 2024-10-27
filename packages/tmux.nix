@@ -1,4 +1,4 @@
-{lib, pkgs, ...}:
+{ lib, pkgs, ... }:
 
 with lib;
 
@@ -22,7 +22,8 @@ let
 
     ${lib.concatStrings (map (x: "run-shell ${x.rtp}\n") plugins)}
   '';
-in {
+in
+{
   environment = {
     etc."tmux.conf".text = tmuxConf;
     systemPackages = [ pkgs.tmux ];

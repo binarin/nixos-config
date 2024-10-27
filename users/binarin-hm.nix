@@ -1,4 +1,4 @@
-{lib, pkgs, config, system, ...}:
+{ lib, pkgs, config, system, ... }:
 
 let
 
@@ -40,7 +40,7 @@ let
     preConfigure = ''
       substituteInPlace CMakeLists.txt \
         --replace \$\{LIBOBS_PLUGIN_DESTINATION\} $out/lib/obs-plugins
-      '';
+    '';
 
     nativeBuildInputs = with pkgs; [ cmake pkg-config ninja ];
     buildInputs = with pkgs; [ wayland obs-studio xorg.libX11 libgphoto2 libjpeg udev libcaption ];
@@ -50,9 +50,10 @@ let
 
   };
 
-  ignoringVulns = x: x // { meta = (x.meta // { knownVulnerabilities = []; }); };
+  ignoringVulns = x: x // { meta = (x.meta // { knownVulnerabilities = [ ]; }); };
   qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
-in {
+in
+{
   imports = [
     ./emacs-hm.nix
   ];
@@ -149,7 +150,7 @@ in {
               __zoxide_cd "$(cat $result_file)"
           fi
       }
-     '';
+    '';
     shellAliases = {
       gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';
       vi = ''emacsclient -nw -a vim'';
@@ -263,7 +264,7 @@ in {
     userName = "Alexey Lebedeff";
     userEmail = "binarin@binarin.info";
     delta.enable = true;
-    extraConfig =  {
+    extraConfig = {
       core = {
         autocrlf = false;
       };
@@ -271,7 +272,7 @@ in {
         "git@github.com:binarin/" = { insteadOf = "gh:"; pushInsteadOf = "gh:"; };
       };
       commit = {
-	      template = "${./git-commit-template.txt}";
+        template = "${./git-commit-template.txt}";
       };
       "delta \"decorations\"" = {
         commit-decoration-style = "bold yellow box ul";

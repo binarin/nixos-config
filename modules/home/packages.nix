@@ -26,7 +26,7 @@
 
     mc
     lsd
-    
+
   ];
 
   # Programs natively supported by home-manager.

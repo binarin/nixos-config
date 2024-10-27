@@ -11,7 +11,7 @@ let
 
   gitlabSocket = "${cfg.statePath}/tmp/sockets/gitlab.socket";
   gitalySocket = "${cfg.statePath}/tmp/sockets/gitaly.socket";
-  pathUrlQuote = url: replaceStrings ["/"] ["%2F"] url;
+  pathUrlQuote = url: replaceStrings [ "/" ] [ "%2F" ] url;
   pgSuperUser = config.services.postgresql.superUser;
 
   databaseYmlRender = pkgs.writeScript "render-database-yml" ''
@@ -134,7 +134,7 @@ let
           port = 3807;
         };
       };
-      extra = {};
+      extra = { };
       uploads.storage_path = cfg.statePath;
     };
   };
@@ -171,7 +171,7 @@ let
           --set PATH '${lib.makeBinPath [ pkgs.nodejs pkgs.gzip pkgs.git pkgs.gnutar config.services.postgresql.package ]}:$PATH' \
           --set RAKEOPT '-f ${cfg.packages.gitlab}/share/gitlab/Rakefile' \
           --run 'cd ${cfg.packages.gitlab}/share/gitlab'
-     '';
+    '';
   };
 
   smtpSettings = pkgs.writeText "gitlab-smtp-settings.rb" ''
@@ -192,7 +192,8 @@ let
     end
   '';
 
-in {
+in
+{
 
   options = {
     services.gitlab = {
@@ -423,7 +424,7 @@ in {
 
       extraConfig = mkOption {
         type = types.attrs;
-        default = {};
+        default = { };
         example = {
           gitlab = {
             default_projects_features = {
@@ -451,7 +452,8 @@ in {
     services.postfix.enable = mkDefault true;
 
     users.users = [
-      { name = cfg.user;
+      {
+        name = cfg.user;
         group = cfg.group;
         home = "${cfg.statePath}/home";
         shell = "${pkgs.bash}/bin/bash";
@@ -460,7 +462,8 @@ in {
     ];
 
     users.groups = [
-      { name = cfg.group;
+      {
+        name = cfg.group;
         gid = config.ids.gids.gitlab;
       }
     ];
@@ -485,7 +488,7 @@ in {
         TimeoutSec = "infinity";
         Restart = "on-failure";
         WorkingDirectory = "${cfg.packages.gitlab}/share/gitlab";
-        ExecStart="${cfg.packages.gitlab.rubyEnv}/bin/sidekiq -C \"${cfg.packages.gitlab}/share/gitlab/config/sidekiq_queues.yml\" -e production -P ${cfg.statePath}/tmp/sidekiq.pid";
+        ExecStart = "${cfg.packages.gitlab.rubyEnv}/bin/sidekiq -C \"${cfg.packages.gitlab}/share/gitlab/config/sidekiq_queues.yml\" -e production -P ${cfg.statePath}/tmp/sidekiq.pid";
       };
     };
 

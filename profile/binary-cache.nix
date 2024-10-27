@@ -1,8 +1,9 @@
-{config, pkgs, lib, ...}:
+{ config, pkgs, lib, ... }:
 
 let
   machines = import ../nixops/personal-hosts.nix;
-in {
+in
+{
   nix.sshServe.enable = true;
   nix.sshServe.keys = (lib.attrValues machines.balthamel.sshKeys);
 
@@ -13,5 +14,5 @@ in {
 
   users.users.nix-serve.extraGroups = [ "keys" ];
 
-  networking.firewall.allowedTCPPorts = [5000];
+  networking.firewall.allowedTCPPorts = [ 5000 ];
 }

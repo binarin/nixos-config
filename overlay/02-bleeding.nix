@@ -1,10 +1,12 @@
 self: super:
-let nixpkgs = import ../nixpkgs-master {
-      overlays = []; # prevent further layering
-      config = {
-        allowUnfree = true;
-      };
+let
+  nixpkgs = import ../nixpkgs-master {
+    overlays = [ ]; # prevent further layering
+    config = {
+      allowUnfree = true;
     };
-in {
+  };
+in
+{
   bleeding = nixpkgs.pkgs;
 }

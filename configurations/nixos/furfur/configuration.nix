@@ -14,6 +14,10 @@
     ./vscode-remote-workaround.nix
   ];
 
+  nixpkgs.overlays = [
+    flake.inputs.emacs-overlay.overlays.default
+  ];
+
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   environment.variables.EDITOR = "emacs -nw";

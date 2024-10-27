@@ -4,11 +4,11 @@
   boot.loader.grub.device = "/dev/sda";
 
   fileSystems."/" =
-    { device = "/dev/disk/by-label/nixos-root";
+    {
+      device = "/dev/disk/by-label/nixos-root";
       fsType = "ext4";
     };
 
   swapDevices =
-    [ { device = "/dev/disk/by-label/swap-0"; }
-    ];
+    [{ device = "/dev/disk/by-label/swap-0"; }];
 }

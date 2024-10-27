@@ -1,4 +1,4 @@
-{pkgs, stdenv, fetchurl, iptables, xz, utillinux, e2fsprogs, iproute, makeWrapper, ...}:
+{ pkgs, stdenv, fetchurl, iptables, xz, utillinux, e2fsprogs, iproute, makeWrapper, ... }:
 
 stdenv.mkDerivation {
   name = "docker-1.11.2";
@@ -12,5 +12,5 @@ stdenv.mkDerivation {
     cp * $out/libexec/docker
     makeWrapper $out/libexec/docker/docker $out/bin/docker \
       --prefix PATH : "$out/libexec/docker:${iproute}/sbin:sbin:${iptables}/sbin:${e2fsprogs}/sbin:${xz}/bin:${utillinux}/bin"
-   '';
+  '';
 }

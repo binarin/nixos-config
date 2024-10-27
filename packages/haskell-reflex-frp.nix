@@ -1,4 +1,4 @@
-{fetchFromGitHub}: {
+{ fetchFromGitHub }: {
   reflex = fetchFromGitHub {
     owner = "reflex-frp";
     repo = "reflex";

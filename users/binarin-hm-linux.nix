@@ -1,4 +1,4 @@
-{lib, pkgs, config, system, ...}:
+{ lib, pkgs, config, system, ... }:
 
 let
   texlive-combined = pkgs.texlive.combine {
@@ -9,7 +9,8 @@ let
   out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
   out-ishamael-edp = "Sharp Corporation 0x1516 Unknown";
   out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
-in {
+in
+{
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
@@ -134,7 +135,7 @@ in {
 
   xdg.configFile."mimeapps.list".force = true;
   home.activation = {
-    removeCommonConfictingFiles = lib.hm.dag.entryBefore ["checkLinkTargets"] ''
+    removeCommonConfictingFiles = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
       $DRY_RUN_CMD rm -fv ~/.gtkrc-2.0 ~/.gtkrc-2.0.backup
     '';
   };
@@ -441,8 +442,7 @@ in {
           icon-size = 32;
         };
 
-        "hyprland/workspaces" = {
-        };
+        "hyprland/workspaces" = { };
 
         "hyprland/window" = {
           separate-outputs = true;
@@ -537,27 +537,27 @@ in {
     enable = true;
     settings = {
       general = {
-        lock_cmd = "pidof hyprlock || hyprlock";        # avoid starting multiple hyprlock instances.
-        before_sleep_cmd = "loginctl lock-session";     # lock before suspend.
-        after_sleep_cmd = "hyprctl dispatch dpms on";   # to avoid having to press a key twice to turn on the display.
+        lock_cmd = "pidof hyprlock || hyprlock"; # avoid starting multiple hyprlock instances.
+        before_sleep_cmd = "loginctl lock-session"; # lock before suspend.
+        after_sleep_cmd = "hyprctl dispatch dpms on"; # to avoid having to press a key twice to turn on the display.
       };
       listener = [
 
         {
-          timeout = 150;                                # 2.5min.
-          on-timeout = "brightnessctl-all -s set 10";   # set monitor backlight to minimum, avoid 0 on OLED monitor.
-          on-resume = "brightnessctl-all -r";           # monitor backlight restore.
+          timeout = 150; # 2.5min.
+          on-timeout = "brightnessctl-all -s set 10"; # set monitor backlight to minimum, avoid 0 on OLED monitor.
+          on-resume = "brightnessctl-all -r"; # monitor backlight restore.
         }
 
         {
-          timeout = 300;                                # 5min
-          on-timeout = "loginctl lock-session";         # lock screen when timeout has passed
+          timeout = 300; # 5min
+          on-timeout = "loginctl lock-session"; # lock screen when timeout has passed
         }
 
         {
-          timeout = "330";                              # 5.5min
-          on-timeout = "hyprctl dispatch dpms off";     # screen off when timeout has passed
-          on-resume = "hyprctl dispatch dpms on";       # screen on when activity is detected after timeout has fired.
+          timeout = "330"; # 5.5min
+          on-timeout = "hyprctl dispatch dpms off"; # screen off when timeout has passed
+          on-resume = "hyprctl dispatch dpms on"; # screen on when activity is detected after timeout has fired.
         }
       ];
     };

@@ -616,6 +616,7 @@ Don't create too big of a frame on WSL (and it doesn't matter for tiling WMs).
    Prevent ~paredit~ from replacing standard search-related binding:
    #+BEGIN_SRC emacs-lisp
      (use-package paredit
+       :ensure t
        :hook
        (emacs-lisp-mode                  . paredit-mode) ; Elisp buffers.
        (lisp-mode                        . paredit-mode) ; Common Lisp buffers.

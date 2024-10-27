@@ -1,4 +1,4 @@
-{stdenv, lib, bash, util-linux, git, ...}:
+{ stdenv, lib, bash, util-linux, git, ... }:
 
 stdenv.mkDerivation rec {
   pname = "wt-maker";

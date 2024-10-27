@@ -1,4 +1,4 @@
-{...}:
+{ ... }:
 {
   imports = [
     ../packages/standard-linux-tools.nix

@@ -1,4 +1,4 @@
-{ stdenvNoCC, fetchurl, unzip, lib,  ... }:
+{ stdenvNoCC, fetchurl, unzip, lib, ... }:
 
 stdenvNoCC.mkDerivation (rec {
   pname = "victoriametrics-datasource";

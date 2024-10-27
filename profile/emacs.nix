@@ -1,4 +1,4 @@
-{config, pkgs, lib, ...}:
+{ config, pkgs, lib, ... }:
 
 with lib;
 
@@ -23,7 +23,7 @@ let
     amx
     anaphora
     # auctex
-    auto-complete  # edts dep
+    auto-complete # edts dep
     auto-highlight-symbol # edts dep
     avy
     cider
@@ -43,7 +43,7 @@ let
     poetry
     vterm
     emojify
-    eproject  # edts dep
+    eproject # edts dep
     erlang
     evil
     eyebrowse
@@ -52,7 +52,10 @@ let
     fsm
     #    geiser
     general
-    go-mode flycheck-gometalinter company-go go-eldoc
+    go-mode
+    flycheck-gometalinter
+    company-go
+    go-eldoc
     haskell-mode
     helm
     helm-dash
@@ -91,7 +94,7 @@ let
     paredit
     pdf-tools
     perspeen
-    popup  # edts dep
+    popup # edts dep
     projectile
     projectile-ripgrep
     pt

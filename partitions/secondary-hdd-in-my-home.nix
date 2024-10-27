@@ -1,4 +1,4 @@
-{...}:
+{ ... }:
 
 {
   fileSystems."/home/binarin/hdd" = {

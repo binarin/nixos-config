@@ -1,9 +1,9 @@
-{pkgs, ...}:
+{ pkgs, ... }:
 
 with pkgs;
 let
 in {
-  options = {};
+  options = { };
   config = {
     environment.systemPackages = with pkgs.perl536Packages; [
       PathTiny

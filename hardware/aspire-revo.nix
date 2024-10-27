@@ -1,8 +1,8 @@
 { config, lib, pkgs, ... }:
 
 {
-  boot.kernelPackages = pkgs.linuxPackages_4_14.extend(pSelf: pSuper: {
-    nvidia_x11_legacy340 = pSuper.nvidia_x11_legacy340.overrideAttrs(oldAttrs: {
+  boot.kernelPackages = pkgs.linuxPackages_4_14.extend (pSelf: pSuper: {
+    nvidia_x11_legacy340 = pSuper.nvidia_x11_legacy340.overrideAttrs (oldAttrs: {
       patches = [ ../nixpkgs/pkgs/os-specific/linux/nvidia-x11/vm_operations_struct-fault.patch ];
     });
   });
