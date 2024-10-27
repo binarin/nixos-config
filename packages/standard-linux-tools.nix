@@ -4,7 +4,7 @@ let
 in
 {
   imports = [
-    ../modules/tmux.nix
+    ./tmux.nix
     ../packages/perl-packages.nix
   ];
   options = {
