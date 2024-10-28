@@ -37,7 +37,7 @@ in
     ];
     nixpkgs.overlays = [
       (final: prev: {
-        cleanup-unicode-from-emacs-org-babel-config = pkgs.callPackage (self + "/packages/cleanup-unicode-from-emacs-org-babel-config.nix") {};
+        cleanup-unicode-from-emacs-org-babel-config = pkgs.callPackage (self + "/packages/cleanup-unicode-from-emacs-org-babel-config.nix") { };
         tangle-emacs-org-babel-config = pkgs.callPackage (self + "/packages/tangle-emacs-org-babel-config.nix") {
           emacs = finalEmacsPackage;
         };
