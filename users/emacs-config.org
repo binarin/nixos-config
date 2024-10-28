@@ -407,7 +407,7 @@
          "depsHostHost" "depsHostHostPropagated" "depsTargetTarget" "depsTargetTargetPropagated"
          "doCheck" "doInstallCheck" "dontAddDisableDepTrack" "mesonFlags" "name" "nativeBuildInputs"
          "out" "outputs" "patches" "phases" "propagatedBuildInputs" "propagatedNativeBuildInputs"
-         "shell" "shellHook" "stdenv" "strictDeps" "system" "XDG_DATA_DIRS"))
+         "shell" "shellHook" "stdenv" "strictDeps" "system" "XDG_DATA_DIRS" "__structuredAttrs" "preferLocalBuild"))
 
      (defun binarin/cleanup_direnv--summarise-changes (orig-fun items)
        (funcall orig-fun (-remove (lambda (elt) (-elem-index (car elt) binarin/direnv-boring-items)) items)))
