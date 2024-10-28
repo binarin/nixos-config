@@ -449,6 +449,13 @@
 
    Prevent ~paredit~ from replacing standard search-related binding:
    #+BEGIN_SRC emacs-lisp :tangle yes
+     (defun binarin/paredit-RET ()
+         "Wraps `paredit-RET' to provide a sensible minibuffer experience."
+         (interactive)
+         (if (minibufferp)
+             (read--expression-try-read)
+           (paredit-RET)))
+
      (use-package paredit
        :ensure t
        :hook
@@ -459,25 +466,14 @@
        :commands (paredit-RET)
        :bind
        (:map paredit-mode-map
-             ("M-s" . nil))
+             ("M-s" . nil)
+             ("<return>" . binarin/paredit-RET))
        :hook (emacs-lisp-mode-hook . enable-paredit-mode)
        :hook (eval-expression-minibuffer-setup-hook . enable-paredit-mode)
        :hook (ielm-mode-hook . enable-paredit-mode)
        :hook (lisp-mode-hook . enable-paredit-mode)
        :hook (lisp-interaction-mode-hook . enable-paredit-mode)
        :hook (scheme-mode-hook . enable-paredit-mode))
-
-     (defun binarin/paredit-RET ()
-         "Wraps `paredit-RET' to provide a sensible minibuffer experience."
-         (interactive)
-         (if (minibufferp)
-             (read--expression-try-read)
-           (paredit-RET)))
-
-     (general-define-key
-      :keymaps paredit-mode-map
-      "<return>" 'binarin/paredit-RET)
-
    #+END_SRC
 
    Doesn't play good with paredit, can't press Enter in ~M-:~
