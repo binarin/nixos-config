@@ -12,5 +12,15 @@
 
     # Enables 'nix run' to activate.
     packages.default = self'.packages.activate;
+
+    nixos-unified.primary-inputs = [
+      "nixpkgs"
+      "nix-darwin"
+      "home-manager"
+      "emacs-overlay"
+      "nixos-wsl"
+      "nixpkgs-unstable"
+    ];
+
   };
 }
