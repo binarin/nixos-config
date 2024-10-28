@@ -577,7 +577,7 @@
          ("@phone" :hotkey ?o :includes ("@inet"))))
 
      (setq org-tag-alist `((:startgroup . nil)
-                            ,@(mapcar #'(cl-function (lambda ((tag &key hotkey &rest)) (cons tag hotkey))) binarin/context-tags)
+                            ,@(mapcar (cl-function (lambda ((tag &key hotkey includes)) (ignore includes) (cons tag hotkey))) binarin/context-tags)
                             (:endgroup . nil)
                             (:startgroup . nil)
                             ("WAITING" . ?W)
