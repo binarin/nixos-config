@@ -21,6 +21,5 @@
       "nixos-wsl"
       "nixpkgs-unstable"
     ];
-
   };
 }
