@@ -1271,11 +1271,12 @@
      (setq org-use-speed-commands t)
 
      (eval-after-load "org-keys"
-     (add-to-list
-      org-speed-commands
-      '(("h" . (org-speed-move-safe 'helm-org-in-buffer-headings))
-        ("б" . org-refile)
-        ("i" . org-clock-in))))
+       (progn
+         (cl-dolist
+             (elt '(("h" . (org-speed-move-safe 'helm-org-in-buffer-headings))
+                    ("б" . org-refile)
+                    ("i" . org-clock-in)))
+           (add-to-list 'org-speed-commands elt t))))
    #+END_SRC
 ** Calendar Sync
    #+BEGIN_SRC emacs-lisp
