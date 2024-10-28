@@ -1,4 +1,4 @@
-* #+PROPERTY: header-args:emacs-lisp :lexical yes
+#+PROPERTY: header-args:emacs-lisp :lexical yes
 * File header
 ** Customization helpers
    #+BEGIN_SRC emacs-lisp :tangle yes
