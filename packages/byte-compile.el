@@ -1,0 +1,18 @@
+;;; -*- lexical-binding: t -*-
+(let (src dst dst-buffer)
+  (setf src (pop argv))
+  (setf dst (pop argv))
+  (package-initialize)
+  (require (quote ob-tangle))
+  (cl-letf (((symbol-function (quote org-babel-effective-tangled-filename))
+             (lambda (&rest rest) dst)))
+    (org-babel-tangle-file src nil "emacs-lisp"))
+  (setq dst-buffer (find-file-noselect dst t))
+  (with-current-buffer dst-buffer
+    (beginning-of-buffer)
+    (insert ";;; -*- lexical-binding: t -*-\n")
+    (save-buffer))
+  (kill-buffer dst-buffer)
+  (setf byte-compile-error-on-warn t)
+  (unless (byte-compile-file dst)
+    (kill-emacs 1)))

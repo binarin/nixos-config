@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 {
   programs.info.enable = true;
+
   home.file.".emacs".source = pkgs.runCommand "emacs-config-tangled" { } ''
     ${config.programs.emacs.finalPackage}/bin/emacs --batch --eval '(progn (package-initialize) (require (quote ob-tangle)) (org-babel-tangle-file "${./emacs-config.org}" "'$out'" "emacs-lisp") (kill-emacs))'
   '';

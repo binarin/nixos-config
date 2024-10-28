@@ -10,4 +10,6 @@ in
   home.username = "binarin";
   home.homeDirectory = lib.mkDefault "/${if pkgs.stdenv.isDarwin then "Users" else "home"}/binarin";
   home.stateVersion = "22.11";
+
+  my.programs.emacs.enable = true;
 }

@@ -9,12 +9,10 @@ in
 {
   imports = [
     self.nixosModules.default
-    # self.nixosModules.gui
+    self.nixosModules.emacs
     ./configuration.nix
   ];
 
-  # Enable home-manager for "binarin" user
-  home-manager.users."binarin" = {
-    imports = [ (self + /configurations/home/binarin.nix) ];
-  };
+  hostOptions.gui.enable = true;
+  hostOptions.managedUsers = [ "binarin" ];
 }

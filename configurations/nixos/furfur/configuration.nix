@@ -10,8 +10,8 @@
 {
   imports = [
     # include NixOS-WSL modules
-    "${flake.inputs.nixos-wsl}/modules"
-    ./vscode-remote-workaround.nix
+    flake.inputs.nixos-wsl.nixosModules.default
+    flake.inputs.self.nixosModules.vscode-remote-workaround
   ];
 
   nixpkgs.overlays = [
@@ -27,8 +27,6 @@
   networking.hostName = "furfur";
 
   environment.systemPackages = with pkgs; [
-    emacs
-    wget
   ];
 
   vscode-remote-workaround.enable = true;
