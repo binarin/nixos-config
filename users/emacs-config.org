@@ -432,6 +432,12 @@
        ;; list. And anyway, this is broken for some of the things I work on
        ;; (e.g. it fails on submodules without url).
        (projectile-git-submodule-command nil))
+
+     (use-package ripgrep
+       :ensure t)
+
+     (use-package projectile-ripgrep
+       :ensure t)
    #+END_SRC
 
 ** Perl
