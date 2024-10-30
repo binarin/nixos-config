@@ -676,16 +676,15 @@ executed.
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-todo-keywords
            '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-             (type "|" "CANCELLED(c!)")
+             (type "|" "CNCL(c!)")
              (type "WAIT(w!)" "|")))
 
      (setq org-todo-keyword-faces
            '(("TODO" :foreground "red" :weight bold)
              ("NEXT" :foreground "cyan3" :weight bold)
              ("DONE" :foreground "green4" :weight bold)
-
              ("WAIT" :foreground "orange3" :weight bold)
-             ("CANCELLED" :foreground "forest green" :weight bold)))
+             ("CNCL" :foreground "forest green" :weight bold)))
 
      (setq org-enforce-todo-dependencies t)
      (setq org-log-done 'time)
@@ -791,16 +790,24 @@ executed.
 
 ** Appearance
    #+BEGIN_SRC emacs-lisp :tangle yes
-          (use-package org-modern
-            :ensure t
-            :after (org)
-            :config
-            (global-org-modern-mode))
+     (use-package org-modern
+       :ensure t
+       :after (org)
+       :config
+       (global-org-modern-mode))
 
-          ;; Ellipsis styling
-          (setq org-ellipsis "…")
-          (with-eval-after-load 'org
-            (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil))
+     (with-eval-after-load 'org-modern
+       (setq org-modern-todo-faces
+             '(("TODO" :background "pink3" :foreground "black")
+               ("NEXT" :background "cyan3" :foreground "black")
+               ("WAIT" :background "orange3" :foreground "black")
+               ("DONE" :background "green4" :foreground "black")
+               ("CNCL" :background "forest green" :foreground "yellow"))))
+
+     ;; Ellipsis styling
+     (setq org-ellipsis "…")
+     (with-eval-after-load 'org
+       (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil))
 
    #+END_SRC
 
@@ -1011,8 +1018,8 @@ executed.
        (cl-dolist
            (elt '(("g" . consult-org-heading)
                   ("i" . org-clock-in)
-                  ("j" . org-previous-visible-heading)
-                  ("k" . org-next-visible-heading)
+                  ("k" . org-previous-visible-heading)
+                  ("j" . org-next-visible-heading)
                   ("r" . org-refile)))
          (add-to-list 'org-speed-commands elt nil)))
    #+END_SRC
