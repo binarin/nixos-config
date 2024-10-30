@@ -23,10 +23,14 @@
   environment.variables.EDITOR = "emacs -nw";
   wsl.enable = true;
   wsl.defaultUser = "binarin";
+  wsl.useWindowsDriver = true;
+  wsl.startMenuLaunchers = true;
+  wsl.usbip.enable = true;
 
   networking.hostName = "furfur";
 
   environment.systemPackages = with pkgs; [
+    wslu
   ];
 
   vscode-remote-workaround.enable = true;
