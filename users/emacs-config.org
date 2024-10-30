@@ -645,6 +645,7 @@ executed.
     ;; XXX Use consult for clock-in
     (use-package org
       :ensure t
+      :commands (org-save-all-org-buffers)
       :mode ("\\.org\\'" . org-mode)
       :bind
       (("C-c a" . org-agenda)
@@ -767,7 +768,7 @@ executed.
    #+END_SRC
 ** Templates
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (eval-after-load "org-mode"
+     (eval-after-load 'org
        (lambda ()
          (require 'org-tempo)
          (add-to-list 'org-structure-template-alist '("m" . "src emacs-lisp"))))
@@ -1057,7 +1058,7 @@ executed.
               (lambda () (add-hook 'before-save-hook 'org-encrypt-entries nil t))))
 
 #+end_src
-** Sync
+** Caldav sync
    #+begin_src emacs-lisp :tangle yes
      (use-package org-caldav
        :ensure t
@@ -1072,4 +1073,15 @@ executed.
        (org-caldav-files (-difference org-agenda-files org-contacts-files))
        (org-icalendar-timezone "Europe/Amsterdam"))
        #+end_src
+** Git sync
+   #+begin_src emacs-lisp :tangle yes
+     (defun binarin/org-sync ()
+       (interactive)
+       (org-save-all-org-buffers)
+       (let ((default-directory "~/org/"))
+         (shell-command "./push.sh")))
+
+     (general-define-key
+      "C-c o p" 'binarin/org-sync)
+   #+end_src
 * Test space
