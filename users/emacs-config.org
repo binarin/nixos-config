@@ -711,7 +711,7 @@ executed.
 ** Outline
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-cycle-separator-lines 0)
-     (setq org-fold-catch-invisible-edits 'smart)
+     (setq org-fold-catch-invisible-edits 'show-and-error)
      (setq org-startup-folded t)
      (setq org-adapt-indentation t)
      (general-setq org-goto-interface 'outline-path-completion)
