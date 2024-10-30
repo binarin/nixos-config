@@ -334,8 +334,12 @@ executed.
      ;; completion in pop-up window
      (use-package corfu
        :ensure t
-       :config
-       (global-corfu-mode))
+       :init
+       (global-corfu-mode)
+       ;; Remap with Power Toys for msrdc program
+       (when (eq binarin/system-type 'wsl)
+         (general-define-key :keymaps 'corfu-map
+                             "C-M-S-SPC" 'corfu-insert-separator)))
    #+end_src
 
 ** External shell
@@ -650,7 +654,7 @@ executed.
                                    (-filter #'f-exists?
                                             '("~/org/personal.org"
                                               "~/org/contacts.org"
-                                              "~/org/caldav-inbox.org"
+                                              "~/org/caldav.org"
                                               "~/org/refile.org"
                                               "~/org/ference.org")))
             org-directory "~/org"))
@@ -726,9 +730,18 @@ executed.
      (general-setq org-agenda-skip-deadline-if-done t)
      (general-setq org-agenda-skip-timestamp-if-done t)
      (setq org-agenda-hide-tags-regexp "agenda_hide")
+     (setq
+      ;; Agenda styling
+      org-agenda-block-separator ?─
+      org-agenda-time-grid
+      '((daily today require-timed)
+        (800 1000 1200 1400 1600 1800 2000)
+        " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+      org-agenda-current-time-string
+      "◀── now ─────────────────────────────────────────────────")
    #+end_src
 
-   #+BEGIN_SRC emacs-lisp :tangle yes
+   #+BEGIN_SRC emacs-lisp :tangle no
      (defun binarin/shrink-text ()
        (when (and
               (window-system)
@@ -741,9 +754,16 @@ executed.
      (eval-after-load "org-agenda"
        (when (window-system)
          (add-hook 'org-agenda-mode-hook #'binarin/shrink-text)))
+#+END_SRC
 
-     (setq org-agenda-tags-column -158
-            org-tags-column -124)
+#+BEGIN_SRC emacs-lisp :tangle yes
+     (setq org-agenda-tags-column 0
+           org-tags-column 0
+           org-auto-align-tags nil
+           org-special-ctrl-a/e t
+           org-insert-heading-respect-content t
+           org-hide-emphasis-markers t
+           org-pretty-entities t)
    #+END_SRC
 ** Templates
    #+BEGIN_SRC emacs-lisp :tangle yes
@@ -770,11 +790,17 @@ executed.
 
 ** Appearance
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (use-package org-modern
-       :ensure t
-       :after (org)
-       :config
-       (global-org-modern-mode))
+          (use-package org-modern
+            :ensure t
+            :after (org)
+            :config
+            (global-org-modern-mode))
+
+          ;; Ellipsis styling
+          (setq org-ellipsis "…")
+          (with-eval-after-load 'org
+            (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil))
+
    #+END_SRC
 
    #+BEGIN_SRC emacs-lisp :tangle yes
@@ -982,10 +1008,12 @@ executed.
 
      (with-eval-after-load 'org-keys
        (cl-dolist
-           (elt '(("h" . (org-speed-move-safe 'helm-org-in-buffer-headings))
-                  ("б" . org-refile)
-                  ("i" . org-clock-in)))
-         (add-to-list 'org-speed-commands elt t)))
+           (elt '(("g" . consult-org-heading)
+                  ("i" . org-clock-in)
+                  ("j" . org-previous-visible-heading)
+                  ("k" . org-next-visible-heading)
+                  ("r" . org-refile)))
+         (add-to-list 'org-speed-commands elt nil)))
    #+END_SRC
 ** Roam
    #+begin_src emacs-lisp :tangle yes
@@ -1038,7 +1066,7 @@ executed.
        :custom
        (org-caldav-url "https://nc.binarin.info/remote.php/dav/calendars/binarin")
        (org-caldav-calendar-id "binarin")
-       (org-caldav-inbox "~/org/caldav-inbox.org")
+       (org-caldav-inbox "~/org/caldav.org")
        (org-caldav-save-directory org-directory)
        ;; Additional Org files to check for calendar events
        (org-caldav-files (-difference org-agenda-files org-contacts-files))
