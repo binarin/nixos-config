@@ -1,9 +1,13 @@
-{ ... }:
+{ flake, ... }:
+
+let
+  inherit (flake) inputs;
+  inherit (inputs) self;
+in
 {
+
   imports = [
-    ../packages/standard-linux-tools.nix
-    ../packages/use-my-overlays.nix
-    # ../modules/outgoing-email.nix
+    (self + "/packages/standard-linux-tools.nix")
   ];
 
   time.timeZone = "Europe/Amsterdam";

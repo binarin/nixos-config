@@ -54,9 +54,9 @@ let
   qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
 in
 {
-  imports = [
-    ./emacs-hm.nix
-  ];
+  # imports = [
+  #   ./emacs-hm.nix
+  # ];
   home.file."bin/sshmenu".source = ./sshmenu;
   home.file.".local/share/applications/org-protocol.desktop".source = ./org-protocol.desktop;
   home.file.".local/share/applications/smart-browser-chooser.desktop".text = ''
@@ -258,32 +258,6 @@ in
   ];
 
   programs.gh.enable = true;
-  programs.git = {
-    enable = true;
-    package = pkgs.gitAndTools.gitFull;
-    userName = "Alexey Lebedeff";
-    userEmail = "binarin@binarin.info";
-    delta.enable = true;
-    extraConfig = {
-      core = {
-        autocrlf = false;
-      };
-      url = {
-        "git@github.com:binarin/" = { insteadOf = "gh:"; pushInsteadOf = "gh:"; };
-      };
-      commit = {
-        template = "${./git-commit-template.txt}";
-      };
-      "delta \"decorations\"" = {
-        commit-decoration-style = "bold yellow box ul";
-        file-style = "bold yellow ul";
-        file-decoration-style = "none";
-      };
-      init = {
-        defaultBranch = "master";
-      };
-    };
-  };
 
   home.file."bin/pass" = {
     text = ''

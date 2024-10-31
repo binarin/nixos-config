@@ -1,15 +1,20 @@
 # -*- nix -*-
-{ config, pkgs, lib, ... }:
+{ flake, config, pkgs, lib, ... }:
 
+let
+  inherit (flake) inputs;
+  inherit (inputs) self;
+in
 {
   imports = [
-    ./profile/server.nix
-    ./users/binarin.nix
-    # ./profile/emacs.nix
-    ./profile/workstation.nix
-    # ./profile/bkng-kerberos.nix
-    ./hardware/vfio.nix
-    ./packages/keep-flake-sources.nix
+    self.nixosModules.server
+    self.nixosModules.bleeding
+    self.nixosModules.emacs
+    self.nixosModules.hyprland
+    (self + "/hardware/vfio.nix")
+    (self + "/users/binarin.nix")
+    (self + "/profile/workstation.nix")
+    (self + "/packages/keep-flake-sources.nix")
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_6_6;
@@ -36,7 +41,7 @@
     ];
   };
 
-  hardware.bluetooth.disabledPlugins = ["sap"];
+  hardware.bluetooth.disabledPlugins = [ "sap" ];
 
   specialisation.headless.configuration = {
     virtualization.vfio = {
@@ -58,7 +63,7 @@
   boot.kernelParams = [ "amd_iommu=on" "iommu=pt" "pcie_aspm=off" "video=efifb:off" "pci=realloc" "usbcore.autosuspend=-1" ];
   boot.extraModulePackages = with config.boot.kernelPackages; [
     (ddcci-driver.overrideAttrs (oldAttrs: {
-      patches = [./hardware/valak/ddcci-quirk.patch] ++ oldAttrs.patches;
+      patches = [ ./ddcci-quirk.patch ] ++ oldAttrs.patches;
     }))
   ];
 
@@ -70,37 +75,39 @@
     ENV{SYSTEMD_WANTS}+="ddcci@$kernel.service"
   '';
 
-  systemd.services."ddcci@" = let
-    script = pkgs.writers.writeBash "try-forcing-ddcci" ''
-      dev=$1
-      set -x
-      echo Trying to attach ddcci to $dev
-      success=0
-      i=0
-      id=$(echo $dev | cut -d "-" -f 2)
-      while ((success < 1)) && ((i++ < 5)); do
-        if ddcutil getvcp 10 -b $id; then
-          success=1
-          echo ddcci 0x37 > /sys/bus/i2c/devices/$dev/new_device
-          echo "ddcci attached to %i"
-        else
-          sleep 5
-        fi
-      done
-    '';
-    in {
-    path = with pkgs; [ bash ddcutil coreutils ];
-    serviceConfig = {
-      ExecStart=''
-        ${script} %i
+  systemd.services."ddcci@" =
+    let
+      script = pkgs.writers.writeBash "try-forcing-ddcci" ''
+        dev=$1
+        set -x
+        echo Trying to attach ddcci to $dev
+        success=0
+        i=0
+        id=$(echo $dev | cut -d "-" -f 2)
+        while ((success < 1)) && ((i++ < 5)); do
+          if ddcutil getvcp 10 -b $id; then
+            success=1
+            echo ddcci 0x37 > /sys/bus/i2c/devices/$dev/new_device
+            echo "ddcci attached to %i"
+          else
+            sleep 5
+          fi
+        done
       '';
+    in
+    {
+      path = with pkgs; [ bash ddcutil coreutils ];
+      serviceConfig = {
+        ExecStart = ''
+          ${script} %i
+        '';
+      };
     };
-  };
 
   virtualisation.libvirtd = {
     enable = true;
     qemu.ovmf.enable = true;
-    qemu.ovmf.packages = [pkgs.OVMFFull.fd];
+    qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];
     qemu.runAsRoot = false;
     qemu.swtpm.enable = true;
     onBoot = "ignore";
@@ -108,7 +115,8 @@
   };
 
   systemd.services.libvirtd = {
-      path = let
+    path =
+      let
         env = pkgs.buildEnv {
           name = "qemu-hook-env";
           paths = with pkgs; [
@@ -118,8 +126,9 @@
             systemd
           ];
         };
-      in [ env ];
-    };
+      in
+      [ env ];
+  };
 
   services.xserver = {
     deviceSection = ''
@@ -147,20 +156,21 @@
   #   ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/ac216764-ac4b-4a69-aa4e-22051798e14d";
+    {
+      device = "/dev/disk/by-uuid/ac216764-ac4b-4a69-aa4e-22051798e14d";
       fsType = "ext4";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/DC51-7F5A";
+    {
+      device = "/dev/disk/by-uuid/DC51-7F5A";
       fsType = "vfat";
     };
 
   swapDevices =
-    [ { device = "/dev/disk/by-uuid/27420222-5cdb-440f-9b32-0f2668db7d68"; }
-    ];
+    [{ device = "/dev/disk/by-uuid/27420222-5cdb-440f-9b32-0f2668db7d68"; }];
 
-  nix.settings.max-jobs = lib.mkDefault 8;
+  nix.settings.max-jobs = lib.mkForce 8;
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -207,7 +217,7 @@
           { routeConfig.Gateway = "192.168.2.1"; }
         ];
         dns = [ "192.168.2.46" "192.168.2.53" ];
-        bridgeConfig = {};
+        bridgeConfig = { };
         linkConfig = {
           # or "routable" with IP addresses configured
           RequiredForOnline = "routable";
@@ -278,25 +288,23 @@
     mbuffer
 
     (pkgs.writers.writeBashBin "brightnessctl-all"
-    {
-      makeWrapperArgs = [
-        "--prefix" "PATH" ":" (lib.makeBinPath (with pkgs; [brightnessctl coreutils]))
-      ];
-    }
-    ''
-      mapfile -t all < <(brightnessctl -l -c backlight -m | cut -d , -f1)
-      exit_code=0
-      for dev in ''${all[@]} ; do
-        if ! brightnessctl -d $dev "$@"; then
-          exit_code=$?
-        fi
-      done
-      exit $exit_code
-    '')
+      {
+        makeWrapperArgs = [
+          "--prefix"
+          "PATH"
+          ":"
+          (lib.makeBinPath (with pkgs; [ brightnessctl coreutils ]))
+        ];
+      }
+      ''
+        mapfile -t all < <(brightnessctl -l -c backlight -m | cut -d , -f1)
+        exit_code=0
+        for dev in ''${all[@]} ; do
+          if ! brightnessctl -d $dev "$@"; then
+            exit_code=$?
+          fi
+        done
+        exit $exit_code
+      '')
   ];
-
-  # programs.sway = {
-  #   enable = true;
-  #   inherit (config.home-manager.users.binarin.wayland.windowManager.sway) extraSessionCommands wrapperFeatures extraOptions;
-  # };
 }

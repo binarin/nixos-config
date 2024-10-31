@@ -1,9 +1,9 @@
-{ inputs, config, pkgs, lib, bleeding, stdenv, ... }:
+{ flake, config, pkgs, lib, bleeding, stdenv, ... }:
 
 let
 in {
   imports = [
-    ../packages/use-my-overlays.nix
+    # ../packages/use-my-overlays.nix
     ../packages/standard-linux-tools.nix
     ../packages/user-packages.nix
     ../users/binarin.nix
@@ -68,25 +68,6 @@ in {
   };
 
   console.font = "UniCyr_8x16";
-
-  # fonts.fontconfig = {
-  #   useEmbeddedBitmaps = true;
-  #   defaultFonts = {
-  #     emoji = [ "Noto Color Emoji" ];
-  #     monospace = [
-  #       "Noto Sans Mono"
-  #       "emoji"
-  #     ];
-  #     sansSerif = [
-  #       "Noto Sans"
-  #       "emoji"
-  #     ];
-  #     serif = [
-  #       "Noto Serif"
-  #       "emoji"
-  #     ];
-  #   };
-  # };
 
   i18n = {
     defaultLocale = "ru_RU.UTF-8";
@@ -254,15 +235,8 @@ in {
       intel-media-driver
     ];
   };
-  hardware.flipperzero.enable = true;
 
-  # hardware.pulseaudio = {
-  #   enable = true;
-  #   package = pkgs.pulseaudioFull;
-  #   # extraModules = [ pkgs.pulseaudio-modules-bt ];
-  #   support32Bit = true;
-  #   daemon.config.default-sample-rate = 48000;
-  # };
+  hardware.flipperzero.enable = true;
 
   security.rtkit.enable = true;
 
@@ -271,8 +245,6 @@ in {
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
   };
 
   # Enable the OpenSSH daemon.
@@ -284,6 +256,7 @@ in {
     enable = true;
     nssmdns4 = true;
   };
+
   services.trezord.enable = true;
 
   services.cron.enable = true;
@@ -374,18 +347,6 @@ in {
   };
 
   services.displayManager.sddm.enable = true;
-
-  services.displayManager.defaultSession = "hyprland";
-
-  programs.hyprlock.enable = true;
-  programs.hyprland = {
-    enable = true;
-    package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
-
-    # make sure to also set the portal package, so that they are in sync
-    portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
-  };
-
 
   location.latitude = 52.3702;
   location.longitude = 4.8952;
@@ -515,24 +476,9 @@ in {
       # wantedBy = ["multi-user.target"];
     };
 
-  # xdg.portal = {
-  #   enable = true;
-  #   extraPortals = lib.mkForce [
-  #     pkgs.xdg-desktop-portal-kde
-  #     inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland
-  #   ];
-  #   wlr.enable = true;
-  # };
-
   services.gnome.gnome-keyring.enable = lib.mkForce false;
   services.flatpak.enable = true;
   services.joycond.enable = true;
-
-  # programs.streamdeck-ui = {
-  #   enable = true;
-  #   package = pkgs.bleeding.streamdeck-ui;
-  #   #autoStart = true; # optional
-  # };
 
   programs.adb.enable = true;
 

@@ -65,7 +65,6 @@
         };
       };
 
-      home.stateVersion = "22.05";
       home.sessionPath = [ "$HOME/bin" ];
       home.packages = config.userPackages;
 

@@ -1,26 +1,38 @@
-{ ... }:
+{ flake, pkgs, ... }:
+let
+  inherit (flake) inputs;
+  inherit (inputs) self;
+in
 {
   home.shellAliases = {
     g = "git";
-    lg = "lazygit";
+    # lg = "lazygit";
   };
 
-  # https://nixos.asia/en/git
-  programs = {
-    git = {
-      enable = true;
-      userName = "Alexey Lebedev";
-      userEmail = "johndoe@furfur.com";
-      ignores = [ "*~" "*.swp" ];
-      aliases = {
-        ci = "commit";
+  programs.git = {
+    enable = true;
+    package = pkgs.gitAndTools.gitFull;
+    userName = "Alexey Lebedeff";
+    userEmail = "binarin@binarin.info";
+    delta.enable = true;
+    extraConfig = {
+      core = {
+        autocrlf = false;
       };
-      extraConfig = {
-        # init.defaultBranch = "master";
-        # pull.rebase = "false";
+      url = {
+        "git@github.com:binarin/" = { insteadOf = "gh:"; pushInsteadOf = "gh:"; };
+      };
+      commit = {
+        template = self + "/users/git-commit-template.txt";
+      };
+      "delta \"decorations\"" = {
+        commit-decoration-style = "bold yellow box ul";
+        file-style = "bold yellow ul";
+        file-decoration-style = "none";
+      };
+      init = {
+        defaultBranch = "master";
       };
     };
-    lazygit.enable = true;
   };
-
 }

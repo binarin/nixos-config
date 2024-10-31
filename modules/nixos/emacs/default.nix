@@ -36,6 +36,7 @@ in
       pkgs.tangle-emacs-org-babel-config
     ];
     nixpkgs.overlays = [
+      flake.inputs.emacs-overlay.overlays.default
       (final: prev: {
         cleanup-unicode-from-emacs-org-babel-config = pkgs.callPackage (self + "/packages/cleanup-unicode-from-emacs-org-babel-config.nix") { };
         tangle-emacs-org-babel-config = pkgs.callPackage (self + "/packages/tangle-emacs-org-babel-config.nix") {
