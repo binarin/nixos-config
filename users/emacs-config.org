@@ -1018,6 +1018,7 @@ executed.
        (cl-dolist
            (elt '(("g" . consult-org-heading)
                   ("i" . org-clock-in)
+                  ("a" . org-archive-subtree-default)
                   ("k" . org-previous-visible-heading)
                   ("j" . org-next-visible-heading)
                   ("r" . org-refile)))
