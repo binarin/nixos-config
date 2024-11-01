@@ -1012,14 +1012,25 @@ executed.
    #+END_SRC
 ** Speed commands
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (setq org-use-speed-commands t)
+     (defun binarin/use-speed-commands-for-other-things ()
+       (and (bolp) (looking-at org-block-regexp t)))
+
+     (setq org-use-speed-commands #'binarin/use-speed-commands-for-other-things)
+
+     (defun binarin/org-previous-visible-heading-no-file-header (arg)
+       (interactive "p")
+       (org-previous-visible-heading arg)
+       (when (and (= (point-min) (point))
+                  (looking-at "^#\\+" t))
+         ;; overshot to #+PROPERTY lines at the beginning of the file
+         (org-next-visible-heading)))
 
      (with-eval-after-load 'org-keys
        (cl-dolist
            (elt '(("g" . consult-org-heading)
                   ("i" . org-clock-in)
                   ("a" . org-archive-subtree-default)
-                  ("k" . org-previous-visible-heading)
+                  ("k" . binarin/org-previous-visible-heading-no-file-header)
                   ("j" . org-next-visible-heading)
                   ("r" . org-refile)))
          (add-to-list 'org-speed-commands elt nil)))
