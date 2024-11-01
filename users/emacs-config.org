@@ -1022,7 +1022,7 @@ executed.
        (when (and (= (point-min) (point))
                   (looking-at "^#\\+" t))
          ;; overshot to #+PROPERTY lines at the beginning of the file
-         (org-next-visible-heading)))
+         (org-next-visible-heading 1)))
 
      (with-eval-after-load 'org-keys
        (cl-dolist
