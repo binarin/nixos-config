@@ -291,9 +291,8 @@ executed.
        (add-to-list 'consult-buffer-sources 'consult-source-point-register 'append)
        (setq consult-project-function (lambda (_) (projectile-project-root))))
 
-     (eval-after-load "xref"
-       (general-setq xref-show-xrefs-function 'consult-xref
-                     xref-show-definitions-function 'consult-xref))
+     (general-setq xref-show-xrefs-function 'consult-xref
+                   xref-show-definitions-function 'consult-xref)
 
      (eval-after-load "em-hist"
        (general-define-key
