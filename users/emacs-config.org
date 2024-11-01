@@ -142,14 +142,14 @@ executed.
 
 * Behaviour
 * Disable startup screen
-   #+BEGIN_SRC emacs-lisp :tangle yes
-     (setq inhibit-startup-screen t)
-   #+END_SRC
+  #+BEGIN_SRC emacs-lisp :tangle yes
+    (setq inhibit-startup-screen t)
+  #+END_SRC
 
 ** Disable ~suspend-frame~
-#+begin_src emacs-lisp :tangle yes
-   (put 'suspend-frame 'disabled t)
-#+end_src
+   #+begin_src emacs-lisp :tangle yes
+      (put 'suspend-frame 'disabled t)
+   #+end_src
 
 ** Evil
    #+begin_src emacs-lisp :tangle yes
@@ -796,12 +796,13 @@ executed.
        (global-org-modern-mode))
 
      (with-eval-after-load 'org-modern
+       (setf org-modern-hide-stars ?\s)
        (setq org-modern-todo-faces
-             '(("TODO" :background "pink3" :foreground "black")
-               ("NEXT" :background "cyan3" :foreground "black")
-               ("WAIT" :background "orange3" :foreground "black")
-               ("DONE" :background "green4" :foreground "black")
-               ("CNCL" :background "forest green" :foreground "yellow"))))
+           '(("TODO" :background "pink3" :foreground "black")
+             ("NEXT" :background "cyan3" :foreground "black")
+             ("WAIT" :background "orange3" :foreground "black")
+             ("DONE" :background "green4" :foreground "black")
+             ("CNCL" :background "forest green" :foreground "yellow"))))
 
      ;; Ellipsis styling
      (setq org-ellipsis "…")

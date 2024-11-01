@@ -17,75 +17,60 @@ in
   };
   config = {
     environment.systemPackages = with pkgs; [
-      reptyr
-      apg
+      ov
       bat
       bind # for dig
       binutils
       bridge-utils
       broot
+      cfg.gitPackage
       cryptsetup
       darcs
       dpkg
       elinks
       file
-      fio
       fzf
       gdb
       gitAndTools.diff-so-fancy
-      gitAndTools.git-annex
-      gitAndTools.git-crypt
-      cfg.gitPackage
       gnum4
       gnumake
-      gnupg1orig # some scripts expect this version
-      # gnupg22
       htop
       httpie
       iftop
+      inetutils
       inotify-tools
       iotop
       ipcalc
       iptables
       jq
-      libosinfo # osinfo-query
-      libxml2 # xmllint
       lsof
       man-pages
       mc
       mosh
-      nethogs
+      nix-output-monitor
       nmap
-      nox
-      openjdk8
       openssl
       p7zip
       parallel
       pciutils
       psmisc
       pv
+      reptyr
       ripgrep
-      rpm
       rtorrent
-      rxvt_unicode-with-plugins # I need it everywhere for terminfo entries. better way is to install only minimal rxvt on servers, but I don't care enough about space savings.
-      screen
       socat
-      sudo
       sysstat
       tcpdump
-      inetutils
-      tiptop
       unrar
       unzip
       usbutils
-      vim
       wget
+      curl
       which
       whois
       wol
       zip
       zsh
-      nix-output-monitor
     ];
 
     services.locate = {
@@ -107,5 +92,4 @@ in
       }
     ];
   };
-
 }
