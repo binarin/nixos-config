@@ -1041,7 +1041,8 @@
 ** Speed commands
    #+BEGIN_SRC emacs-lisp :tangle yes
      (defun binarin/use-speed-commands-for-other-things ()
-       (and (bolp) (looking-at org-block-regexp t)))
+       (or (and (bolp) (looking-at org-block-regexp t))
+           (looking-at "^#\\+PROPERTY" t)))
 
      (setq org-use-speed-commands #'binarin/use-speed-commands-for-other-things)
 
@@ -1049,7 +1050,7 @@
        (interactive "p")
        (org-previous-visible-heading arg)
        (when (and (= (point-min) (point))
-                  (looking-at "^#\\+" t))
+                  (looking-at "^#\\+PROPERTY" t))
          ;; overshot to #+PROPERTY lines at the beginning of the file
          (org-next-visible-heading 1)))
 
