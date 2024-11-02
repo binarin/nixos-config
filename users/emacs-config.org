@@ -640,37 +640,62 @@
          (message "Failed to generate a link from that file")))
    #+END_SRC
 * Org mode
-  #+BEGIN_SRC emacs-lisp :tangle yes
-    ;; XXX Use consult for clock-in
-    (use-package org
-      :ensure t
-      :commands (org-save-all-org-buffers)
-      :mode ("\\.org\\'" . org-mode)
-      :bind
-      (("C-c a" . org-agenda)
-       ("C-c r" . org-capture))
-      :config
-      (setq org-agenda-files (-map #'f-expand
-                                   (-filter #'f-exists?
-                                            '("~/org/personal.org"
-                                              "~/org/contacts.org"
-                                              "~/org/caldav.org"
-                                              "~/org/refile.org"
-                                              "~/org/ference.org")))
-            org-directory "~/org"))
+** Load modules
+   #+BEGIN_SRC emacs-lisp :tangle yes
+     ;; XXX Use consult for clock-in
+     (use-package org
+       :ensure t
+       :commands (org-save-all-org-buffers)
+       :mode ("\\.org\\'" . org-mode)
+       :bind
+       (("C-c a" . org-agenda)
+        ("C-c r" . org-capture))
+       :config
+       (setq org-agenda-files (-map #'f-expand
+                                    (-filter #'f-exists?
+                                             '("~/org/personal.org"
+                                               "~/org/contacts.org"
+                                               "~/org/caldav.org"
+                                               "~/org/refile.org"
+                                               "~/org/ference.org")))
+             org-directory "~/org"))
 
-    (use-package org-super-agenda
-      :ensure t
-      :config
-      (setq org-super-agenda-header-separator ""
-            org-super-agenda-header-prefix "")
-      (org-super-agenda-mode 1)
-      :after (org))
+     (use-package org-super-agenda
+       :ensure t
+       :config
+       (setq org-super-agenda-header-separator ""
+             org-super-agenda-header-prefix "")
+       (org-super-agenda-mode 1)
+       :after (org))
 
-    (use-package org-contrib
-      :ensure t
-      :defer)
-  #+END_SRC
+     (use-package org-contrib
+       :ensure t
+       :defer)
+   #+END_SRC
+** Keyboard navigation tuning
+   #+begin_src emacs-lisp :tangle yes
+     (defun binarin/org-next-line-visual-fix (&optional arg)
+       (interactive "p")
+       (let ((line-move-visual
+              (if (and (bolp) (looking-at org-heading-regexp t))
+                  nil ; when there is an pretty overlay here, it messes up visual move logic
+                line-move-visual)))
+         (next-line arg)))
+
+     (defun binarin/org-previous-line-visual-fix (&optional arg)
+       (interactive "p")
+       (or arg (setq arg 1))
+       (let ((line-move-visual
+              (if (and (bolp) (looking-at org-heading-regexp t))
+                  nil ; when there is an pretty overlay here, it messes up visual move logic
+                line-move-visual)))
+         (next-line (- arg))))
+
+     (with-eval-after-load 'org
+       (general-define-key :keymaps 'org-mode-map
+                           "C-n" 'binarin/org-next-line-visual-fix
+                           "C-p" 'binarin/org-previous-line-visual-fix))
+   #+end_src
 ** Todo keywords
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-todo-keywords
@@ -759,7 +784,7 @@
      (setq org-agenda-tags-column 0
            org-tags-column 0
            org-auto-align-tags nil
-           org-special-ctrl-a/e t
+           org-special-ctrl-a/e 'reversed
            org-insert-heading-respect-content t
            org-hide-emphasis-markers t
            org-pretty-entities t)
