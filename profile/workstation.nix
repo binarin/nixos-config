@@ -153,6 +153,7 @@ in {
         # workrave
         xdg-user-dirs
         xdotool
+        flacon
         xlsfonts
         xorg.xdpyinfo
         xorg.xev
