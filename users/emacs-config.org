@@ -141,6 +141,10 @@
    #+END_SRC
 
 * Behaviour
+** Date formatting
+   #+begin_src emacs-lisp :tangle yes
+     (setq system-time-locale "C")
+   #+end_src
 ** Disable startup screen
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq inhibit-startup-screen t)
