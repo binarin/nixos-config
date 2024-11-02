@@ -857,7 +857,7 @@
      (setq org-capture-templates
            '(("t" "todo" entry
               (file "~/org/refile.org")
-              "* TODO %?\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %u\n  %a"
+              "* %?\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %u"
               :clock-in t :clock-resume t)
              ("n" "comment on clocked" plain
               (clock)
