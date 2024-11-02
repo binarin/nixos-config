@@ -1,24 +1,24 @@
 #+PROPERTY: header-args:emacs-lisp :lexical yes
 * File header
 ** Warnings
-~defvar~ to suppress compilation warnings about free variable assignment
-#+begin_src emacs-lisp :tangle yes
-  (defvar native-comp-async-report-warnings-errors 'silent)
-#+end_src
+   ~defvar~ to suppress compilation warnings about free variable assignment
+   #+begin_src emacs-lisp :tangle yes
+     (defvar native-comp-async-report-warnings-errors 'silent)
+   #+end_src
 ** Track execution time
 
-Whatever happens before this point, we don't control
-(i.e. ~site-lisp.el~).  So I want to report full time but also the
-time it takes to execute this file with all hooks in 'after-init-hooks
-executed.
-#+begin_src emacs-lisp :tangle yes
-  (defconst binarin/before-personal-init-file-time (current-time))
-  (defun binarin/report-full-startup-time ()
-    (message "Emacs initialized in %f seconds"
-             (float-time (time-subtract (current-time)
-                                        binarin/before-personal-init-file-time))))
-  (add-hook 'emacs-startup-hook 'binarin/report-full-startup-time 100)
-#+end_src
+   Whatever happens before this point, we don't control
+   (i.e. ~site-lisp.el~).  So I want to report full time but also the
+   time it takes to execute this file with all hooks in 'after-init-hooks
+   executed.
+   #+begin_src emacs-lisp :tangle yes
+     (defconst binarin/before-personal-init-file-time (current-time))
+     (defun binarin/report-full-startup-time ()
+       (message "Emacs initialized in %f seconds"
+                (float-time (time-subtract (current-time)
+                                           binarin/before-personal-init-file-time))))
+     (add-hook 'emacs-startup-hook 'binarin/report-full-startup-time 100)
+   #+end_src
 
 ** ~use-package~
 
@@ -30,34 +30,34 @@ executed.
    #+end_src
 
 ** Startup debug
-    #+begin_src emacs-lisp :tangle no
-      (eval-and-compile
-        (setq use-package-verbose 'debug)
-        (setq use-package-minimum-reported-time 0.0))
+   #+begin_src emacs-lisp :tangle no
+     (eval-and-compile
+       (setq use-package-verbose 'debug)
+       (setq use-package-minimum-reported-time 0.0))
 
-      (defun sh/current-time-microseconds ()
-        "Return the current time formatted to include microseconds."
-        (let* ((nowtime (current-time))
-               (now-ms (nth 2 nowtime)))
-          (concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d]" now-ms))))
+     (defun sh/current-time-microseconds ()
+       "Return the current time formatted to include microseconds."
+       (let* ((nowtime (current-time))
+              (now-ms (nth 2 nowtime)))
+         (concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d]" now-ms))))
 
-      (defun sh/ad-timestamp-message (FORMAT-STRING &rest args)
-        "Advice to run before `message` that prepends a timestamp to each message.
+     (defun sh/ad-timestamp-message (FORMAT-STRING &rest args)
+       "Advice to run before `message` that prepends a timestamp to each message.
 
-      Activate this advice with:
-      (advice-add message :before `sh/ad-timestamp-message)"
-        (ignore args)                         ;
-        (unless (string-equal FORMAT-STRING "%s%s")
-          (let ((deactivate-mark nil)
-                (inhibit-read-only t))
-            (with-current-buffer "*Messages*"
-              (goto-char (point-max))
-              (if (not (bolp))
-                (newline))
-              (insert (sh/current-time-microseconds) " ")))))
+     Activate this advice with:
+     (advice-add message :before `sh/ad-timestamp-message)"
+       (ignore args)                         ;
+       (unless (string-equal FORMAT-STRING "%s%s")
+         (let ((deactivate-mark nil)
+               (inhibit-read-only t))
+           (with-current-buffer "*Messages*"
+             (goto-char (point-max))
+             (if (not (bolp))
+                 (newline))
+             (insert (sh/current-time-microseconds) " ")))))
 
-      (advice-add 'message :before 'sh/ad-timestamp-message)
-    #+end_src
+     (advice-add 'message :before 'sh/ad-timestamp-message)
+   #+end_src
 ** Customization helpers
    #+BEGIN_SRC emacs-lisp :tangle yes
      (use-package dash :ensure t)
@@ -72,13 +72,13 @@ executed.
      (require 'anaphora)
    #+END_SRC
 ** What system we are running on?
-#+begin_src emacs-lisp :tangle yes
-  (defconst binarin/system-type
-    (cond
-     ((getenv "WSL_DISTRO_NAME") 'wsl)
-     ((s-equals? system-type "darwin") 'darwin)
-     (t 'linux)))
-#+end_src
+   #+begin_src emacs-lisp :tangle yes
+     (defconst binarin/system-type
+       (cond
+        ((getenv "WSL_DISTRO_NAME") 'wsl)
+        ((s-equals? system-type "darwin") 'darwin)
+        (t 'linux)))
+   #+end_src
 * Appearance
 ** Theme
    #+BEGIN_SRC emacs-lisp :tangle yes
@@ -122,12 +122,12 @@ executed.
      (setf face-ignored-fonts '("Adobe Blank"))
    #+END_SRC
 ** Modeline
-#+begin_src emacs-lisp :tangle yes
-  (use-package telephone-line
-    :ensure t
-    :commands (telephone-line-mode))
-  (telephone-line-mode 1)
-#+end_src
+   #+begin_src emacs-lisp :tangle yes
+     (use-package telephone-line
+       :ensure t
+       :commands (telephone-line-mode))
+     (telephone-line-mode 1)
+   #+end_src
 
 ** Long lines handling
    Truncate long lines by default:
@@ -141,14 +141,14 @@ executed.
    #+END_SRC
 
 * Behaviour
-* Disable startup screen
-  #+BEGIN_SRC emacs-lisp :tangle yes
-    (setq inhibit-startup-screen t)
-  #+END_SRC
+** Disable startup screen
+   #+BEGIN_SRC emacs-lisp :tangle yes
+     (setq inhibit-startup-screen t)
+   #+END_SRC
 
 ** Disable ~suspend-frame~
    #+begin_src emacs-lisp :tangle yes
-      (put 'suspend-frame 'disabled t)
+     (put 'suspend-frame 'disabled t)
    #+end_src
 
 ** Evil
@@ -164,15 +164,15 @@ executed.
      (fset 'yes-or-no-p 'y-or-n-p)
    #+end_src
 ** Start maximized by default
-#+begin_src emacs-lisp :tangle yes
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-#+end_src
+   #+begin_src emacs-lisp :tangle yes
+     (add-to-list 'default-frame-alist '(fullscreen . maximized))
+   #+end_src
 
 ** Windows-specific
    #+BEGIN_SRC emacs-lisp :tangle yes
      (when (eq binarin/system-type 'wsl)
        (setq browse-url-browser-function 'browse-url-generic
-     	      browse-url-generic-program "wslview"))
+     	browse-url-generic-program "wslview"))
    #+END_SRC
 ** Prevent accidental exit
    Prompt on C-x C-c - no more accidential exits
@@ -216,7 +216,7 @@ executed.
        :ensure t)
      (vertico-mode)
      (general-define-key :keymaps 'minibuffer-mode-map
-                    "C-l" 'vertico-directory-delete-word)
+                         "C-l" 'vertico-directory-delete-word)
 
      ;; showing additional docs during completion
      (use-package marginalia
@@ -305,17 +305,17 @@ executed.
 
      (defvar consult-source-point-register
        `(:name     "Point Register"
-         :narrow   (?r . "Register")
-         :category consult-location
-         :state
-         ,(lambda ()
-            (let ((state (consult--jump-state)))
-              (lambda (action cand)
-                (funcall state action (and cand (car (consult--get-location cand)))))))
-         :enabled
-         ,(lambda () (seq-some #'consult--point-register-p register-alist))
-         :items
-         ,(lambda () (consult-register--candidates #'consult--point-register-p)))
+                   :narrow   (?r . "Register")
+                   :category consult-location
+                   :state
+                   ,(lambda ()
+                      (let ((state (consult--jump-state)))
+                        (lambda (action cand)
+                          (funcall state action (and cand (car (consult--get-location cand)))))))
+                   :enabled
+                   ,(lambda () (seq-some #'consult--point-register-p register-alist))
+                   :items
+                   ,(lambda () (consult-register--candidates #'consult--point-register-p)))
        "Point register source.")
 
      (use-package embark
@@ -399,7 +399,7 @@ executed.
          (auto-save-mode -1)
          (when (fboundp 'undo-tree-mode)
            (with-suppressed-warnings ((unresolved undo-tree-mode))
-               (undo-tree-mode -1)))))
+             (undo-tree-mode -1)))))
 
      (add-hook 'find-file-hook 'binarin/setup-gpg-maybe)
    #+end_src
@@ -460,9 +460,9 @@ executed.
      (defun binarin/search-words ()
        (interactive)
        (when (use-region-p)
-	 (browse-url
-	  (concat "https://duckduckgo.com/html/?q="
-		  (url-hexify-string (buffer-substring (region-beginning) (region-end)))))))
+         (browse-url
+          (concat "https://duckduckgo.com/html/?q="
+        	     (url-hexify-string (buffer-substring (region-beginning) (region-end)))))))
 
      (general-define-key "M-s M-w" 'binarin/search-words)
    #+END_SRC
@@ -470,7 +470,7 @@ executed.
 ** Automatically make scripts executable
    #+BEGIN_SRC emacs-lisp :tangle yes
      (add-hook 'after-save-hook
-	       'executable-make-buffer-file-executable-if-script-p)
+               'executable-make-buffer-file-executable-if-script-p)
    #+END_SRC
 ** Window handling
    Prefer horizontal splits:
@@ -483,23 +483,23 @@ executed.
    #+END_SRC
 ** I18n
 *** Prefer Russian and UTF-8
-#+begin_src emacs-lisp :tangle yes
-  (set-language-environment "Russian")
-  (setq default-input-method "russian-computer")
-  (prefer-coding-system 'utf-8-unix)
-#+end_src
+    #+begin_src emacs-lisp :tangle yes
+      (set-language-environment "Russian")
+      (setq default-input-method "russian-computer")
+      (prefer-coding-system 'utf-8-unix)
+    #+end_src
 
 ** Server
-  #+begin_src emacs-lisp :tangle yes
-    (require 'server)
+   #+begin_src emacs-lisp :tangle yes
+     (require 'server)
 
-    ;; don't try starting server if it's already running in another instance
-    (defun binarin/server-start ()
-          (unless (server-running-p server-name)
-            (server-start)))
+     ;; don't try starting server if it's already running in another instance
+     (defun binarin/server-start ()
+       (unless (server-running-p server-name)
+         (server-start)))
 
-    (add-hook 'after-init-hook #'binarin/server-start)
-  #+end_src
+     (add-hook 'after-init-hook #'binarin/server-start)
+   #+end_src
 
 ** TRAMP
    #+begin_src emacs-lisp :tangle yes
@@ -630,12 +630,12 @@ executed.
        (aif (cl-block loop
               (dolist (url (binarin/get-git-remote-urls))
                 (acond
-                   ((s-match  "\\(gitlab\\.[^/:]+\\)[:/]\\(.*?\\)\\(\\.git\\)?$" url)
-                    (cl-return (binarin/make-gitlab-link (nth 1 it) (nth 2 it))))
-                   ((or
-                     (s-match "https://github.com/\\(.*\\)" url)
-                     (s-match "git@github.com:\\(.*\\)" url))
-                    (cl-return (binarin/make-github-link (nth 1 it)))))))
+                 ((s-match  "\\(gitlab\\.[^/:]+\\)[:/]\\(.*?\\)\\(\\.git\\)?$" url)
+                  (cl-return (binarin/make-gitlab-link (nth 1 it) (nth 2 it))))
+                 ((or
+                   (s-match "https://github.com/\\(.*\\)" url)
+                   (s-match "git@github.com:\\(.*\\)" url))
+                  (cl-return (binarin/make-github-link (nth 1 it)))))))
            (browse-url it)
          (message "Failed to generate a link from that file")))
    #+END_SRC
@@ -699,12 +699,12 @@ executed.
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-tags-exclude-from-inheritance '("PROJ"))
      (setq org-tag-alist `((:startgroup . nil)
-                            ("@home" . ?h)
-                            ("@errand" . ?e)
-                            (:endgroup . nil)
-                            (:startgroup . nil)
-                            ("PROJ" . ?p)
-                            (:endgroup . nil)))
+                           ("@home" . ?h)
+                           ("@errand" . ?e)
+                           (:endgroup . nil)
+                           (:startgroup . nil)
+                           ("PROJ" . ?p)
+                           (:endgroup . nil)))
    #+END_SRC
 
 ** Outline
@@ -753,9 +753,9 @@ executed.
      (eval-after-load "org-agenda"
        (when (window-system)
          (add-hook 'org-agenda-mode-hook #'binarin/shrink-text)))
-#+END_SRC
+   #+END_SRC
 
-#+BEGIN_SRC emacs-lisp :tangle yes
+   #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-agenda-tags-column 0
            org-tags-column 0
            org-auto-align-tags nil
@@ -774,8 +774,8 @@ executed.
 ** Priorities
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-highest-priority ?A
-            org-lowest-priority ?D
-            org-default-priority ?C)
+           org-lowest-priority ?D
+           org-default-priority ?C)
 
    #+END_SRC
 ** Contacts
@@ -826,16 +826,16 @@ executed.
 ** Capture
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-capture-templates
-                     '(("t" "todo" entry
-                        (file "~/org/refile.org")
-                        "* TODO %?\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %u\n  %a"
-                        :clock-in t :clock-resume t)
-                       ("n" "comment on clocked" plain
-                        (clock)
-                        "%?")
-                       ("l" "Link" entry
-                        (file "~/org/refile.org")
-                        "* TODO %a\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %i" :immediate-finish t)))
+           '(("t" "todo" entry
+              (file "~/org/refile.org")
+              "* TODO %?\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %u\n  %a"
+              :clock-in t :clock-resume t)
+             ("n" "comment on clocked" plain
+              (clock)
+              "%?")
+             ("l" "Link" entry
+              (file "~/org/refile.org")
+              "* TODO %a\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %i" :immediate-finish t)))
 
      (setq org-default-notes-file "~/org/refile.org")
 
@@ -897,17 +897,17 @@ executed.
    #+END_SRC
 ** Refile
    #+BEGIN_SRC emacs-lisp :tangle yes
-     ; Targets include this file and any file contributing to the agenda - up to 9 levels deep
+     ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
      (setq org-refile-targets '((org-agenda-files :maxlevel . 9)
                                 (nil :maxlevel . 9)))
 
-     ; Use full outline paths for refile targets - we file directly with IDO
+     ;; Use full outline paths for refile targets - we file directly with IDO
      (setq org-refile-use-outline-path 'file)
 
-     ; Targets complete directly with IDO
+     ;; Targets complete directly with IDO
      (setq org-outline-path-complete-in-steps nil)
 
-     ; Allow refile to create parent tasks with confirmation
+     ;; Allow refile to create parent tasks with confirmation
      (setq org-refile-allow-creating-parent-nodes 'confirm)
    #+END_SRC
 
@@ -1068,18 +1068,18 @@ executed.
        (:map org-roam-dailies-map
              ("Y" . org-roam-dailies-capture-yesterday)
              ("T" . org-roam-dailies-capture-tomorrow)))
-#+end_src
+   #+end_src
 
 ** Encryption
-#+begin_src emacs-lisp :tangle yes
+   #+begin_src emacs-lisp :tangle yes
 
-  (autoload 'org-encrypt-entries "org-crypt")
+     (autoload 'org-encrypt-entries "org-crypt")
 
-  (with-eval-after-load 'org
-    (add-hook 'org-mode-hook
-              (lambda () (add-hook 'before-save-hook 'org-encrypt-entries nil t))))
+     (with-eval-after-load 'org
+       (add-hook 'org-mode-hook
+                 (lambda () (add-hook 'before-save-hook 'org-encrypt-entries nil t))))
 
-#+end_src
+   #+end_src
 ** Caldav sync
    #+begin_src emacs-lisp :tangle yes
      (use-package org-caldav
@@ -1094,7 +1094,7 @@ executed.
        ;; Additional Org files to check for calendar events
        (org-caldav-files (-difference org-agenda-files org-contacts-files))
        (org-icalendar-timezone "Europe/Amsterdam"))
-       #+end_src
+   #+end_src
 ** Git sync
    #+begin_src emacs-lisp :tangle yes
      (defun binarin/org-sync ()
