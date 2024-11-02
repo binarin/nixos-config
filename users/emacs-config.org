@@ -796,13 +796,16 @@ executed.
        (global-org-modern-mode))
 
      (with-eval-after-load 'org-modern
-       (setf org-modern-hide-stars ?\s)
+       (setq org-modern-hide-stars ?\s)
+       (setq org-modern-block-fringe nil)
+       (setq org-modern-fold-stars
+             '(("•" . "◦")))
        (setq org-modern-todo-faces
-           '(("TODO" :background "pink3" :foreground "black")
-             ("NEXT" :background "cyan3" :foreground "black")
-             ("WAIT" :background "orange3" :foreground "black")
-             ("DONE" :background "green4" :foreground "black")
-             ("CNCL" :background "forest green" :foreground "yellow"))))
+             '(("TODO" :background "pink3" :foreground "black")
+               ("NEXT" :background "cyan3" :foreground "black")
+               ("WAIT" :background "orange3" :foreground "black")
+               ("DONE" :background "green4" :foreground "black")
+               ("CNCL" :background "forest green" :foreground "yellow"))))
 
      ;; Ellipsis styling
      (setq org-ellipsis "…")
