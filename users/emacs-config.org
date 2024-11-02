@@ -164,7 +164,7 @@
      (general-setq evil-default-state 'emacs)
    #+end_src
 ** Change "yes or no" to "y or n"
-   #+begin_src emacs-lisp
+   #+begin_src emacs-lisp :tangle yes
      (fset 'yes-or-no-p 'y-or-n-p)
    #+end_src
 ** Start maximized by default
