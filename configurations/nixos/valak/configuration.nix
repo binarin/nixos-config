@@ -19,6 +19,9 @@ in
     (self + "/packages/keep-flake-sources.nix")
   ];
 
+  hardware.enableAllFirmware = true;
+  hardware.amdgpu.initrd.enable = true;
+  hardware.amdgpu.opencl.enable = true;
   boot.kernelPackages = pkgs.linuxPackages_6_6;
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" "amdgpu" ];
   boot.supportedFilesystems = [ "zfs" ];
