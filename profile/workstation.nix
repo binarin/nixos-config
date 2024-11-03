@@ -3,7 +3,6 @@
 let
 in {
   imports = [
-    # ../packages/use-my-overlays.nix
     ../packages/standard-linux-tools.nix
     ../packages/user-packages.nix
     ../users/binarin.nix
