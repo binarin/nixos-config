@@ -857,6 +857,11 @@
                'binarin/org-agenda-mode-hook
                'append)
    #+END_SRC
+
+   #+begin_src emacs-lisp :tangle yes
+     (general-setq org-use-sub-superscripts '{}
+                   org-export-with-sub-superscripts '{})
+   #+end_src
 ** Capture
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-capture-templates
