@@ -67,7 +67,11 @@ in {
   };
 
   i18n = {
-    defaultLocale = "ru_RU.UTF-8";
+    defaultLocale = "nl_NL.UTF-8";
+    extraLocaleSettings = {
+      LC_NUMERIC = "en_US.UTF-8";
+      LC_TIME = "C";
+    }
   };
 
   time.timeZone = "Europe/Amsterdam";
