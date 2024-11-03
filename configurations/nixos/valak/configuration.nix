@@ -65,7 +65,7 @@ in
     "kvm-amd"
     "i2c_dev"
   ];
-  boot.kernelParams = [ "amd_iommu=on" "iommu=pt" "pcie_aspm=off" "video=efifb:off" "pci=realloc" "usbcore.autosuspend=-1" ];
+  boot.kernelParams = [ "amd_iommu=on" "iommu=pt" "pcie_aspm=off" "video=efifb:off" "fbcon=map:1" "pci=realloc" "usbcore.autosuspend=-1" ];
   boot.extraModulePackages = with config.boot.kernelPackages; [
     (ddcci-driver.overrideAttrs (oldAttrs: {
       patches = [ ./ddcci-quirk.patch ] ++ oldAttrs.patches;
