@@ -351,7 +351,7 @@
    #+END_SRC
 
 ** Dired
-   #+BEGIN_SRC emacs-lisp
+   #+BEGIN_SRC emacs-lisp :tangle yes
      (add-hook 'dired-mode-hook 'dired-hide-details-mode)
      (setq dired-dwim-target t)
    #+END_SRC
