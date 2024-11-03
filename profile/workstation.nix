@@ -66,8 +66,6 @@ in {
     };
   };
 
-  console.font = "UniCyr_8x16";
-
   i18n = {
     defaultLocale = "ru_RU.UTF-8";
   };

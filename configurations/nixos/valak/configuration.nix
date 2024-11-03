@@ -12,6 +12,7 @@ in
     self.nixosModules.emacs
     self.nixosModules.hyprland
     self.nixosModules.impure-nix-setup
+    self.nixosModules.large-console-fonts
     (self + "/hardware/vfio.nix")
     (self + "/users/binarin.nix")
     (self + "/profile/workstation.nix")
