@@ -255,6 +255,7 @@ in
     winePackages.full
     # wt-maker
     ytt
+    rxvt-unicode # XXX for sshmenu
   ];
 
   programs.gh.enable = true;
