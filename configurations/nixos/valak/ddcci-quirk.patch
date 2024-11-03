@@ -7,7 +7,7 @@ index 13ddb85..cf70c1e 100644
  
  	/* validate first byte */
 -	if (buffer[0] != addr) {
-+	if (buffer[0] != addr && (addr != 0x6e && buffer[0] != 0x6f)) {
++	if (buffer[0] != addr && addr != 0x6e) {
  		dev_dbg(&client->dev,
  			"[%02x:%02x] identification response: %*ph\n",
  			client->addr << 1, addr, (ret > 32 ? 32 : ret), buffer);
