@@ -1,4 +1,4 @@
-#+PROPERTY: header-args:emacs-lisp :lexical yes
+#+PROPERTY: header-args:emacs-lisp :lexical yes :results value pp silent
 * File header
 ** Warnings
    ~defvar~ to suppress compilation warnings about free variable assignment
@@ -543,6 +543,11 @@
      (defun binarin/cleanup_direnv--summarise-changes (orig-fun items)
        (funcall orig-fun (-remove (lambda (elt) (-elem-index (car elt) binarin/direnv-boring-items)) items)))
 
+   #+end_src
+** Local variables
+   #+begin_src emacs-lisp :tangle yes
+     (setq safe-local-variable-directories
+           (-map #'expand-file-name '("~/personal-workspace/nixos-config/users")))
    #+end_src
 * Programming
 ** Projects
