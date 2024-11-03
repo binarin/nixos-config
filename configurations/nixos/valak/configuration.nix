@@ -11,6 +11,7 @@ in
     self.nixosModules.bleeding
     self.nixosModules.emacs
     self.nixosModules.hyprland
+    self.nixosModules.impure-nix-setup
     (self + "/hardware/vfio.nix")
     (self + "/users/binarin.nix")
     (self + "/profile/workstation.nix")
