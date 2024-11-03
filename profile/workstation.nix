@@ -70,8 +70,9 @@ in {
     defaultLocale = "nl_NL.UTF-8";
     extraLocaleSettings = {
       LC_NUMERIC = "en_US.UTF-8";
-      LC_TIME = "C";
+      LC_TIME = "C.UTF-8";
     };
+    supportedLocales = [ "all" ];
   };
 
   time.timeZone = "Europe/Amsterdam";
