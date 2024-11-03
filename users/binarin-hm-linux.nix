@@ -376,7 +376,7 @@ in
     enable = true;
     settings = {
       main = {
-        font = "Iosevka:size=20, Noto Color Emoji:size=16";
+        font = "IosevkaTerm Nerd Font:size=20, Noto Color Emoji:size=16";
         locked-title = true;
         selection-target = "both";
       };

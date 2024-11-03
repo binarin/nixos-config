@@ -24,7 +24,7 @@
     ubuntu_font_family
     unifont
     vistafonts
-    (nerdfonts.override { fonts = [ "Noto" ]; })
+    (nerdfonts.override { fonts = [ "Noto" "IosevkaTerm" "FiraMono" "MPlus" "Terminus" ]; })
   ] ++ lib.optionals (system == "x86_64-linux") [
     terminus_font
     # google-fonts
