@@ -905,7 +905,7 @@
               "%?")
              ("l" "Link" entry
               (file "~/org/refile.org")
-              "* TODO %a\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %i" :immediate-finish t)))
+              "* %a\n :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %i" :immediate-finish t)))
 
      (setq org-default-notes-file "~/org/refile.org")
 
