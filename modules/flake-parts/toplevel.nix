@@ -20,6 +20,7 @@
       "emacs-overlay"
       "nixos-wsl"
       "nixpkgs-unstable"
+      "sops-nix"
     ];
   };
 }

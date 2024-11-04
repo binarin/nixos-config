@@ -4,6 +4,7 @@
 let
   inherit (flake) inputs;
   inherit (inputs) self;
+  fileserverMounts = [ "Music" "Movies" "Torrents" ];
 in
 {
   imports = [
@@ -13,6 +14,7 @@ in
     self.nixosModules.hyprland
     self.nixosModules.impure-nix-setup
     self.nixosModules.large-console-fonts
+    inputs.sops-nix.nixosModules.sops
     (self + "/hardware/vfio.nix")
     (self + "/users/binarin.nix")
     (self + "/profile/workstation.nix")
@@ -312,4 +314,30 @@ in
         exit $exit_code
       '')
   ];
+
+
+  sops.defaultSopsFile = self + "/secrets/valak/secrets.yaml";
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
+  sops.secrets."fileserver-samba/username" = { };
+  sops.secrets."fileserver-samba/password" = { };
+  sops.templates.fileserver-samba-credentials.content = ''
+    username=${config.sops.placeholder."fileserver-samba/username"}
+    password=${config.sops.placeholder."fileserver-samba/password"}
+  '';
+
+  systemd.mounts = lib.flip map fileserverMounts (mnt: {
+    what = "//192.168.2.79/${mnt}";
+    where = "/mnt/${mnt}";
+    type = "cifs";
+    options = "rw,uid=binarin,cred=${config.sops.templates.fileserver-samba-credentials.path}";
+  });
+
+  systemd.automounts = lib.flip map fileserverMounts (mnt: {
+    where = "/mnt/${mnt}";
+    automountConfig = {
+      TimeoutIdleSec = "600";
+    };
+  });
+
 }

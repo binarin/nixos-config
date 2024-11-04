@@ -6,6 +6,11 @@ keys:
   - &server_forgejo age17jnj7kvw0wn0nfk02wll05yhe8xnu86u489tfks6hgnd4gfs4f2qy9chtv
 
 creation_rules:
+  - path_regex: secrets/valak/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *server_valak
   - path_regex: secrets/fileserver/[^/]+\.(yaml|json|env|ini)$
     key_groups:
       - age:
