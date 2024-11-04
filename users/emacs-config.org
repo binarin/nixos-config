@@ -648,6 +648,37 @@
            (browse-url it)
          (message "Failed to generate a link from that file")))
    #+END_SRC
+** YAML
+   #+begin_src emacs-lisp :tangle yes
+     (use-package yaml-mode
+       :ensure t
+       :mode "\\.\\(yaml\\|yml\\)\\'")
+   #+end_src
+** Nushell
+   #+begin_src emacs-lisp :tangle yes
+     (use-package nushell-mode
+       :ensure t
+       :mode "\\.nu\\'")
+   #+end_src
+** Docker
+   #+begin_src emacs-lisp :tangle yes
+     (use-package dockerfile-mode
+       :ensure t
+       :mode "/Dockerfile")
+   #+end_src
+** Ansible
+   #+begin_src emacs-lisp :tangle yes
+     (use-package ansible
+       :ensure t
+       :commands (ansible-mode ansible))
+   #+end_src
+** Open git-backed files in browser
+   #+begin_src emacs-lisp :tangle yes
+     (use-package browse-at-remote
+       :ensure t
+       :bind
+       (("C-c g g" . browse-at-remote)))
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
@@ -803,7 +834,7 @@
      (eval-after-load 'org
        (lambda ()
          (require 'org-tempo)
-         (add-to-list 'org-structure-template-alist '("m" . "src emacs-lisp"))))
+         (add-to-list 'org-structure-template-alist '("m" . "src emacs-lisp :tangle yes"))))
    #+END_SRC
 ** Priorities
    #+BEGIN_SRC emacs-lisp :tangle yes
