@@ -293,6 +293,7 @@
        (setq register-preview-delay 0.5
              register-preview-function 'consult-register-format)
        (add-to-list 'consult-buffer-sources 'consult-source-point-register 'append)
+       (add-to-list 'consult-preview-excluded-files "\\.\\(org\\|org_archive\\)\\'")
        (setq consult-project-function (lambda (_) (projectile-project-root))))
 
      (general-setq xref-show-xrefs-function 'consult-xref
