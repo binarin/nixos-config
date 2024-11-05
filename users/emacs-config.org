@@ -920,19 +920,19 @@
    #+END_SRC
 
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (autoload 'org-protocol-detect-protocol-server "org-protocol")
+     (autoload 'org--protocol-detect-protocol-server "org-protocol")
 
-     (defun org-protocol-lazy-load (args)
+     (defun org-protocol-lazy-load (orig-fun files client &rest args)
        (if (or (featurep 'org-protocol)
                (not (delq nil
                           (mapcar (lambda (loc)
                                     ;; loc: (file-name . (line . column))
                                     (string-match-p "\\(?:^\\|[/\\\\]\\)org-protocol:" (car loc)))
-                                  (car args)))))
-           args
-         (org-protocol-detect-protocol-server args)))
+                                  files))))
+           (apply orig-fun files client args)
+         (apply #'org--protocol-detect-protocol-server orig-fun files client args)))
 
-     (advice-add 'server-visit-files :filter-args #'org-protocol-lazy-load)
+     (advice-add 'server-visit-files :around #'org-protocol-lazy-load)
 
      (autoload 'notifications-notify "notifications")
 
