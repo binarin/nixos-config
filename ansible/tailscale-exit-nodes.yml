@@ -9,9 +9,11 @@
   vars:
     network_interfaces:
       tailscale0:
-        firewalld_zone: trusted
+        firewalld_zone: internal
       eth0:
         firewalld_zone: external
+      lo:
+        firewalld_zone: trusted
   tasks:
     - package: name=firewalld state=present
 
