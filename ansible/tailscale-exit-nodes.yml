@@ -1,0 +1,49 @@
+---
+- hosts: pbs-hetzner
+  roles:
+    - role: artis3n.tailscale
+      vars:
+        tailscale_args: >-
+          --advertise-exit-node
+        tailscale_authkey: tskey-auth-XXX-YYYYY
+  vars:
+    network_interfaces:
+      tailscale0:
+        firewalld_zone: trusted
+      eth0:
+        firewalld_zone: external
+  tasks:
+    - package: name=firewalld state=present
+
+    - name: Adding interfaces to firewalld zones
+      ansible.builtin.command: >-
+        firewall-cmd {{ '--permanent' if item[1] else ''}}  --add-interface={{ item[0].key }} --zone={{ item[0].value.firewalld_zone }}
+
+      register: result
+      changed_when: '"ALREADY_ENABLED" not in result.stderr and "ZONE_ALREADY_SET" not in result.stderr'
+      loop: "{{ network_interfaces | dict2items | product([True, False]) | list }}"
+      loop_control:
+        label: "{{ item[0].key }} to {{ item[0].value.firewalld_zone }} ({{ 'permanently' if item[1] else 'runtime'}})"
+
+    - name: Enable ipv6 masquerade for `external` firewalld zone
+      ansible.posix.firewalld:
+        zone: external
+        rich_rule: rule family=ipv6 masquerade
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Open Proxmox Backup Server port
+      ansible.posix.firewalld:
+        zone: external
+        state: enabled
+        port: 8007/tcp
+        permanent: true
+        immediate: true
+
+    - ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        sysctl_set: true
+        state: absent
+        reload: true

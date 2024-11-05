@@ -548,7 +548,8 @@
 ** Local variables
    #+begin_src emacs-lisp :tangle yes
      (setq safe-local-variable-directories
-           (-map #'expand-file-name '("~/personal-workspace/nixos-config/users")))
+           (-map #'expand-file-name '("~/personal-workspace/nixos-config/users"
+                                      "~/personal-workspace/nixos-config/ansible")))
    #+end_src
 * Programming
 ** Projects

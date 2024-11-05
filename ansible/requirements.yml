@@ -9,3 +9,5 @@ collections:
 roles:
   - name: aroberts.zfs_exporter
     version: "v1.0.0"
+  - name: artis3n.tailscale
+    version: "v4.5.0"
