@@ -1,4 +1,4 @@
-{ flake, ... }:
+{ flake, config, ... }:
 
 let
   inherit (flake) inputs;
@@ -26,4 +26,5 @@ in
   networking.firewall.enable = true;
 
   environment.enableAllTerminfo = true;
+
 }

@@ -183,7 +183,6 @@ in
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "valak"; # Define your hostname.
   networking.hostId = "55f9cd65";
 
   networking.useDHCP = false;

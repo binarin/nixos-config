@@ -1,45 +1,39 @@
 # -*- nix -*-
-{ hostConfig, config, lib, pkgs, inputs, ... }:
-
+{ flake, config, lib, pkgs, inputs, ... }:
+let
+  inherit (flake) inputs;
+  inherit (inputs) self;
+  forgejoPackage = pkgs.bleeding.forgejo-lts;
+in
 {
-  services.openssh.enable = true;
-  services.openssh.settings.PermitRootLogin = "yes";
-
-  disabledModules = [ "services/misc/forgejo.nix" ];
   imports = [
-    ./profile/server.nix
-    "${inputs.nixpkgs-master}/nixos/modules/services/misc/forgejo.nix"
+    self.nixosModules.server
+    self.nixosModules.lxc
+    self.nixosModules.bleeding
+
+    {
+      # use forgejo module from nixpkgs-master (and the compatible version of forgejo itself)
+      disabledModules = [ "services/misc/forgejo.nix" ];
+      imports = [ "${inputs.nixpkgs-unstable}/nixos/modules/services/misc/forgejo.nix" ];
+      nixpkgs.overlays = [
+        (final: prev: {
+          forgejo = prev.bleeding.forgejo-lts;
+          forgejo-lts = prev.bleeding.forgejo-lts;
+        })
+      ];
+
+    }
   ];
 
-  # I want to disable mDNS and set nameservers, and it's not possible to override .network file provided by Proxmox
-  proxmoxLXC.manageNetwork = true;
-  networking.useNetworkd = true;
-  networking.useHostResolvConf = false;
-  networking.useDHCP = false;
-  systemd.network.networks."40-eth0" = {
-    matchConfig.Name = "eth0";
-    dns = [ "192.168.2.46" "192.168.2.53" ];
-    address = [ "${hostConfig.ip}/24" ];
-    routes = [
-      { routeConfig.Gateway = "192.168.2.1"; }
-    ];
-  };
-
-  services.getty.autologinUser = "root";
-
-  sops.defaultSopsFile = ./secrets/forgejo/secrets.yaml;
-  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-
-  sops.secrets.tailscale-auth = {};
+  sops.secrets.tailscale-auth = { };
   services.tailscale = {
     enable = true;
     authKeyFile = "${config.sops.secrets.tailscale-auth.path}";
-    extraUpFlags = ["--hostname" "${config.networking.hostName}"];
+    extraUpFlags = [ "--hostname" "${config.networking.hostName}" ];
   };
 
   environment.systemPackages = with pkgs; [
     emacs-nox
-    forgejo
   ];
 
   users.users."root".openssh.authorizedKeys.keys = [
@@ -52,8 +46,8 @@
     options = "--delete-older-than 30d";
   };
 
-  sops.secrets.smtp2go-username = {};
-  sops.secrets.smtp2go-password = {};
+  sops.secrets.smtp2go-username = { };
+  sops.secrets.smtp2go-password = { };
 
   users.users.git = {
     home = config.services.forgejo.stateDir;
@@ -66,7 +60,6 @@
     enable = true;
     user = "git";
 
-    package = pkgs.bleeding.forgejo-lts; # this version plays with file-based passwords (sops-nix, LoadCredential in systemd), but not the one in 24.05
     settings = {
       service = {
         DISABLE_REGISTRATION = true;

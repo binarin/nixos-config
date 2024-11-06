@@ -30,3 +30,7 @@ dev:
 [group('Main')]
 run:
   nix run
+
+[group('Dhall')]
+ipam:
+  dhall-to-json <  ./ipam.dhall > ./ipam.json

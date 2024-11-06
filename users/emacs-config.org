@@ -681,6 +681,12 @@
        :bind
        (("C-c g g" . browse-at-remote)))
    #+end_src
+** Dhall
+   #+begin_src emacs-lisp :tangle yes
+     (use-package dhall-mode
+       :ensure t
+       :mode "\\.dhall\\'")
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes

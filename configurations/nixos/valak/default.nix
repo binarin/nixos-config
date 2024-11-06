@@ -5,12 +5,12 @@ let
   inherit (inputs) self;
 in
 {
+  networking.hostName = "valak";
+
   imports = [
     self.nixosModules.default
     ./configuration.nix
   ];
-
-  nixpkgs.hostPlatform = lib.mkForce "x86_64-linux";
 
   hostOptions.gui.enable = true;
   hostOptions.managedUsers = [ "binarin" ];

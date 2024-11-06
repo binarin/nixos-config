@@ -23,8 +23,6 @@
   wsl.startMenuLaunchers = true;
   wsl.usbip.enable = true;
 
-  networking.hostName = "furfur";
-
   environment.systemPackages = with pkgs; [
     wslu
   ];

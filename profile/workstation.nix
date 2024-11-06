@@ -361,7 +361,8 @@ in {
   };
 
   networking.firewall.enable = true;
-  networking.firewall.checkReversePath = false; # I want my DHCP for VM's
+  # XXX is loose enough?
+  # networking.firewall.checkReversePath = false; # I want my DHCP for VM's
   networking.firewall.allowedTCPPorts = [ 27036 27037 ];
   networking.firewall.allowedUDPPorts = [ 27031 27036 ];
 
