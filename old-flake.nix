@@ -237,14 +237,6 @@
         };
       };
 
-      deploy.nodes.forgejo = {
-        hostname = hosts.forgejo.ip;
-        profiles.system = {
-          sshUser = "root";
-          path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.forgejo;
-        };
-      };
-
       checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
 
       homeConfigurations.binarin = home-manager.lib.homeManagerConfiguration {

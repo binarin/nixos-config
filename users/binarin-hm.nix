@@ -123,8 +123,8 @@ in
     };
 
     dirHashes = {
-      docs  = "$HOME/Documents";
-      dl    = "$HOME/Downloads";
+      docs = "$HOME/Documents";
+      dl = "$HOME/Downloads";
     };
 
     initExtra = ''

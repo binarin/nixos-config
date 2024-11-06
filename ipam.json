@@ -2,7 +2,7 @@
   "forgejo": {
     "interfaces": {
       "eth0": {
-        "address": "192.168.2.2",
+        "address": "192.168.2.3",
         "mac": "BC:24:11:D9:78:49",
         "network": {
           "dns": [

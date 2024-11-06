@@ -53,7 +53,7 @@ let hostStub : Text -> Prelude.Map.Entry Text DeviceConfig =
     \(name: Text) -> host name { interfaces = [] : Interfaces }
 
 let allHosts : Prelude.Map.Type Text DeviceConfig =
-    [ host "forgejo" { interfaces = [ iface "eth0" { network = homeNetwork, address = "192.168.2.2", mac = Some "BC:24:11:D9:78:49" } ] }
+    [ host "forgejo" { interfaces = [ iface "eth0" { network = homeNetwork, address = "192.168.2.3", mac = Some "BC:24:11:D9:78:49" } ] }
     , host "valak" { interfaces =
                          [ iface "br0" { network = homeNetwork, address = "192.168.2.26", mac = None Text }
                          , iface "smb-sketchup" { network = smbSketchupNetwork, address = "172.16.242.2", mac = None Text }
