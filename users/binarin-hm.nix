@@ -69,15 +69,6 @@ in
     MimeType=x-scheme-handler/viber;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;text/html;application/x-extension-htm;application/x-extension-html;application/x-extension-shtml;application/xhtml+xml;application/x-extension-xhtml;application/x-extension-xht
   '';
 
-  home.sessionVariables.ATUIN_NOBIND = "1";
-  programs.atuin = {
-    enable = true;
-    enableZshIntegration = true;
-    enableBashIntegration = true;
-    settings = {
-      search_mode = "fuzzy";
-    };
-  };
 
   programs.tmux = {
     baseIndex = 1;
@@ -99,17 +90,7 @@ in
 
   programs.zoxide.enable = true;
 
-  # programs.fzf = {
-  #   enable = true;
-  #   tmux.enableShellIntegration = true;
-  # };
   programs.bat.enable = true;
-
-  # programs.autojump = {
-  #   enable = true;
-  #   enableZshIntegration = true;
-  #   enableBashIntegration = true;
-  # };
 
   programs.broot = {
     enable = true;
@@ -117,17 +98,54 @@ in
     enableBashIntegration = true;
   };
 
+  home.sessionVariables.ATUIN_NOBIND = "1";
+  programs.atuin = {
+    enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
+    settings = {
+      search_mode = "fuzzy";
+    };
+  };
+
   programs.zsh = {
     enable = true;
     autocd = true;
+    autosuggestion.enable = true;
+
+    shellAliases = {
+      vi = "emacsclient -a 'emacs -nw' -nw";
+      vim = "emacsclient -a 'emacs -nw' -nw";
+      emacs = "emacsclient -a 'emacs -nw' -nw";
+      o = ''xdg-open'';
+      pst = ''pstree -apU | less'';
+      zzz = ''sudo systemctl suspend'';
+    };
+
+    dirHashes = {
+      docs  = "$HOME/Documents";
+      dl    = "$HOME/Downloads";
+    };
+
     initExtra = ''
+      # there is an option in home-manager module, but then I can't set it dynamically
+      source ${pkgs.zsh-syntax-highlighting}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+      ZSH_HIGHLIGHT_STYLES+=('comment' 'fg=white,bold')
+      if [[ $COLORTERM = *(24bit|truecolor)* ]]; then
+        ZSH_HIGHLIGHT_STYLES[comment]="fg=#999"
+      elif type echotc > /dev/null && [[ $(echotc Co) == 256 ]]; then
+        ZSH_HIGHLIGHT_STYLES[comment]="fg=#245"
+      fi
+
+      # Dir=/some/path
+      # cd ~Dir
+      setopt cdablevars
+
       rr() {
         readlink -f $(which $1)
       }
-      if [ -f $HOME/.nix-profile/etc/profile.d/nix.sh ] ; then
-        source /home/binarin/.nix-profile/etc/profile.d/nix.sh
-      fi
-      bindkey '^r' _atuin_search_widget
+
+      # let a terminal/tmux to keep track of a current directory to open new window in the same place
       function osc7 {
           local LC_ALL=C
           export LC_ALL
@@ -139,44 +157,33 @@ in
       }
       add-zsh-hook -Uz chpwd osc7
 
+      # OSC 133 (shell integration / semantic prompt) support, delimits the shell prompt from a command output
       precmd() {
           print -Pn "\e]133;A\e\\"
       }
-
-      wt() {
-          local result_file=$(mktemp)
-          trap "rm -f $result_file" EXIT
-          if wt-maker --result-file "$result_file" "$@"; then
-              __zoxide_cd "$(cat $result_file)"
-          fi
-      }
     '';
-    shellAliases = {
-      gl = ''git log  --pretty="%Cgreen%h %C(146)%an%Creset %s %Cred%ar"'';
-      vi = ''emacsclient -nw -a vim'';
-      vim = ''emacsclient -nw -a vim'';
-      rgrep = ''grep -R'';
-      o = ''xdg-open'';
-      pst = ''pstree -ap | less'';
-      zzz = ''sudo systemctl suspend'';
-      sshi = ''ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'';
-    };
-    autosuggestion.enable = true;
+
     history = {
       size = 20000;
       save = 20000;
+      share = true;
+      ignoreSpace = true;
     };
+
     oh-my-zsh = {
       enable = true;
-      plugins = [ "colored-man-pages" "dirpersist" ];
-      theme = "gianu";
-      custom = "$HOME/.local/share/oh-my-zsh/custom";
+      plugins = [
+        "aliases"
+        "ansible"
+        "colored-man-pages"
+        "copyfile"
+        "copypath"
+        "dirpersist"
+        "extract"
+        "git"
+        "systemd"
+      ];
     };
-  };
-
-  home.file.".local/share/oh-my-zsh/custom" = {
-    source = ./oh-my-zsh-custom;
-    recursive = true;
   };
 
   home.file.".local/share/images" = {
