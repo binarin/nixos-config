@@ -286,7 +286,7 @@ in
   };
 
   home.keyboard = null;
-  home.sessionVariables.EDITOR = "emacsclient -a '' -nw"; # XXX home-manager mangles '' at the end of the string for whatever reason
+  home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
 
   programs.ssh = {
     enable = true;
