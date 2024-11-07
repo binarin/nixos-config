@@ -31,11 +31,6 @@ in {
         "ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI="
       ];
     };
-
-    extraOptions = ''
-      gc-keep-outputs = true
-      gc-keep-derivations = true
-    '';
   };
 
   nixpkgs.config = {
@@ -85,83 +80,6 @@ in {
   programs.chromium.extraOpts = {
     ExternalProtocolDialogShowAlwaysOpenCheckbox = true;
   };
-
-  userPackages =
-    let
-      bleedingEdgePackages = with pkgs.bleeding; [
-      ];
-      developmentPackages = with pkgs; [
-        autoconf
-        automake
-        gcc
-        # godot
-        hugo
-        kubernetes
-        leiningen
-        lsyncd
-        pkg-config
-        sbt
-        clinfo
-      ];
-      desktopPackages = with pkgs; [
-        brightnessctl
-        qt5.qtwayland # QT_QPA_PLATFORM=wayland in home.sessionVariables
-        isync
-        looking-glass-client
-        protonvpn-cli
-        geeqie
-        appimage-run
-        v4l-utils
-        gnome-icon-theme
-        hicolor-icon-theme
-        gnome3.adwaita-icon-theme
-        gnome2.gnome_icon_theme
-        gnome-themes-extra
-        zafiro-icons
-        networkmanagerapplet
-        usbutils.python
-        xorg.xf86inputlibinput
-        wally-cli
-        graphviz
-        firefox-bin
-        # goldendict
-        openscad-unstable
-        onedrive
-        vscode
-        # pkgs.bleeding.idea.idea-community
-        pkgs.bleeding.prusa-slicer
-        aspell
-        aspellDicts.ru
-        aspellDicts.en
-        aspellDicts.nl
-        chromium
-        desktop-file-utils
-        # dunst
-        evince
-        freecad
-        imagemagickBig
-        gimp
-        gitg
-        glxinfo
-        google-chrome
-        google-cloud-sdk
-        libnotify
-        mplayer
-        escrotum
-        slack
-        stack
-        stalonetray
-        skypeforlinux
-        # workrave
-        xdg-user-dirs
-        xdotool
-        flacon
-        xlsfonts
-        xorg.xdpyinfo
-        xorg.xev
-      ];
-    in
-    bleedingEdgePackages ++ desktopPackages ++ developmentPackages;
 
   # environment.variables = {
   #   GDK_SCALE = "2";

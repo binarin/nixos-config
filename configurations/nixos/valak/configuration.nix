@@ -14,11 +14,10 @@ in
     self.nixosModules.hyprland
     self.nixosModules.impure-nix-setup
     self.nixosModules.large-console-fonts
+    self.nixosModules.keep-nix-build-sources
     inputs.sops-nix.nixosModules.sops
     (self + "/hardware/vfio.nix")
-    (self + "/users/binarin.nix")
     (self + "/profile/workstation.nix")
-    (self + "/packages/keep-flake-sources.nix")
   ];
 
   hardware.enableAllFirmware = true;

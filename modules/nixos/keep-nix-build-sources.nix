@@ -1,4 +1,4 @@
-({ lib, flake, ... }:
+{ lib, flake, ... }:
 let
   inherit (flake) inputs;
 in
@@ -11,4 +11,10 @@ in
         mode = "symlink";
       })
     (builtins.attrNames inputs));
-})
+
+  nix.extraOptions = ''
+    gc-keep-outputs = true
+    gc-keep-derivations = true
+  '';
+
+}

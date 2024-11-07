@@ -298,7 +298,4 @@ in
       encoding.add=utf-8
     '';
   };
-
-  nix.gc.automatic = true;
-  nix.gc.options = "-d --delete-older-than 30d";
 }

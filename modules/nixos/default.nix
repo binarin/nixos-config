@@ -49,6 +49,10 @@ in
           { gui.enable = cfg.gui.enable; }
           (self + "/configurations/home/" + user + ".nix")
         ];
+        config = {
+          home.homeDirectory = config.users.users."${user}".home;
+          home.username = user;
+        };
       }
     );
 

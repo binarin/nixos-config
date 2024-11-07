@@ -29,7 +29,12 @@ dev:
 # Activate the configuration
 [group('Main')]
 run:
-  nix run
+  #nix run
+  sudo time nixos-rebuild switch --flake $(pwd)#$(hostname -s) --keep-going --show-trace -j8
+
+[group('Main')]
+hm:
+  time nix run $(pwd)#homeConfigurations.$USER.activationPackage  --impure
 
 [group('Dhall')]
 ipam:
