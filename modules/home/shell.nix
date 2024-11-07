@@ -40,6 +40,13 @@
           trim_at = ".local";
           disabled = false;
         };
+        shlvl = {
+          disabled = false;
+          symbol = "↕️";
+          repeat = true;
+          repeat_offset = 3;
+          format = "[$symbol](bold yellow) ";
+        };
       };
     };
   };
