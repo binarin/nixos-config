@@ -10,6 +10,7 @@ in
     "${self}/users/binarin-hm-linux.nix"
   ];
 
+  gui.enable = lib.mkDefault true;
   home.username = lib.mkDefault "binarin";
   home.homeDirectory = lib.mkDefault "/${if pkgs.stdenv.isDarwin then "Users" else "home"}/binarin";
   home.stateVersion = lib.mkDefault "24.05";

@@ -34,7 +34,7 @@ run:
 
 [group('Main')]
 hm:
-  time nix run $(pwd)#homeConfigurations.$USER.activationPackage  --impure
+  time nix run $(pwd)#homeConfigurations.$USER.activationPackage  --impure -L -v
 
 [group('Dhall')]
 ipam:
