@@ -46,6 +46,7 @@ in
         pkg-config
       ];
       desktopPackages = with pkgs; [
+        imhex
         brightnessctl
         qt5.qtwayland # QT_QPA_PLATFORM=wayland in home.sessionVariables
         isync
