@@ -16,13 +16,6 @@
 
     nixos-unified.primary-inputs = [
       "nixpkgs"
-      "nix-darwin"
-      "home-manager"
-      "emacs-overlay"
-      "nixos-wsl"
-      "nixpkgs-unstable"
-      "sops-nix"
-      "deploy-rs"
     ];
   };
 }
