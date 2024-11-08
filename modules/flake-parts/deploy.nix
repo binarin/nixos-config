@@ -15,7 +15,7 @@ let
   };
 in
 {
-  flake = rec {
+  flake = {
     deploy.nodes.forgejo = {
       hostname = ipam.forgejo.interfaces.eth0.address;
       profiles.system = {
