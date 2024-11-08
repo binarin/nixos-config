@@ -1,6 +1,0 @@
-[
-    "@bitwarden/cli",
-    "vue-language-server",
-    "yarn",
-    "@vue/cli"
-]
