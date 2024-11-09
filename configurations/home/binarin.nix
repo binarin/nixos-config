@@ -1,4 +1,4 @@
-{ flake, pkgs, lib, system, config, ... }:
+{ flake, pkgs, lib, system, config, nixosConfig, ... }:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -11,9 +11,24 @@ in
     inputs.sops-nix.homeManagerModules.sops
   ];
 
-  sops = {
-    age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
-    defaultSopsFile = "${self}/secrets/${nixosConfig.networking.hostName}/${config.home.username}.yaml";
+  sops.secrets.hass-mqtt-password = {
+    path = "%r/hass-mqtt-password";
+  };
+
+  services.lnxlink = {
+    enable = true;
+    logLevel = "DEBUG";
+    mqtt = {
+      user = "valak";
+      clientId = "valak";
+      server = "192.168.2.23";
+      passwordFile = "%t/hass-mqtt-password";
+    };
+    addons = {
+      cpu.enable = true;
+      battery.enable = true;
+      audio_select.enable = true;
+    };
   };
 
   home.stateVersion = lib.mkDefault "24.05";
@@ -108,5 +123,5 @@ in
       ];
     in
        developmentPackages
-    ++ lib.optionals config.gui.enable desktopPackages;
+    ++ lib.optionals config.hostConfig.gui.enable desktopPackages;
 }

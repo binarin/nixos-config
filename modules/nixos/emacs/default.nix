@@ -21,7 +21,7 @@ in
       };
       basePackage = lib.mkOption {
         type = lib.types.package;
-        default = if config.hostOptions.gui.enable then pkgs.emacs-pgtk else pkgs.emacs-nox;
+        default = if config.hostConfig.gui.enable then pkgs.emacs-pgtk else pkgs.emacs-nox;
       };
       orgBabelConfig = lib.mkOption {
         type = lib.types.path;

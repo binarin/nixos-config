@@ -5,33 +5,20 @@
 let
   inherit (flake) inputs;
   inherit (inputs) self;
-  cfg = config.hostOptions;
+  cfg = config.hostConfig;
 in
 {
   imports = [
     inputs.sops-nix.nixosModules.sops
+    self.sharedModules.hostConfig
   ];
 
   options = {
-    hostOptions = {
-      gui.enable = lib.mkEnableOption "Whether to enable gui-related things on this host";
-
-      managedUsers = lib.mkOption {
-        default = [ ];
-        type = lib.types.listOf lib.types.str;
-        description = ''
-          Users that should be instantiated on this host
-        '';
-      };
-
-      ipamConfig = lib.mkOption {
-        default = { };
-        type = lib.types.attrs;
-      };
-    };
   };
 
   config = {
+    networking.hostName = config.inventoryHostName;
+
     # These users can add Nix caches.
     nix.settings.trusted-users = [ "root" ] ++ cfg.managedUsers;
 
@@ -46,17 +33,15 @@ in
       {
         imports = [
           self.homeModules.default
-          { gui.enable = cfg.gui.enable; }
           (self + "/configurations/home/" + user + ".nix")
         ];
         config = {
+          inherit (config) hostConfig inventoryHostName;
           home.homeDirectory = config.users.users."${user}".home;
           home.username = user;
         };
       }
     );
-
-    hostOptions.ipamConfig = (builtins.fromJSON (builtins.readFile "${self}/ipam.json"))."${config.networking.hostName}";
 
     services.openssh.enable = true;
 

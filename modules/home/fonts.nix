@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
 
 {
-  config = lib.mkIf config.gui.enable {
+  config = lib.mkIf config.hostConfig.gui.enable {
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
       corefonts

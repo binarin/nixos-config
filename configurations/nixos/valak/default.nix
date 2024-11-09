@@ -1,17 +1,8 @@
-{ flake, lib, ... }:
-
-let
-  inherit (flake) inputs;
-  inherit (inputs) self;
-in
+{ flake, ... }:
 {
-  networking.hostName = "valak";
-
+  inventoryHostName = "valak";
   imports = [
-    self.nixosModules.default
+    flake.inputs.self.nixosModules.default
     ./configuration.nix
   ];
-
-  hostOptions.gui.enable = true;
-  hostOptions.managedUsers = [ "binarin" ];
 }

@@ -21,7 +21,6 @@ in
       profiles.system = {
         sshUser = "root";
         path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations.forgejo;
-        # path = inputs.deploy-rs.lib."${system}".activate.nixos self.nixosConfigurations.forgejo;
       };
     };
     # This is highly advised, and will prevent many possible mistakes
