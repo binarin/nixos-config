@@ -34,7 +34,7 @@ run:
 
 [group('Main')]
 hm:
-  time nix run $(pwd)#homeConfigurations.$USER.activationPackage  --impure -L -v
+  nix run "$(pwd)#nixosConfigurations.valak.config.home-manager.users.binarin.home.activationPackage" -L -v --keep-going --show-trace -j8
 
 [group('Dhall')]
 ipam:

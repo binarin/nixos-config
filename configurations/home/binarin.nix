@@ -11,9 +11,6 @@ in
     inputs.sops-nix.homeManagerModules.sops
   ];
 
-  gui.enable = lib.mkDefault true;
-  home.username = lib.mkDefault "binarin";
-  home.homeDirectory = lib.mkDefault "/${if pkgs.stdenv.isDarwin then "Users" else "home"}/binarin";
   sops = {
     age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
     defaultSopsFile = "${self}/secrets/${nixosConfig.networking.hostName}/${config.home.username}.yaml";
