@@ -359,7 +359,7 @@ in {
     SUBSYSTEM=="video4linux", \
     KERNEL=="video[0-9]*", \
     ACTION=="add", \
-    ENV{ID_VENDOR_ID}=="046d",
+    ENV{ID_VENDOR_ID}=="046d", \
     ENV{ID_MODEL_ID}=="0892", \
     RUN+="${pkgs.v4l-utils}/bin/v4l2-ctl --set-ctrl zoom_absolute=180,pan_absolute=10800 -d %N"
 
