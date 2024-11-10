@@ -1,8 +1,10 @@
 { config, lib, pkgs, ... }:
 {
   config = lib.mkIf config.hostConfig.feature.wayland {
+    fonts.nerdfonts = [
+      "IosevkaTerm"
+    ];
     home.packages = with pkgs; [
-      (nerdfonts.override { fonts = [ "Noto" "IosevkaTerm" ]; })
       noto-fonts-emoji
     ];
     programs.foot = lib.mkIf (config.hostConfig.feature.wayland) {

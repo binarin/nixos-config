@@ -6,7 +6,6 @@ in {
     ../packages/standard-linux-tools.nix
     ../packages/user-packages.nix
     ../users/binarin.nix
-    ../users/binarin-fonts.nix
   ];
 
   boot = {

@@ -1,32 +1,38 @@
 { config, pkgs, lib, ... }:
-
 {
+  options = {
+    fonts.nerdfonts = lib.mkOption {
+      type = with lib.types; listOf nonEmptyStr;
+      default = [];
+      description = ''
+        Which nerd fonts variants to install. When you don't want to
+        pull every nerd font variant.
+      '';
+    };
+  };
   config = lib.mkIf config.hostConfig.feature.gui {
     fonts.fontconfig.enable = true;
+    fonts.nerdfonts = [
+      "FiraCode"
+      "FiraMono"
+      "Inconsolata"
+      "InconsolataLGC" # cyrillic
+      "Iosevka"
+      "IosevkaTerm"
+      "JetBrainsMono"
+      "LiberationMono"
+      "Noto"
+      "RobotoMono"
+      "SourceCodePro"
+      "Terminus"
+      "UbuntuMono"
+    ];
     home.packages = with pkgs; [
       corefonts
-      # dejavu_fonts
-      emacs-all-the-icons-fonts
-      fira
-      fira-code
       font-awesome
-      inconsolata
-      iosevka
-      jetbrains-mono
-      liberation_ttf
-      # mplus-outline-fonts
-      noto-fonts
       noto-fonts-emoji
-      powerline-fonts
-      roboto
-      roboto-mono
-      roboto-slab
-      source-code-pro
-      terminus_font_ttf
-      ubuntu_font_family
-      unifont
       vistafonts
-      (nerdfonts.override { fonts = [ "Noto" ]; })
+      (nerdfonts.override { fonts = config.fonts.nerdfonts; })
     ];
   };
 }
