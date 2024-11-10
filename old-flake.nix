@@ -107,8 +107,6 @@
 
             grafana-victoriametrics-datasource = final.callPackage ./packages/victoriametrics-datasource.nix { };
 
-            # wt-maker = final.callPackage ./packages/wt-maker.nix {};
-
             # NOTE: This one is picked up by home-manager emacs module
             # emacsPackagesFor = final.bleeding.emacsPackagesFor;
 

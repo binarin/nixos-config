@@ -62,10 +62,6 @@ switch-or-run-foot() {
     exit 0
 }
 
-pixmap() {
-    echo "-pixmap $HOME/.local/share/images/ssh/${1:?};0x0+0+0:op=tile"
-}
-
 tmux-command() {
     local name="${1:?}"
     echo ": ; tmux -2 attach -t $name -d || tmux -2 new -s $name"

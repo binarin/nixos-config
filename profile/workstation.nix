@@ -4,7 +4,6 @@ let
 in {
   imports = [
     ../packages/standard-linux-tools.nix
-    ../packages/user-packages.nix
     ../users/binarin.nix
   ];
 

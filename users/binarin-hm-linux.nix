@@ -9,14 +9,13 @@ let
   out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
   out-ishamael-edp = "Sharp Corporation 0x1516 Unknown";
   out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
+  sshmenu = pkgs.writeText "sshmenu" (builtins.readFile ./sshmenu);
 in
 {
   config = lib.mkIf pkgs.stdenv.isLinux {
     xdg.mimeApps = {
       enable = true;
       defaultApplications = {
-        "x-scheme-handler/https" = "smart-browser-chooser.desktop";
-        "x-scheme-handler/http" = "smart-browser-chooser.desktop";
         "x-scheme-handler/org-protocol" = "org-protocol.desktop";
         "x-scheme-handler/tg" = "org.telegram.desktop.desktop";
         "image/jpeg" = "geeqie.desktop";
@@ -281,7 +280,7 @@ in
           "$mod SHIFT , right, movewindoworgroup, r"
           "$mod       , up, movefocus, u"
           "$mod SHIFT , up, movewindoworgroup, u"
-          "$mod       , semicolon, exec, ${./sshmenu}"
+          "$mod       , semicolon, exec, ${sshmenu}"
         ];
         bindm = [
           "$mod, mouse:272, movewindow"
@@ -447,10 +446,10 @@ in
           };
         };
       };
-      style = ./waybar-style.css;
+      style = pkgs.writeText "waybar-style.css" (builtins.readFile ./waybar-style.css);
     };
 
-    home.file.".config/waybar/base16-zenburn.css".source = ./base16-zenburn.css;
+    home.file.".config/waybar/base16-zenburn.css".source = pkgs.writeText "base16-zenburn.css" (builtins.readFile ./base16-zenburn.css);
 
     xdg.dataFile."dbus-1/services/org.freedesktop.secrets.service".text = ''
       [D-BUS Service]

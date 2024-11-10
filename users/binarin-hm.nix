@@ -4,18 +4,16 @@ let
   qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
 in
 {
-  home.file."bin/sshmenu".source = ./sshmenu;
-  home.file.".local/share/applications/org-protocol.desktop".source = ./org-protocol.desktop;
-  home.file.".local/share/applications/smart-browser-chooser.desktop".text = ''
-    [Desktop Entry]
-    Name=smart-browser-chooser
-    Exec=${./open-link.sh} %u
-    Type=Application
-    Terminal=false
-    Categories=System;
-    MimeType=x-scheme-handler/viber;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;text/html;application/x-extension-htm;application/x-extension-html;application/x-extension-shtml;application/xhtml+xml;application/x-extension-xhtml;application/x-extension-xht
-  '';
+  home.file."bin/sshmenu".source = pkgs.writeTextFile {
+    name = "sshmenu";
+    text = builtins.readFile ./sshmenu;
+    executable = true;
+  };
 
+  home.file.".local/share/applications/org-protocol.desktop".source = pkgs.writeTextFile {
+    name = "org-protocol.desktop";
+    text = builtins.readFile ./org-protocol.desktop;
+  };
 
   programs.tmux = {
     baseIndex = 1;
@@ -131,27 +129,9 @@ in
     };
   };
 
-  home.file.".local/share/images" = {
-    source = ./images;
-    recursive = true;
-  };
-
   home.packages = with pkgs; [
-    # (wrapOBS { plugins = with pkgs.obs-studio-plugins; [ wlroots ]; })
-    # aws-iam-authenticator
-    # awscli2
-    # elixir_1_14
-    # entr
-    # erlangR25
-    # helix
-    # lilypond-with-fonts
-    # terraform-ls
-    # terraform-providers.google
-    # terraform_1
-    # wt-maker
     age
     ansible
-    bazel_6
     bleeding.yt-dlp
     comma
     cuetools
@@ -160,7 +140,6 @@ in
     docker-credential-helpers
     esphome
     ffmpeg
-    flac
     git-annex
     gnumake
     gnupg
@@ -168,55 +147,22 @@ in
     gparted
     htop
     httpie
-    k0sctl
-    k9s
-    kapp
-    kid3
-    kind
-    krew
-    kubectx
-    kubernetes
-    kubernetes-helm
     mac
-    mitmproxy
     ov
-    packer
-    parinfer-rust
     protonmail-bridge
     python3
     recode
     ripgrep
     rxvt-unicode # XXX for sshmenu
     shntool
-    skaffold
     sops
     sox
     sshfs
-    ytt
   ];
 
   programs.gh.enable = true;
 
-  home.file."bin/pass" = {
-    text = ''
-      #!${pkgs.bash}/bin/bash
-      if [[ $1 == "ls" && $# == 1 ]]; then
-          exec ${pkgs.gopass}/bin/gopass ls -f
-      elif [[ $1 == "rm" && $2 == "-rf" ]]; then
-          shift 2
-          exec ${pkgs.gopass}/bin/gopass rm -r -f "$@"
-      elif [[ $1 == "show" && $# == 2 ]]; then
-          shift
-          exec ${pkgs.gopass}/bin/gopass show -o "$@"
-      else
-        exec ${pkgs.gopass}/bin/gopass "$@"
-      fi
-    '';
-    executable = true;
-  };
-
   home.keyboard = null;
-  home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
 
   programs.ssh = {
     enable = true;

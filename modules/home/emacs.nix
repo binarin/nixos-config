@@ -29,5 +29,6 @@ in
   config = lib.mkIf cfg.enable {
     home.file.".emacs.d/init.el".source = tangledConfig + "/init.el";
     home.file.".emacs.d/init.elc".source = tangledConfig + "/init.elc";
+    home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
   };
 }

@@ -1,9 +1,5 @@
 { config, pkgs, lib, ... }:
 {
-  imports = [
-    ../packages/user-packages.nix
-  ];
-
   config = {
     users.extraGroups = {
       binarin = {

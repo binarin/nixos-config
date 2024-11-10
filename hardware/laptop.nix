@@ -1,4 +1,0 @@
-{ pkgs, ... }:
-{
-  powerManagement.enable = true;
-}
