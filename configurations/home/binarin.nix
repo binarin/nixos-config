@@ -115,6 +115,6 @@ in
         xorg.xev
       ];
     in
-       developmentPackages
+    developmentPackages
     ++ lib.optionals config.hostConfig.feature.gui desktopPackages;
 }

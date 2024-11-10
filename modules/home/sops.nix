@@ -1,4 +1,4 @@
-{flake, config, ...}:
+{ flake, config, ... }:
 {
   sops = {
     age.keyFile = "${config.home.homeDirectory}/.config/age/nixos-config-keys.txt";

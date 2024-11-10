@@ -3,22 +3,22 @@
 , fetchPypi
 , wrapGAppsHook4
 
-, addons ? []
+, addons ? [ ]
 , addAddonsRuntimeDeps ? true
 
-# used by a bunch of addons
+  # used by a bunch of addons
 , coreutils
 , gnugrep
 , gawk
 , psmisc
 , gnused
 
-# optional, used only when specified via `addons` argument
+  # optional, used only when specified via `addons` argument
 , bluez
 , xrandr
-# ,  gsettings # XXX where?
+  # ,  gsettings # XXX where?
 , xset
-# , zenity # not in 24.05, only in master
+  # , zenity # not in 24.05, only in master
 , vlc
 , pulseaudio
 , xdotool
@@ -29,17 +29,17 @@ let
   minimalPythonDeps = [ "dasbus" ];
   minimalRuntimeDeps = [ "coreutils" "gnugrep" "gawk" "psmisc" "gnused" ];
 
-  haveMinimalPythonDeps = {pythonDeps ? [], ...}: builtins.all (d: builtins.elem d minimalPythonDeps) pythonDeps;
-  haveMinimalRuntimeDeps = {runtimeDeps ? [], ...}: builtins.all (d: builtins.elem d minimalRuntimeDeps) runtimeDeps;
+  haveMinimalPythonDeps = { pythonDeps ? [ ], ... }: builtins.all (d: builtins.elem d minimalPythonDeps) pythonDeps;
+  haveMinimalRuntimeDeps = { runtimeDeps ? [ ], ... }: builtins.all (d: builtins.elem d minimalRuntimeDeps) runtimeDeps;
 
-  canEnableByDefault = {broken ? false, variants ? {}, systemDeps ? [], ...}@meta:
+  canEnableByDefault = { broken ? false, variants ? { }, systemDeps ? [ ], ... }@meta:
     !broken &&
     builtins.length systemDeps == 0 &&
     builtins.length (builtins.attrNames variants) == 0 &&
     haveMinimalPythonDeps meta &&
     haveMinimalRuntimeDeps meta;
 
-  addonsMeta = builtins.mapAttrs (nm: meta: meta // {default = canEnableByDefault meta;}) {
+  addonsMeta = builtins.mapAttrs (nm: meta: meta // { default = canEnableByDefault meta; }) {
     "active_window" = {
       pythonDeps = [ "ewmh" "python-xlib" ];
     };
@@ -93,7 +93,7 @@ let
         nvidia = {
           missingPythonDeps = [
             "nvitop" # XXX standalone python app, can I use it as a dep?
-            "nvsmi"  # XXX not in nixpkgs
+            "nvsmi" # XXX not in nixpkgs
           ];
           systemDeps = [ "nvidia-settings" ];
           broken = true;
@@ -209,8 +209,9 @@ let
   allAddonNames = builtins.attrNames addonsMeta; # XXX expand variants also
 
   getMeta = nm:
-    let parts = builtins.split "#" nm;
-        meta = builtins.getAttr nm addonsMeta;
+    let
+      parts = builtins.split "#" nm;
+      meta = builtins.getAttr nm addonsMeta;
     in
     if (builtins.length parts) == 1
     then meta
@@ -220,13 +221,15 @@ let
 
   addonPythonDeps = nm:
     let
-      fun = {pythonDeps ? [], ...}: pythonDeps;
-    in fun (getMeta nm);
+      fun = { pythonDeps ? [ ], ... }: pythonDeps;
+    in
+    fun (getMeta nm);
 
   addonRuntimeDeps = nm:
     let
-      fun = {runtimeDeps ? [], ...}: runtimeDeps;
-    in fun (getMeta nm);
+      fun = { runtimeDeps ? [ ], ... }: runtimeDeps;
+    in
+    fun (getMeta nm);
 
   enabledAddons = defaultAddons ++ addons;
   runtimeDepsNames = builtins.concatMap addonRuntimeDeps enabledAddons;
@@ -245,7 +248,7 @@ python3Packages.buildPythonApplication rec {
 
   src = fetchPypi {
     inherit pname version;
-    hash  = "sha256-ehwKlVJ0kAj3d7Zq7w+yk0pP6yVUEHghG5MOihMoQHM=";
+    hash = "sha256-ehwKlVJ0kAj3d7Zq7w+yk0pP6yVUEHghG5MOihMoQHM=";
   };
 
   postPatch = ''

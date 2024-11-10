@@ -13,8 +13,7 @@ in
     self.sharedModules.hostConfig
   ];
 
-  options = {
-  };
+  options = { };
 
   config = {
     networking.hostName = config.inventoryHostName;

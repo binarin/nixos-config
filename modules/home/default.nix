@@ -1,5 +1,5 @@
 # A module that automatically imports everything else in the parent folder.
-{flake, lib, ...}:
+{ flake, lib, ... }:
 {
   imports =
     with builtins;

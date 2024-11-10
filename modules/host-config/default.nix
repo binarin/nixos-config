@@ -1,17 +1,17 @@
-{flake, lib, config, osConfig ? null, ...}:
+{ flake, lib, config, osConfig ? null, ... }:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
   cfg = config.hostConfig;
 
   featureDeps = {
-    cad = ["gui"];
-    gui = [];
-    hyprland = ["wayland" "gui"];
-    lnxlink = [];
-    bleeding = [];
-    fast-rebuild = [];
-    wayland = ["gui"];
+    cad = [ "gui" ];
+    gui = [ ];
+    hyprland = [ "wayland" "gui" ];
+    lnxlink = [ ];
+    bleeding = [ ];
+    fast-rebuild = [ ];
+    wayland = [ "gui" ];
   };
 
   enableFeatureWhen =
@@ -22,15 +22,15 @@ let
 
       # [ { gui = "hyprland"; wayland = "hyrpland"; }
       #   { gui = "wayland"; } ]
-      attrSets = builtins.map ({name, value}: lib.genAttrs value (_: name)) list;
+      attrSets = builtins.map ({ name, value }: lib.genAttrs value (_: name)) list;
 
       # { gui = ["hyrpland" "wayland"]; wayland = ["hyprland"]; }
-      withDeps = lib.foldAttrs (v: acc: [v] ++ acc) [] attrSets;
+      withDeps = lib.foldAttrs (v: acc: [ v ] ++ acc) [ ] attrSets;
 
-      allEmpty = lib.genAttrs allFeatures (_: []);
+      allEmpty = lib.genAttrs allFeatures (_: [ ]);
 
     in
-      allEmpty // withDeps;
+    allEmpty // withDeps;
 
   featureEnabled = with builtins; with lib; feature:
     elem feature cfg.features ||
@@ -51,7 +51,7 @@ let
 
     listOf = type: {
       _type = "leaf";
-      default = [];
+      default = [ ];
       type = lib.types.listOf (leafType type);
     };
 
@@ -68,9 +68,9 @@ let
     };
 
     leafType = type:
-        if type ? _type && type._type == "leaf"
-        then type.type
-        else type;
+      if type ? _type && type._type == "leaf"
+      then type.type
+      else type;
 
     mkOpt = path: leaf:
       let
@@ -79,7 +79,7 @@ let
         defaultAttrs =
           if leaf ? _type && leaf._type == "leaf" && leaf ? default
           then { default = leaf.default; }
-          else {};
+          else { };
       in
       lib.mkOption ({
         inherit type description;
@@ -119,12 +119,12 @@ in
     hostConfig = {
       managedUsers = lib.mkOption {
         type = with lib.types; listOf nonEmptyStr;
-        default = [];
+        default = [ ];
       };
 
       features = lib.mkOption {
         type = lib.types.listOf (lib.types.enum allFeatures);
-        default = [];
+        default = [ ];
       };
 
       feature = lib.genAttrs allFeatures (featureName:

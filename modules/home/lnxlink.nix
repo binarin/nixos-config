@@ -1,4 +1,4 @@
-{flake, pkgs, lib, config, ...}:
+{ flake, pkgs, lib, config, ... }:
 
 let
   inherit (flake) inputs;
@@ -80,8 +80,8 @@ let
       };
       hotkeys = null;
       disk_usage = {
-        include_disks = [];
-        exclude_disks = [];
+        include_disks = [ ];
+        exclude_disks = [ ];
       };
       statistics = "https://analyzer.bkbilly.workers.dev"; # XXX ?
       bash = {
@@ -90,12 +90,12 @@ let
       };
       mounts = {
         autocheck = false;
-        directories = [];
+        directories = [ ];
       };
       ir_remote = {
         receiver = null;
         transmitter = null;
-        buttons = [];
+        buttons = [ ];
       };
       restful = {
         port = 8112;
@@ -106,18 +106,18 @@ let
   configFileWithoutSecrets = yaml.generate "lnxlink-config-without-secrets.yaml" settings;
 
   renderSecrets = pkgs.writeShellScript "render-lnxlink-secrets" ''
-      set -o errexit -o pipefail -o nounset
-      target_file="$1"
-      password_file="$2"
+    set -o errexit -o pipefail -o nounset
+    target_file="$1"
+    password_file="$2"
 
-      ${lib.getExe' pkgs.coreutils "install"} -D ${configFileWithoutSecrets} $target_file
-      ${lib.getExe pkgs.replace-secret} '${passwordPlaceholder}' "$password_file" "$target_file"
-    '';
+    ${lib.getExe' pkgs.coreutils "install"} -D ${configFileWithoutSecrets} $target_file
+    ${lib.getExe pkgs.replace-secret} '${passwordPlaceholder}' "$password_file" "$target_file"
+  '';
 
   addonOptions = nm:
     let
       meta = cfg.package.meta.addons.getMeta nm;
-      variants = ({variants ? {}, ...}: builtins.attrNames variants) meta;
+      variants = ({ variants ? { }, ... }: builtins.attrNames variants) meta;
       maybeVariantOption =
         if (builtins.length variants > 0)
         then {
@@ -129,8 +129,9 @@ let
             '';
           };
         }
-        else {};
-    in {
+        else { };
+    in
+    {
       name = nm;
       value = {
         enable = lib.mkEnableOption "Enable addon ${nm}";
@@ -156,7 +157,7 @@ in
 
     mqtt = lib.mkOption {
       type = mqttModule;
-      default = {};
+      default = { };
       example = lib.literalExpression ''
         {
           user = "<username>";
@@ -178,7 +179,7 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.callPackage "${self}/packages/lnxlink.nix" {};
+      default = pkgs.callPackage "${self}/packages/lnxlink.nix" { };
     };
 
     daemonPath = with lib; mkOption {
