@@ -7,7 +7,7 @@ in
   home.packages = [ pkgs.rxvt-unicode ];
   home.file."bin/sshmenu".source = pkgs.writeTextFile {
     name = "sshmenu";
-    text = builtins.readFile ./sshmenu;
+    text = builtins.readFile "${self}/users/sshmenu";
     executable = true;
   };
 }
