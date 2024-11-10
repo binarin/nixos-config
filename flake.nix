@@ -13,13 +13,16 @@
 
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
-      ref = "refs/tags/v0.44.1";
+      ref = "refs/tags/v0.45.0";
       type = "git";
       submodules = true;
     };
 
     hyprland-contrib.url = github:hyprwm/contrib;
     hyprland-contrib.inputs.nixpkgs.follows = "nixpkgs";
+
+    hyprlock.url = github:hyprwm/contrib;
+    hyprlock.inputs.nixpkgs.follows = "nixpkgs";
 
     # Software inputs
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";

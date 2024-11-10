@@ -9,6 +9,7 @@ in
   nixpkgs.overlays = [
     inputs.hyprland.overlays.default
     inputs.hyprland-contrib.overlays.default
+    inputs.hyprlock.overlays.default
 
     (final: prev: {
       aquamarine = prev.aquamarine.override { libinput = final.bleeding.libinput; };
