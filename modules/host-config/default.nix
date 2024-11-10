@@ -141,7 +141,7 @@ in
     };
   };
   config = {
-    hostConfig.ipam.interfaces = self.lib.hostConfig.getIpam config.inventoryHostName;
+    hostConfig.ipam.interfaces = self.lib.hostConfig.ipamInterfaces config.inventoryHostName;
     hostConfig.feature = lib.genAttrs allFeatures (feat: lib.mkDefault (featureEnabled feat));
   };
 }
