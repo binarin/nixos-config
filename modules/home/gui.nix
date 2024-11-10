@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 let
   ignoringVulns = x: x // { meta = (x.meta // { knownVulnerabilities = [ ]; }); };
   qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
@@ -8,6 +8,8 @@ let
     tdesktop
     thunderbird
     vlc
+    chromium
+    google-chrome
 
     # anki-bin
     # discord

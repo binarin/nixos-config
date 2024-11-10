@@ -92,7 +92,6 @@ in
         aspellDicts.ru
         aspellDicts.en
         aspellDicts.nl
-        chromium
         desktop-file-utils
         # dunst
         evince
@@ -101,7 +100,6 @@ in
         gimp
         gitg
         glxinfo
-        google-chrome
         google-cloud-sdk
         libnotify
         mplayer
