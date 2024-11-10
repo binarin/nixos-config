@@ -1,4 +1,4 @@
-{config, lib, ...}:
+{config, lib, pkgs, ...}:
 {
   config = lib.mkIf config.hostConfig.feature.wayland {
     home.packages = with pkgs; [
