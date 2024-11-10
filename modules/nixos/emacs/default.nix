@@ -3,8 +3,14 @@
 let
   inherit (flake.inputs) self;
   cfg = config.my.programs.emacs;
+
+  isolatedOrgBabelConfig = pkgs.writeTextFile {
+    name = "isolated-emacs-config.org";
+    text = builtins.readFile cfg.orgBabelConfig;
+  };
+
   orgBabelConfigWithoutUnicode = pkgs.runCommand "cleanup-unicode-from-emacs-config.org" { } ''
-    ${lib.getExe pkgs.cleanup-unicode-from-emacs-org-babel-config} ${cfg.orgBabelConfig} > $out
+    ${lib.getExe pkgs.cleanup-unicode-from-emacs-org-babel-config} ${isolatedOrgBabelConfig} > $out
   '';
   finalEmacsPackage = pkgs.emacsWithPackagesFromUsePackage {
     package = cfg.basePackage;

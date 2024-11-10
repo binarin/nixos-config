@@ -2,10 +2,17 @@
 let
   inherit (flake) inputs;
   inherit (inputs) self;
+
   cfg = config.my.programs.emacs;
+
+  isolatedOrgBabelConfig = pkgs.writeTextFile {
+    name = "isolated-emacs-config.org";
+    text = builtins.readFile cfg.orgBabelConfig;
+  };
+
   tangledConfig = pkgs.runCommand "emacs-config-tangled" { } ''
     mkdir $out
-    ${lib.getExe pkgs.tangle-emacs-org-babel-config} "${cfg.orgBabelConfig}" "$out/init.el"
+    ${lib.getExe pkgs.tangle-emacs-org-babel-config} "${isolatedOrgBabelConfig}" "$out/init.el"
   '';
 in
 {
