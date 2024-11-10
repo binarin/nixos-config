@@ -21,9 +21,6 @@
     hyprland-contrib.url = github:hyprwm/contrib;
     hyprland-contrib.inputs.nixpkgs.follows = "nixpkgs";
 
-    hyprlock.url = github:hyprwm/contrib;
-    hyprlock.inputs.nixpkgs.follows = "nixpkgs";
-
     # Software inputs
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
