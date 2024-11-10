@@ -19,6 +19,13 @@ in
   config = {
     networking.hostName = config.inventoryHostName;
 
+    nix = {
+      extraOptions = ''
+        experimental-features = nix-command flakes ca-derivations
+      '';
+    };
+
+
     # These users can add Nix caches.
     nix.settings.trusted-users = [ "root" ] ++ cfg.managedUsers;
 
