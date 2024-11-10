@@ -195,9 +195,7 @@ in
     sox
     sshfs
     ytt
-  ] ++ lib.optionals (!config.hostConfig.fast-rebuild) {
-    (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; })
-  };
+  ];
 
   programs.gh.enable = true;
 

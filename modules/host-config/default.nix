@@ -25,7 +25,7 @@ let
 
     in
       # { gui = ["hyrpland" "wayland"]; wayland = ["hyprland"]; }
-      lib.foldAttrs (v: acc: builtins.trace (builtins.toJSON [v acc]) ([v] ++ acc)) [] attrSets;
+      lib.foldAttrs (v: acc: [v] ++ acc) [] attrSets;
 
   featureEnabled = with builtins; with lib; feature:
     elem feature cfg.features ||
