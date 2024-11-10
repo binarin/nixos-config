@@ -131,7 +131,7 @@ in
         lib.mkOption {
           type = lib.types.bool;
           description = ''
-            Unpacking `hostConfig.features` into per-feature bool for easier access.
+            Unpacking "${featureName} from "`hostConfig.features` into per-feature bool for easier access.
           '';
         }
       );
