@@ -84,13 +84,10 @@ in
         xorg.xf86inputlibinput
         wally-cli
         graphviz
-        firefox-bin
-        # goldendict
         openscad-unstable
         onedrive
         vscode
         # pkgs.bleeding.idea.idea-community
-        pkgs.bleeding.prusa-slicer
         aspell
         aspellDicts.ru
         aspellDicts.en
@@ -123,5 +120,5 @@ in
       ];
     in
        developmentPackages
-    ++ lib.optionals config.hostConfig.gui.enable desktopPackages;
+    ++ lib.optionals config.hostConfig.feature.gui desktopPackages;
 }

@@ -25,7 +25,7 @@ in
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
     home-manager.useGlobalPkgs = true;
-    home-manager.useUserPackages = lib.mkForce false;
+    home-manager.useUserPackages = true;
 
     nixpkgs.config.allowUnfree = true;
 

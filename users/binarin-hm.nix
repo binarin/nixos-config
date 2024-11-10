@@ -1,62 +1,9 @@
 { lib, pkgs, config, system, ... }:
-
 let
-
-  libcaption = pkgs.stdenv.mkDerivation rec {
-    pname = "libcaption";
-    version = "e8b6261090eb3f2012427cc6b151c923f82453db";
-    src = pkgs.fetchFromGitHub {
-      owner = "szatmary";
-      repo = "libcaption";
-      rev = version;
-      sha256 = "sha256-9tszEKR30GHoGQ3DE9ejU3yOdtDiZwSZHiIJUPLgOdU=";
-    };
-
-    nativeBuildInputs = with pkgs; [ cmake ];
-  };
-
-  erlang-ls-patched = pkgs.beam.packages.erlang.erlang-ls.overrideAttrs (prev: rec {
-    version = "0.46.0";
-    name = "erlang-ls-${version}";
-    src = pkgs.fetchFromGitHub {
-      owner = "erlang-ls";
-      repo = "erlang_ls";
-      sha256 = "sha256-4h+wD/JwUulejezyHnZFrR8GF5UmdZG1DhRjjg/CkyM=";
-      rev = version;
-    };
-  });
-
-  obs-gphoto = pkgs.stdenv.mkDerivation rec {
-    pname = "osb-gphoto";
-    version = "0.4.0";
-
-    src = pkgs.fetchFromGitHub {
-      owner = "adlerweb";
-      repo = "obs-gphoto";
-      rev = "bd88ff79c6be412963d94303a7f92509a69d2751";
-      sha256 = "sha256-oDdLOu3qL+L3sK9GJTj3pM/AKb9nUZw0AfPoJT4h10E=";
-    };
-
-    preConfigure = ''
-      substituteInPlace CMakeLists.txt \
-        --replace \$\{LIBOBS_PLUGIN_DESTINATION\} $out/lib/obs-plugins
-    '';
-
-    nativeBuildInputs = with pkgs; [ cmake pkg-config ninja ];
-    buildInputs = with pkgs; [ wayland obs-studio xorg.libX11 libgphoto2 libjpeg udev libcaption ];
-    cmakeFlags = [
-      "-DSYSTEM_INSTALL=ON"
-    ];
-
-  };
-
   ignoringVulns = x: x // { meta = (x.meta // { knownVulnerabilities = [ ]; }); };
   qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
 in
 {
-  # imports = [
-  #   ./emacs-hm.nix
-  # ];
   home.file."bin/sshmenu".source = ./sshmenu;
   home.file.".local/share/applications/org-protocol.desktop".source = ./org-protocol.desktop;
   home.file.".local/share/applications/smart-browser-chooser.desktop".text = ''
@@ -192,23 +139,27 @@ in
   };
 
   home.packages = with pkgs; [
-    (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; })
-    (wrapOBS { plugins = with pkgs.obs-studio-plugins; [ wlroots ]; })
-    docker-credential-helpers
-    anki-bin
-    ansible
+    # (wrapOBS { plugins = with pkgs.obs-studio-plugins; [ wlroots ]; })
     # aws-iam-authenticator
     # awscli2
+    # elixir_1_14
+    # entr
+    # erlangR25
+    # helix
+    # lilypond-with-fonts
+    # terraform-ls
+    # terraform-providers.google
+    # terraform_1
+    # wt-maker
+    age
+    ansible
     bazel_6
     bleeding.yt-dlp
     comma
     cuetools
-    discord
+    deploy-rs
     docker-compose
-    electrum
-    # elixir_1_14
-    # entr
-    # erlangR25
+    docker-credential-helpers
     esphome
     ffmpeg
     flac
@@ -217,53 +168,36 @@ in
     gnupg
     gopass
     gparted
-    gphoto2
-    # helix
     htop
     httpie
-    jetbrains.idea-community
     k0sctl
     k9s
     kapp
-    kdenlive
     kid3
     kind
     krew
     kubectx
-    age
-    deploy-rs
     kubernetes
     kubernetes-helm
-    # lilypond-with-fonts
     mac
     mitmproxy
     ov
     packer
     parinfer-rust
-    picard
     protonmail-bridge
     python3
     recode
-    remmina
     ripgrep
+    rxvt-unicode # XXX for sshmenu
     shntool
-    signal-desktop
     skaffold
     sops
     sox
     sshfs
-    tdesktop
-    # terraform-ls
-    # terraform-providers.google
-    # terraform_1
-    thunderbird
-    vlc
-    wdisplays
-    winePackages.full
-    # wt-maker
     ytt
-    rxvt-unicode # XXX for sshmenu
-  ];
+  ] ++ lib.optionals (!config.hostConfig.fast-rebuild) {
+    (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; })
+  };
 
   programs.gh.enable = true;
 

@@ -9,7 +9,7 @@ default:
 # Update nix flake
 [group('Main')]
 update:
-  nix flake update
+  nix run "$(pwd)#update"
 
 # Lint nix files
 [group('dev')]

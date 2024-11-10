@@ -1,8 +1,5 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 {
-  # Nix packages to install to $HOME
-  #
-  # Search for packages here: https://search.nixos.org/packages
   home.packages = with pkgs; [
     # Unix tools
     ripgrep # Better `grep`
@@ -17,16 +14,12 @@
     nix-info
     nixpkgs-fmt
 
-    # Dev
-    tmate
-
     # On ubuntu, we need this less for `man home-configuration.nix`'s pager to
     # work.
     less
 
     mc
     lsd
-
   ];
 
   # Programs natively supported by home-manager.
