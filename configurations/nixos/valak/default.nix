@@ -10,6 +10,7 @@
   hostConfig.managedUsers = [ "binarin" ];
 
   hostConfig.features = [
+    "cad"
     "hyprland"
     "lnxlink"
     "bleeding"

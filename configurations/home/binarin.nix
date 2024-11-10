@@ -84,7 +84,6 @@ in
         xorg.xf86inputlibinput
         wally-cli
         graphviz
-        openscad-unstable
         onedrive
         vscode
         # pkgs.bleeding.idea.idea-community
@@ -95,7 +94,6 @@ in
         desktop-file-utils
         # dunst
         evince
-        freecad
         imagemagickBig
         gimp
         gitg

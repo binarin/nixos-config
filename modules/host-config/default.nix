@@ -5,6 +5,7 @@ let
   cfg = config.hostConfig;
 
   featureDeps = {
+    cad = ["gui"];
     gui = [];
     hyprland = ["wayland" "gui"];
     lnxlink = [];
