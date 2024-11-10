@@ -23,9 +23,13 @@ let
       #   { gui = "wayland"; } ]
       attrSets = builtins.map ({name, value}: lib.genAttrs value (_: name)) list;
 
-    in
       # { gui = ["hyrpland" "wayland"]; wayland = ["hyprland"]; }
-      lib.foldAttrs (v: acc: [v] ++ acc) [] attrSets;
+      withDeps = lib.foldAttrs (v: acc: [v] ++ acc) [] attrSets;
+
+      allEmpty = lib.genAttrs allFeatures (_: []);
+
+    in
+      allEmpty // withDeps;
 
   featureEnabled = with builtins; with lib; feature:
     elem feature cfg.features ||
@@ -138,6 +142,6 @@ in
   };
   config = {
     hostConfig.ipam.interfaces = self.lib.hostConfig.getIpam config.inventoryHostName;
-    hostConfig.feature = lib.genAttrs allFeatures featureEnabled;
+    hostConfig.feature = lib.genAttrs allFeatures (feat: lib.mkDefault (featureEnabled feat));
   };
 }
