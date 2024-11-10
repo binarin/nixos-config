@@ -4,12 +4,6 @@ let
   qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
 in
 {
-  home.file."bin/sshmenu".source = pkgs.writeTextFile {
-    name = "sshmenu";
-    text = builtins.readFile ./sshmenu;
-    executable = true;
-  };
-
   home.file.".local/share/applications/org-protocol.desktop".source = pkgs.writeTextFile {
     name = "org-protocol.desktop";
     text = builtins.readFile ./org-protocol.desktop;
@@ -153,7 +147,6 @@ in
     python3
     recode
     ripgrep
-    rxvt-unicode # XXX for sshmenu
     shntool
     sops
     sox
