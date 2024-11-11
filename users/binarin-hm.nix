@@ -6,7 +6,7 @@ in
 {
   home.file.".local/share/applications/org-protocol.desktop".source = pkgs.writeTextFile {
     name = "org-protocol.desktop";
-    text = builtins.readFile ./org-protocol.desktop;
+    text = pkgs.flakeFile "org-protocol.desktop";
   };
 
   programs.tmux = {
