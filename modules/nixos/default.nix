@@ -9,7 +9,7 @@ let
 in
 {
   imports = [
-    self.sharedModules.hostConfig
+    self.sharedModules.default
     self.nixosModules.bleeding
     self.nixosModules.fonts
     self.nixosModules.sops

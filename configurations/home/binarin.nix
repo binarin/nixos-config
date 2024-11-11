@@ -33,7 +33,6 @@ in
 
   home.stateVersion = lib.mkDefault "24.05";
 
-  my.programs.emacs.enable = true;
   gtk = {
     enable = true;
     iconTheme = {
