@@ -79,7 +79,7 @@ in
       setopt cdablevars
 
       rr() {
-        readlink -f $(which $1)
+        readlink -f $(type -p $1 | awk '{print $3}')
       }
 
       # let a terminal/tmux to keep track of a current directory to open new window in the same place
