@@ -30,11 +30,11 @@ dev:
 [group('Main')]
 run:
   #nix run
-  sudo time nixos-rebuild switch --flake $(pwd)#$(hostname -s) --keep-going --show-trace -j8
+  sudo time nixos-rebuild switch --flake $(pwd)#$(hostname -s) --keep-going --show-trace -j8 -v
 
 [group('Main')]
 hm:
-  nix run "$(pwd)#nixosConfigurations.valak.config.home-manager.users.binarin.home.activationPackage" -L -v --keep-going --show-trace -j8
+  nix run "$(pwd)#nixosConfigurations.valak.config.home-manager.users.binarin.home.activationPackage" -v --keep-going --show-trace -j8
 
 [group('Dhall')]
 ipam:

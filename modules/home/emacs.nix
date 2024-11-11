@@ -29,6 +29,8 @@ in
   config = lib.mkIf cfg.enable {
     home.file.".emacs.d/init.el".source = tangledConfig + "/init.el";
     home.file.".emacs.d/init.elc".source = tangledConfig + "/init.elc";
+    fonts.nerdfonts = [ "IosevkaTerm" ];
+    home.packages = [ pkgs.emacs-all-the-icons-fonts ];
     home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
   };
 }

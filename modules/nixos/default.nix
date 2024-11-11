@@ -9,8 +9,10 @@ let
 in
 {
   imports = [
-    inputs.sops-nix.nixosModules.sops
     self.sharedModules.hostConfig
+    self.nixosModules.bleeding
+    self.nixosModules.fonts
+    self.nixosModules.sops
   ];
 
   options = { };
@@ -51,9 +53,6 @@ in
     );
 
     services.openssh.enable = true;
-
-    sops.defaultSopsFile = "${self}/secrets/${config.networking.hostName}/secrets.yaml";
-    sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
     # tailscale can't use exit nodes otherwise
     # citing https://github.com/tailscale/tailscale/issues/4432#issuecomment-1112819111:

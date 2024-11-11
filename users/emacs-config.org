@@ -112,12 +112,18 @@
    #+end_src
 
 ** Font
+   #+begin_src emacs-lisp :tangle yes
+     (use-package all-the-icons
+       :ensure t
+       :if (display-graphic-p))
+   #+end_src
+
    #+BEGIN_SRC emacs-lisp :tangle yes
      (add-to-list 'default-frame-alist
                   `(font . ,(cl-case binarin/system-type
-                              (wsl "Iosevka-18")
+                              (wsl "IosevkaTerm Nerd Font-18")
                               (darwin "JetBrains Mono-14")
-                              (t "Iosevka-22"))))
+                              (t "IosevkaTerm Nerd Font-22"))))
 
      (setf face-ignored-fonts '("Adobe Blank"))
    #+END_SRC
@@ -141,6 +147,12 @@
    #+END_SRC
 
 * Behaviour
+** Startup profiling
+   #+begin_src emacs-lisp :tangle yes
+     (use-package esup
+       :ensure t
+       :commands (esup))
+   #+end_src
 ** Date formatting
    #+begin_src emacs-lisp :tangle yes
      (setq system-time-locale "C")

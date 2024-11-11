@@ -6,7 +6,7 @@ let
   inherit (inputs) self;
 in
 {
-  nixpkgs.overlays = [
+  nixpkgs.overlays = lib.mkIf (config.hostConfig.feature.bleeding) [
     (final: prev: {
       bleeding = import inputs.nixpkgs-unstable
         {

@@ -9,7 +9,6 @@ in
 {
   imports = [
     self.nixosModules.server
-    self.nixosModules.bleeding
     self.nixosModules.emacs
     self.nixosModules.hyprland
     self.nixosModules.impure-nix-setup

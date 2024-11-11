@@ -12,6 +12,7 @@
   };
   config = lib.mkIf config.hostConfig.feature.gui {
     fonts.fontconfig.enable = true;
+
     fonts.nerdfonts = [
       "FiraCode"
       "FiraMono"
@@ -27,6 +28,7 @@
       "Terminus"
       "UbuntuMono"
     ];
+
     home.packages = with pkgs; [
       corefonts
       font-awesome
