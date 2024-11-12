@@ -215,17 +215,16 @@ in
       };
 
       "40-br0" = let
-        inherit (config.inventory.interfaces.valak.home) ipWithPrefix gateway dns;
+        inherit (config.inventory.ipAllocation.valak.home.primary) addressWithPrefix;
+        inherit (config.inventory.networks.home) gateway dns;
       in {
         matchConfig.Name = "br0";
 
-        # config.inventory.interfaces.valak.home.ipWithMask
-        address = [ ipWithPrefix ];
+        address = [ addressWithPrefix ];
         routes = [
-          # config.inventory.interfaces.valak.home.gateway
           { routeConfig.Gateway = gateway; }
         ];
-        # config.inventory.interfaces.valak.home.dns
+
         dns = dns;
         bridgeConfig = { };
         linkConfig = {
