@@ -213,14 +213,20 @@ in
         networkConfig.Bridge = "br0";
         linkConfig.RequiredForOnline = "enslaved";
       };
-      "40-br0" = {
+
+      "40-br0" = let
+        inherit (config.inventory.interfaces.valak.home) ipWithPrefix gateway dns;
+      in {
         matchConfig.Name = "br0";
 
-        address = [ "192.168.2.26/24" ];
+        # config.inventory.interfaces.valak.home.ipWithMask
+        address = [ ipWithPrefix ];
         routes = [
-          { routeConfig.Gateway = "192.168.2.1"; }
+          # config.inventory.interfaces.valak.home.gateway
+          { routeConfig.Gateway = gateway; }
         ];
-        dns = [ "192.168.2.46" "192.168.2.53" ];
+        # config.inventory.interfaces.valak.home.dns
+        dns = dns;
         bridgeConfig = { };
         linkConfig = {
           # or "routable" with IP addresses configured
