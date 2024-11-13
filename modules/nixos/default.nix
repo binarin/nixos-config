@@ -15,6 +15,7 @@ in
     self.nixosModules.lxc
     self.nixosModules.fonts
     self.nixosModules.sops
+    self.nixosModules.standard-linux-tools
     self.nixosModules.flake-packages
     inputs.arion.nixosModules.arion
   ];

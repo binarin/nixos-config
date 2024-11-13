@@ -3,7 +3,6 @@
 let
 in {
   imports = [
-    ../packages/standard-linux-tools.nix
     ../users/binarin.nix
   ];
 

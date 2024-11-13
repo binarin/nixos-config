@@ -1,36 +1,25 @@
-{ pkgs, config, lib, ... }:
-let
-  cfg = config.standard-linux-tools;
-in
+{ flake, pkgs, config, lib, ... }:
 {
   imports = [
-    ./tmux.nix
-    ../packages/perl-packages.nix
+    flake.inputs.self.nixosModules.perl-packages
   ];
-  options = {
-    standard-linux-tools = {
-      gitPackage = lib.mkOption {
-        type = lib.types.package;
-        default = pkgs.gitAndTools.gitFull;
-      };
-    };
-  };
   config = {
     environment.systemPackages = with pkgs; [
-      ov
       bat
+
       bind # for dig
       binutils
       bridge-utils
       broot
-      cfg.gitPackage
       cryptsetup
+      curl
       darcs
       dpkg
       elinks
       file
       fzf
       gdb
+      git
       gitAndTools.diff-so-fancy
       gnum4
       gnumake
@@ -50,6 +39,7 @@ in
       nix-output-monitor
       nmap
       openssl
+      ov
       p7zip
       parallel
       pciutils
@@ -65,7 +55,6 @@ in
       unzip
       usbutils
       wget
-      curl
       which
       whois
       wol
