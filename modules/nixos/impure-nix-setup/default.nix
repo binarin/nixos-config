@@ -11,6 +11,10 @@ in
 
   environment.variables.NIXPKGS_CONFIG = "/etc/nix/nixpkgs-config.nix";
 
+  environment.systemPackages = [
+    pkgs.flake-all-sources-keeper
+  ];
+
   nix.nixPath = [
     "nixpkgs=/etc/nix/inputs/nixpkgs"
     "nixpkgs-overlays=/etc/nix/overlays"

@@ -6,6 +6,7 @@
       packages = with pkgs; [
         just
         nixd
+        flake-all-sources-keeper
       ];
     };
   };
