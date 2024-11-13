@@ -9,7 +9,10 @@ in
 
   imports = [
     self.nixosModules.default
-    self.nixosModules.emacs
     ./configuration.nix
+  ];
+
+  hostConfig.features = [
+    "gui"
   ];
 }
