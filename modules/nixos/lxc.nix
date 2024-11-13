@@ -29,7 +29,8 @@ in
 
       services.getty.autologinUser = "root";
     })
-    (lib.mkIf (config.hostConfig.feature.lxc) {
+    # proxmox-lxc.nix enables itself by default, let's override
+    (lib.mkIf (!config.hostConfig.feature.lxc) {
       proxmoxLXC.enable = lib.mkDefault false;
     })
   ];
