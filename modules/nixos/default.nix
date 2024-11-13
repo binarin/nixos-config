@@ -17,6 +17,7 @@ in
     self.nixosModules.sops
     self.nixosModules.standard-linux-tools
     self.nixosModules.flake-packages
+    self.nixosModules.keep-nix-build-sources
     inputs.arion.nixosModules.arion
   ];
 

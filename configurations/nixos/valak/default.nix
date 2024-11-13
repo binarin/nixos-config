@@ -13,5 +13,6 @@
     "hyprland"
     "lnxlink"
     "bleeding"
+    "nix-builder"
   ];
 }

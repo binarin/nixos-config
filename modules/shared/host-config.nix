@@ -14,6 +14,7 @@ let
     wayland = [ "gui" ];
     lxc = [ "server" ];
     server = [ ];
+    nix-builder = [ ];
   };
 
   enableFeatureWhen =
