@@ -10,22 +10,19 @@ in
     nixpkgs.overlays = lib.mkIf (isNixOSorDarwin || isStandaloneHomeManager) [
       (final: prev:
         let
-          mkMaker = { builder, builderName }: fileName:
+          mkMaker = builder: fileName:
             let
               bn = builtins.baseNameOf fileName;
             in
             if fileName != bn
             then throw "There should be no directory parts in flakeFile name - '${fileName}'"
-            else
-              builder {
-                name = "${builderName}-${bn}";
-                text = builtins.readFile "${self}/files/${bn}";
-              };
+            else builder "${bn}" (builtins.readFile "${self}/files/${bn}");
         in
         {
-          flakeFile = mkMaker { builder = final.writeTextFile; builderName = "flake-file"; };
-          flakeScript = mkMaker { builder = final.writeShellScript; builderName = "flake-script"; };
-          flakeScriptBin = mkMaker { builder = final.writeShellScriptBin; builderName = "flake-script-bin"; };
+          flakeReadFile = mkMaker (name: content: content);
+          flakeFile = mkMaker final.writeText;
+          flakeScript = mkMaker final.writeScript;
+          flakeScriptBin = mkMaker final.writeScriptBin;
         })
     ];
   };

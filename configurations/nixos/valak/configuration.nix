@@ -295,26 +295,7 @@ in
     # syncoid works better with those
     lzop
     mbuffer
-
-    (pkgs.writers.writeBashBin "brightnessctl-all"
-      {
-        makeWrapperArgs = [
-          "--prefix"
-          "PATH"
-          ":"
-          (lib.makeBinPath (with pkgs; [ brightnessctl coreutils ]))
-        ];
-      }
-      ''
-        mapfile -t all < <(brightnessctl -l -c backlight -m | cut -d , -f1)
-        exit_code=0
-        for dev in ''${all[@]} ; do
-          if ! brightnessctl -d $dev "$@"; then
-            exit_code=$?
-          fi
-        done
-        exit $exit_code
-      '')
+    brightnessctl-all
   ];
 
 

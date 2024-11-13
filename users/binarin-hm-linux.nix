@@ -108,6 +108,7 @@ in
 
     home.packages = with pkgs; [
       # ryujinx
+      sshmenu
       (bleeding.flameshot.override { enableWlrSupport = true; })
       bibata-cursors
       steam-run
@@ -435,7 +436,7 @@ in
           {
             timeout = 150; # 2.5min.
             on-timeout = "brightnessctl-all -s set 10"; # set monitor backlight to minimum, avoid 0 on OLED monitor.
-            on-resume = "brightnessctl-all -r"; # monitor backlight restore.
+            on-resume = "sleep 5; brightnessctl-all -r"; # monitor backlight restore.
           }
 
           {
