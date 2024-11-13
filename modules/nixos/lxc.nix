@@ -6,6 +6,7 @@ in
 {
   imports = [
     "${modulesPath}/virtualisation/proxmox-lxc.nix"
+    inputs.nixos-generators.nixosModules.all-formats
   ];
 
   config = lib.mkIf (config.hostConfig.feature.lxc) {

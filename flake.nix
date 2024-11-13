@@ -25,6 +25,9 @@
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
 
+    nixos-generators.url = github:nix-community/nixos-generators/1.8.0;
+    nixos-generators.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
     caddy-cloudflare.url = github:binarin/caddy-with-plugins;
     caddy-cloudflare.inputs.nixpkgs.follows = "nixpkgs"; #  golang < 1.23 - see https://github.com/nix-community/gomod2nix/issues/117
 
