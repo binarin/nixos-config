@@ -19,6 +19,9 @@ in
 
   config = {
     networking.hostName = config.inventoryHostName;
+    networking.hostId = config.hostConfig.hostId;
+    system.switch.enableNg = true;
+    system.switch.enable = lib.mkForce false;
 
     nix = {
       extraOptions = ''

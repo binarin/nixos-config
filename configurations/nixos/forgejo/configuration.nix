@@ -25,6 +25,8 @@ in
     }
   ];
 
+  hostConfig.feature.bleeding = lib.mkForce true;
+
   sops.secrets.tailscale-auth = { };
   services.tailscale = {
     enable = true;

@@ -1,4 +1,4 @@
-{ flake, lib, config, osConfig ? null, ... }:
+{ flake, lib, config, options, osConfig ? null, ... }:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -38,84 +38,11 @@ let
 
   allFeatures = builtins.attrNames featureDeps;
 
-  templates = rec {
-    networkPrefix = {
-      _type = "leaf";
-      type = lib.types.ints.between 0 32;
-    };
+  host-ids = import "${self}/inventory/host-id.nix";
 
-    nonEmptyStr = {
-      _type = "leaf";
-      type = lib.types.nonEmptyStr;
-    };
-
-    listOf = type: {
-      _type = "leaf";
-      default = [ ];
-      type = lib.types.listOf (leafType type);
-    };
-
-    nullOr = type: {
-      _type = "leaf";
-      default = null;
-      type = lib.types.nullOr (leafType type);
-    };
-
-    feature = {
-      _type = "leaf";
-      default = false;
-      type = lib.types.bool;
-    };
-
-    leafType = type:
-      if type ? _type && type._type == "leaf"
-      then type.type
-      else type;
-
-    mkOpt = path: leaf:
-      let
-        description = "Option ${lib.concatStringsSep "." path}";
-        type = leafType leaf;
-        defaultAttrs =
-          if leaf ? _type && leaf._type == "leaf" && leaf ? default
-          then { default = leaf.default; }
-          else { };
-      in
-      lib.mkOption ({
-        inherit type description;
-      } // defaultAttrs);
-
-    stopAtTypes = val: lib.isAttrs val && !(val ? _type);
-
-    mkOptions = template:
-      lib.mapAttrsRecursiveCond stopAtTypes mkOpt template;
-
-    mkSubmodule = template:
-      lib.types.submodule {
-        options = mkOptions template;
-      };
-  };
-
-  networkSubmodule = with templates; mkSubmodule {
-    prefix = networkPrefix;
-    network = nonEmptyStr;
-    dns = listOf nonEmptyStr;
-    gateway = nullOr nonEmptyStr;
-    domain = nullOr nonEmptyStr;
-  };
-
-  interfaceSubmodule = with templates; mkSubmodule {
-    network = networkSubmodule;
-    address = nonEmptyStr;
-    mac = nullOr nonEmptyStr;
-  };
 in
 {
   options = {
-    inventoryHostName = lib.mkOption {
-      type = lib.types.str;
-    };
-
     hostConfig = {
       managedUsers = lib.mkOption {
         type = with lib.types; listOf nonEmptyStr;
@@ -136,13 +63,31 @@ in
         }
       );
 
-      ipam.interfaces = lib.mkOption {
-        type = lib.types.attrsOf interfaceSubmodule;
+      hostId = lib.mkOption {
+        type = lib.types.nonEmptyStr;
+        readOnly = true;
       };
+
+      deployHostName = lib.mkOption {
+        type = lib.types.nonEmptyStr;
+      };
+
+      validDeployTargets = lib.mkOption {
+        type = lib.types.listOf lib.types.nonEmptyStr;
+      };
+
+      ipAllocation =
+        if options.inventory.ipAllocation ? "${config.inventoryHostName}"
+        then options.inventory.ipAllocation."${config.inventoryHostName}"
+        else null;
     };
   };
+
   config = {
-    hostConfig.ipam.interfaces = self.lib.hostConfig.ipamInterfaces config.inventoryHostName;
     hostConfig.feature = lib.genAttrs allFeatures (feat: lib.mkDefault (featureEnabled feat));
+    hostConfig.hostId = host-ids."${config.inventoryHostName}";
+    hostConfig.validDeployTargets = [
+      config.hostConfig.deployHostName
+    ];
   };
 }

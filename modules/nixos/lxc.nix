@@ -2,7 +2,6 @@
 let
   inherit (flake) inputs;
   inherit (inputs) self;
-  inherit (config.hostOptions.ipamConfig) interfaces;
 in
 {
   imports = [
@@ -15,12 +14,13 @@ in
   networking.useNetworkd = true;
   networking.useHostResolvConf = false;
   networking.useDHCP = false;
+
   systemd.network.networks."40-eth0" = {
     matchConfig.Name = "eth0";
-    dns = interfaces.eth0.network.dns;
-    address = [ "${interfaces.eth0.address}/${toString interfaces.eth0.network.prefix}" ];
+    dns = config.inventory.networks.home.dns;
+    address = [ config.hostConfig.ipAllocation.home.primary.addressWithPrefix ];
     routes = [
-      { routeConfig.Gateway = interfaces.eth0.network.gateway; }
+      { routeConfig.Gateway = config.inventory.networks.home.gateway; }
     ];
   };
 

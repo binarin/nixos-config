@@ -1,4 +1,4 @@
-{ flake, ... }:
+{ flake, config, ... }:
 {
   imports = [
     flake.inputs.self.nixosModules.default
@@ -8,7 +8,6 @@
   inventoryHostName = "valak";
 
   hostConfig.managedUsers = [ "binarin" ];
-
   hostConfig.features = [
     "cad"
     "hyprland"

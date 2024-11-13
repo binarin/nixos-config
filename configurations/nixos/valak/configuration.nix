@@ -181,8 +181,6 @@ in
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostId = "55f9cd65";
-
   networking.useDHCP = false;
 
   systemd.network = {
@@ -214,24 +212,26 @@ in
         linkConfig.RequiredForOnline = "enslaved";
       };
 
-      "40-br0" = let
-        inherit (config.inventory.ipAllocation.valak.home.primary) addressWithPrefix;
-        inherit (config.inventory.networks.home) gateway dns;
-      in {
-        matchConfig.Name = "br0";
+      "40-br0" =
+        let
+          inherit (config.inventory.ipAllocation.valak.home.primary) addressWithPrefix;
+          inherit (config.inventory.networks.home) gateway dns;
+        in
+        {
+          matchConfig.Name = "br0";
 
-        address = [ addressWithPrefix ];
-        routes = [
-          { routeConfig.Gateway = gateway; }
-        ];
+          address = [ addressWithPrefix ];
+          routes = [
+            { routeConfig.Gateway = gateway; }
+          ];
 
-        dns = dns;
-        bridgeConfig = { };
-        linkConfig = {
-          # or "routable" with IP addresses configured
-          RequiredForOnline = "routable";
+          dns = dns;
+          bridgeConfig = { };
+          linkConfig = {
+            # or "routable" with IP addresses configured
+            RequiredForOnline = "routable";
+          };
         };
-      };
       "40-smb-sketchup" = {
         matchConfig.Name = "smb-sketchup";
         address = [ "172.16.242.2/24" ];

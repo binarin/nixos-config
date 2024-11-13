@@ -35,7 +35,3 @@ run:
 [group('Main')]
 hm:
   nix run "$(pwd)#nixosConfigurations.valak.config.home-manager.users.binarin.home.activationPackage" -v --keep-going --show-trace -j8
-
-[group('Dhall')]
-ipam:
-  dhall-to-json <  ./ipam.dhall > ./ipam.json
