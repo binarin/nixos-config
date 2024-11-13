@@ -1,37 +1,13 @@
 # -*- nix -*-
-{ config, lib, pkgs, ... }:
-
-{
+{ flake, config, lib, pkgs, ... }:
+let
+  inherit (flake) inputs;
+  inherit (inputs) self;
+in {
   networking.hostName = "monitor";
 
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
-
-  imports = [
-    ./profile/server.nix
-  ];
-
-  # I want to disable mDNS and set nameservers, and it's not possible to override .network file provided by Proxmox
-  proxmoxLXC.manageNetwork = true;
-  networking.useNetworkd = true;
-  networking.useHostResolvConf = false;
-  networking.useDHCP = false;
-  systemd.network.networks."40-eth0" = {
-    matchConfig.Name = "eth0";
-    dns = [ "192.168.2.46" "192.168.2.53" ];
-    address = [ "192.168.2.2/24" ];
-    routes = [
-      { routeConfig.Gateway = "192.168.2.1"; }
-    ];
-    # networkConfig = {
-    #   MulticastDNS = false;
-    # };
-  };
-
-  services.getty.autologinUser = "root";
-
-  sops.defaultSopsFile = ./secrets/monitor/secrets.yaml;
-  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
   sops.secrets.tailscale-auth = {};
 
@@ -70,6 +46,10 @@
   sops.secrets."grafana/secret-key" = {
     owner = config.users.users.grafana.name;
   };
+
+  nixpkgs.overlays = [
+    self.overlays.grafana-victoriametrics-datasource
+  ];
 
   services.grafana = {
     enable = true;

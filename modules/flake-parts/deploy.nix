@@ -13,6 +13,9 @@ let
     ];
   };
 
+  # NOTE: can scrape nixosConfigurations, but computation is a bit too heavy
+  deployableSystems = [ "forgejo" "monitor" ];
+
   deployNixosSystem = hostName:
     let
       deployHostName = self.nixosConfigurations."${hostName}".config.hostConfig.deployHostName;
@@ -27,7 +30,7 @@ let
 in
 {
   flake = {
-    deploy.nodes = lib.genAttrs [ "forgejo" ] deployNixosSystem;
+    deploy.nodes = lib.genAttrs deployableSystems deployNixosSystem;
 
     # This is highly advised, and will prevent many possible mistakes
     checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) inputs.deploy-rs.lib;

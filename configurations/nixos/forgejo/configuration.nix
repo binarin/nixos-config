@@ -8,8 +8,6 @@ in
 {
   imports = [
     self.nixosModules.server
-    self.nixosModules.lxc
-    self.nixosModules.bleeding
 
     {
       # use forgejo module from nixpkgs-master (and the compatible version of forgejo itself)

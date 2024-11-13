@@ -11,6 +11,7 @@ in
   imports = [
     self.sharedModules.default
     self.nixosModules.bleeding
+    self.nixosModules.lxc
     self.nixosModules.fonts
     self.nixosModules.sops
   ];

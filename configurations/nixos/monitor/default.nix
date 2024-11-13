@@ -12,7 +12,7 @@ in
     ./configuration.nix
   ];
 
-  inventoryHostName = "forgejo";
+  inventoryHostName = "monitor";
   hostConfig.deployHostName = config.hostConfig.ipAllocation.home.primary.address;
   hostConfig.features = [
     "lxc"

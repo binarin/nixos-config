@@ -12,6 +12,8 @@ let
     bleeding = [ ];
     fast-rebuild = [ ];
     wayland = [ "gui" ];
+    lxc = [ "server" ];
+    server = [ ];
   };
 
   enableFeatureWhen =
@@ -69,7 +71,7 @@ in
       };
 
       deployHostName = lib.mkOption {
-        type = lib.types.nonEmptyStr;
+        type = lib.types.nullOr lib.types.nonEmptyStr;
       };
 
       validDeployTargets = lib.mkOption {
