@@ -710,6 +710,12 @@
        :ensure t
        :mode "\\.dhall\\'")
    #+end_src
+** Rust
+   #+begin_src emacs-lisp :tangle yes
+     (use-package rust-mode
+       :ensure t
+       :mode "\\.rs\\'")
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
