@@ -3,18 +3,19 @@
 let
   inherit (flake) inputs;
   inherit (inputs) self;
-in {
+in
+{
   networking.hostName = "monitor";
 
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
 
-  sops.secrets.tailscale-auth = {};
+  sops.secrets.tailscale-auth = { };
 
   services.tailscale = {
     enable = true;
     authKeyFile = "/run/secrets/tailscale-auth";
-    extraUpFlags = ["--hostname" "${config.networking.hostName}"];
+    extraUpFlags = [ "--hostname" "${config.networking.hostName}" ];
   };
 
   environment.systemPackages = with pkgs; [
@@ -47,13 +48,9 @@ in {
     owner = config.users.users.grafana.name;
   };
 
-  nixpkgs.overlays = [
-    self.overlays.grafana-victoriametrics-datasource
-  ];
-
   services.grafana = {
     enable = true;
-    declarativePlugins = [pkgs.grafana-victoriametrics-datasource];
+    declarativePlugins = [ pkgs.grafana-victoriametrics-datasource ];
     settings = {
       plugins = {
         allow_loading_unsigned_plugins = "victoriametrics-datasource";

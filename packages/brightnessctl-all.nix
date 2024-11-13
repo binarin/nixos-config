@@ -1,4 +1,4 @@
-{writeShellApplication, brightnessctl, coreutils, ...}:
+{ writeShellApplication, brightnessctl, coreutils, ... }:
 writeShellApplication {
   name = "brightnessctl-all";
   runtimeInputs = [ brightnessctl coreutils ];

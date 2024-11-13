@@ -15,7 +15,8 @@ let
     "directory mask" = "2775";
     "force directory mode" = "2775";
   };
-in {
+in
+{
   services.avahi = {
     enable = true;
     allowInterfaces = [ "eth0" ];
@@ -50,7 +51,7 @@ in {
     ];
   };
 
-  sops.secrets.tailscale-auth = {};
+  sops.secrets.tailscale-auth = { };
   services.tailscale = {
     enable = true;
     authKeyFile = config.sops.secrets.tailscale-auth.path;
@@ -108,7 +109,7 @@ in {
     };
   };
 
-  systemd.services.navidrome.serviceConfig.BindReadOnlyPaths = ["/run/systemd/resolve/stub-resolv.conf"];
+  systemd.services.navidrome.serviceConfig.BindReadOnlyPaths = [ "/run/systemd/resolve/stub-resolv.conf" ];
 
   services.samba = {
     enable = true;
@@ -150,11 +151,11 @@ in {
     virtualHosts = {
       "navidrome.binarin.info" = {
         extraConfig = ''
-            reverse_proxy http://127.0.0.1:4533
-            tls {
-                dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-                resolvers 1.1.1.1
-            }
+          reverse_proxy http://127.0.0.1:4533
+          tls {
+              dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
+              resolvers 1.1.1.1
+          }
         '';
       };
     };
@@ -205,9 +206,9 @@ in {
 
   virtualisation.arion.backend = "docker";
 
-  sops.secrets."tubearchivist/elastic-password" = {};
-  sops.secrets."tubearchivist/initial-username" = {};
-  sops.secrets."tubearchivist/initial-password" = {};
+  sops.secrets."tubearchivist/elastic-password" = { };
+  sops.secrets."tubearchivist/initial-username" = { };
+  sops.secrets."tubearchivist/initial-password" = { };
 
   sops.templates."tubearchivist-elastic-env".content = ''
     ELASTIC_PASSWORD="${config.sops.placeholder."tubearchivist/elastic-password"}"
@@ -232,19 +233,19 @@ in {
               "/var/lib/tubearchivist/cache:/cache"
             ];
             environment = {
-              ES_URL = "http://archivist-es:9200";     # needs protocol e.g. http and port
-              REDIS_HOST = "archivist-redis";          # don't add protocol
+              ES_URL = "http://archivist-es:9200"; # needs protocol e.g. http and port
+              REDIS_HOST = "archivist-redis"; # don't add protocol
               HOST_UID = "1000";
               HOST_GID = "1000";
               TA_HOST = "ta.binarin.info";
-              TZ = "Europe/Amsterdam";                 # set your time zone
+              TZ = "Europe/Amsterdam"; # set your time zone
             };
             env_file = [
               config.sops.templates.tubearchivist-elastic-env.path
               config.sops.templates.tubearchivist-env.path
             ];
             healthcheck = {
-              test = ["CMD" "curl" "-f" "http://localhost:8000/health"];
+              test = [ "CMD" "curl" "-f" "http://localhost:8000/health" ];
               interval = "2m";
               timeout = "10s";
               retries = 3;
@@ -296,11 +297,11 @@ in {
             environment = {
               REDISEARCH_ARGS = "MAXSEARCHRESULTS 30000";
             };
-            expose = ["6379"];
+            expose = [ "6379" ];
             volumes = [
               "/var/lib/tubearchivist/redis:/data"
             ];
-            depends_on = ["archivist-es"];
+            depends_on = [ "archivist-es" ];
           };
         };
       };
@@ -366,7 +367,7 @@ in {
     "force group" = "jellyfin";
   };
 
-  users.groups.annex = {};
+  users.groups.annex = { };
   users.users.annex = {
     isNormalUser = true;
     group = "annex";

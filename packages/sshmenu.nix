@@ -1,9 +1,11 @@
-{lib, flakeReadFile, writeTextFile, zsh, rxvt-unicode, xxd, ...}:
+{ lib, flakeReadFile, writeTextFile, zsh, rxvt-unicode, xxd, ... }:
 let
   runtimeInputs = [
-    rxvt-unicode xxd
+    rxvt-unicode
+    xxd
   ];
-in writeTextFile {
+in
+writeTextFile {
   name = "sshmenu";
   destination = "/bin/sshmenu";
   executable = true;
