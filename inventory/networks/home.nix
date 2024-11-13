@@ -12,5 +12,6 @@
     "192.168.2.3" = "forgejo";
     "192.168.2.26" = "valak"; # [ "valak" "primary" ]
     # "192.168.2.7" = [ "valak" "some-tag" "another-tag" ];
+    "192.168.2.79" = "media";
   };
 }

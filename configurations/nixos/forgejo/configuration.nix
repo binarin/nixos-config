@@ -36,10 +36,6 @@ in
     emacs-nox
   ];
 
-  users.users."root".openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
-  ];
-
   nix.gc = {
     automatic = true;
     dates = "weekly";

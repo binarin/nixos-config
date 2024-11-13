@@ -4,4 +4,5 @@
   forgejo = "9914ebd7";
   furfur = "a03d1726";
   monitor = "08779236";
+  media = "87bfa995";
 }

@@ -1,4 +1,4 @@
-{ flake, config, ... }:
+{ flake, config, lib, ... }:
 
 let
   inherit (flake) inputs;
@@ -27,6 +27,9 @@ in
     networking.firewall.enable = true;
 
     environment.enableAllTerminfo = true;
-  };
 
+    users.users."root".openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
+    ];
+  };
 }

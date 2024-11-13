@@ -11,9 +11,11 @@ in
   imports = [
     self.sharedModules.default
     self.nixosModules.bleeding
+    self.nixosModules.server
     self.nixosModules.lxc
     self.nixosModules.fonts
     self.nixosModules.sops
+    inputs.arion.nixosModules.arion
   ];
 
   options = { };

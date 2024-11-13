@@ -1,27 +1,21 @@
 # -*- nix -*-
-{ hostConfig, config, lib, pkgs, ... }:
-
-
-let smbShareStandartOptions = {
-  browseable = "yes";
-  "read only" = "yes";
-  "guest ok" = "no";
-  "write list" = "binarin";
-  "force user" = "binarin";
-  "force group" = "binarin";
-  "create mask" = "0664";
-  "force create mode" = "0664";
-  "directory mask" = "2775";
-  "force directory mode" = "2775";
-};
+{ flake, hostConfig, config, lib, pkgs, ... }:
+let
+  inherit (flake) inputs;
+  inherit (inputs) self;
+  smbShareStandartOptions = {
+    browseable = "yes";
+    "read only" = "yes";
+    "guest ok" = "no";
+    "write list" = "binarin";
+    "force user" = "binarin";
+    "force group" = "binarin";
+    "create mask" = "0664";
+    "force create mode" = "0664";
+    "directory mask" = "2775";
+    "force directory mode" = "2775";
+  };
 in {
-  services.openssh.enable = true;
-  services.openssh.settings.PermitRootLogin = "yes";
-
-  imports = [
-    ./profile/server.nix
-  ];
-
   services.avahi = {
     enable = true;
     allowInterfaces = [ "eth0" ];
@@ -42,28 +36,9 @@ in {
     };
   };
 
-  # I want to disable mDNS and set nameservers, and it's not possible to override .network file provided by Proxmox
-  proxmoxLXC.manageNetwork = true;
-  networking.useNetworkd = true;
-  networking.useHostResolvConf = false;
-  networking.useDHCP = false;
-  systemd.network.networks."40-eth0" = {
-    matchConfig.Name = "eth0";
-    dns = [ "192.168.2.46" "192.168.2.53" ];
-    address = [ "${hostConfig.ip}/24" ];
-    routes = [
-      { routeConfig.Gateway = "192.168.2.1"; }
-    ];
-    networkConfig = {
-      # Description = "My Network";
-      MulticastDNS = false;
-    };
-    # networkConfig = {
-    #   MulticastDNS = "false";
-    # };
-  };
+  nixpkgs.overlays = [ flake.inputs.self.overlays.caddy-cloudflare ];
 
-  services.getty.autologinUser = "root";
+  systemd.network.networks."40-lxc".networkConfig.MulticastDNS = lib.mkForce false;
 
   hardware.opengl = {
     enable = true;
@@ -75,32 +50,24 @@ in {
     ];
   };
 
-  sops.defaultSopsFile = ./secrets/fileserver/secrets.yaml;
-  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
   sops.secrets.tailscale-auth = {};
+  services.tailscale = {
+    enable = true;
+    authKeyFile = config.sops.secrets.tailscale-auth.path;
+  };
+
   sops.secrets."samba-passwords/binarin" = {
     restartUnits = [ "update-samba-passwords.service" ];
   };
 
-  services.tailscale = {
-    enable = true;
-    authKeyFile = "/run/secrets/tailscale-auth";
-    extraUpFlags = ["--hostname" "fileserver"];
-  };
 
   environment.systemPackages = with pkgs; [
-    vim
     docker-compose
     libva-utils
-    emacs-nox
   ];
 
   virtualisation.docker.enable = true;
   virtualisation.docker.autoPrune.enable = true;
-
-  users.users."root".openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
-  ];
 
   users.mutableUsers = false;
   users.extraGroups.binarin.gid = 1000;
@@ -170,7 +137,7 @@ in {
   };
 
   sops.secrets.cloudflare-api-key = {
-    sopsFile = ./secrets/webservers.yaml;
+    sopsFile = "${self}/secrets/webservers.yaml";
     restartUnits = [ "caddy.service" ];
   };
 

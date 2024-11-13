@@ -14,7 +14,7 @@ let
   };
 
   # NOTE: can scrape nixosConfigurations, but computation is a bit too heavy
-  deployableSystems = [ "forgejo" "monitor" ];
+  deployableSystems = [ "forgejo" "monitor" "media" ];
 
   deployNixosSystem = hostName:
     let

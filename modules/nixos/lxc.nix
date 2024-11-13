@@ -16,7 +16,7 @@ in
     networking.useHostResolvConf = false;
     networking.useDHCP = false;
 
-    systemd.network.networks."40-eth0" = {
+    systemd.network.networks."40-lxc" = {
       matchConfig.Name = "eth0";
       dns = config.inventory.networks.home.dns;
       address = [ config.hostConfig.ipAllocation.home.primary.addressWithPrefix ];
