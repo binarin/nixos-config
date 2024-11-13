@@ -716,6 +716,12 @@
        :ensure t
        :mode "\\.rs\\'")
    #+end_src
+** Just
+   #+begin_src emacs-lisp :tangle yes
+     (use-package just-mode
+       :ensure t
+       :mode "/justfile\\'")
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
