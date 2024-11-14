@@ -546,6 +546,7 @@
        :config
        (direnv-mode)
        (advice-add 'direnv--summarise-changes :around 'binarin/cleanup_direnv--summarise-changes)
+       (add-to-list 'warning-suppress-types '(direnv))
        :custom
        ((direnv-always-show-summary t)
         (direnv-show-paths-in-summary nil)))
