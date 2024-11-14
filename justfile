@@ -32,11 +32,11 @@ dev:
 
 # Activate the configuration
 [group('Main')]
-run *FLAGS='-v':
-    sudo time nixos-rebuild switch --flake "$(pwd)#$(hostname -s)" --keep-going -j {{ jobs }} {{ nixOpts }} {{ FLAGS }}
+run:
+    sudo time nixos-rebuild switch --flake "$(pwd)#$(hostname -s)" --keep-going -j {{ jobs }} {{ nixOpts }}
 
 [group('Main')]
-build-hm host=`hostname -s` user=x"$USER" *FLAGS="-v":
+build-hm host=`hostname -s` user=x"$USER":
     nix build "$(pwd)#nixosConfigurations.{{ host }}.config.home-manager.users.{{ user }}.home.activationPackage" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'home-configuration' / host / user }}"
 
 [group('Main')]
