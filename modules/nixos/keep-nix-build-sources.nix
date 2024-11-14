@@ -21,6 +21,7 @@ let
   flake-all-sources-keeper = pkgs: pkgs.writeShellScriptBin "flake-all-sources-keeper" ''
       cat <<'EOF'
       ${lib.concatStringsSep "\n" (lib.map ({filename, source, ...}: "${filename}: ${source}") (allInputs flake))}
+      ${pkgs.hjson} # hello, home-manager broot module
       EOF
   '';
 in {
@@ -39,4 +40,3 @@ in {
     })
   ];
 }
-x
