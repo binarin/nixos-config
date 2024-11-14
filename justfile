@@ -46,3 +46,13 @@ build-nixos configuration=`hostname -s`:
 [group('Main')]
 deploy target profile="system":
     deploy "$(pwd)#{{ target }}.{{ profile }}" -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
+
+[group('Main')]
+all: check
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mapfile -t all < <(nix flake show --json | jq  -r '.nixosConfigurations | keys | join("\n")')
+    for cf in "${all[@]}"; do
+      echo "Building $cf"
+      just nixOpts="" build-nixos "$cf"
+    done
