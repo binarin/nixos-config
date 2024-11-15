@@ -602,12 +602,34 @@
            (-map #'expand-file-name '("~/personal-workspace/nixos-config/files"
                                       "~/personal-workspace/nixos-config/ansible")))
    #+end_src
+** Uniquify buffer names
+   #+begin_src emacs-lisp :tangle yes
+     ;; Yo dawg! I heard you like advices so I added an advice around your advice
+
+     (defun binarin/augment-buffer-name (basename projectile-root)
+       (s-concat basename "⦗" (projectile-project-name projectile-root) "⦘"))
+
+
+     (defun binarin/uniquify--create-file-buffer-advice-advice (orig-fun buf filename basename)
+       (awhen (projectile-project-root (file-name-directory filename))
+         (setf basename (binarin/augment-buffer-name basename it)))
+       (funcall orig-fun buf filename basename))
+
+     (advice-add 'uniquify--create-file-buffer-advice :around 'binarin/uniquify--create-file-buffer-advice-advice)
+
+     (defun binarin/uniquify--rename-buffer-advice-advice (orig-fun newname &optional unique)
+       (awhen (projectile-project-root)
+         (setf newname (binarin/augment-buffer-name newname it)))
+       (funcall orig-fun newname unique))
+
+     (advice-add 'uniquify--rename-buffer-advice :around 'binarin/uniquify--rename-buffer-advice-advice)
+   #+end_src
 * Programming
 ** Projects
    #+BEGIN_SRC emacs-lisp :tangle yes
      (use-package projectile
        :ensure t
-       :commands (projectile-make-relative-to-root projectile-project-root)
+       :commands (projectile-make-relative-to-root projectile-project-root projectile-project-name)
        :bind-keymap
        ("C-c p" . projectile-command-map)
        :config
