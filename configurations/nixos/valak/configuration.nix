@@ -288,8 +288,6 @@ in
     "f /dev/shm/looking-glass 0660 binarin qemu-libvirtd -"
   ];
 
-  system.stateVersion = "20.09";
-
   environment.systemPackages = with pkgs; [
     # syncoid works better with those
     lzop
