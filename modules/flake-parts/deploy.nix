@@ -14,7 +14,7 @@ let
   };
 
   # NOTE: can scrape nixosConfigurations, but computation is a bit too heavy
-  deployableSystems = [ "forgejo" "monitor" "media" ];
+  deployableSystems = [ "forgejo" "monitor" "media" "nix-cache" ];
 
   deployNixosSystem = hostName:
     let

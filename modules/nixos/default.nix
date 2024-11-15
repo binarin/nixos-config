@@ -15,6 +15,7 @@ in
     self.nixosModules.lxc
     self.nixosModules.fonts
     self.nixosModules.sops
+    self.nixosModules.use-nix-cache
     self.nixosModules.standard-linux-tools
     self.nixosModules.flake-packages
     self.nixosModules.keep-nix-build-sources
