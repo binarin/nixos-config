@@ -116,6 +116,12 @@
      (use-package all-the-icons
        :ensure t
        :if (display-graphic-p))
+
+     ;; This is needed explicitly for other nerd-icons-based packages to work better (otherwise you can see a problem e.g. with a marked file in a dired buffer)
+     (use-package nerd-icons
+       :ensure t
+       :config
+       (setq nerd-icons-font-family "IosevkaTerm Nerd Font"))
    #+end_src
 
    #+BEGIN_SRC emacs-lisp :tangle yes
@@ -238,6 +244,12 @@
      (use-package marginalia
        :ensure t)
      (marginalia-mode)
+     (use-package nerd-icons-completion
+       :ensure t
+       :after marginalia
+       :config
+       (nerd-icons-completion-mode)
+       (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
      ;; search by first letters of words in any order
      (use-package orderless
@@ -347,15 +359,21 @@
        :hook
        (embark-collect-mode . consult-preview-at-point-mode))
 
+     (use-package nerd-icons-corfu
+       :ensure t
+       :autoload (nerd-icons-corfu-formatter))
+
      ;; completion in pop-up window
      (use-package corfu
        :ensure t
        :init
        (global-corfu-mode)
+       (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
        ;; Remap with Power Toys for msrdc program
        (when (eq binarin/system-type 'wsl)
          (general-define-key :keymaps 'corfu-map
                              "C-M-S-SPC" 'corfu-insert-separator)))
+
    #+end_src
 
 ** External shell
@@ -367,6 +385,11 @@
    #+BEGIN_SRC emacs-lisp :tangle yes
      (add-hook 'dired-mode-hook 'dired-hide-details-mode)
      (setq dired-dwim-target t)
+
+     (use-package nerd-icons-dired
+       :ensure t
+       :hook
+       (dired-mode . nerd-icons-dired-mode))
    #+END_SRC
 
 ** Magit
