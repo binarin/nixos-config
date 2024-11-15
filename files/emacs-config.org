@@ -242,8 +242,12 @@
 
      ;; showing additional docs during completion
      (use-package marginalia
-       :ensure t)
-     (marginalia-mode)
+       :ensure t
+       :bind (:map minibuffer-local-map
+                   ("M-A" . marginalia-cycle))
+       :init
+       (marginalia-mode))
+
      (use-package nerd-icons-completion
        :ensure t
        :after marginalia
