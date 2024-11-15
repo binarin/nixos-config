@@ -25,6 +25,8 @@ in
   options = { };
 
   config = {
+    system.stateVersion = "24.05";
+
     networking.hostName = config.inventoryHostName;
     networking.hostId = config.hostConfig.hostId;
     system.switch.enableNg = true;
