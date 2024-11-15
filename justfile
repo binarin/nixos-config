@@ -43,9 +43,13 @@ build-hm host=`hostname -s` user=x"$USER":
 build-nixos configuration=`hostname -s`:
     nix build "$(pwd)#nixosConfigurations.{{ configuration }}.config.system.build.toplevel" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'nixos-configuration' / configuration }}"
 
-[group('Main')]
+[group('Deploy')]
 deploy target profile="system":
     deploy "$(pwd)#{{ target }}.{{ profile }}" -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
+
+[group('Deploy')]
+lxc target:
+    nix build "$(pwd)#nixosConfigurations.{{ target }}.config.formats.proxmox-lxc" --keep-going -j {{ jobs }} {{ nixOpts }} -o "proxmox-lxc-{{ target }}.tar.xz"
 
 [group('Main')]
 all: check
@@ -54,5 +58,5 @@ all: check
     mapfile -t all < <(nix flake show --json | jq  -r '.nixosConfigurations | keys | join("\n")')
     for cf in "${all[@]}"; do
       echo "Building $cf"
-      just nixOpts="" build-nixos "$cf"
+      just nixOpts="" build-nixos "$cf" || echo "Failed"
     done
