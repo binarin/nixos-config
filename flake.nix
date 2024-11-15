@@ -1,6 +1,4 @@
 {
-  description = "A home-manager template providing useful tools & settings for Nix-based development";
-
   inputs = {
     # Principle inputs (updated by `nix run .#update`)
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
