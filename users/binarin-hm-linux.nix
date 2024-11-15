@@ -435,7 +435,7 @@ in
           {
             timeout = 150; # 2.5min.
             on-timeout = "brightnessctl-all -s set 10"; # set monitor backlight to minimum, avoid 0 on OLED monitor.
-            on-resume = "brightnessctl-all -r"; # monitor backlight restore.
+            on-resume  = "brightnessctl-all -r"; # monitor backlight restore.
           }
 
           {
@@ -446,7 +446,7 @@ in
           {
             timeout = "330"; # 5.5min
             on-timeout = "hyprctl dispatch dpms off"; # screen off when timeout has passed
-            on-resume = "hyprctl dispatch dpms on; sleep 10; brightnessctl-all -r"; # screen on when activity is detected after timeout has fired.
+            on-resume = "hyprctl dispatch dpms on"; # screen on when activity is detected after timeout has fired.
           }
         ];
       };
