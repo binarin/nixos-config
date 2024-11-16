@@ -4,6 +4,7 @@ let
   inherit (inputs) self;
   cfg = config.hostConfig;
 
+  # XXX doesn't automatically propagate through levels, do it manually for now
   featureDeps = {
     cad = [ "gui" ];
     gui = [ ];
@@ -15,6 +16,7 @@ let
     lxc = [ "server" ];
     server = [ ];
     nix-builder = [ ];
+    full-cli = [ ];
   };
 
   enableFeatureWhen =

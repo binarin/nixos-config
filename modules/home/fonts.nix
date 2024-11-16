@@ -32,7 +32,6 @@
     home.packages = with pkgs; [
       corefonts
       font-awesome
-      noto-fonts-emoji
       vistafonts
       (nerdfonts.override { fonts = config.fonts.nerdfonts; })
     ];

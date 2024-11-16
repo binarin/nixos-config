@@ -147,7 +147,7 @@ in
         misc = {
           force_default_wallpaper = 0;
           disable_hyprland_logo = true;
-          background_color = "0x00807F";
+          # background_color = "0x00807F";
         };
 
         "$terminal" = "foot";
@@ -173,18 +173,18 @@ in
 
         general = {
           border_size = 3;
-          "col.active_border" = "$col_active";
-          "col.inactive_border" = "$col_inactive";
+          # "col.active_border" = "$col_active";
+          # "col.inactive_border" = "$col_inactive";
           resize_on_border = true;
           layout = "master";
         };
 
         group = {
-          "col.border_active" = "$col_active";
-          "col.border_inactive" = "$col_inactive";
+          # "col.border_active" = "$col_active";
+          # "col.border_inactive" = "$col_inactive";
           groupbar = {
-            "col.active" = "0xff66bb66";
-            "col.inactive" = "$col_inactive";
+            # "col.active" = "0xff66bb66";
+            # "col.inactive" = "$col_inactive";
           };
         };
 
@@ -379,14 +379,6 @@ in
       Exec=${lib.getBin pkgs.plasma5Packages.kwallet}/bin/kwalletd5
     '';
 
-    home.pointerCursor = {
-      package = pkgs.bibata-cursors;
-      name = "Bibata-Modern-Amber";
-      size = 48;
-      x11.enable = true;
-      gtk.enable = true;
-    };
-
     programs.hyprlock = {
       enable = true;
       settings = {
@@ -405,18 +397,20 @@ in
           }
         ];
 
-        input-field = [
+        input-field = with config.lib.stylix.colors; [
           {
             size = "200, 50";
             position = "0, -80";
             monitor = "";
             dots_center = true;
             fade_on_empty = false;
-            font_color = "rgb(202, 211, 245)";
-            inner_color = "rgb(91, 96, 120)";
-            outer_color = "rgb(24, 25, 38)";
+            outer_color = "rgb(${base03})";
+            inner_color = "rgb(${base00})";
+            font_color = "rgb(${base05})";
+            fail_color = "rgb(${base08})";
+            check_color = "rgb(${base0A})";
             outline_thickness = 5;
-            placeholder_text = ''<span foreground="##cad3f5">Password...</span>'';
+            placeholder_text = ''<span foreground="#${withHashtag.base06}">Password...</span>'';
             shadow_passes = 2;
           }
         ];

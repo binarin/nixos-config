@@ -1,17 +1,11 @@
 { config, lib, pkgs, ... }:
 {
   config = lib.mkIf config.hostConfig.feature.wayland {
-    fonts.nerdfonts = [
-      "IosevkaTerm"
-    ];
-    home.packages = with pkgs; [
-      noto-fonts-emoji
-    ];
     programs.foot = lib.mkIf (config.hostConfig.feature.wayland) {
       enable = true;
       settings = {
         main = {
-          font = "IosevkaTerm Nerd Font:size=20, Noto Color Emoji:size=16";
+          font = with config.stylix.fonts; "${monospace.name}:size=${toString sizes.terminal}";
           locked-title = true;
           selection-target = "both";
         };

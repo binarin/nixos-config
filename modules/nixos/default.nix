@@ -19,7 +19,9 @@ in
     self.nixosModules.standard-linux-tools
     self.nixosModules.flake-packages
     self.nixosModules.keep-nix-build-sources
+    self.nixosModules.stylix
     inputs.arion.nixosModules.arion
+
   ];
 
   options = { };

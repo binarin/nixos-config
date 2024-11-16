@@ -20,6 +20,10 @@
     hyprland-contrib.inputs.nixpkgs.follows = "nixpkgs";
 
     # Software inputs
+    stylix.url = "github:binarin/stylix";
+    stylix.inputs.home-manager.follows = "home-manager";
+    stylix.inputs.nixpkgs.follows = "nixpkgs";
+
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
 
