@@ -1,10 +1,5 @@
 #+PROPERTY: header-args:emacs-lisp :lexical yes :results value pp silent
 * File header
-** Warnings
-   ~defvar~ to suppress compilation warnings about free variable assignment
-   #+begin_src emacs-lisp :tangle yes
-     (defvar native-comp-async-report-warnings-errors 'silent)
-   #+end_src
 ** Track execution time
 
    Whatever happens before this point, we don't control
@@ -17,16 +12,6 @@
        (message "Emacs initialized in %f seconds"
                 (float-time (time-subtract (current-time)
                                            binarin/before-personal-init-file-time))))
-     (add-hook 'emacs-startup-hook 'binarin/report-full-startup-time 100)
-   #+end_src
-
-** ~use-package~
-
-   ~use-package~ documentation says to wrap it into
-   ~eval-when-compile~, but it's not enough.
-
-   #+begin_src emacs-lisp :tangle yes
-     (require 'use-package)
    #+end_src
 
 ** Startup debug
@@ -57,7 +42,23 @@
              (insert (sh/current-time-microseconds) " ")))))
 
      (advice-add 'message :before 'sh/ad-timestamp-message)
+
+     (message "Kick-off")
    #+end_src
+** Warnings
+   ~defvar~ to suppress compilation warnings about free variable assignment
+   #+begin_src emacs-lisp :tangle yes
+     (defvar native-comp-async-report-warnings-errors 'silent)
+   #+end_src
+** ~use-package~
+
+   ~use-package~ documentation says to wrap it into
+   ~eval-when-compile~, but it's not enough.
+
+   #+begin_src emacs-lisp :tangle yes
+     (require 'use-package)
+   #+end_src
+
 ** Customization helpers
    #+BEGIN_SRC emacs-lisp :tangle yes
      (use-package dash :ensure t)
@@ -1271,3 +1272,9 @@
       "C-c o p" 'binarin/org-sync)
    #+end_src
 * Test space
+* Footer
+
+  Make sure that our hook is absolutely at the end.
+  #+begin_src emacs-lisp :tangle yes
+     (add-hook 'window-setup-hook 'binarin/report-full-startup-time 100)
+  #+end_src
