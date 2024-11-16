@@ -153,6 +153,12 @@
      (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
    #+END_SRC
 
+** Colorize color names
+   #+begin_src emacs-lisp :tangle yes
+     (use-package rainbow-mode
+       :ensure t
+       :commands (rainbow-mode))
+   #+end_src
 * Behaviour
 ** Startup profiling
    #+begin_src emacs-lisp :tangle yes
@@ -625,6 +631,12 @@
 
      (advice-add 'uniquify--rename-buffer-advice :around 'binarin/uniquify--rename-buffer-advice-advice)
    #+end_src
+** vterm
+   #+begin_src emacs-lisp :tangle yes
+     (use-package vterm
+       :ensure t
+       :commands (vterm))
+   #+end_src
 * Programming
 ** Projects
    #+BEGIN_SRC emacs-lisp :tangle yes
@@ -772,6 +784,18 @@
      (use-package just-mode
        :ensure t
        :mode "/justfile\\'")
+   #+end_src
+** Markdown
+   #+begin_src emacs-lisp :tangle yes
+     (use-package markdown-mode
+       :ensure t
+       :mode "\\.md\\'$")
+   #+end_src
+** Javascript
+   #+begin_src emacs-lisp :tangle yes
+     (use-package js2-mode
+       :ensure t
+       :mode "\\.js\\'$")
    #+end_src
 * Org mode
 ** Load modules
