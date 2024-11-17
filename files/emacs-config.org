@@ -568,6 +568,8 @@
      (eval-after-load "tramp"
        (general-setq tramp-login-prompt-regexp ".*\\(user\\|login\\|2FA Token\\)\\( .*\\)?: *"))
 
+     (general-setq remote-file-name-inhibit-delete-by-moving-to-trash t)
+
      (setq vc-ignore-dir-regexp
            (format "\\(%s\\)\\|\\(%s\\)"
                    vc-ignore-dir-regexp
