@@ -46,6 +46,7 @@ in
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
     home-manager.useGlobalPkgs = true;
+    home-manager.backupFileExtension = "backup";
 
     # So for small changes I can run only home-manager activation script, to reduce iteration time
     home-manager.useUserPackages = lib.mkForce false;
