@@ -20,6 +20,12 @@
     hyprland-contrib.inputs.nixpkgs.follows = "nixpkgs";
 
     # Software inputs
+    ff-ultima.url = github:soulhotel/FF-ULTIMA;
+    ff-ultima.flake = false;
+
+    firebuilder.url = github:Explosion-Scratch/firebuilder;
+    firebuilder.flake = false;
+
     stylix.url = "github:binarin/stylix";
     stylix.inputs.home-manager.follows = "home-manager";
     stylix.inputs.nixpkgs.follows = "nixpkgs";

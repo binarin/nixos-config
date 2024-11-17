@@ -1,0 +1,505 @@
+/**
+ * This code allows you to fully customize the appearance of the Thunderbird message table in both the Thread Pane and the Thread Card view.
+ * It allows you to specify the colors for unread, new, and read messages, as well as the colors for the hover, selected, and current states.
+ * Simply copy and paste the code into your userChrome.css file and adjust the color variables to suit your preferences.
+    **Note: The code is designed to work with the default Thunderbird theme. If you are using a custom theme, you may need to adjust the code accordingly.
+    **Note: The code is designed to work with Thunderbird version 128.1. If you are using a different version, you may need to adjust the code accordingly.
+    **Note: If you are unfamiliar with userChrome.css follow these instructions:
+    ** 1. Open Thunderbird and go to the "Help" menu.
+    ** 2. Select "Troubleshooting Information" from the drop-down menu.
+    ** 3. In the "Application Basics" section, click on "Show Folder" to open the profile folder.
+    ** 4. In the profile folder, create a new folder called "chrome" (if it doesn't already exist).
+    ** 5. Inside the "chrome" folder, create a new text file called "userChrome.css". Ensure that the file extension is ".css" and not ".txt".
+    ** 6. Copy and paste the code into the "userChrome.css" file.
+    ** 7. Save the file.
+    ** 8. Enable the userChrome.css file in Thunderbird by going to the "about:config" page and setting the "toolkit.legacyUserProfileCustomizations.stylesheets" preference to "true".
+    ** 9. Restart Thunderbird to apply the changes.
+    **Refer to the following link for more information: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/chrome_settings_overrides
+ **/
+
+
+:root {
+
+  /* Specify colors for unread messages */
+
+  /*default*/
+  --text: #ba0006;
+  --button-0: #ba0006;
+  --bg: #000000;
+  --border: #ffffff;
+
+  /*hover*/
+  --text-hover: #2f11f7;
+  --button-hover-0: #2f11f7;
+  --bg-hover: #a5a5a5;
+  --border-hover: #2f11f7;
+
+  /*selected*/
+  --text-select: #ec7e00;
+  --button-select-0: #ec7e00;
+  --bg-select: #cccccc;
+  --border-select: #ec7e00;
+
+  /*current*/
+  --text-current: #ba0006;
+  --button-current-0: #ba0006;
+  --bg-current: #000000;
+  --border-current: #ec7e00;
+
+  /*current and selected*/
+  --text-current-selected: #ec7e00;
+  --button-current-selected-0: #ec7e00;
+  --bg-current-selected: #cccccc;
+  --border-current-selected: #ec7e00;
+
+  /*selected-indicator*/
+  --indicator-bg: #ec7e00;
+  --indicator-bd: #ec7e00;
+
+  /* Specify colors for new messages */
+  /*default*/
+  --new-text: #ba0006;
+  --new-button-0: #ba0006;
+  --new-bg: #000000;
+  --new-border: #ffffff;
+
+  /*hover*/
+  --new-text-hover: #2f11f7;
+  --new-button-hover-0: #2f11f7;
+  --new-bg-hover: #a5a5a5;
+  --new-border-hover: #2f11f7;
+
+  /*selected*/
+  --new-text-select: #ec7e00;
+  --new-button-select-0: #ec7e00;
+  --new-bg-select: #cccccc;
+  --new-border-select: #ec7e00;
+
+  /*current*/
+  --new-text-current: #ba0006;
+  --new-button-current-0: #ba0006;
+  --new-bg-current: #000000;
+  --new-border-current: #ec7e00;
+
+  /*current and selected*/
+  --new-text-current-selected: #ec7e00;
+  --new-button-current-selected-0: #ec7e00;
+  --new-bg-current-selected: #cccccc;
+  --new-border-current-selected: #ec7e00;
+
+  /*selected-indicator*/
+  --new-indicator-bg: #ec7e00;
+  --new-indicator-bd: #ec7e00;
+
+  /* Specify colors for read messages */
+
+  /*default*/
+  --read-text: #fcfcfc;
+  --read-button-0: transparent;
+  --read-bg: #4b4b4b;
+  --read-border: #ffffff;
+
+  /*hover*/
+  --read-text-hover: #ffffff;
+  --read-button-hover-0: transparent;
+  --read-bg-hover: #a5a5a5;
+  --read-border-hover: #ffffff;
+
+  /*selected*/
+  --read-text-select: #ec7e00;
+  --read-button-select-0: tranparent;
+  --read-bg-select: #cccccc;
+  --read-border-select: #ec7e00;
+
+  /*current*/
+  --read-text-current: #faf7f7;
+  --read-bg-current: #4b4b4b;
+  --read-button-current-0: transparent;
+  --read-border-current: #ec7e00;
+
+  /*current and selected*/
+  --read-text-current-selected: #ec7e00;
+  --read-button-current-selected-0: transparent;
+  --read-bg-current-selected: #cccccc;
+  --read-border-current-selected: #ec7e00;
+
+  /*selected-indicator*/
+  --read-indicator-bg: #ec7e00;
+  --read-indicator-bd: #ec7e00;
+
+}
+
+/*Table*/
+
+/*unread*/
+#threadTree tbody [data-properties~="unread"] {
+
+  /*Default*/
+  font-weight: Bold !important;
+  color: var(--text) !important; /* Text color */
+  background-color: var(--bg) !important; /* Background color */
+  outline: 0px solid var(--border) !important; /* Border color */
+
+  .tree-view-row-unread > .tree-button-unread > img {
+    fill: var(--button-0) !important;
+    stroke: var(--button-0) !important; /* button color */
+  }
+
+  /*hover*/
+  &:hover {
+    color: var(--text-hover) !important;      /* Text color */
+      background-color: var(--bg-hover) !important;      /* Background color */
+      outline: 0px solid var(--border-hover) !important;      /* Border color */
+
+      .tree-view-row-unread > .tree-button-unread > img {
+        fill: var(--button-hover-0) !important;
+        stroke: var(--button-hover-0) !important;        /* button color */
+      }
+  }
+
+  /*selected*/
+  &.selected {
+    color: var(--text-select) !important;    /* Text color */
+    background-color: var(--bg-select) !important;    /* Background color */
+    outline: 1px solid var(--border-select) !important;    /* Border color */
+
+    .tree-view-row-unread > .tree-button-unread > img {
+      fill: var(--button-select-0) !important;
+      stroke: var(--button-select-0) !important;      /* button color */
+    }
+  }
+
+  /*current*/
+  &.current {
+    color: var(--text-current) !important;    /* Text color */
+    background-color: var(--bg-current) !important;    /* Background color */
+    outline: 1px solid var(--border-current) !important;    /* Border color */
+
+    .tree-view-row-unread > .tree-button-unread > img {
+      fill: var(--button-current-0) !important;
+      stroke: var(--button-current-0) !important;      /* button color */
+    }
+
+    /*selected*/
+    &.selected {
+      color: var(--text-current-selected) !important;    /* Text color */
+      background-color: var(--bg-current-selected) !important;    /* Background color */
+      outline: 1px solid var(--border-current-selected) !important;    /* Border color */
+
+      .tree-view-row-unread > .tree-button-unread > img {
+        fill: var(--button-current-selected-0) !important;
+        stroke: var(--button-current-selected-0) !important;      /* button color */
+      }
+    }
+
+  }
+}
+
+/*read*/ #threadTree tbody [data-properties ~="read"] {
+
+  /*Default*/
+  font-weight: Bold !important;
+  color: var(--read-text) !important;  /* Text color */
+  background-color: var(--read-bg) !important;  /* Background color */
+  outline: 0px solid var(--read-border) !important;  /* Border color */
+
+
+  /*hover*/
+  &:hover {
+    color: var(--read-text-hover) !important;    /* Text color */
+    background-color: var(--read-bg-hover) !important;    /* Background color */
+    outline: 0px solid var(--read-border-hover) !important;    /* Border color */
+
+
+  }
+
+  /*selected*/
+  &.selected {
+    color: var(--read-text-select) !important;    /* Text color */
+    background-color: var(--read-bg-select) !important;    /* Background color */
+    outline: 1px solid var(--read-border-select) !important;    /* Border color */
+
+  }
+
+  /*current*/
+  &.current {
+    color: var(--read-text-current) !important;    /* Text color */
+    background-color: var(--read-bg-current) !important;    /* Background color */
+    outline: 1px solid var(--read-border-current) !important;    /* Border color */
+
+    /*selected*/
+    &.selected {
+      color: var(--read-text-current-selected) !important;      /* Text color */
+      background-color: var(--read-bg-current-selected) !important;      /* Background color */
+      outline: 1px solid var(--read-border-current-selected) !important;      /* Border color */
+
+    }
+
+  }
+}
+
+
+
+/*Thread Card*/
+
+#threadTree[rows="thread-card"] {
+
+  & .card-layout {
+
+    /* Unread Message */
+    &[data-properties~="unread"] {
+
+      /* Default */
+      --read-status-fill: var(--button-0) !important;
+      --read-status-stroke: var(--button-0) !important; /* button color */
+      --tree-card-background: var(--bg) !important; /* Background color */
+      --tree-card-border: var(--border) !important; /* Border color */
+      color: var(--text) !important; /* Text color */
+
+      /*hover*/
+      &:hover {
+        --read-status-fill: var(--button-hover-0) !important;
+        --read-status-stroke: var(--button-hover-0) !important;        /* button color */
+        --tree-card-background: var(--bg-hover) !important;        /* Background color */
+        --tree-card-border: var(--border-hover) !important;        /* Border color */
+        color: var(--text-hover) !important;        /* Text color */
+      }
+
+
+      /*selected*/
+      &.selected {
+        --read-status-fill: var(--button-select-0) !important;
+        --read-status-stroke: var(--button-select-0) !important;      /* button color */
+        --tree-card-background: var(--bg-select) !important;      /* Background color */
+        --tree-card-border: var(--border-select) !important;      /* Border color */
+        color: var(--text-select) !important;      /* Text color */
+        --indicator-background-selected: var(--indicator-bg);
+        --indicator-border-selected: var(--indicator-bd); /*indicator*/
+      }
+
+
+      /*current*/
+      &.current {
+        --read-status-fill: var(--button-current-0) !important;
+        --read-status-stroke: var(--button-current-0) !important;      /* button color */
+        --tree-card-background: var(--bg-current) !important;      /* Background color */
+        --tree-card-border: var(--border-current) !important;      /* Border color */
+        color: var(--text-current) !important;      /* Text color */
+
+        /*selected*/
+        &.selected {
+          --read-status-fill: var(--button-current-selected-0) !important;
+          --read-status-stroke: var(--button-current-selected-0) !important;        /* button color */
+          --tree-card-background: var(--bg-current-selected) !important;        /* Background color */
+          --tree-card-border: var(--border-current-selected) !important;        /* Border color */
+          color: var(--text-current-selected) !important;        /* Text color */
+          --indicator-background-selected: var(--indicator-bg);
+          --indicator-border-selected: var(--indicator-bd);          /*indicator*/
+        }
+
+      }
+
+      /*new*/
+      &[data-properties ~="new"] {
+        /* Default */
+        --read-status-fill: var(--new-button-0) !important;
+        --read-status-stroke: var(--new-button-0) !important;
+        /* button color */
+        --tree-card-background: var(--new-bg) !important;
+        /* Background color */
+        --tree-card-border: var(--new-border) !important;
+        /* Border color */
+        color: var(--new-text) !important;
+        /* Text color */
+        & .subject {
+          color: var(--new-text) !important;
+        }
+        }
+
+        /*hover*/
+        &:hover {
+          --read-status-fill: var(--new-button-hover-0) !important;
+          --read-status-stroke: var(--new-button-hover-0) !important;
+          /* button color */
+          --tree-card-background: var(--new-bg-hover) !important;
+          /* Background color */
+          --tree-card-border: var(--new-border-hover) !important;
+          /* Border color */
+          color: var(--new-text-hover) !important;
+          /* Text color */
+          & .subject {
+            color: var(--new-text-hover)
+          }
+        }
+
+
+        /*selected*/
+        &.selected {
+          --read-status-fill: var(--new-button-select-0) !important;
+          --read-status-stroke: var(--new-button-select-0) !important;
+          /* button color */
+          --tree-card-background: var(--new-bg-select) !important;
+          /* Background color */
+          --tree-card-border: var(--new-border-select) !important;
+          /* Border color */
+          color: var(--new-text-select) !important;
+          & .subject {
+            color: var(--new-text-select) !important;
+          }
+          /* Text color */
+          --indicator-background-selected: var(--new-indicator-bg);
+          --indicator-border-selected: var(--new-indicator-bd);
+          /*indicator*/
+        }
+
+
+        /*current*/
+        &.current {
+          --read-status-fill: var(--new-button-current-0) !important;
+          --read-status-stroke: var(--new-button-current-0) !important;
+          /* button color */
+          --tree-card-background: var(--new-bg-current) !important;
+          /* Background color */
+          --tree-card-border: var(--new-border-current) !important;
+          /* Border color */
+          color: var(--new-text-current) !important;
+          & .subject {
+            color: var(--new-text-current) !important;
+          }
+          /* Text color */
+
+          /*selected*/
+          &.selected {
+            --read-status-fill: var(--new-button-current-selected-0) !important;
+            --read-status-stroke: var(--new-button-current-selected-0) !important;
+            /* button color */
+            --tree-card-background: var(--new-bg-current-selected) !important;
+            /* Background color */
+            --tree-card-border: var(--new-border-current-selected) !important;
+            /* Border color */
+            color: var(--new-text-current-selected) !important;
+            & .subject {
+              color: var(--new-text-current-selected) !important;
+            }
+            /* Text color */
+            --indicator-background-selected: var(--new-indicator-bg);
+            --indicator-border-selected: var(--new-indicator-bd);
+            /*indicator*/
+          }
+
+        }
+    }
+
+    /*new*/
+    &[data-properties~="new"] {
+      /* Default */
+        --read-status-fill: var(--new-button-0) !important;
+        --read-status-stroke: var(--new-button-0) !important;        /* button color */
+        --tree-card-background: var(--new-bg) !important;        /* Background color */
+        --tree-card-border: var(--new-border) !important;        /* Border color */
+        color: var(--new-text) !important;        /* Text color */
+        & .subject {
+          color: var(--new-text) !important;
+        }
+
+        /*hover*/
+        &:hover {
+          --read-status-fill: var(--new-button-hover-0) !important;
+          --read-status-stroke: var(--new-button-hover-0) !important;          /* button color */
+          --tree-card-background: var(--new-bg-hover) !important;          /* Background color */
+          --tree-card-border: var(--new-border-hover) !important;          /* Border color */
+          color: var(--new-text-hover) !important;          /* Text color */
+          & .subject {
+            color: var(--new-text-hover) !important;
+          }
+
+        }
+
+
+        /*selected*/
+        &.selected {
+          --read-status-fill: var(--new-button-select-0) !important;
+          --read-status-stroke: var(--new-button-select-0) !important;          /* button color */
+          --tree-card-background: var(--new-bg-select) !important;          /* Background color */
+          --tree-card-border: var(--new-border-select) !important;          /* Border color */
+          color: var(--new-text-select) !important;          /* Text color */
+          & .subject {
+            color: var(--new-text-select) !important;
+          }
+          --indicator-background-selected: var(--new-indicator-bg);
+          --indicator-border-selected: var(--new-indicator-bd);            /*indicator*/
+        }
+
+
+        /*current*/
+        &.current {
+          --read-status-fill: var(--new-button-current-0) !important;
+          --read-status-stroke: var(--new-button-current-0) !important;          /* button color */
+          --tree-card-background: var(--new-bg-current) !important;          /* Background color */
+          --tree-card-border: var(--new-border-current) !important;          /* Border color */
+          color: var(--new-text-current) !important;          /* Text color */
+          & .subject {
+            color: var(--new-text-current) !important;
+          }
+
+          /*selected*/
+          &.selected {
+            --read-status-fill: var(--new-button-current-selected-0) !important;
+            --read-status-stroke: var(--new-button-current-selected-0) !important;   /* button color */
+            --tree-card-background: var(--new-bg-current-selected) !important;   /* Background color */
+            --tree-card-border: var(--new-border-current-selected) !important;       /* Border color */
+            color: var(--new-text-current-selected) !important;          /* Text color */
+            & .subject {
+              color: var(--new-text-current-select) !important;
+            }
+            --indicator-background-selected: var(--new-indicator-bg);
+            --indicator-border-selected: var(--new-indicator-bd);            /*indicator*/
+          }
+
+        }
+    }
+
+    /*read*/
+    &[data-properties ~="read"] {
+      /* Default */
+      --tree-card-background: var(--read-bg) !important;      /* Background color */
+      --tree-card-border: var(--read-border) !important;      /* Border color */
+      color: var(--read-text) !important;      /* Text color */
+
+      /*hover*/
+      &:hover {
+        --tree-card-background: var(--read-bg-hover) !important;        /* Background color */
+        --tree-card-border: var(--read-border-hover) !important;        /* Border color */
+        color: var(--read-text-hover) !important;        /* Text color */
+      }
+
+
+      /*selected*/
+      &.selected {
+        --tree-card-background: var(--read-bg-select) !important;        /* Background color */
+        --tree-card-border: var(--read-border-select) !important;        /* Border color */
+        color: var(--read-text-select) !important;        /* Text color */
+        --indicator-background-selected: var(--read-indicator-bg);
+        --indicator-border-selected: var(--read-indicator-bd);        /*indicator*/
+      }
+
+
+      /*current*/
+      &.current {
+        --tree-card-background: var(--read-bg-current) !important;        /* Background color */
+        --tree-card-border: var(--read-border-current) !important;        /* Border color */
+        color: var(--read-text-current) !important;        /* Text color */
+
+        /*selected*/
+        &.selected {
+          --tree-card-background: var(--read-bg-current-selected) !important;    /* Background color */
+          --tree-card-border: var(--read-border-current-selected) !important;     /* Border color */
+          color: var(--read-text-current-selected) !important;         /* Text color */
+          --indicator-background-selected: var(--read-indicator-bg);
+          --indicator-border-selected: var(--read-indicator-bd);          /*indicator*/
+        }
+
+      }
+    }
+  }
+}

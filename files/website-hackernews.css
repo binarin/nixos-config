@@ -1,0 +1,52 @@
+@-moz-document domain("news.ycombinator.com"),
+domain("news.ycombinator.com"),
+url-prefix("https://news.ycombinator.com/") {
+    @media (-moz-bool-pref: "user.theme.dark.zenburn") {
+
+        #hnmain {
+            background-color: var(--zenburn-bg) !important;
+        }
+
+        a:link, .c00 a:link {
+            color: var(--zenburn-fg);
+        }
+
+        .sitebit, .sitebit a {
+	    color: var(--zenburn-fg-1) !important;
+        }
+
+        .subline > a:last-of-type {
+            color: var(--zenburn-yellow) !important;
+        }
+
+        .titleline > a:link {
+            color: var(--zenburn-blue-1) !important;
+        }
+        #hnmain > tbody > tr:first-of-type > td {
+	    background-color: var(--zenburn-bg-pl2) !important;
+            border-radius: 5px;
+
+            img {
+                border-radius: 5px;
+            }
+        }
+
+        #hnmain > tbody > tr:last-of-type table td {
+	    background-color: var(--zenburn-bg-pl2) !important;
+        }
+
+        input[type="text"] {
+            background-color: var(--zenburn-bg-08);
+            color: var(--zenburn-fg);
+            border-radius: 5px;
+        }
+
+        textarea {
+	    background-color: var(--zenburn-bg-1);
+        }
+
+        .c00 {
+	    color: var(--zenburn-fg) !important;
+        }
+    }
+}

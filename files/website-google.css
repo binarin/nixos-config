@@ -1,0 +1,7 @@
+@-moz-document domain("www.google.com"), domain("google.com") {
+    @media (-moz-bool-pref: "user.theme.dark.zenburn") {
+        .g, #appbar {
+	    background-color: var(--zenburn-bg) !important;
+        }
+    }
+}

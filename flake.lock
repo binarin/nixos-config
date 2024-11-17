@@ -187,6 +187,38 @@
         "type": "github"
       }
     },
+    "ff-ultima": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1730605648,
+        "narHash": "sha256-IAdqKF4WfQzo1I/tizHMWDLST/T2tKz4do+Dkw9eZs8=",
+        "owner": "soulhotel",
+        "repo": "FF-ULTIMA",
+        "rev": "d7d53dd31af32618c13b0e5b5c0405080a3f3673",
+        "type": "github"
+      },
+      "original": {
+        "owner": "soulhotel",
+        "repo": "FF-ULTIMA",
+        "type": "github"
+      }
+    },
+    "firebuilder": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1724951017,
+        "narHash": "sha256-yczDlAwFCS4mDlNO5OiIG/0h4xRS1MTIAkKd4WgQmH8=",
+        "owner": "Explosion-Scratch",
+        "repo": "firebuilder",
+        "rev": "2244c70209509d18978bfa0363eb0ef5b955dbdb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Explosion-Scratch",
+        "repo": "firebuilder",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -926,6 +958,8 @@
         "caddy-cloudflare": "caddy-cloudflare",
         "deploy-rs": "deploy-rs",
         "emacs-overlay": "emacs-overlay",
+        "ff-ultima": "ff-ultima",
+        "firebuilder": "firebuilder",
         "flake-parts": "flake-parts_3",
         "home-manager": "home-manager",
         "hyprland": "hyprland",

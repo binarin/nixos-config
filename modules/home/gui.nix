@@ -4,7 +4,6 @@ let
   qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
 
   guiPackages = with pkgs; [
-    firefox-bin
     tdesktop
     thunderbird
     vlc
