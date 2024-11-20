@@ -139,9 +139,9 @@ in
 
     stylix.fonts = {
       sizes = {
-        terminal = 10;
+        terminal = 12;
         desktop = 10;
-        applications = 10;
+        applications = 12;
       };
       serif = {
         package = pkgs.noto-fonts;
@@ -167,7 +167,7 @@ in
     stylix.cursor = {
       package = pkgs.bibata-cursors;
       name = "Bibata-Modern-Amber";
-      size = 48;
+      size = 24;
     };
 
     stylix.targets.lightdm.enable = true;

@@ -96,7 +96,6 @@ in
         "font.minimum-size.x-western" = 16;
         "font.size.monospace.x-western" = 16;
         "intl.accept_languages" = "en,nl,ru";
-        "layout.css.devPixelsPerPx" = 2.0;
         "media.videocontrols.picture-in-picture.enable-when-switching-tabs.enabled" = true;
         "browser.tabs.closeWindowWithLastTab" = false;
         "browser.sessionstore.restore_on_demand" = false;
