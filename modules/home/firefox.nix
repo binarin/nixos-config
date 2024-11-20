@@ -85,9 +85,12 @@ in
       userContent = ''
         @import url("${pkgs.flakeFile "zenburn-colors.css"}");
         @import url("${flake.inputs.ff-ultima}/userContent.css");
-        @import url("${pkgs.flakeFile "website-hackernews.css"}");
-        @import url("${pkgs.flakeFile "website-google.css"}");
-        @media (-moz-bool-pref: "user.theme.dark.zenburn"){body{background-image: url("${wallpaper}") !important;}}
+
+        @-moz-document url(chrome://browser/content/browser.xul), url(about:newtab), url(about:home) {
+          @media not (-moz-bool-pref: "browser.newtabpage.activity-stream.newtabWallpapers.v2.enabled") {
+            @media (-moz-bool-pref: "user.theme.dark.zenburn"){body{background-image: url("${wallpaper}") !important;}}
+          }
+        }
       '';
       settings = {
         "font.minimum-size.x-western" = 16;
@@ -126,21 +129,21 @@ in
         "ultima.urlbar.centered" = false;
         "ultima.disable.windowcontrols.button" = true;
 
-        "browser.uiCustomization.state" = builtins.toJSON {
-          currentVersion = 20;
-          dirtyAreaCache = [ "nav-bar" "PersonalToolbar" "TabsToolbar" "unified-extensions-area" "vertical-tabs" ];
-          newElementCount = 6;
-          placements = {
-            PersonalToolbar = [ "personal-bookmarks" ];
-            TabsToolbar = [ ];
-            nav-bar = [ "back-button" "forward-button" "stop-reload-button" "new-tab-button" "customizableui-special-spring1" "urlbar-container" "customizableui-special-spring2" "screenshot-button" "ublock0_raymondhill_net-browser-action" "_446900e4-71c2-419f-a6a7-df9c091e268b_-browser-action" "_8f8c4c52-216c-4c6f-aae0-c214a870d9d9_-browser-action" "_ddefd400-12ea-4264-8166-481f23abaa87_-browser-action" "_08f0f80f-2b26-4809-9267-287a5bdda2da_-browser-action" "_testpilot-containers-browser-action" "downloads-button" "sidebar-button" "unified-extensions-button" "alltabs-button" ];
-            toolbar-menubar = [ "menubar-items" ];
-            unified-extensions-area = [ "sponsorblocker_ajay_app-browser-action" "myallychou_gmail_com-browser-action" "savepage-we_dw-dev-browser-action" "_contain-facebook-browser-action" "enhancerforyoutube_maximerf_addons_mozilla_org-browser-action" "_12cf650b-1822-40aa-bff0-996df6948878_-browser-action" "_c49b13b1-5dee-4345-925e-0c793377e3fa_-browser-action" ];
-            vertical-tabs = [ "tabbrowser-tabs" ];
-            widget-overflow-fixed-list = [ ];
-          };
-          seen = [ "save-to-pocket-button" "developer-button" "ublock0_raymondhill_net-browser-action" "myallychou_gmail_com-browser-action" "savepage-we_dw-dev-browser-action" "_08f0f80f-2b26-4809-9267-287a5bdda2da_-browser-action" "_8f8c4c52-216c-4c6f-aae0-c214a870d9d9_-browser-action" "_ddefd400-12ea-4264-8166-481f23abaa87_-browser-action" "_contain-facebook-browser-action" "_testpilot-containers-browser-action" "enhancerforyoutube_maximerf_addons_mozilla_org-browser-action" "_12cf650b-1822-40aa-bff0-996df6948878_-browser-action" "_446900e4-71c2-419f-a6a7-df9c091e268b_-browser-action" "_c49b13b1-5dee-4345-925e-0c793377e3fa_-browser-action" "sponsorblocker_ajay_app-browser-action" ];
-        };
+        # "browser.uiCustomization.state" = builtins.toJSON {
+        #   currentVersion = 20;
+        #   dirtyAreaCache = [ "nav-bar" "PersonalToolbar" "TabsToolbar" "unified-extensions-area" "vertical-tabs" ];
+        #   newElementCount = 6;
+        #   placements = {
+        #     PersonalToolbar = [ "personal-bookmarks" ];
+        #     TabsToolbar = [ ];
+        #     nav-bar = [ "back-button" "forward-button" "stop-reload-button" "new-tab-button" "customizableui-special-spring1" "urlbar-container" "customizableui-special-spring2" "screenshot-button" "ublock0_raymondhill_net-browser-action" "_446900e4-71c2-419f-a6a7-df9c091e268b_-browser-action" "_8f8c4c52-216c-4c6f-aae0-c214a870d9d9_-browser-action" "_ddefd400-12ea-4264-8166-481f23abaa87_-browser-action" "_08f0f80f-2b26-4809-9267-287a5bdda2da_-browser-action" "_testpilot-containers-browser-action" "downloads-button" "sidebar-button" "unified-extensions-button" "alltabs-button" ];
+        #     toolbar-menubar = [ "menubar-items" ];
+        #     unified-extensions-area = [ "sponsorblocker_ajay_app-browser-action" "myallychou_gmail_com-browser-action" "savepage-we_dw-dev-browser-action" "_contain-facebook-browser-action" "enhancerforyoutube_maximerf_addons_mozilla_org-browser-action" "_12cf650b-1822-40aa-bff0-996df6948878_-browser-action" "_c49b13b1-5dee-4345-925e-0c793377e3fa_-browser-action" ];
+        #     vertical-tabs = [ "tabbrowser-tabs" ];
+        #     widget-overflow-fixed-list = [ ];
+        #   };
+        #   seen = [ "save-to-pocket-button" "developer-button" "ublock0_raymondhill_net-browser-action" "myallychou_gmail_com-browser-action" "savepage-we_dw-dev-browser-action" "_08f0f80f-2b26-4809-9267-287a5bdda2da_-browser-action" "_8f8c4c52-216c-4c6f-aae0-c214a870d9d9_-browser-action" "_ddefd400-12ea-4264-8166-481f23abaa87_-browser-action" "_contain-facebook-browser-action" "_testpilot-containers-browser-action" "enhancerforyoutube_maximerf_addons_mozilla_org-browser-action" "_12cf650b-1822-40aa-bff0-996df6948878_-browser-action" "_446900e4-71c2-419f-a6a7-df9c091e268b_-browser-action" "_c49b13b1-5dee-4345-925e-0c793377e3fa_-browser-action" "sponsorblocker_ajay_app-browser-action" ];
+        # };
       };
 
       extraConfig =

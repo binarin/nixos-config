@@ -2,8 +2,7 @@
 domain("news.ycombinator.com"),
 url-prefix("https://news.ycombinator.com/") {
     @media (-moz-bool-pref: "user.theme.dark.zenburn") {
-
-        #hnmain {
+        body, #hnmain {
             background-color: var(--zenburn-bg) !important;
         }
 
