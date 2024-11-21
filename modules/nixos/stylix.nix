@@ -17,16 +17,19 @@ in
   options = {
   };
 
-  config = {
-    environment.systemPackages = with pkgs; [
-      fontpreview
-      inter
-    ];
-    stylix.targets.lightdm.enable = true;
-    stylix.targets.gtk.enable = true;
-    stylix.targets.chromium.enable = true;
-    stylix.homeManagerIntegration.followSystem = false;
-    stylix.homeManagerIntegration.autoImport = false;
-
-  };
+  config = lib.mkMerge [
+    {
+      stylix.homeManagerIntegration.followSystem = false;
+      stylix.homeManagerIntegration.autoImport = false;
+    }
+    (lib.mkIf config.hostConfig.feature.gui {
+      environment.systemPackages = with pkgs; [
+        fontpreview
+        inter
+      ];
+      stylix.targets.lightdm.enable = true;
+      stylix.targets.gtk.enable = true;
+      stylix.targets.chromium.enable = true;
+    })
+  ];
 }
