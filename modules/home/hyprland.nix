@@ -21,7 +21,6 @@ in {
 
         exec-once = [
           "${pkgs.kwallet-pam}/libexec/pam_kwallet_init --no-startup-id"
-          # "hyprctl setcursor Bibata-Modern-Amber 48"
           "protonmail-bridge -n"
           "nm-applet"
           "[workspace 1 silent] foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
@@ -29,7 +28,6 @@ in {
           "[workspace 4 silent] firefox"
           "[workspace 5 silent] sleep 5; exec thunderbird" # give protonmail-bridge time to startup
           "[workspace 5 silent; group new] telegram-desktop"
-          "waybar"
         ];
 
         general = {
