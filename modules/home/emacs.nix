@@ -8,7 +8,7 @@ in
     home.file.".emacs.d/init.elc".source = cfg.compiledConfig + "/init.elc";
 
     home.file.".local/share/applications/org-protocol.desktop".source = pkgs.flakeFile "org-protocol.desktop";
-    xdg.mimeAppsdefaultApplications = lib.mkIf pkgs.stdenv.isLinux {
+    xdg.mimeApps.defaultApplications = lib.mkIf pkgs.stdenv.isLinux {
       "x-scheme-handler/org-protocol" = "org-protocol.desktop";
     };
 
