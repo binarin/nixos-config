@@ -1,0 +1,97 @@
+/*
+  padding: top right bottom left;
+  padding: top right+left bottom;
+  padding: top+bottom right+left;
+*/
+
+* {
+    font-family: {{ fonts.sansSerif }}, sans-serif;
+    font-size: {{ fonts.sizes.desktop }}pt;
+    min-height: 0;
+}
+
+window#waybar {
+    background: {{ zenburn.bg }};
+    transition-property: background-color;
+    transition-duration: .5s;
+}
+
+/* unnamed container which contains left,center and right */
+/* window#waybar > .horizontal { */
+/*     border-top: 1px solid {{ zenburn.cyan }}; */
+/* } */
+
+#workspaces {
+    padding: 0px 20px 0px 0px;
+}
+
+#workspaces button {
+    font-weight: normal;
+    background: {{ zenburn.bg }};
+    color: {{ zenburn.fg }};
+    border-radius: 0px;
+    padding: 0px 0px;
+}
+
+#workspaces button.visible {
+    background: {{ zenburn.bg_plus_3 }};
+    color: {{ zenburn.fg_plus_2 }};
+}
+
+#workspaces button.urgent {
+    background: {{ zenburn.red }};
+}
+
+#taskbar button {
+    padding: 0px 10px;
+    background: {{ zenburn.bg_plus_05 }};
+    margin: 1px 2px;
+}
+
+#taskbar button.active {
+    background: {{ zenburn.bg_plus_3 }};
+}
+
+#clock {
+    font-family: {{ fonts.monospace }}, mono;
+    color: {{ zenburn.fg }};
+    padding: 0 5px;
+}
+
+#pulseaudio {
+    background: {{ zenburn.bg_plus_1 }};
+    margin: 1px 2px;
+    min-width: 6em;
+    padding: 00;
+    border-radius: 5px;
+}
+
+#idle_inhibitor {
+    border-radius: 5px;
+    background: {{ zenburn.bg_plus_1 }};
+    min-width: 3em;
+    margin: 1px 2px;
+    padding: 0;
+    color: {{ zenburn.yellow }};
+}
+
+#custom-notification {
+    font-family: {{ fonts.monospace }}, mono;
+    border-radius: 5px;
+    min-width: 3em;
+    margin: 1px 2px;
+    background: {{ zenburn.bg_plus_1 }};
+}
+
+tooltip {
+  background: {{ zenburn.bg }};
+  border: 2px solid {{ zenburn.cyan }};
+}
+
+tooltip .today {
+    background: {{ zenburn.red }};
+}
+
+tooltip label {
+  color: {{ zenburn.fg }};
+}
