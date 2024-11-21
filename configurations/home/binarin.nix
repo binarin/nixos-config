@@ -35,6 +35,10 @@ in
 
   gtk = {
     enable = true;
+    iconTheme = {
+      package = pkgs.gnome3.adwaita-icon-theme;
+      name = "Adwaita";
+    };
   };
 
   programs.dircolors = {

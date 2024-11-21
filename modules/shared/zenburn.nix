@@ -88,7 +88,7 @@ in {
       cssVars.text = with lib; pipe emacsZenburnColors [
         attrsToList
         (map ({name, value}: "--zenburn_${name}: ${value};"))
-        (lst: [":root {"] ++ lst ++ ["}"])
+        (lst: [":root {"] ++ lst ++ ["}\n"])
         (concatStringsSep "\n")
         (css: mkOption { type = types.str; description = "CSS vars like --zenburn_bg_minus_1 as text"; default = css;})
       ];
