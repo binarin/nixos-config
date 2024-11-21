@@ -9,40 +9,67 @@ Adapting to add-on-theme styling
 Global styling - applies everywhere
 Global styling - Icons
 -------------------------------------------------------------------------------------*/
-
-
 @media (prefers-color-scheme: dark) {
 
 /* Establishing custom variables - allowing most(/all) customization to be done in one place. */
 :root, body, * {
   color-scheme: dark !important; /*--<--dont touch--*/
-  --uc-background-main:     var(--zenburn-bg-05);
-  --uc-ultima-window:       var(--zenburn-bg-08);
-  --uc-text:                var(--zenburn-fg);
+  /* outer frame bg: sidebar, toolbar, margins */
+  --uc-ultima-window:       var(--zenburn_bg_plus_05);
+  --uc-text:                var(--zenburn_fg);
 
-  --uc-dark-color:          var(--zenburn-green-5);
-  --uc-light-color:         var(--zenburn-yellow);
 
-  --uc-accent-i:            var(--zenburn-magenta); /*purp*/
-  --uc-accent-ii:           var(--zenburn-blue); /*blue*/
-  --uc-accent-iii:          var(--zenburn-yellow); /*light*/
-  --uc-accent-iv:           var(--zenburn-green-5); /*dark*/
-  --uc-accent-v:            var(--zenburn-green); /*green*/
-  --uc-accent-vi:           var(--zenburn-red); /*red*/
-  --uc-accent-vii:          var(--zenburn-blue-5); /*darker blue*/
+  /* active menu item, zoom indicator */
+  --uc-button-selected:     var(--zenburn_bg_minus_1);
 
-  --uc-button-selected:     rgb(from var(--zenburn-bg-1) r g b / 80%);
-  --uc-background-layered:  rgb(from var(--zenburn-bg-1) r g b / 100%);
+
+  /* active tab, hover tab */
+  --uc-tab-selected-bg:     var(--zenburn_bg_minus_05);
+
+  /* menus on toolbar: extenstios, settings, overflow */
+  --uc-panel-background:    var(--zenburn_bg);
+
+  /* border for everything popping up: menus, tooltips, ... */
+  --uc-panel-border-ii:     var(--zenburn_blue);
+
+  /* most buttons on toolbar: back, reload, overflow menu, menu */
+  --uc-accent-ii:           var(--zenburn_fg);
+
+  /* active tab foreground, input field has focus */
+  --uc-accent-v:            var(--zenburn_green); /*green*/
+
+  --uc-sb-background: var(--uc-ultima-window);
+
+  /* + tooltips */
+  --uc-context-menu:        var(--uc-panel-background);
+
+  /* url & url popup */
+  --uc-urlbar-background:   var(--uc-panel-background);
+
+  /* global popups */
+  --uc-background-layered:  var(--uc-panel-background);
+
+  /* search box */
+  --uc-background-main:     var(--uc-panel-background);
+
+  /* doesn't affect anything */
+  --uc-dark-color:          yellow; /*var(--zenburn_green_minus_5);*/
+  --uc-light-color:         orange; /*var(--zenburn_yellow);*/
+
+  --uc-panel-border:        red; /* rgb(from var(--zenburn_bg_minus_1) r g b / 100%); */
+
+  --uc-accent-i:            yellow; /* var(--zenburn_magenta); /*purp*/
+  --uc-accent-iii:          orange; /* var(--zenburn_yellow); /*light*/
+  --uc-accent-iv:           magenta; /* var(--zenburn_green_minus_5); /*dark*/
+  --uc-accent-vi:           red; /* var(--zenburn_red); /*red*/
+  --uc-accent-vii:          yellow; /* var(--zenburn_blue_minus_5); /*darker blue*/
+
   --uc-transparent:         rgba(0,0,0,0);
-  --uc-tab-selected-bg:     rgb(from var(--zenburn-bg-1) r g b / 100%);
-  --uc-urlbar-background:   rgb(from var(--zenburn-bg-1) r g b / 60%);
-  --uc-panel-background:    rgb(from var(--zenburn-bg-1) r g b / 95%);
-  --uc-panel-border:        rgb(from var(--zenburn-bg-1) r g b / 100%);
-  --uc-panel-border-ii:     var(--zenburn-bg-pl05);
-  --uc-context-menu:        rgb(from var(--zenburn-bg-1) r g b / 100%);
+
+  /* buttons in sidebar */
+  --button-background-color-ghost-hover: var(--uc-tab-selected-bg);
 
   --uc-tabs-background: var(--uc-background-main);
-  --uc-sb-background: var(--uc-background-main);
   --uc-sb-background-container: var(--uc-transparent);
   --uc-tabs-lwt: color-mix(in srgb, var(--lwt-accent-color) 75%, #000);
   --uc-sb-lwt: color-mix(in srgb, var(--lwt-accent-color) 75%, #000);
@@ -55,13 +82,9 @@ Global styling - Icons
   --uc-button-border-radius: 10px;
 }
 
-
-
-
 /* Overwriting existing variables -------------------------------------------------*/
 
 #main-window:not([lwtheme]), :root:not([lwtheme]) {
-
   --toolbar-bgcolor: var(--uc-ultima-window) !important;
 
   --tab-selected-bgcolor: var(--uc-tab-selected-bg) !important;
@@ -112,7 +135,7 @@ Global styling - Icons
   --organizer-hover-background: var(--uc-accent-iv) !important;
   --organizer-selected-background: var(--uc-button-selected) !important;
   --organizer-focus-selected-color: var(--uc-button-selected) !important;
-  --organizer-outline-color: var(--zenburn-cyan) !important;
+  --organizer-outline-color: var(--zenburn_cyan) !important;
   --organizer-toolbar-field-background: var(--uc-accent-iv) !important;
   --organizer-toolbar-field-background-focused: var(--uc-accent-v) !important;
   --content-select-background-image: none !important;
@@ -478,7 +501,7 @@ splitter {@media (-moz-platform: windows) { & {
 
 /*new experimental status for side bar - keeping a universal style*/
 
-#sidebar {
+#sidebar-main {
     background: var(--uc-sb-background) !important;
 }
 #sidebar-box {
