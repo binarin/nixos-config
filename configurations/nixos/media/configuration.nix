@@ -226,7 +226,7 @@ in
           service = {
             container_name = "tubearchivist";
             restart = "unless-stopped";
-            image = "bbilly1/tubearchivist";
+            image = "bbilly1/tubearchivist:v0.4.11";
             ports = [ "8001:8000" ];
             volumes = [
               "/media/tubearchivist:/youtube"
