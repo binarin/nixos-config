@@ -7,7 +7,7 @@ let
   out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
 in {
   config = lib.mkIf (config.hostConfig.feature.hyprland) {
-    home.packages = with pkgs; [ walker ];
+    home.packages = with pkgs; [ walker hyprshot hyprland-per-window-layout ];
     wayland.windowManager.hyprland = {
       enable = true;
       settings = {
@@ -25,6 +25,7 @@ in {
           "protonmail-bridge -n"
           "nm-applet"
           "walker --gapplication-service"
+          "hyprland-per-window-layout"
           "[workspace 1 silent] foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
           "[workspace 2 silent] emacs"
           "[workspace 4 silent] firefox"
@@ -171,7 +172,9 @@ in {
           "$mod       , K, changegroupactive, b"
           "$mod       , M, layoutmsg, swapwithmaster"
           "$mod       , N, exec, swaync-client -t"
-          "$mod       , P, exec, XDG_CURRENT_DESKTOP=sway flameshot gui"
+          "$mod       , P, exec, hyprshot -m region"
+          "$mod SHIFT , P, exec, hyprshot -m window"
+          "$mod CTRL  , P, exec, hyprshot -m output"
           "$mod SHIFT , Q, exit"
           "$mod SHIFT , S, movetoworkspace, special:magic"
           "$mod       , S, togglespecialworkspace, magic"
