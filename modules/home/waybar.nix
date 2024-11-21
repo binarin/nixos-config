@@ -18,7 +18,7 @@ in
 
         modules-left = [ "hyprland/workspaces" "wlr/taskbar" ];
         modules-center = [ "hyprland/window" ];
-        modules-right = [ "tray" "idle_inhibitor" "pulseaudio" "clock" "custom/notification" ];
+        modules-right = [ "tray" "idle_inhibitor" "pulseaudio" "clock" "hyprland/submap" "hyprland/language" "custom/notification" ];
 
         "hyprland/workspaces" = {
         };
@@ -82,6 +82,16 @@ in
               today = ''<span background="${config.zenburn.colors.orange}" color="${config.zenburn.colors.fg_minus_1}"><b><u>{}</u></b></span>'';
             };
           };
+        };
+
+        "hyprland/language" = {
+          format-ru = "🇷🇺";
+          format-en = "🇺🇸";
+          format-nl = "🇳🇱";
+          format-es = "🇪🇸";
+        };
+
+        "hyprland/submap" = {
         };
 
         "custom/notification" = {
