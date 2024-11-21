@@ -4,11 +4,6 @@ let
   qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
 in
 {
-  home.file.".local/share/applications/org-protocol.desktop".source = pkgs.writeTextFile {
-    name = "org-protocol.desktop";
-    text = pkgs.flakeFile "org-protocol.desktop";
-  };
-
   programs.tmux = {
     baseIndex = 1;
     clock24 = true;
