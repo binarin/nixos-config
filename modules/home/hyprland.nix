@@ -7,12 +7,13 @@ let
   out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
 in {
   config = lib.mkIf (config.hostConfig.feature.hyprland) {
+    home.packages = with pkgs; [ walker ];
     wayland.windowManager.hyprland = {
       enable = true;
       settings = {
 
         "$terminal" = "foot";
-        "$menu" = "fuzzel";
+        "$menu" = "walker";
         "$fileManager" = "dolphin";
         "$mod" = "SUPER";
         "$hyper" = "SUPER SHIFT ALT CTRL";
@@ -23,6 +24,7 @@ in {
           "${pkgs.kwallet-pam}/libexec/pam_kwallet_init --no-startup-id"
           "protonmail-bridge -n"
           "nm-applet"
+          "walker --gapplication-service"
           "[workspace 1 silent] foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
           "[workspace 2 silent] emacs"
           "[workspace 4 silent] firefox"
