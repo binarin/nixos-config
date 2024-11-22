@@ -12,6 +12,8 @@ in
       "x-scheme-handler/org-protocol" = "org-protocol.desktop";
     };
 
+    home.file.".local/share/icons/emacs/org.svg".source = pkgs.flakeFile "org.svg";
+
     fonts.nerdfonts = [ "IosevkaTerm" ];
 
     home.packages = [
