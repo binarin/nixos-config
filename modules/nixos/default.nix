@@ -20,6 +20,7 @@ in
     self.nixosModules.flake-packages
     self.nixosModules.keep-nix-build-sources
     self.nixosModules.stylix
+    self.nixosModules.firefox
     inputs.arion.nixosModules.arion
 
   ];
