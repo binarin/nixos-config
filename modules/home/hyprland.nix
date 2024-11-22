@@ -5,9 +5,13 @@ let
   out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
   out-ishamael-edp = "Sharp Corporation 0x1516 Unknown";
   out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
+  my-shellevents = pkgs.writeScript "my-shellevents" ''
+    ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe pkgs.shellevents} ${pkgs.flakeFile "hyprland-shellevents.sh"}",nofork
+  '';
+
 in {
   config = lib.mkIf (config.hostConfig.feature.hyprland) {
-    home.packages = with pkgs; [ walker hyprshot hyprland-per-window-layout ];
+    home.packages = with pkgs; [ walker hyprshot hyprland-per-window-layout shellevents ];
     wayland.windowManager.hyprland = {
       enable = true;
       settings = {
@@ -26,6 +30,7 @@ in {
           "nm-applet"
           "walker --gapplication-service"
           "hyprland-per-window-layout"
+          "${my-shellevents}"
           "[workspace 1 silent] foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
           "[workspace 2 silent] emacs"
           "[workspace 4 silent] firefox"
