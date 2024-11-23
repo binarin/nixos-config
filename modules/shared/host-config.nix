@@ -17,6 +17,7 @@ let
     server = [ ];
     nix-builder = [ ];
     full-cli = [ ];
+    wsl = [ ];
   };
 
   enableFeatureWhen =

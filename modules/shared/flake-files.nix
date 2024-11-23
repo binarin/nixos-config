@@ -7,6 +7,11 @@ let
 in
 {
   config = {
+    lib.self = {
+      file = name: pkgs.writeText name (builtins.readFile "${self}/files/${name}");
+      read = name: builtins.readFile "${self}/files/${name}";
+    };
+
     nixpkgs.overlays = lib.mkIf (isNixOSorDarwin || isStandaloneHomeManager) [
       (final: prev:
         let

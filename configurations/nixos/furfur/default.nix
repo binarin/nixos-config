@@ -14,5 +14,6 @@ in
 
   hostConfig.features = [
     "gui"
+    "wsl"
   ];
 }
