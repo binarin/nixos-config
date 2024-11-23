@@ -14,7 +14,7 @@ let
   '';
 
   orgBabelConfigWithoutUnicode = pkgs.runCommand "cleanup-unicode-from-emacs-config.org" { } ''
-    ${cleanup-unicode-from-emacs-org-babel-config} ${pkgs.flakeFile cfg.orgBabelConfig} > $out
+    ${cleanup-unicode-from-emacs-org-babel-config} ${config.lib.self.file cfg.orgBabelConfig} > $out
   '';
 
   finalEmacsPackage = pkgs.emacsWithPackagesFromUsePackage {
@@ -24,7 +24,7 @@ let
 
   compiledConfig = pkgs.runCommand "emacs-config-tangled" { } ''
     mkdir $out
-    ${lib.getExe pkgs.tangle-emacs-org-babel-config} "${pkgs.flakeFile cfg.orgBabelConfig}" "$out/init.el"
+    ${lib.getExe pkgs.tangle-emacs-org-babel-config} "${config.lib.self.file cfg.orgBabelConfig}" "$out/init.el"
   '';
 in
 {
@@ -55,7 +55,7 @@ in
         flake.inputs.emacs-overlay.overlays.default
         (final: prev: {
           tangle-emacs-org-babel-config = pkgs.writeShellScriptBin "tangle-emacs-org-babel-config" ''
-            ${lib.getExe finalEmacsPackage} --batch --load "${pkgs.flakeFile "byte-compile.el"}" "$@"
+            ${lib.getExe finalEmacsPackage} --batch --load "${config.lib.self.file "byte-compile.el"}" "$@"
           '';
         })
       ];

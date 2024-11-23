@@ -6,29 +6,12 @@ let
   isStandaloneHomeManager = specialArgs ? osConfig && specialArgs.osConfig != null;
 in
 {
-  config = {
-    lib.self = {
-      file = name: pkgs.writeText name (builtins.readFile "${self}/files/${name}");
-      read = name: builtins.readFile "${self}/files/${name}";
-    };
-
-    nixpkgs.overlays = lib.mkIf (isNixOSorDarwin || isStandaloneHomeManager) [
-      (final: prev:
-        let
-          mkMaker = builder: fileName:
-            let
-              bn = builtins.baseNameOf fileName;
-            in
-            if fileName != bn
-            then throw "There should be no directory parts in flakeFile name - '${fileName}'"
-            else builder "${bn}" (builtins.readFile "${self}/files/${bn}");
-        in
-        {
-          flakeReadFile = mkMaker (name: content: content);
-          flakeFile = mkMaker final.writeText;
-          flakeScript = mkMaker final.writeScript;
-          flakeScriptBin = mkMaker final.writeScriptBin;
-        })
-    ];
+  lib.self = let
+    read = name: builtins.readFile "${self}/files/${name}";
+  in {
+    inherit read;
+    file = name: pkgs.writeText name (read name);
+    script = name: pkgs.writeScript name (read name);
+    scriptBin = name: pkgs.writeScriptBin name (read name);
   };
 }

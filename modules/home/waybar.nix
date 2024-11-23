@@ -112,7 +112,7 @@ in
         };
       };
     };
-    style = config.lib.style.template "waybar-style.css" (pkgs.flakeFile "waybar-style.css") {};
+    style = config.lib.style.template "waybar-style.css" (config.lib.self.file "waybar-style.css") {};
   };
 
   home.file.".config/waybar/base16-zenburn.css".source = pkgs.writeText "base16-zenburn.css" (builtins.readFile "${self}/users/base16-zenburn.css");

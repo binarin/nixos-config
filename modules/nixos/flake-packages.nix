@@ -19,7 +19,13 @@ let
   nameToPath = builtins.removeAttrs nameToPathWithSkipped [ "__discard" ];
 
   overlay = final: prev: lib.genAttrs (lib.attrNames nameToPath) (nm:
-    final.callPackage nameToPath."${nm}" { }
+    let
+      fn = import nameToPath."${nm}";
+      packageFn =
+        if (builtins.functionArgs fn) ? "flake"
+        then fn {inherit flake;}
+        else fn;
+    in final.callPackage packageFn {}
   );
 in
 {

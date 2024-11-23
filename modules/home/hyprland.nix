@@ -6,7 +6,7 @@ let
   out-ishamael-edp = "Sharp Corporation 0x1516 Unknown";
   out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
   my-shellevents = pkgs.writeScript "my-shellevents" ''
-    ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe pkgs.shellevents} ${pkgs.flakeFile "hyprland-shellevents.sh"}",nofork
+    ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe pkgs.shellevents} ${config.lib.self.file "hyprland-shellevents.sh"}",nofork
   '';
 
 in {

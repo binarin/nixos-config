@@ -1,4 +1,5 @@
-{ lib, flakeReadFile, writeTextFile, zsh, rxvt-unicode, xxd, ... }:
+{flake, ...}:
+{ lib, writeTextFile, zsh, rxvt-unicode, xxd, ... }:
 let
   runtimeInputs = [
     rxvt-unicode
@@ -13,6 +14,5 @@ writeTextFile {
     #!${lib.getExe zsh}
     export PATH="${lib.makeBinPath runtimeInputs}:$PATH"
 
-  '' + flakeReadFile "sshmenu";
+  '' + (builtins.readFile "${flake.inputs.self}/files/sshmenu");
 }
-
