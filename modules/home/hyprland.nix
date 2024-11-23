@@ -38,6 +38,8 @@ in {
           "[workspace 5 silent; group new] telegram-desktop"
         ];
 
+        # debug.disable_logs = false;
+
         general = {
           gaps_in = 3;
           gaps_out = 5;
@@ -126,11 +128,11 @@ in {
         };
 
         workspace = [
-          "1, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center, default:true"
-          "2, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center"
-          "3, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center"
-          "4, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center"
-          "5, persistent:true, monitor:desc:${out-u4025qw}, layoutopt:orientation:center"
+          "1, persistent:true, monitor:desc:${out-u4025qw}, default:true"
+          "2, persistent:true, monitor:desc:${out-u4025qw}"
+          "3, persistent:true, monitor:desc:${out-u4025qw}"
+          "4, persistent:true, monitor:desc:${out-u4025qw}"
+          "5, persistent:true, monitor:desc:${out-u4025qw}"
 
           "6, persistent:true, monitor:desc:${out-lg-dualup-left}, default:true"
           "7, persistent:true, monitor:desc:${out-lg-dualup-left}"
@@ -142,6 +144,7 @@ in {
         master = {
           always_center_master = true;
           new_status = "inherited";
+          orientation = "master";
         };
 
         windowrulev2 = [
@@ -200,6 +203,7 @@ in {
           "$mod       , V, togglefloating,"
           "$mod       , down, movefocus, d"
           "$mod SHIFT , down, movewindoworgroup, d"
+          "$mod       , grave, layoutmsg, orientationcycle left right top center"
           "$mod       , left, movefocus, l"
           "$mod SHIFT , left, movewindoworgroup, l"
           "$mod       , mouse_down, workspace, e+1"
