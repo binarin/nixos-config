@@ -49,6 +49,7 @@ in {
         };
 
         group = {
+          "group_on_movetoworkspace" = true;
           "col.border_active" = rgb("green_plus_3");
           "col.border_inactive" = rgb("blue_minus_4");
           "col.border_locked_active" = rgb("red_minus_6");
