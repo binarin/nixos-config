@@ -690,26 +690,6 @@
         "type": "github"
       }
     },
-    "nix-darwin": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1730698801,
-        "narHash": "sha256-sq68bCmk4tCXSt5CoRNimfigIZSLJSpNi/gjFtNLjRE=",
-        "owner": "LnL7",
-        "repo": "nix-darwin",
-        "rev": "189d2d422c773fa065cc9c72e6806f007ebb9be0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LnL7",
-        "repo": "nix-darwin",
-        "type": "github"
-      }
-    },
     "nix-index-database": {
       "inputs": {
         "nixpkgs": [
@@ -764,21 +744,6 @@
         "owner": "nix-community",
         "ref": "1.8.0",
         "repo": "nixos-generators",
-        "type": "github"
-      }
-    },
-    "nixos-unified": {
-      "locked": {
-        "lastModified": 1729697921,
-        "narHash": "sha256-gqcmWE+4Vr5/l6AoQc2jIbJHCAXAY+qWPC0ruoAHV1Q=",
-        "owner": "srid",
-        "repo": "nixos-unified",
-        "rev": "e60e64841e74c777799624531dcb2f311f95f639",
-        "type": "github"
-      },
-      "original": {
-        "owner": "srid",
-        "repo": "nixos-unified",
         "type": "github"
       }
     },
@@ -930,10 +895,8 @@
         "home-manager": "home-manager",
         "hyprland": "hyprland",
         "hyprland-contrib": "hyprland-contrib",
-        "nix-darwin": "nix-darwin",
         "nix-index-database": "nix-index-database",
         "nixos-generators": "nixos-generators",
-        "nixos-unified": "nixos-unified",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",

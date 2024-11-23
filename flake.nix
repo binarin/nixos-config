@@ -1,6 +1,6 @@
 {
   inputs = {
-    # Principle inputs (updated by `nix run .#update`)
+    # Principle inputs
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
 
     home-manager.url = "github:nix-community/home-manager/release-24.05";
@@ -45,12 +45,7 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-    nix-darwin.url = "github:LnL7/nix-darwin";
-    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-
     flake-parts.url = "github:hercules-ci/flake-parts";
-
-    nixos-unified.url = "github:srid/nixos-unified";
 
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
@@ -59,8 +54,15 @@
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  # Wired using https://nixos-unified.org/autowiring.html
   outputs = inputs:
-    inputs.nixos-unified.lib.mkFlake
-      { inherit inputs; root = ./.; };
+    let
+      systems = [ "x86_64-linux" ];
+    in inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      inherit systems;
+      imports = [
+        ./modules/flake-parts/autowire.nix
+        ./modules/flake-parts/deploy.nix
+        ./modules/flake-parts/devshell.nix
+      ];
+    };
 }
