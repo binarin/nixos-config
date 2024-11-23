@@ -104,7 +104,6 @@ in
             dnd-none = "";
           };
           return-type = "json";
-          # exec-if = "which swaync-client";
           exec = "${pkgs.swaynotificationcenter}/bin/swaync-client -swb";
           on-click = "${pkgs.swaynotificationcenter}/bin/swaync-client -t -sw";
           on-click-right = "${pkgs.swaynotificationcenter}/bin/swaync-client -d -sw";
@@ -114,6 +113,4 @@ in
     };
     style = config.lib.style.template "waybar-style.css" (config.lib.self.file "waybar-style.css") {};
   };
-
-  home.file.".config/waybar/base16-zenburn.css".source = pkgs.writeText "base16-zenburn.css" (builtins.readFile "${self}/users/base16-zenburn.css");
 }

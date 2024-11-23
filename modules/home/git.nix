@@ -1,4 +1,4 @@
-{ flake, pkgs, ... }:
+{ flake, pkgs, config, ... }:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -23,7 +23,7 @@ in
         "git@github.com:binarin/" = { insteadOf = "gh:"; pushInsteadOf = "gh:"; };
       };
       commit = {
-        template = self + "/users/git-commit-template.txt";
+        template = "${config.lib.self.file "git-commit-template.txt"}";
       };
       "delta \"decorations\"" = {
         commit-decoration-style = "bold yellow box ul";

@@ -295,10 +295,6 @@ in
     brightnessctl-all
   ];
 
-
-  sops.defaultSopsFile = self + "/secrets/valak/secrets.yaml";
-  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-
   sops.secrets."fileserver-samba/username" = { };
   sops.secrets."fileserver-samba/password" = { };
   sops.templates.fileserver-samba-credentials.content = ''

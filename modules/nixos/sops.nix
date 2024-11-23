@@ -1,4 +1,4 @@
-{ flake, config, ... }:
+{ flake, config, pkgs, ... }:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -8,6 +8,8 @@ in
     flake.inputs.sops-nix.nixosModules.sops
   ];
 
-  sops.defaultSopsFile = "${self}/secrets/${config.inventoryHostName}/secrets.yaml";
+  # should be stringified path
+  sops.defaultSopsFile = "${config.lib.self.file' "secrets/${config.inventoryHostName}/secrets.yaml"}";
+
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 }

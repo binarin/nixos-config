@@ -13,5 +13,6 @@ in
     file = name: pkgs.writeText name (read name);
     script = name: pkgs.writeScript name (read name);
     scriptBin = name: pkgs.writeScriptBin name (read name);
+    file' = name: pkgs.writeText (lib.replaceStrings ["/"] ["__"] name) (builtins.readFile "${self}/${name}");
   };
 }

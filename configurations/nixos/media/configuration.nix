@@ -138,7 +138,7 @@ in
   };
 
   sops.secrets.cloudflare-api-key = {
-    sopsFile = "${self}/secrets/webservers.yaml";
+    sopsFile = "${config.lib.self.file' "secrets/webservers.yaml"}";
     restartUnits = [ "caddy.service" ];
   };
 
