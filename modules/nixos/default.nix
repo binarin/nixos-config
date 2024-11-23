@@ -18,6 +18,7 @@ in
     self.nixosModules.use-nix-cache
     self.nixosModules.standard-linux-tools
     self.nixosModules.flake-packages
+    self.nixosModules.impure-nix-setup
     self.nixosModules.keep-nix-build-sources
     self.nixosModules.stylix
     self.nixosModules.firefox

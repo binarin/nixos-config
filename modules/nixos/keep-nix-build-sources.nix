@@ -32,7 +32,7 @@ in {
       ];
     }
     (lib.mkIf config.hostConfig.feature.nix-builder {
-      environment.systemPackages = [ pkgs.flake-all-sources-keeper ];
+      environment.etc."nix/flake-all-sources-keeper".source = "${pkgs.flake-all-sources-keeper}";
       nix.extraOptions = ''
         gc-keep-outputs = true
         gc-keep-derivations = true

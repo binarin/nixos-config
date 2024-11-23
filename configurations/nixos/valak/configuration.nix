@@ -11,7 +11,6 @@ in
     self.nixosModules.server
     self.nixosModules.emacs
     self.nixosModules.hyprland
-    self.nixosModules.impure-nix-setup
     self.nixosModules.large-console-fonts
     inputs.sops-nix.nixosModules.sops
     (self + "/hardware/vfio.nix")
