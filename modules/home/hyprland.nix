@@ -8,7 +8,7 @@ let
   my-shellevents = pkgs.writeScript "my-shellevents" ''
     ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe pkgs.shellevents} ${config.lib.self.file "hyprland-shellevents.sh"}",nofork
   '';
-
+  rgb = color: "rgb(${lib.removePrefix "#" (config.zenburn.colors."${color}")})";
 in {
   config = lib.mkIf (config.hostConfig.feature.hyprland) {
     home.packages = with pkgs; [ walker hyprshot hyprland-per-window-layout shellevents ];
@@ -44,9 +44,21 @@ in {
           border_size = 2;
           resize_on_border = true;
           layout = "master";
+          "col.inactive_border" = rgb("blue_minus_4");
+          "col.active_border" = rgb("green_plus_3");
         };
 
         group = {
+          "col.border_active" = rgb("green_plus_3");
+          "col.border_inactive" = rgb("blue_minus_4");
+          "col.border_locked_active" = rgb("red_minus_6");
+
+          groupbar = {
+            stacked = true;
+            text_color = rgb("fg_plus_2");
+            "col.inactive" = rgb("blue_minus_4");
+            "col.active" = rgb("green_minus_5");
+          };
         };
 
         xwayland = {
@@ -56,6 +68,7 @@ in {
         misc = {
           force_default_wallpaper = 0;
           disable_hyprland_logo = true;
+          background_color = "0x00807F";
         };
 
         decoration = {
@@ -66,7 +79,7 @@ in {
               enabled = true;
               range = 4;
               render_power = 3;
-              # color = rgba(1a1a1aee);
+              color = rgb("bg_minus_1");
           };
           blur = {
               enabled = true;
