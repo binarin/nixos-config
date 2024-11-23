@@ -51,6 +51,9 @@ in
         "media.videocontrols.picture-in-picture.enable-when-switching-tabs.enabled" = true;
         "browser.tabs.closeWindowWithLastTab" = false;
 
+        "privacy.clearOnShutdown_v2.historyFormDataAndDownloads" = false;
+        "privacy.clearOnShutdown_v2.cookiesAndStorage" = false;
+
         # restore last session
         "browser.startup.page" = 3;
         "browser.sessionstore.restore_on_demand" = true;
@@ -72,7 +75,7 @@ in
 
         "browser.tabs.hoverPreview.enabled" = true;
         "sidebar.revamp" = true;
-        "sidebar.verticalTabs" = true;
+        "sidebar.verticalTabs" = false;
         "svg.context-properties.content.enabled" = true;
         "toolkit.tabbox.switchByScrolling" = false;
 
