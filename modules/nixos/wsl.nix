@@ -12,9 +12,12 @@
   config = lib.mkIf config.hostConfig.feature.wsl {
     wsl.defaultUser = lib.mkDefault (lib.elemAt (config.hostConfig.managedUsers) 0);
 
-    # XXX maybe report a bug
-    system.switch.enableNg = lib.mkForce false;
-    system.switch.enable = lib.mkForce true;
+    # XXX remove on 24.11
+    nixpkgs.overlays = [
+      (final: prev: {
+        switch-to-configuration-ng = final.bleeding.switch-to-configuration-ng;
+      })
+    ];
 
     # XXX Guard on 'gui'
     environment.variables.LD_LIBRARY_PATH = "/run/opengl-driver/lib/";
