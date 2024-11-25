@@ -1,6 +1,8 @@
-{ config, lib, ... }:
 {
-  imports = [
-  ];
+  config,
+  lib,
+  ...
+}: {
+  imports = [];
   # services.xserver.enable = true;
 }

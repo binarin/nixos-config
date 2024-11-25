@@ -1,86 +1,111 @@
-{ lib
-, python3Packages
-, fetchPypi
-, wrapGAppsHook4
-
-, addons ? [ ]
-, addAddonsRuntimeDeps ? true
-
+{
+  lib,
+  python3Packages,
+  fetchPypi,
+  wrapGAppsHook4,
+  addons ? [],
+  addAddonsRuntimeDeps ? true,
   # used by a bunch of addons
-, coreutils
-, gnugrep
-, gawk
-, psmisc
-, gnused
-
+  coreutils,
+  gnugrep,
+  gawk,
+  psmisc,
+  gnused,
   # optional, used only when specified via `addons` argument
-, bluez
-, xrandr
+  bluez,
+  xrandr,
   # ,  gsettings # XXX where?
-, xset
+  xset,
   # , zenity # not in 24.05, only in master
-, vlc
-, pulseaudio
-, xdotool
-, wirelesstools
-}@inputs:
+  vlc,
+  pulseaudio,
+  xdotool,
+  wirelesstools,
+} @ inputs: let
+  minimalPythonDeps = ["dasbus"];
+  minimalRuntimeDeps = [
+    "coreutils"
+    "gnugrep"
+    "gawk"
+    "psmisc"
+    "gnused"
+  ];
 
-let
-  minimalPythonDeps = [ "dasbus" ];
-  minimalRuntimeDeps = [ "coreutils" "gnugrep" "gawk" "psmisc" "gnused" ];
+  haveMinimalPythonDeps = {pythonDeps ? [], ...}:
+    builtins.all (d: builtins.elem d minimalPythonDeps) pythonDeps;
+  haveMinimalRuntimeDeps = {runtimeDeps ? [], ...}:
+    builtins.all (d: builtins.elem d minimalRuntimeDeps) runtimeDeps;
 
-  haveMinimalPythonDeps = { pythonDeps ? [ ], ... }: builtins.all (d: builtins.elem d minimalPythonDeps) pythonDeps;
-  haveMinimalRuntimeDeps = { runtimeDeps ? [ ], ... }: builtins.all (d: builtins.elem d minimalRuntimeDeps) runtimeDeps;
+  canEnableByDefault = {
+    broken ? false,
+    variants ? {},
+    systemDeps ? [],
+    ...
+  } @ meta:
+    !broken
+    && builtins.length systemDeps == 0
+    && builtins.length (builtins.attrNames variants) == 0
+    && haveMinimalPythonDeps meta
+    && haveMinimalRuntimeDeps meta;
 
-  canEnableByDefault = { broken ? false, variants ? { }, systemDeps ? [ ], ... }@meta:
-    !broken &&
-    builtins.length systemDeps == 0 &&
-    builtins.length (builtins.attrNames variants) == 0 &&
-    haveMinimalPythonDeps meta &&
-    haveMinimalRuntimeDeps meta;
-
-  addonsMeta = builtins.mapAttrs (nm: meta: meta // { default = canEnableByDefault meta; }) {
+  addonsMeta = builtins.mapAttrs (nm: meta: meta // {default = canEnableByDefault meta;}) {
     "active_window" = {
-      pythonDeps = [ "ewmh" "python-xlib" ];
+      pythonDeps = [
+        "ewmh"
+        "python-xlib"
+      ];
     };
     "audio_select" = {
-      pythonDeps = [ "pulsectl" ];
+      pythonDeps = ["pulsectl"];
     };
-    "bash" = { };
+    "bash" = {};
     "battery" = {
-      pythonDeps = [ "dasbus" ];
+      pythonDeps = ["dasbus"];
     };
     "bluetooth" = {
-      runtimeDeps = [ "bluez" ];
+      runtimeDeps = ["bluez"];
     };
     "boot_select" = {
-      systemDeps = [ "grub2" ]; # grub2_efi grub2_xen
+      systemDeps = ["grub2"]; # grub2_efi grub2_xen
     };
     "brightness" = {
-      runtimeDeps = [ "xrandr" ];
+      runtimeDeps = ["xrandr"];
     };
     "camera_used" = {
-      runtimeDeps = [ "psmisc" ];
+      runtimeDeps = ["psmisc"];
     };
     "cpu" = {
-      runtimeDeps = [ "gnugrep" "gawk" "coreutils" ];
+      runtimeDeps = [
+        "gnugrep"
+        "gawk"
+        "coreutils"
+      ];
     };
-    "disk_io" = { };
-    "disk_usage" = { };
+    "disk_io" = {};
+    "disk_usage" = {};
     "display_env" = {
-      runtimeDeps = [ "gnused" "coreutils" ];
+      runtimeDeps = [
+        "gnused"
+        "coreutils"
+      ];
     };
     "docker" = {
-      pythonDeps = [ "docker" ];
+      pythonDeps = ["docker"];
     };
     "fullscreen" = {
-      pythonDeps = [ "ewmh" "python-xlib" ];
+      pythonDeps = [
+        "ewmh"
+        "python-xlib"
+      ];
     };
     "gamepad" = {
-      runtimeDeps = [ "coreutils" "gnugrep" ];
+      runtimeDeps = [
+        "coreutils"
+        "gnugrep"
+      ];
     };
     "gpio" = {
-      pythonDeps = [ "rpi-gpio" ];
+      pythonDeps = ["rpi-gpio"];
     };
     "gpu" = {
       variants = {
@@ -95,16 +120,16 @@ let
             "nvitop" # XXX standalone python app, can I use it as a dep?
             "nvsmi" # XXX not in nixpkgs
           ];
-          systemDeps = [ "nvidia-settings" ];
+          systemDeps = ["nvidia-settings"];
           broken = true;
         };
       };
     };
     "idle" = {
-      pythonDeps = [ "dbus-idle" ];
+      pythonDeps = ["dbus-idle"];
     };
-    "inference_time" = { };
-    "interfaces" = { };
+    "inference_time" = {};
+    "interfaces" = {};
     "ir_remote" = {
       missingPythonDeps = [
         "pigpio" # XXX not in nixpkgs
@@ -112,123 +137,134 @@ let
       broken = true;
     };
     "keep_alive" = {
-      runtimeDeps = [ "gsettings" "xset" ];
+      runtimeDeps = [
+        "gsettings"
+        "xset"
+      ];
     };
     "keyboard_hotkeys" = {
-      pythonDeps = [ "xlib-hotkeys" ];
-      runtimeDeps = [ "zenity" ];
+      pythonDeps = ["xlib-hotkeys"];
+      runtimeDeps = ["zenity"];
     };
     "media" = {
       broken = true;
-      missingPythonDeps = [ "pyalsaudio" "dbus-mediaplayer" ];
-      runtimeDeps = [ "vlc" ];
+      missingPythonDeps = [
+        "pyalsaudio"
+        "dbus-mediaplayer"
+      ];
+      runtimeDeps = ["vlc"];
     };
-    "memory" = { };
+    "memory" = {};
     "microphone_used" = {
-      runtimeDeps = [ "pulseaudio" ];
+      runtimeDeps = ["pulseaudio"];
     };
     "mounts" = {
-      pythonDeps = [ "pygobject3" ];
-      runtimeDeps = [ "coreutils" ];
+      pythonDeps = ["pygobject3"];
+      runtimeDeps = ["coreutils"];
     };
     "mouse" = {
-      runtimeDeps = [ "xdotool" ];
+      runtimeDeps = ["xdotool"];
     };
-    "network" = { };
+    "network" = {};
     "notify" = {
       broken = true;
-      missingPythonDeps = [ "dbus-notification" ];
+      missingPythonDeps = ["dbus-notification"];
     };
     "power_profile" = {
-      systemDeps = [ "powerprofilesctl" ];
+      systemDeps = ["powerprofilesctl"];
     };
-    "required_restart" = { };
+    "required_restart" = {};
     "restart" = {
-      pythonDeps = [ "dasbus" ];
-      systemDeps = [ "systemd" ];
+      pythonDeps = ["dasbus"];
+      systemDeps = ["systemd"];
     };
     "restful" = {
-      pythonDeps = [ "flask" "waitress" ];
+      pythonDeps = [
+        "flask"
+        "waitress"
+      ];
     };
     "screen_onoff" = {
-      runtimeDeps = [ "xset" ];
+      runtimeDeps = ["xset"];
     };
     "screenshot" = {
-      pythonDeps = [ "opencv4" "mss" "numpy" ];
+      pythonDeps = [
+        "opencv4"
+        "mss"
+        "numpy"
+      ];
     };
     "send_keys" = {
-      runtimeDeps = [ "xdotool" ];
+      runtimeDeps = ["xdotool"];
     };
     "shutdown" = {
-      pythonDeps = [ "dasbus" ];
-      systemDeps = [ "systemd" ];
+      pythonDeps = ["dasbus"];
+      systemDeps = ["systemd"];
     };
     "speaker_used" = {
-      runtimeDeps = [ "pulseaudio" ];
+      runtimeDeps = ["pulseaudio"];
     };
     "speech_recognition" = {
       broken = true;
-      pythonDeps = [
-        "speechrecognition"
-      ];
-      missingPythonDeps = [
-        "pyalsaaudio"
-      ];
+      pythonDeps = ["speechrecognition"];
+      missingPythonDeps = ["pyalsaaudio"];
     };
-    "statistics" = { };
+    "statistics" = {};
     "steam" = {
-      pythonDeps = [ "vdf" ];
-      systemDeps = [ "steam" ];
+      pythonDeps = ["vdf"];
+      systemDeps = ["steam"];
     };
     "suspend" = {
-      systemDeps = [ "systemd" ];
+      systemDeps = ["systemd"];
     };
-    "sys_updates" = { };
+    "sys_updates" = {};
     "systemd" = {
-      pythonDeps = [ "dasbus" ];
-      systemDeps = [ "sudo" ];
+      pythonDeps = ["dasbus"];
+      systemDeps = ["sudo"];
     };
-    "temperature" = { };
+    "temperature" = {};
     "update" = {
       broken = true;
       # runtimeDeps = [ "git" ]; # but no reason to enable for nix-ified package
     };
     "webcam" = {
-      pythonDeps = [ "opencv4" ];
+      pythonDeps = ["opencv4"];
     };
     "wifi" = {
       broken = true;
-      missingPythonDeps = [ "dbus-networkdevices" ];
-      runtimeDeps = [ "coreutils" "wirelesstools" ];
+      missingPythonDeps = ["dbus-networkdevices"];
+      runtimeDeps = [
+        "coreutils"
+        "wirelesstools"
+      ];
     };
     "xdg_open" = {
-      runtimeDeps = [ "xdg-utils" ];
+      runtimeDeps = ["xdg-utils"];
     };
   };
 
   allAddonNames = builtins.attrNames addonsMeta; # XXX expand variants also
 
-  getMeta = nm:
-    let
-      parts = builtins.split "#" nm;
-      meta = builtins.getAttr nm addonsMeta;
-    in
+  getMeta = nm: let
+    parts = builtins.split "#" nm;
+    meta = builtins.getAttr nm addonsMeta;
+  in
     if (builtins.length parts) == 1
     then meta
     else builtins.getAttr (builtins.elemAt parts 2) meta.variants;
 
   defaultAddons = builtins.filter (nm: addonsMeta."${nm}".default) (builtins.attrNames addonsMeta);
 
-  addonPythonDeps = nm:
-    let
-      fun = { pythonDeps ? [ ], ... }: pythonDeps;
-    in
+  addonPythonDeps = nm: let
+    fun = {pythonDeps ? [], ...}:
+      pythonDeps;
+  in
     fun (getMeta nm);
 
-  addonRuntimeDeps = nm:
-    let
-      fun = { runtimeDeps ? [ ], ... }: runtimeDeps;
-    in
+  addonRuntimeDeps = nm: let
+    fun = {runtimeDeps ? [], ...}:
+      runtimeDeps;
+  in
     fun (getMeta nm);
 
   enabledAddons = defaultAddons ++ addons;
@@ -239,62 +275,63 @@ let
 
   pythonDepsNames = builtins.concatMap addonPythonDeps enabledAddons;
   extraPythonDeps = builtins.map (lib.flip builtins.getAttr python3Packages) pythonDepsNames;
-
 in
-python3Packages.buildPythonApplication rec {
-  pname = "lnxlink";
-  version = "2024.11.0";
-  pyproject = true;
+  python3Packages.buildPythonApplication rec {
+    pname = "lnxlink";
+    version = "2024.11.0";
+    pyproject = true;
 
-  src = fetchPypi {
-    inherit pname version;
-    hash = "sha256-ehwKlVJ0kAj3d7Zq7w+yk0pP6yVUEHghG5MOihMoQHM=";
-  };
-
-  postPatch = ''
-    substituteInPlace pyproject.toml \
-      --replace-fail "setuptools~=68.0.0" "setuptools" \
-      --replace-fail "wheel~=0.40.0" "wheel"
-  '';
-
-  nativeBuildInputs = [
-    wrapGAppsHook4
-    python3Packages.setuptools
-    python3Packages.wheel
-  ];
-
-  dontWrapGApps = true;
-
-  preFixup = ''
-    makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
-    makeWrapperArgs+=(--prefix PATH : "${runtimePath}")
-  '';
-
-  propagatedBuildInputs = with python3Packages; [
-    pygobject3
-
-    # from pyproject.toml
-    pyyaml
-    requests
-    distro
-    paho-mqtt
-    jc
-    psutil
-    inotify
-
-    # installed anyway by system_monitor (not addon, but a core part)
-    dasbus
-  ] ++ extraPythonDeps;
-
-  meta = with lib; {
-    description = "Effortlessly manage your Linux machine using MQTT.";
-    homepage = "https://github.com/bkbilly/lnxlink";
-    license = licenses.mit;
-    mainProgram = "lnxlink";
-    addons = {
-      allNames = allAddonNames;
-      inherit getMeta;
-      # XXX variant handling?
+    src = fetchPypi {
+      inherit pname version;
+      hash = "sha256-ehwKlVJ0kAj3d7Zq7w+yk0pP6yVUEHghG5MOihMoQHM=";
     };
-  };
-}
+
+    postPatch = ''
+      substituteInPlace pyproject.toml \
+        --replace-fail "setuptools~=68.0.0" "setuptools" \
+        --replace-fail "wheel~=0.40.0" "wheel"
+    '';
+
+    nativeBuildInputs = [
+      wrapGAppsHook4
+      python3Packages.setuptools
+      python3Packages.wheel
+    ];
+
+    dontWrapGApps = true;
+
+    preFixup = ''
+      makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
+      makeWrapperArgs+=(--prefix PATH : "${runtimePath}")
+    '';
+
+    propagatedBuildInputs = with python3Packages;
+      [
+        pygobject3
+
+        # from pyproject.toml
+        pyyaml
+        requests
+        distro
+        paho-mqtt
+        jc
+        psutil
+        inotify
+
+        # installed anyway by system_monitor (not addon, but a core part)
+        dasbus
+      ]
+      ++ extraPythonDeps;
+
+    meta = with lib; {
+      description = "Effortlessly manage your Linux machine using MQTT.";
+      homepage = "https://github.com/bkbilly/lnxlink";
+      license = licenses.mit;
+      mainProgram = "lnxlink";
+      addons = {
+        allNames = allAddonNames;
+        inherit getMeta;
+        # XXX variant handling?
+      };
+    };
+  }

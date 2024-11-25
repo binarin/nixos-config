@@ -1,6 +1,11 @@
-{ stdenvNoCC, fetchurl, unzip, lib, ... }:
-
-stdenvNoCC.mkDerivation (rec {
+{
+  stdenvNoCC,
+  fetchurl,
+  unzip,
+  lib,
+  ...
+}:
+stdenvNoCC.mkDerivation rec {
   pname = "victoriametrics-datasource";
   version = "v0.10.1";
 
@@ -10,11 +15,11 @@ stdenvNoCC.mkDerivation (rec {
     url = "https://github.com/VictoriaMetrics/victoriametrics-datasource/releases/download/${version}/victoriametrics-datasource-${version}.zip";
   };
 
-  nativeBuildInputs = [ unzip ];
+  nativeBuildInputs = [unzip];
 
   installPhase = ''
     cp -R "." "$out"
     chmod -R a-w "$out"
     chmod u+w "$out"
   '';
-})
+}

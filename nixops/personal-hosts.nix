@@ -160,7 +160,6 @@
     pihole = {
       ip = "192.168.2.28";
     };
-
   };
 
   pi4-kodi = {
@@ -188,7 +187,7 @@
     lan = {
       ip = "192.168.2.1";
     };
-    searchDomains = [ "localdomain" ];
+    searchDomains = ["localdomain"];
     domain = "localdomain";
   };
 

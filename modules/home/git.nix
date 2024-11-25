@@ -1,9 +1,12 @@
-{ flake, pkgs, config, ... }:
-let
+{
+  flake,
+  pkgs,
+  config,
+  ...
+}: let
   inherit (flake) inputs;
   inherit (inputs) self;
-in
-{
+in {
   home.shellAliases = {
     g = "git";
     # lg = "lazygit";
@@ -20,7 +23,10 @@ in
         autocrlf = false;
       };
       url = {
-        "git@github.com:binarin/" = { insteadOf = "gh:"; pushInsteadOf = "gh:"; };
+        "git@github.com:binarin/" = {
+          insteadOf = "gh:";
+          pushInsteadOf = "gh:";
+        };
       };
       commit = {
         template = "${config.lib.self.file "git-commit-template.txt"}";

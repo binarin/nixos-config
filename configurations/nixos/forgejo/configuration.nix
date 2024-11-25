@@ -1,40 +1,45 @@
 # -*- nix -*-
-{ flake, config, lib, pkgs, inputs, ... }:
-let
+{
+  flake,
+  config,
+  lib,
+  pkgs,
+  inputs,
+  ...
+}: let
   inherit (flake) inputs;
   inherit (inputs) self;
   forgejoPackage = pkgs.bleeding.forgejo-lts;
-in
-{
+in {
   imports = [
     self.nixosModules.server
 
     {
       # use forgejo module from nixpkgs-master (and the compatible version of forgejo itself)
-      disabledModules = [ "services/misc/forgejo.nix" ];
-      imports = [ "${inputs.nixpkgs-unstable}/nixos/modules/services/misc/forgejo.nix" ];
+      disabledModules = ["services/misc/forgejo.nix"];
+      imports = ["${inputs.nixpkgs-unstable}/nixos/modules/services/misc/forgejo.nix"];
       nixpkgs.overlays = [
         (final: prev: {
           forgejo = prev.bleeding.forgejo-lts;
           forgejo-lts = prev.bleeding.forgejo-lts;
         })
       ];
-
     }
   ];
 
   hostConfig.feature.bleeding = lib.mkForce true;
 
-  sops.secrets.tailscale-auth = { };
+  sops.secrets.tailscale-auth = {};
   services.tailscale = {
     enable = true;
     authKeyFile = "${config.sops.secrets.tailscale-auth.path}";
-    extraUpFlags = [ "--hostname" "${config.networking.hostName}" ];
+    extraUpFlags = [
+      "--hostname"
+      "${config.networking.hostName}"
+    ];
   };
 
-  environment.systemPackages = with pkgs; [
-    emacs-nox
-  ];
+  environment.systemPackages = with pkgs; [emacs-nox];
 
   nix.gc = {
     automatic = true;
@@ -42,8 +47,8 @@ in
     options = "--delete-older-than 30d";
   };
 
-  sops.secrets.smtp2go-username = { };
-  sops.secrets.smtp2go-password = { };
+  sops.secrets.smtp2go-username = {};
+  sops.secrets.smtp2go-password = {};
 
   users.users.git = {
     home = config.services.forgejo.stateDir;

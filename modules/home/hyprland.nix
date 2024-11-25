@@ -1,5 +1,10 @@
-{flake, config, pkgs, lib, ...}:
-let
+{
+  flake,
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   out-u4025qw = "Dell Inc. DELL U4025QW J7Q6FP3";
   out-lg-dualup-left = "LG Electronics LG SDQHD 311NTQDAC572";
   out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
@@ -10,12 +15,39 @@ let
   '';
   rgb = color: "rgb(${lib.removePrefix "#" (config.zenburn.colors."${color}")})";
 in {
-  config = lib.mkIf (config.hostConfig.feature.hyprland) {
-    home.packages = with pkgs; [ walker hyprshot hyprland-per-window-layout shellevents ];
+  config = lib.mkIf config.hostConfig.feature.hyprland {
+    home.sessionVariables = {
+      # Fix for some Java AWT applications (e.g. Android Studio),
+      # use this if they aren't displayed properly:
+      "_JAVA_AWT_WM_NONREPARENTING" = "1";
+    };
+    home.packages = with pkgs; [
+      ddcutil
+      fuzzel
+      hyprland-per-window-layout
+      hyprshot
+      kanshi
+      networkmanagerapplet
+      shellevents
+      sshmenu
+      swaynotificationcenter
+      walker
+      wl-clipboard
+    ];
+    xsession.preferStatusNotifierItems = true;
+    services.gpg-agent = {
+      enable = true;
+      defaultCacheTtl = 3600;
+      maxCacheTtl = 14400;
+      extraConfig = ''
+        allow-preset-passphrase
+      '';
+      #pinentryFlavor = "gtk2";
+      pinentryPackage = pkgs.pinentry-gtk2;
+    };
     wayland.windowManager.hyprland = {
       enable = true;
       settings = {
-
         "$terminal" = "foot";
         "$menu" = "walker";
         "$fileManager" = "dolphin";
@@ -46,21 +78,21 @@ in {
           border_size = 2;
           resize_on_border = true;
           layout = "master";
-          "col.inactive_border" = rgb("blue_minus_4");
-          "col.active_border" = rgb("green_plus_3");
+          "col.inactive_border" = rgb "blue_minus_4";
+          "col.active_border" = rgb "green_plus_3";
         };
 
         group = {
           "group_on_movetoworkspace" = true;
-          "col.border_active" = rgb("green_plus_3");
-          "col.border_inactive" = rgb("blue_minus_4");
-          "col.border_locked_active" = rgb("red_minus_6");
+          "col.border_active" = rgb "green_plus_3";
+          "col.border_inactive" = rgb "blue_minus_4";
+          "col.border_locked_active" = rgb "red_minus_6";
 
           groupbar = {
             stacked = true;
-            text_color = rgb("fg_plus_2");
-            "col.inactive" = rgb("blue_minus_4");
-            "col.active" = rgb("green_minus_5");
+            text_color = rgb "fg_plus_2";
+            "col.inactive" = rgb "blue_minus_4";
+            "col.active" = rgb "green_minus_5";
           };
         };
 
@@ -79,16 +111,16 @@ in {
           active_opacity = 1.0;
           inactive_opacity = 1.0;
           shadow = {
-              enabled = true;
-              range = 4;
-              render_power = 3;
-              color = rgb("bg_minus_1");
+            enabled = true;
+            range = 4;
+            render_power = 3;
+            color = rgb "bg_minus_1";
           };
           blur = {
-              enabled = true;
-              size = 3;
-              passes = 1;
-              vibrancy = 0.1696;
+            enabled = true;
+            size = 3;
+            passes = 1;
+            vibrancy = 0.1696;
           };
         };
 
@@ -218,6 +250,189 @@ in {
         bindm = [
           "$mod, mouse:272, movewindow"
           "$mod, mouse:273, resizewindow"
+        ];
+      };
+    };
+    services.kanshi = {
+      enable = true;
+      # package = pkgs.kanshi; # at least 1.3.1
+      systemdTarget = "hyprland-session.target";
+      settings = [
+        {
+          profile = {
+            name = "ishamael-uw";
+            outputs = [
+              {
+                criteria = out-c49rg90;
+                mode = "5120x1440";
+                status = "enable";
+              }
+              {
+                criteria = out-ishamael-edp;
+                status = "disable";
+              }
+            ];
+          };
+        }
+        {
+          profile = {
+            name = "ishamael-internal";
+            outputs = [
+              {
+                criteria = out-ishamael-edp;
+                status = "enable";
+                mode = "3840x2400";
+              }
+            ];
+          };
+        }
+        # {
+        #   profile = {
+        #     name = "valak";
+        #     outputs = [
+        #       {
+        #         criteria = out-lg-dualup-left;
+        #         status = "enable";
+        #         mode = "2560x2880@60Hz";
+        #         position = "0,0";
+        #       }
+        #       {
+        #         criteria = out-u4025qw;
+        #         status = "enable";
+        #         mode = "5120x2160@120Hz";
+        #         position = "2560,332";
+        #       }
+        #       {
+        #         criteria = out-lg-dualup-right;
+        #         status = "enable";
+        #         mode = "2560x2880@60Hz";
+        #         position = "7680,0";
+        #       }
+        #     ];
+        #   };
+        # }
+        {
+          profile = {
+            name = "valak-hidpi";
+            outputs = [
+              {
+                criteria = out-lg-dualup-left;
+                status = "enable";
+                mode = "2560x2880@60Hz";
+                position = "0,0";
+                scale = 2.0;
+              }
+              {
+                criteria = out-u4025qw;
+                status = "enable";
+                mode = "5120x2160@120Hz";
+                position = "1280,165";
+                scale = 2.0;
+              }
+              {
+                criteria = out-lg-dualup-right;
+                status = "enable";
+                mode = "2560x2880@60Hz";
+                position = "3840,0";
+                scale = 2.0;
+              }
+            ];
+          };
+        }
+      ];
+    };
+
+    systemd.user.services.swaync = {
+      Unit = {
+        PartOf = ["graphical-session.target"];
+      };
+
+      Service = {
+        Type = "simple";
+        ExecStart = "${pkgs.swaynotificationcenter}/bin/swaync";
+      };
+
+      Install = {
+        WantedBy = ["hyprland-session.target"];
+      };
+    };
+
+    home.file.".config/swaync/config.json".text = ''
+      {
+        "scripts": {
+        }
+      }
+    '';
+
+    xdg.dataFile."dbus-1/services/org.freedesktop.secrets.service".text = ''
+      [D-BUS Service]
+      Name=org.freedesktop.secrets
+      Exec=${lib.getBin pkgs.plasma5Packages.kwallet}/bin/kwalletd5
+    '';
+
+    programs.hyprlock = {
+      enable = true;
+      settings = {
+        general = {
+          disable_loading_bar = true;
+          grace = 30;
+          hide_cursor = true;
+          ignore_empty_input = true;
+        };
+
+        background = [
+          {
+            path = "screenshot";
+            blur_passes = 3;
+            blur_size = 8;
+          }
+        ];
+
+        input-field = with config.lib.stylix.colors; [
+          {
+            size = "200, 50";
+            position = "0, -80";
+            monitor = "";
+            dots_center = true;
+            fade_on_empty = false;
+            outer_color = "rgb(${base03})";
+            inner_color = "rgb(${base00})";
+            font_color = "rgb(${base05})";
+            fail_color = "rgb(${base08})";
+            check_color = "rgb(${base0A})";
+            outline_thickness = 5;
+            placeholder_text = ''<span foreground="#${withHashtag.base06}">Password...</span>'';
+            shadow_passes = 2;
+          }
+        ];
+      };
+    };
+
+    services.hypridle = {
+      enable = true;
+      settings = {
+        general = {
+          lock_cmd = "pidof hyprlock || hyprlock"; # avoid starting multiple hyprlock instances.
+          before_sleep_cmd = "loginctl lock-session"; # lock before suspend.
+          after_sleep_cmd = "hyprctl dispatch dpms on"; # to avoid having to press a key twice to turn on the display.
+        };
+        listener = [
+          {
+            timeout = 150; # 2.5min.
+            on-timeout = "brightnessctl-all -s set 10"; # set monitor backlight to minimum, avoid 0 on OLED monitor.
+            on-resume = "brightnessctl-all -r"; # monitor backlight restore.
+          }
+
+          {
+            timeout = 300; # 5min
+            on-timeout = "loginctl lock-session"; # lock screen when timeout has passed
+          }
+
+          {
+            timeout = "330"; # 5.5min
+            on-timeout = "hyprctl dispatch dpms off"; # screen off when timeout has passed
+            on-resume = "hyprctl dispatch dpms on"; # screen on when activity is detected after timeout has fired.
+          }
         ];
       };
     };

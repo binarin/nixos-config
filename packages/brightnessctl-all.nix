@@ -1,7 +1,15 @@
-{ writeShellApplication, brightnessctl, coreutils, ... }:
+{
+  writeShellApplication,
+  brightnessctl,
+  coreutils,
+  ...
+}:
 writeShellApplication {
   name = "brightnessctl-all";
-  runtimeInputs = [ brightnessctl coreutils ];
+  runtimeInputs = [
+    brightnessctl
+    coreutils
+  ];
   text = ''
     mapfile -t all < <(brightnessctl -l -c backlight -m | cut -d , -f1)
     exit_code=0

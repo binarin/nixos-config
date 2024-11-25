@@ -1,33 +1,22 @@
 # Edit this configuration file to define what should be installed on
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
-
 # NixOS-WSL specific options are documented on the NixOS-WSL repository:
 # https://github.com/nix-community/NixOS-WSL
-
-{ flake, config, lib, pkgs, ... }:
-
 {
+  flake,
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
   imports = [
     # include NixOS-WSL modules
     flake.inputs.nixos-wsl.nixosModules.default
     flake.inputs.self.nixosModules.vscode-remote-workaround
   ];
 
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
   environment.variables.EDITOR = "emacs -nw";
-  wsl.enable = true;
-  wsl.defaultUser = "binarin";
-  wsl.useWindowsDriver = true;
-  wsl.startMenuLaunchers = true;
-  wsl.usbip.enable = true;
-
-  environment.systemPackages = with pkgs; [
-    wslu
-  ];
-
-  vscode-remote-workaround.enable = true;
 
   services.tailscale.enable = true;
 

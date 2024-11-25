@@ -1,11 +1,16 @@
-{ flake, config, pkgs, ... }:
-let
+{
+  flake,
+  config,
+  pkgs,
+  ...
+}: let
   inherit (flake) inputs;
   inherit (inputs) self;
-in
-{
+in {
+  imports = [inputs.sops-nix.homeManagerModules.sops];
+
   sops = {
     age.keyFile = "${config.home.homeDirectory}/.config/age/nixos-config-keys.txt";
-    defaultSopsFile = "${config.lib.self.file' "secrets/${config.inventoryHostName}/user-${config.home.username}.yaml"}";
+    defaultSopsFile = config.lib.self.optionalFile' "secrets/${config.inventoryHostName}/user-${config.home.username}.yaml";
   };
 }

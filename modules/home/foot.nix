@@ -1,5 +1,9 @@
-{ config, lib, pkgs, ... }:
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
   config = lib.mkIf config.hostConfig.feature.wayland {
     programs.foot = lib.mkIf (config.hostConfig.feature.wayland) {
       enable = true;

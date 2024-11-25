@@ -1,10 +1,14 @@
-{ flake, pkgs, lib, config, ... }:
-
-let
+{
+  flake,
+  pkgs,
+  lib,
+  config,
+  ...
+}: let
   inherit (flake) inputs;
   inherit (inputs) self;
   cfg = config.services.lnxlink;
-  yaml = pkgs.formats.yaml { };
+  yaml = pkgs.formats.yaml {};
 
   passwordPlaceholder = "@MQTT_PASSWORD@";
 
@@ -12,34 +16,28 @@ let
 
   moduleNameType = lib.types.enum allAddons;
 
-  passwordFileType = with lib; mkOptionType {
-    name = "passwordFile";
-    description = "Path to a password file - outside of nix store";
-    descriptionClass = "noun";
-    check = x: !(isStorePath x);
-    merge = lib.mergeEqualOption;
-  };
+  passwordFileType = with lib;
+    mkOptionType {
+      name = "passwordFile";
+      description = "Path to a password file - outside of nix store";
+      descriptionClass = "noun";
+      check = x: !(isStorePath x);
+      merge = lib.mergeEqualOption;
+    };
 
-  mqttModule = with lib; types.submodule {
-    options = {
-      clientId = mkOption {
-        type = types.str;
-      };
-      server = mkOption {
-        type = types.str;
-      };
-      port = mkOption {
-        type = types.port;
-        default = 1883;
-      };
-      user = mkOption {
-        type = types.str;
-      };
-      passwordFile = mkOption {
-        type = passwordFileType;
+  mqttModule = with lib;
+    types.submodule {
+      options = {
+        clientId = mkOption {type = types.str;};
+        server = mkOption {type = types.str;};
+        port = mkOption {
+          type = types.port;
+          default = 1883;
+        };
+        user = mkOption {type = types.str;};
+        passwordFile = mkOption {type = passwordFileType;};
       };
     };
-  };
 
   settings = {
     update_interval = 5;
@@ -48,8 +46,7 @@ let
     hass_api = null;
     modules = enabledAddonsNames;
     custom_modules = null;
-    exclude = [
-    ];
+    exclude = [];
     mqtt = {
       prefix = "lnxlink";
       clientId = cfg.mqtt.clientId;
@@ -80,8 +77,8 @@ let
       };
       hotkeys = null;
       disk_usage = {
-        include_disks = [ ];
-        exclude_disks = [ ];
+        include_disks = [];
+        exclude_disks = [];
       };
       statistics = "https://analyzer.bkbilly.workers.dev"; # XXX ?
       bash = {
@@ -90,12 +87,12 @@ let
       };
       mounts = {
         autocheck = false;
-        directories = [ ];
+        directories = [];
       };
       ir_remote = {
         receiver = null;
         transmitter = null;
-        buttons = [ ];
+        buttons = [];
       };
       restful = {
         port = 8112;
@@ -114,50 +111,60 @@ let
     ${lib.getExe pkgs.replace-secret} '${passwordPlaceholder}' "$password_file" "$target_file"
   '';
 
-  addonOptions = nm:
-    let
-      meta = cfg.package.meta.addons.getMeta nm;
-      variants = ({ variants ? { }, ... }: builtins.attrNames variants) meta;
-      maybeVariantOption =
-        if (builtins.length variants > 0)
-        then {
-          variant = with lib; mkOption {
+  addonOptions = nm: let
+    meta = cfg.package.meta.addons.getMeta nm;
+    variants =
+      (
+        {variants ? {}, ...}:
+          builtins.attrNames variants
+      )
+      meta;
+    maybeVariantOption =
+      if (builtins.length variants > 0)
+      then {
+        variant = with lib;
+          mkOption {
             type = types.enum variants;
             default = null;
             description = ''
               Which variant of this addon to enable (e.g. 'amd' or 'nvidia' for 'gpu' addon).
             '';
           };
-        }
-        else { };
-    in
-    {
-      name = nm;
-      value = {
+      }
+      else {};
+  in {
+    name = nm;
+    value =
+      {
         enable = lib.mkEnableOption "Enable addon ${nm}";
-      } // maybeVariantOption;
-    };
+      }
+      // maybeVariantOption;
+  };
 
   enabledAddonsNames = builtins.filter (x: cfg.addons."${x}".enable) allAddons;
 
   # XXX variants
-  finalPackage = cfg.package.override { addons = enabledAddonsNames; };
-
-in
-{
+  finalPackage = cfg.package.override {addons = enabledAddonsNames;};
+in {
   options.services.lnxlink = {
     enable = lib.mkEnableOption "Enable LNXlink - linux integration for MQTT/Home Assistant";
 
     addons = builtins.listToAttrs (builtins.map addonOptions allAddons);
 
     logLevel = lib.mkOption {
-      type = lib.types.enum [ "DEBUG" "INFO" "WARNING" "ERROR" "CRITICAL" ];
+      type = lib.types.enum [
+        "DEBUG"
+        "INFO"
+        "WARNING"
+        "ERROR"
+        "CRITICAL"
+      ];
       default = "INFO";
     };
 
     mqtt = lib.mkOption {
       type = mqttModule;
-      default = { };
+      default = {};
       example = lib.literalExpression ''
         {
           user = "<username>";
@@ -168,46 +175,56 @@ in
       '';
     };
 
-    configFile = with lib; mkOption {
-      type = types.either types.str types.path;
-      default = "${config.xdg.configHome}/lnxlink/config.yaml";
-      defaultText = "$XDG_CONFIG_HOME/lnxlink/config.yaml";
-      description = ''
-        Path to the configuration file read by lnxlink (with passwords expanded).
-      '';
-    };
+    configFile = with lib;
+      mkOption {
+        type = types.either types.str types.path;
+        default = "${config.xdg.configHome}/lnxlink/config.yaml";
+        defaultText = "$XDG_CONFIG_HOME/lnxlink/config.yaml";
+        description = ''
+          Path to the configuration file read by lnxlink (with passwords expanded).
+        '';
+      };
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.callPackage "${self}/packages/lnxlink.nix" { };
+      default = pkgs.callPackage "${self}/packages/lnxlink.nix" {};
     };
 
-    daemonPath = with lib; mkOption {
-      default = [
-        pkgs.coreutils
-      ];
-      type = with types; listOf (oneOf [ package str ]);
-      description = ''
-        Packages added to the service's {env}`PATH`
-        environment variable.  Both the {file}`bin`
-        and {file}`sbin` subdirectories of each
-        package are added.
-      '';
-    };
+    daemonPath = with lib;
+      mkOption {
+        default = [pkgs.coreutils];
+        type = with types;
+          listOf (oneOf [
+            package
+            str
+          ]);
+        description = ''
+          Packages added to the service's {env}`PATH`
+          environment variable.  Both the {file}`bin`
+          and {file}`sbin` subdirectories of each
+          package are added.
+        '';
+      };
   };
 
-  config = lib.mkIf cfg.enable ({
+  config = lib.mkIf cfg.enable {
     # XXX assertions = [ <variant-is-chosen-for-enabled-modules-with-variants>  ];
 
     systemd.user.services.lnxlink = {
       Unit = {
         Description = "LNXlink";
-        After = [ "network-online.target" "multi-user.target" "graphical.target" ];
-        PartOf = [ "graphical-session.target" ];
+        After = [
+          "network-online.target"
+          "multi-user.target"
+          "graphical.target"
+        ];
+        PartOf = ["graphical-session.target"];
       };
 
       Service = {
-        Environment = [ ''PATH="${lib.makeBinPath cfg.daemonPath}:${lib.makeSearchPathOutput "bin" "sbin" cfg.daemonPath}"'' ];
+        Environment = [
+          ''PATH="${lib.makeBinPath cfg.daemonPath}:${lib.makeSearchPathOutput "bin" "sbin" cfg.daemonPath}"''
+        ];
         Type = "simple";
         LoadCredential = "mqtt-password:${cfg.mqtt.passwordFile}";
         Restart = "always";
@@ -220,8 +237,8 @@ in
         '';
       };
       Install = {
-        WantedBy = [ "default.target" ];
+        WantedBy = ["default.target"];
       };
     };
-  });
+  };
 }

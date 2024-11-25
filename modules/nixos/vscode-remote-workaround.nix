@@ -1,12 +1,11 @@
-{ config
-, lib
-, pkgs
-, ...
-}:
-let
-  cfg = config.vscode-remote-workaround;
-in
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  cfg = config.vscode-remote-workaround;
+in {
   options.vscode-remote-workaround = {
     enable = lib.mkEnableOption "automatic VSCode remote server patch";
     package = lib.mkOption {
@@ -20,7 +19,7 @@ in
   config = lib.mkIf cfg.enable {
     systemd.user = {
       paths.vscode-remote-workaround = {
-        wantedBy = [ "default.target" ];
+        wantedBy = ["default.target"];
         pathConfig.PathChanged = "%h/.vscode-server/bin";
       };
 

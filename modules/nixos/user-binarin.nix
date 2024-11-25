@@ -1,6 +1,10 @@
-{ config, pkgs, lib, ... }:
 {
-  config = {
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
+  config = lib.mkIf (builtins.elem "binarin" config.hostConfig.managedUsers) {
     users.extraGroups = {
       binarin = {
         gid = 1000;

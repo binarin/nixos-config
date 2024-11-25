@@ -1,26 +1,31 @@
 # -*- nix -*-
-{ flake, config, lib, pkgs, ... }:
-let
+{
+  flake,
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (flake) inputs;
   inherit (inputs) self;
-in
-{
+in {
   networking.hostName = "monitor";
 
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
 
-  sops.secrets.tailscale-auth = { };
+  sops.secrets.tailscale-auth = {};
 
   services.tailscale = {
     enable = true;
     authKeyFile = "/run/secrets/tailscale-auth";
-    extraUpFlags = [ "--hostname" "${config.networking.hostName}" ];
+    extraUpFlags = [
+      "--hostname"
+      "${config.networking.hostName}"
+    ];
   };
 
-  environment.systemPackages = with pkgs; [
-    emacs-nox
-  ];
+  environment.systemPackages = with pkgs; [emacs-nox];
 
   users.users."root".openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
@@ -36,7 +41,10 @@ in
     enable = true;
     listenAddress = "0.0.0.0:8428";
   };
-  networking.firewall.allowedTCPPorts = [ 8428 3000 ];
+  networking.firewall.allowedTCPPorts = [
+    8428
+    3000
+  ];
 
   sops.secrets."grafana/admin-username" = {
     owner = config.users.users.grafana.name;
@@ -50,7 +58,7 @@ in
 
   services.grafana = {
     enable = true;
-    declarativePlugins = [ pkgs.grafana-victoriametrics-datasource ];
+    declarativePlugins = [pkgs.grafana-victoriametrics-datasource];
     settings = {
       plugins = {
         allow_loading_unsigned_plugins = "victoriametrics-datasource";

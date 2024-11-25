@@ -1,21 +1,20 @@
 # -*- nix -*-
-{ flake, config, lib, pkgs, ... }:
-let
+{
+  flake,
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (flake) inputs;
   inherit (inputs) self;
-in
-{
-
+in {
   nix.usePersonalNixCache = false; # we are the cache itself
-  nix.settings.substituters = [
-    (lib.mkBefore "http://localhost?priority=10")
-  ];
+  nix.settings.substituters = [(lib.mkBefore "http://localhost?priority=10")];
 
-  networking.firewall.allowedTCPPorts = [ 80 ];
-  systemd.tmpfiles.rules = [
-    "Z- /cache 0755 nginx nginx -"
-  ];
-  systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/cache" ];
+  networking.firewall.allowedTCPPorts = [80];
+  systemd.tmpfiles.rules = ["Z- /cache 0755 nginx nginx -"];
+  systemd.services.nginx.serviceConfig.ReadWritePaths = ["/cache"];
   services.nginx.enable = true;
 
   services.nginx.config = ''

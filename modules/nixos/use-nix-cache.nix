@@ -1,6 +1,10 @@
-{flake, config, pkgs, lib, ...}:
 {
-
+  flake,
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
   options = {
     nix.usePersonalNixCache = lib.mkOption {
       type = lib.types.bool;
@@ -11,14 +15,15 @@
   config = {
     services.nginx.enable = true;
 
-    networking.hosts."127.0.0.1" = [ "cache-nixos-org.nix-cache" ];
-    nix.settings.substituters = [
-      (lib.mkBefore "http://cache-nixos-org.nix-cache:48080?priority=10")
-    ];
+    networking.hosts."127.0.0.1" = ["cache-nixos-org.nix-cache"];
+    nix.settings.substituters = [(lib.mkBefore "http://cache-nixos-org.nix-cache:48080?priority=10")];
 
     services.nginx.virtualHosts."cache-nixos-org.nix-cache" = {
       listen = [
-        { addr = "127.0.0.1"; port = 48080; }
+        {
+          addr = "127.0.0.1";
+          port = 48080;
+        }
       ];
       locations."/nix-cache-info".return = ''
         200 "StoreDir: /nix/store\nWantMassQuery: 1\nPriority: 41\n"

@@ -16,11 +16,11 @@
       submodules = true;
     };
 
-    hyprland-contrib.url = github:hyprwm/contrib;
+    hyprland-contrib.url = "github:hyprwm/contrib";
     hyprland-contrib.inputs.nixpkgs.follows = "nixpkgs";
 
     # Software inputs
-    user-js.url = github:arkenfox/user.js;
+    user-js.url = "github:arkenfox/user.js";
     user-js.flake = false;
 
     stylix.url = "github:binarin/stylix";
@@ -30,15 +30,15 @@
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
 
-    nixos-generators.url = github:nix-community/nixos-generators/1.8.0;
+    nixos-generators.url = "github:nix-community/nixos-generators/1.8.0";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
-    caddy-cloudflare.url = github:binarin/caddy-with-plugins;
-    caddy-cloudflare.inputs.nixpkgs.follows = "nixpkgs"; #  golang < 1.23 - see https://github.com/nix-community/gomod2nix/issues/117
+    caddy-cloudflare.url = "github:binarin/caddy-with-plugins";
+    caddy-cloudflare.inputs.nixpkgs.follows = "nixpkgs"; # golang < 1.23 - see https://github.com/nix-community/gomod2nix/issues/117
 
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
 
-    arion.url = github:hercules-ci/arion;
+    arion.url = "github:hercules-ci/arion";
     arion.inputs.nixpkgs.follows = "nixpkgs";
 
     sops-nix.url = "github:Mic92/sops-nix";
@@ -54,15 +54,16 @@
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs:
-    let
-      systems = [ "x86_64-linux" ];
-    in inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+  outputs = inputs: let
+    systems = ["x86_64-linux"];
+  in
+    inputs.flake-parts.lib.mkFlake {inherit inputs;} {
       inherit systems;
       imports = [
         ./modules/flake-parts/autowire.nix
         ./modules/flake-parts/deploy.nix
         ./modules/flake-parts/devshell.nix
+        ./modules/flake-parts/formatter.nix
       ];
     };
 }

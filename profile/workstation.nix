@@ -1,35 +1,28 @@
-{ flake, config, pkgs, lib, bleeding, stdenv, ... }:
-
-let
+{
+  flake,
+  config,
+  pkgs,
+  lib,
+  bleeding,
+  stdenv,
+  ...
+}: let
 in {
-  imports = [
-    ../users/binarin.nix
-  ];
-
   boot = {
-    supportedFilesystems = [ "exfat" "nfs" "cifs" ];
-    kernelModules = [ "fuse" "v4l2loopback" ];
+    supportedFilesystems = [
+      "exfat"
+      "nfs"
+      "cifs"
+    ];
+    kernelModules = [
+      "fuse"
+      "v4l2loopback"
+    ];
     extraModprobeConfig = ''
       options v4l2loopback video_nr=7,8      options v4l2loopback card_label=Canon,OBS
     '';
-    extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+    extraModulePackages = with config.boot.kernelPackages; [v4l2loopback];
     kernel.sysctl."vm.swappiness" = 1;
-  };
-
-
-  nix = {
-    settings = {
-      sandbox = true;
-      substituters = [
-        "https://cache.nixos.org"
-      ];
-
-    };
-  };
-
-  nixpkgs.config = {
-    allowUnfree = true;
-    oraclejdk.accept_license = true;
   };
 
   services.resolved = {
@@ -48,9 +41,7 @@ in {
     '';
     nat = {
       enable = true;
-      internalInterfaces = [
-        "virbr0"
-      ];
+      internalInterfaces = ["virbr0"];
       externalInterface = "wlp2s0";
     };
   };
@@ -61,7 +52,7 @@ in {
       LC_NUMERIC = "en_US.UTF-8";
       LC_TIME = "C.UTF-8";
     };
-    supportedLocales = [ "all" ];
+    supportedLocales = ["all"];
   };
 
   time.timeZone = "Europe/Amsterdam";
@@ -81,55 +72,48 @@ in {
   #   _JAVA_OPTIONS = "-Dsun.java2d.uiScale=2";
   # };
 
-  environment.systemPackages =
-    let
-      nixDevPackages = with pkgs; [
-        patchelf
-      ];
-      utilityPackages = with pkgs; [
-        pbzip2
-        pigz
-        ntfs3g
-        gopass
-        jekyll
-        pdftk
-        # syncthing
-        (texlive.combine {
-          inherit (texlive) scheme-full beamer ps2eps;
-        })
-        lilypond-with-fonts
-        abcm2ps
-        # vagrant
-        virt-viewer
-        virt-manager
-        borgbackup
-      ];
-      otherPackages = with pkgs; [
-        yt-dlp
-        gnuplot
-        dconf
-        gnome3.dconf-editor
-        gnome3.gnome-tweaks
-        dmenu
-        dmidecode
-        gmrun
-        # haskellPackages.xmobar
-        # haskellPackages.yeganesh
-        hsetroot
-        quasselClient
-        keychain
-        libreoffice
-        mu
-        pavucontrol
-        wmctrl
-        xclip
-        xscreensaver
-        xsel
-      ];
-    in
-    otherPackages ++
-    nixDevPackages ++
-    utilityPackages;
+  environment.systemPackages = let
+    nixDevPackages = with pkgs; [patchelf];
+    utilityPackages = with pkgs; [
+      pbzip2
+      pigz
+      ntfs3g
+      gopass
+      jekyll
+      pdftk
+      # syncthing
+      (texlive.combine {inherit (texlive) scheme-full beamer ps2eps;})
+      lilypond-with-fonts
+      abcm2ps
+      # vagrant
+      virt-viewer
+      virt-manager
+      borgbackup
+    ];
+    otherPackages = with pkgs; [
+      yt-dlp
+      gnuplot
+      dconf
+      gnome3.dconf-editor
+      gnome3.gnome-tweaks
+      dmenu
+      dmidecode
+      gmrun
+      # haskellPackages.xmobar
+      # haskellPackages.yeganesh
+      hsetroot
+      quasselClient
+      keychain
+      libreoffice
+      mu
+      pavucontrol
+      wmctrl
+      xclip
+      xscreensaver
+      xsel
+    ];
+  in
+    otherPackages ++ nixDevPackages ++ utilityPackages;
 
   fonts = {
     fontDir.enable = true;
@@ -178,13 +162,20 @@ in {
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
-  services.printing.drivers = [ pkgs.hplip pkgs.postscript-lexmark pkgs.epson-escpr ];
+  services.printing.drivers = [
+    pkgs.hplip
+    pkgs.postscript-lexmark
+    pkgs.epson-escpr
+  ];
 
   services.xserver = {
-    gdk-pixbuf.modulePackages = [ pkgs.librsvg ];
+    gdk-pixbuf.modulePackages = [pkgs.librsvg];
 
-    modules = [ pkgs.xorg.xf86inputlibinput ];
-    videoDrivers = [ "amdgpu" "modesetting" ];
+    modules = [pkgs.xorg.xf86inputlibinput];
+    videoDrivers = [
+      "amdgpu"
+      "modesetting"
+    ];
     config = ''
       Section "Device"
            Identifier "AMD"
@@ -275,8 +266,14 @@ in {
   networking.firewall.enable = true;
   # XXX is loose enough?
   # networking.firewall.checkReversePath = false; # I want my DHCP for VM's
-  networking.firewall.allowedTCPPorts = [ 27036 27037 ];
-  networking.firewall.allowedUDPPorts = [ 27031 27036 ];
+  networking.firewall.allowedTCPPorts = [
+    27036
+    27037
+  ];
+  networking.firewall.allowedUDPPorts = [
+    27031
+    27036
+  ];
 
   services.tailscale.enable = true;
 
@@ -304,29 +301,32 @@ in {
   programs.ssh.startAgent = true;
   programs.light.enable = true;
 
-  systemd.services."binarin-org-sync" =
-    let
-      script = pkgs.writeScript "binarin-org-sync" ''
-        #!${pkgs.bash}/bin/bash
-        set -euo pipefail
-        if [[ -f /home/binarin/org/push.sh ]]; then
-          exec /home/binarin/org/push.sh
-        fi
-      '';
-    in
-    {
-      description = "Syncs org-mode files via git";
-      path = [ pkgs.gitAndTools.gitFull pkgs.wget pkgs.coreutils pkgs.bash ];
-      serviceConfig = {
-        Type = "oneshot";
-        User = "binarin";
-        ExecStart = script;
-      };
+  systemd.services."binarin-org-sync" = let
+    script = pkgs.writeScript "binarin-org-sync" ''
+      #!${pkgs.bash}/bin/bash
+      set -euo pipefail
+      if [[ -f /home/binarin/org/push.sh ]]; then
+        exec /home/binarin/org/push.sh
+      fi
+    '';
+  in {
+    description = "Syncs org-mode files via git";
+    path = [
+      pkgs.gitAndTools.gitFull
+      pkgs.wget
+      pkgs.coreutils
+      pkgs.bash
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "binarin";
+      ExecStart = script;
     };
+  };
 
   systemd.timers."binarin-org-sync" = {
     description = "Periodically updates org-mode files via git";
-    wantedBy = [ "timers.target" ];
+    wantedBy = ["timers.target"];
     timerConfig = {
       OnBootSec = "1min";
       OnUnitActiveSec = "15min";
@@ -367,30 +367,28 @@ in {
     TAG+="udev-acl"
   '';
 
-  systemd.services.external_webcam =
-    let
-      hosts = import ../nixops/personal-hosts.nix;
-      lightsOn = pkgs.writeShellScript "elgatos-on" ''
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights || true
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights || true
-      '';
-      lightsOff = pkgs.writeShellScript "elgatos-off" ''
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights || true
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights || true
-      '';
-    in
-    {
-      enable = true;
-      script = ''
-        ${pkgs.gphoto2}/bin/gphoto2 --stdout --capture-movie |
-        ${pkgs.ffmpeg}/bin/ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2  /dev/video7
-      '';
-      serviceConfig = {
-        ExecStopPost = "${lightsOff}";
-        ExecStartPost = "${lightsOn}";
-      };
-      # wantedBy = ["multi-user.target"];
+  systemd.services.external_webcam = let
+    hosts = import ../nixops/personal-hosts.nix;
+    lightsOn = pkgs.writeShellScript "elgatos-on" ''
+      ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights || true
+      ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights || true
+    '';
+    lightsOff = pkgs.writeShellScript "elgatos-off" ''
+      ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights || true
+      ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights || true
+    '';
+  in {
+    enable = true;
+    script = ''
+      ${pkgs.gphoto2}/bin/gphoto2 --stdout --capture-movie |
+      ${pkgs.ffmpeg}/bin/ffmpeg -i - -vcodec rawvideo -pix_fmt yuv420p -f v4l2  /dev/video7
+    '';
+    serviceConfig = {
+      ExecStopPost = "${lightsOff}";
+      ExecStartPost = "${lightsOn}";
     };
+    # wantedBy = ["multi-user.target"];
+  };
 
   services.gnome.gnome-keyring.enable = lib.mkForce false;
   services.flatpak.enable = true;

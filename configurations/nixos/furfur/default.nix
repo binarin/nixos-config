@@ -1,10 +1,7 @@
-{ flake, ... }:
-
-let
+{flake, ...}: let
   inherit (flake) inputs;
   inherit (inputs) self;
-in
-{
+in {
   inventoryHostName = "furfur";
 
   imports = [
@@ -15,5 +12,9 @@ in
   hostConfig.features = [
     "gui"
     "wsl"
+    "fast-rebuild"
+    "bleeding"
   ];
+
+  hostConfig.managedUsers = ["binarin"];
 }

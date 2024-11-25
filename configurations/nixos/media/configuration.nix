@@ -1,6 +1,12 @@
 # -*- nix -*-
-{ flake, hostConfig, config, lib, pkgs, ... }:
-let
+{
+  flake,
+  hostConfig,
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   inherit (flake) inputs;
   inherit (inputs) self;
   smbShareStandartOptions = {
@@ -15,11 +21,10 @@ let
     "directory mask" = "2775";
     "force directory mode" = "2775";
   };
-in
-{
+in {
   services.avahi = {
     enable = true;
-    allowInterfaces = [ "eth0" ];
+    allowInterfaces = ["eth0"];
     publish.enable = true;
     publish.addresses = true;
     extraServiceFiles = {
@@ -37,7 +42,7 @@ in
     };
   };
 
-  nixpkgs.overlays = [ flake.inputs.self.overlays.caddy-cloudflare ];
+  nixpkgs.overlays = [flake.inputs.self.overlays.caddy-cloudflare];
 
   systemd.network.networks."40-lxc".networkConfig.MulticastDNS = lib.mkForce false;
 
@@ -51,16 +56,15 @@ in
     ];
   };
 
-  sops.secrets.tailscale-auth = { };
+  sops.secrets.tailscale-auth = {};
   services.tailscale = {
     enable = true;
     authKeyFile = config.sops.secrets.tailscale-auth.path;
   };
 
   sops.secrets."samba-passwords/binarin" = {
-    restartUnits = [ "update-samba-passwords.service" ];
+    restartUnits = ["update-samba-passwords.service"];
   };
-
 
   environment.systemPackages = with pkgs; [
     docker-compose
@@ -109,16 +113,20 @@ in
     };
   };
 
-  systemd.services.navidrome.serviceConfig.BindReadOnlyPaths = [ "/run/systemd/resolve/stub-resolv.conf" ];
+  systemd.services.navidrome.serviceConfig.BindReadOnlyPaths = [
+    "/run/systemd/resolve/stub-resolv.conf"
+  ];
 
   services.samba = {
     enable = true;
     openFirewall = true;
 
     shares = {
-      "Music" = smbShareStandartOptions // {
-        path = "/media/music";
-      };
+      "Music" =
+        smbShareStandartOptions
+        // {
+          path = "/media/music";
+        };
     };
   };
 
@@ -139,7 +147,7 @@ in
 
   sops.secrets.cloudflare-api-key = {
     sopsFile = "${config.lib.self.file' "secrets/webservers.yaml"}";
-    restartUnits = [ "caddy.service" ];
+    restartUnits = ["caddy.service"];
   };
 
   systemd.services.caddy.serviceConfig.AmbientCapabilities = "CAP_NET_ADMIN CAP_NET_BIND_SERVICE";
@@ -172,7 +180,7 @@ in
 
   users.groups.jellyfin.gid = 992;
   users.users.jellyfin.uid = 993;
-  users.users.jellyfin.extraGroups = [ "render" ];
+  users.users.jellyfin.extraGroups = ["render"];
 
   systemd.services.jellyfin.serviceConfig.UMask = lib.mkForce "0002";
   services.jellyfin = {
@@ -190,11 +198,13 @@ in
     };
   };
 
-  services.samba.shares.Movies = smbShareStandartOptions // {
-    path = "/media/movies";
-    "force user" = "jellyfin";
-    "force group" = "jellyfin";
-  };
+  services.samba.shares.Movies =
+    smbShareStandartOptions
+    // {
+      path = "/media/movies";
+      "force user" = "jellyfin";
+      "force group" = "jellyfin";
+    };
 
   services.caddy.virtualHosts."jellyfin.binarin.info".extraConfig = ''
     reverse_proxy http://127.0.0.1:8096
@@ -206,9 +216,9 @@ in
 
   virtualisation.arion.backend = "docker";
 
-  sops.secrets."tubearchivist/elastic-password" = { };
-  sops.secrets."tubearchivist/initial-username" = { };
-  sops.secrets."tubearchivist/initial-password" = { };
+  sops.secrets."tubearchivist/elastic-password" = {};
+  sops.secrets."tubearchivist/initial-username" = {};
+  sops.secrets."tubearchivist/initial-password" = {};
 
   sops.templates."tubearchivist-elastic-env".content = ''
     ELASTIC_PASSWORD="${config.sops.placeholder."tubearchivist/elastic-password"}"
@@ -227,7 +237,7 @@ in
             container_name = "tubearchivist";
             restart = "unless-stopped";
             image = "bbilly1/tubearchivist:v0.4.11";
-            ports = [ "8001:8000" ];
+            ports = ["8001:8000"];
             volumes = [
               "/media/tubearchivist:/youtube"
               "/var/lib/tubearchivist/cache:/cache"
@@ -245,7 +255,12 @@ in
               config.sops.templates.tubearchivist-env.path
             ];
             healthcheck = {
-              test = [ "CMD" "curl" "-f" "http://localhost:8000/health" ];
+              test = [
+                "CMD"
+                "curl"
+                "-f"
+                "http://localhost:8000/health"
+              ];
               interval = "2m";
               timeout = "10s";
               retries = 3;
@@ -269,17 +284,15 @@ in
             image = "bbilly1/tubearchivist-es";
             container_name = "archivist-es";
             restart = "unless-stopped";
-            env_file = [ config.sops.templates.tubearchivist-elastic-env.path ];
+            env_file = [config.sops.templates.tubearchivist-elastic-env.path];
             environment = {
               ES_JAVA_OPTS = "-Xms1g -Xmx1g";
               "xpack.security.enabled" = "true";
               "discovery.type" = "single-node";
               "path.repo" = "/usr/share/elasticsearch/data/snapshot";
             };
-            expose = [ "9200" ];
-            volumes = [
-              "/var/lib/tubearchivist/es:/usr/share/elasticsearch/data"
-            ];
+            expose = ["9200"];
+            volumes = ["/var/lib/tubearchivist/es:/usr/share/elasticsearch/data"];
           };
           # XXX reboot bael for new limits, maybe add them to nixos config too
           # out.service.ulimits = {
@@ -297,11 +310,9 @@ in
             environment = {
               REDISEARCH_ARGS = "MAXSEARCHRESULTS 30000";
             };
-            expose = [ "6379" ];
-            volumes = [
-              "/var/lib/tubearchivist/redis:/data"
-            ];
-            depends_on = [ "archivist-es" ];
+            expose = ["6379"];
+            volumes = ["/var/lib/tubearchivist/redis:/data"];
+            depends_on = ["archivist-es"];
           };
         };
       };
@@ -361,13 +372,15 @@ in
     }
   '';
 
-  services.samba.shares.Torrents = smbShareStandartOptions // {
-    path = "/media/torrents";
-    "force user" = "jellyfin";
-    "force group" = "jellyfin";
-  };
+  services.samba.shares.Torrents =
+    smbShareStandartOptions
+    // {
+      path = "/media/torrents";
+      "force user" = "jellyfin";
+      "force group" = "jellyfin";
+    };
 
-  users.groups.annex = { };
+  users.groups.annex = {};
   users.users.annex = {
     isNormalUser = true;
     group = "annex";
