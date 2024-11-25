@@ -201,7 +201,11 @@
    #+BEGIN_SRC emacs-lisp :tangle yes
      (when (eq binarin/system-type 'wsl)
        (setq browse-url-browser-function 'browse-url-generic
-     	browse-url-generic-program "wslview"))
+     	browse-url-generic-program "wslview")
+       (setq select-active-regions nil)
+       (setq select-enable-clipboard 't)
+       (setq select-enable-primary nil)
+       (setq interprogram-cut-function #'gui-select-text))
    #+END_SRC
 ** Prevent accidental exit
    Prompt on C-x C-c - no more accidential exits
