@@ -15,6 +15,7 @@ in
     "gui"
     "wsl"
     "fast-rebuild"
+    "nix-builder"
     "bleeding"
   ];
 
