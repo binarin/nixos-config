@@ -3,11 +3,13 @@
   config,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
-in {
-  imports = [inputs.sops-nix.homeManagerModules.sops];
+in
+{
+  imports = [ inputs.sops-nix.homeManagerModules.sops ];
 
   sops = {
     age.keyFile = "${config.home.homeDirectory}/.config/age/nixos-config-keys.txt";

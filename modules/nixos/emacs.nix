@@ -4,11 +4,13 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
-in {
-  imports = [self.sharedModules.emacs];
+in
+{
+  imports = [ self.sharedModules.emacs ];
 
   environment.systemPackages = [
     config.programs.emacs.finalEmacsPackage

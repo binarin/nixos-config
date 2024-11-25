@@ -4,7 +4,8 @@
   pkgs,
   config,
   ...
-}: {
+}:
+{
   config = lib.mkIf config.hostConfig.feature.gui {
     programs.firefox = {
       enable = true;

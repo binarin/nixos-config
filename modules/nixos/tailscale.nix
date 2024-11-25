@@ -4,11 +4,13 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
   cfg = config.hostConfig;
-in {
+in
+{
   config = {
     # tailscale can't use exit nodes otherwise
     # citing https://github.com/tailscale/tailscale/issues/4432#issuecomment-1112819111:

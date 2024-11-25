@@ -54,10 +54,12 @@
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs: let
-    systems = ["x86_64-linux"];
-  in
-    inputs.flake-parts.lib.mkFlake {inherit inputs;} {
+  outputs =
+    inputs:
+    let
+      systems = [ "x86_64-linux" ];
+    in
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       inherit systems;
       imports = [
         ./modules/flake-parts/autowire.nix

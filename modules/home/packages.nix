@@ -1,8 +1,5 @@
+{ pkgs, config, ... }:
 {
-  pkgs,
-  config,
-  ...
-}: {
   home.packages = with pkgs; [
     # Unix tools
     ripgrep # Better `grep`

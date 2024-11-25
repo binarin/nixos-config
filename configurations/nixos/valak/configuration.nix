@@ -5,7 +5,8 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
   fileserverMounts = [
@@ -13,8 +14,9 @@
     "Movies"
     "Torrents"
   ];
-in {
-  imports = ["${self}/profile/workstation.nix"];
+in
+{
+  imports = [ "${self}/profile/workstation.nix" ];
 
   config = {
     # Use the systemd-boot EFI boot loader.
@@ -30,12 +32,12 @@ in {
       "sd_mod"
       "amdgpu"
     ];
-    boot.supportedFilesystems = ["zfs"];
+    boot.supportedFilesystems = [ "zfs" ];
     boot.zfs.allowHibernation = true;
     boot.zfs.forceImportRoot = false;
     boot.zfs.forceImportAll = false;
-    boot.zfs.extraPools = ["valak-vm-rpool"];
-    boot.initrd.kernelModules = [];
+    boot.zfs.extraPools = [ "valak-vm-rpool" ];
+    boot.initrd.kernelModules = [ ];
     boot.kernelModules = [
       "kvm-amd"
       "i2c_dev"
@@ -60,13 +62,13 @@ in {
       fsType = "vfat";
     };
 
-    swapDevices = [{device = "/dev/disk/by-uuid/27420222-5cdb-440f-9b32-0f2668db7d68";}];
+    swapDevices = [ { device = "/dev/disk/by-uuid/27420222-5cdb-440f-9b32-0f2668db7d68"; } ];
 
     hardware.enableAllFirmware = true;
     hardware.amdgpu.initrd.enable = true;
     hardware.amdgpu.opencl.enable = true;
     hardware.i2c.enable = true;
-    hardware.bluetooth.disabledPlugins = ["sap"];
+    hardware.bluetooth.disabledPlugins = [ "sap" ];
 
     virtualization.vfio = {
       enable = true;
@@ -81,7 +83,7 @@ in {
     virtualisation.libvirtd = {
       enable = true;
       qemu.ovmf.enable = true;
-      qemu.ovmf.packages = [pkgs.OVMFFull.fd];
+      qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];
       qemu.runAsRoot = false;
       qemu.swtpm.enable = true;
       onBoot = "ignore";
@@ -89,17 +91,19 @@ in {
     };
 
     systemd.services.libvirtd = {
-      path = let
-        env = pkgs.buildEnv {
-          name = "qemu-hook-env";
-          paths = with pkgs; [
-            bash
-            libvirt
-            kmod
-            systemd
-          ];
-        };
-      in [env];
+      path =
+        let
+          env = pkgs.buildEnv {
+            name = "qemu-hook-env";
+            paths = with pkgs; [
+              bash
+              libvirt
+              kmod
+              systemd
+            ];
+          };
+        in
+        [ env ];
     };
 
     services.xserver = {
@@ -141,25 +145,27 @@ in {
           linkConfig.RequiredForOnline = "enslaved";
         };
 
-        "40-br0" = let
-          inherit (config.inventory.ipAllocation.valak.home.primary) addressWithPrefix;
-          inherit (config.inventory.networks.home) gateway dns;
-        in {
-          matchConfig.Name = "br0";
+        "40-br0" =
+          let
+            inherit (config.inventory.ipAllocation.valak.home.primary) addressWithPrefix;
+            inherit (config.inventory.networks.home) gateway dns;
+          in
+          {
+            matchConfig.Name = "br0";
 
-          address = [addressWithPrefix];
-          routes = [{routeConfig.Gateway = gateway;}];
+            address = [ addressWithPrefix ];
+            routes = [ { routeConfig.Gateway = gateway; } ];
 
-          dns = dns;
-          bridgeConfig = {};
-          linkConfig = {
-            # or "routable" with IP addresses configured
-            RequiredForOnline = "routable";
+            dns = dns;
+            bridgeConfig = { };
+            linkConfig = {
+              # or "routable" with IP addresses configured
+              RequiredForOnline = "routable";
+            };
           };
-        };
         "40-smb-sketchup" = {
           matchConfig.Name = "smb-sketchup";
-          address = ["172.16.242.2/24"];
+          address = [ "172.16.242.2/24" ];
           networkConfig.ConfigureWithoutCarrier = "yes";
         };
       };
@@ -209,7 +215,7 @@ in {
       HandlePowerKey=hibernate
     '';
 
-    systemd.tmpfiles.rules = ["f /dev/shm/looking-glass 0660 binarin qemu-libvirtd -"];
+    systemd.tmpfiles.rules = [ "f /dev/shm/looking-glass 0660 binarin qemu-libvirtd -" ];
     environment.systemPackages = with pkgs; [
       # syncoid works better with those
       lzop
@@ -228,8 +234,8 @@ in {
       };
     };
 
-    sops.secrets."fileserver-samba/username" = {};
-    sops.secrets."fileserver-samba/password" = {};
+    sops.secrets."fileserver-samba/username" = { };
+    sops.secrets."fileserver-samba/password" = { };
     sops.templates.fileserver-samba-credentials.content = ''
       username=${config.sops.placeholder."fileserver-samba/username"}
       password=${config.sops.placeholder."fileserver-samba/password"}

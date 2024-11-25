@@ -4,9 +4,10 @@
   lib,
   config,
   ...
-}: {
+}:
+{
   config = lib.mkIf config.hostConfig.feature.wayland {
-    home.packages = [pkgs.ianny];
+    home.packages = [ pkgs.ianny ];
     xdg.configFile."io.github.zefr0x.ianny/config.toml".text = ''
       [timer]
       # Timer will stop and reset when you are idle for this amount of seconds.

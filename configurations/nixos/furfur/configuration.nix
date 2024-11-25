@@ -9,7 +9,8 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   imports = [
     # include NixOS-WSL modules
     flake.inputs.nixos-wsl.nixosModules.default

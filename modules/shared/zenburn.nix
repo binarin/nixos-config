@@ -4,7 +4,8 @@
   config,
   pkgs,
   ...
-}: let
+}:
+let
   # with `#` so that rainbow-mode can recognize them
   # -/+ replaces with _minus_/_plus_ to be able to use them with the same name everywhere
   emacsZenburnColors = {
@@ -115,67 +116,63 @@
       bold = true;
     };
   };
-in {
+in
+{
   options = {
     zenburn = {
-      colors =
-        lib.mapAttrs
-        (
-          nm: val:
-            lib.mkOption {
-              default = val;
-              type = lib.types.str;
-              description = "Zenburn color ${nm}";
-            }
-        )
-        emacsZenburnColors;
+      colors = lib.mapAttrs (
+        nm: val:
+        lib.mkOption {
+          default = val;
+          type = lib.types.str;
+          description = "Zenburn color ${nm}";
+        }
+      ) emacsZenburnColors;
       faces = lib.mapAttrs (
         nm: val:
-          with lib;
-          with types;
-            optionalAttrs (val ? "fg")
-            {
-              fg = mkOption {
-                type = nullOr str;
-                description = "Face foreground color - #XXXXXX";
-                default = emacsZenburnColors."${val.fg}";
-              };
-            }
-            // optionalAttrs (val ? "bold") {
-              bold = mkoption {
-                type = bool;
-                description = "Is the face bold?";
-                default = val.bold;
-              };
-            }
-            // optionalAttrs (val ? "bg") {
-              bg = mkOption {
-                type = nullOr str;
-                description = "Face background color - #XXXXXX";
-                default = emacsZenburnColors."${val.bg}";
-              };
-            }
+        with lib;
+        with types;
+        optionalAttrs (val ? "fg") {
+          fg = mkOption {
+            type = nullOr str;
+            description = "Face foreground color - #XXXXXX";
+            default = emacsZenburnColors."${val.fg}";
+          };
+        }
+        // optionalAttrs (val ? "bold") {
+          bold = mkoption {
+            type = bool;
+            description = "Is the face bold?";
+            default = val.bold;
+          };
+        }
+        // optionalAttrs (val ? "bg") {
+          bg = mkOption {
+            type = nullOr str;
+            description = "Face background color - #XXXXXX";
+            default = emacsZenburnColors."${val.bg}";
+          };
+        }
       );
-      cssVars.text = with lib;
+      cssVars.text =
+        with lib;
         pipe emacsZenburnColors [
           attrsToList
-          (map ({
-            name,
-            value,
-          }: "--zenburn_${name}: ${value};"))
-          (lst: [":root {"] ++ lst ++ ["}\n"])
+          (map ({ name, value }: "--zenburn_${name}: ${value};"))
+          (lst: [ ":root {" ] ++ lst ++ [ "}\n" ])
           (concatStringsSep "\n")
           (
             css:
-              mkOption {
-                type = types.str;
-                description = "CSS vars like --zenburn_bg_minus_1 as text";
-                default = css;
-              }
+            mkOption {
+              type = types.str;
+              description = "CSS vars like --zenburn_bg_minus_1 as text";
+              default = css;
+            }
           )
         ];
       cssVars.file = lib.mkOption {
-        type = with lib.types;
+        type =
+          with lib.types;
           oneOf [
             path
             package
@@ -184,5 +181,5 @@ in {
       };
     };
   };
-  config = {};
+  config = { };
 }

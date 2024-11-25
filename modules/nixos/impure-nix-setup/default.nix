@@ -4,10 +4,12 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
-in {
+in
+{
   config = lib.mkIf config.hostConfig.feature.nix-builder {
     environment.etc."nix/inputs/nixpkgs".source = "${inputs.nixpkgs}";
     environment.etc."nix/inputs/self-absolute-path".text = "${self}";

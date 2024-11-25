@@ -4,7 +4,8 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
 
@@ -18,7 +19,7 @@
     ${lib.getExe' pkgs.coreutils "tr"} -c -s '\000-\177' x < "$@"
   '';
 
-  orgBabelConfigWithoutUnicode = pkgs.runCommand "cleanup-unicode-from-emacs-config.org" {} ''
+  orgBabelConfigWithoutUnicode = pkgs.runCommand "cleanup-unicode-from-emacs-config.org" { } ''
     ${cleanup-unicode-from-emacs-org-babel-config} ${config.lib.self.file cfg.orgBabelConfig} > $out
   '';
 
@@ -27,11 +28,12 @@
     config = orgBabelConfigWithoutUnicode;
   };
 
-  compiledConfig = pkgs.runCommand "emacs-config-tangled" {} ''
+  compiledConfig = pkgs.runCommand "emacs-config-tangled" { } ''
     mkdir $out
     ${lib.getExe pkgs.tangle-emacs-org-babel-config} "${config.lib.self.file cfg.orgBabelConfig}" "$out/init.el"
   '';
-in {
+in
+{
   options = {
     programs.emacs = {
       orgBabelConfig = lib.mkOption {
@@ -40,10 +42,7 @@ in {
       };
       basePackage = lib.mkOption {
         type = lib.types.package;
-        default =
-          if config.hostConfig.feature.gui
-          then pkgs.emacs-pgtk
-          else pkgs.emacs-nox;
+        default = if config.hostConfig.feature.gui then pkgs.emacs-pgtk else pkgs.emacs-nox;
       };
       compiledConfig = lib.mkOption {
         type = lib.types.pathInStore;

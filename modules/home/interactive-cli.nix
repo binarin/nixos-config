@@ -4,7 +4,8 @@
   config,
   system,
   ...
-}: {
+}:
+{
   config = lib.mkIf config.hostConfig.feature.interactive-cli {
     home.packages = with pkgs; [
       age

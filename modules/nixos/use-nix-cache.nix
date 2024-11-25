@@ -4,7 +4,8 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+{
   options = {
     nix.usePersonalNixCache = lib.mkOption {
       type = lib.types.bool;
@@ -15,8 +16,8 @@
   config = {
     services.nginx.enable = true;
 
-    networking.hosts."127.0.0.1" = ["cache-nixos-org.nix-cache"];
-    nix.settings.substituters = [(lib.mkBefore "http://cache-nixos-org.nix-cache:48080?priority=10")];
+    networking.hosts."127.0.0.1" = [ "cache-nixos-org.nix-cache" ];
+    nix.settings.substituters = [ (lib.mkBefore "http://cache-nixos-org.nix-cache:48080?priority=10") ];
 
     services.nginx.virtualHosts."cache-nixos-org.nix-cache" = {
       listen = [

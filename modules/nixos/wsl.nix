@@ -4,7 +4,8 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+{
   imports = [
     flake.inputs.nixos-wsl.nixosModules.default
     flake.inputs.self.nixosModules.vscode-remote-workaround
@@ -14,9 +15,7 @@
 
     # XXX remove on 24.11
     nixpkgs.overlays = [
-      (final: prev: {
-        switch-to-configuration-ng = final.bleeding.switch-to-configuration-ng;
-      })
+      (final: prev: { switch-to-configuration-ng = final.bleeding.switch-to-configuration-ng; })
     ];
 
     # XXX Guard on 'gui'
@@ -29,7 +28,7 @@
     wsl.startMenuLaunchers = true;
     wsl.usbip.enable = true;
     wsl.wslConf.network.generateHosts = false;
-    environment.systemPackages = with pkgs; [wslu];
+    environment.systemPackages = with pkgs; [ wslu ];
     vscode-remote-workaround.enable = true;
   };
 }

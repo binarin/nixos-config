@@ -4,8 +4,9 @@
   config,
   lib,
   ...
-}: {
-  imports = [flake.inputs.self.nixosModules.perl-packages];
+}:
+{
+  imports = [ flake.inputs.self.nixosModules.perl-packages ];
   config = {
     environment.systemPackages = with pkgs; [
       bat

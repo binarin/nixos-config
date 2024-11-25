@@ -15,7 +15,7 @@ stdenvNoCC.mkDerivation rec {
     url = "https://github.com/VictoriaMetrics/victoriametrics-datasource/releases/download/${version}/victoriametrics-datasource-${version}.zip";
   };
 
-  nativeBuildInputs = [unzip];
+  nativeBuildInputs = [ unzip ];
 
   installPhase = ''
     cp -R "." "$out"

@@ -3,10 +3,12 @@
   pkgs,
   config,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
-in {
+in
+{
   home.shellAliases = {
     g = "git";
     # lg = "lazygit";

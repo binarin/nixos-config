@@ -1,9 +1,7 @@
 # A module that automatically imports everything else in the parent folder.
+{ flake, lib, ... }:
 {
-  flake,
-  lib,
-  ...
-}: {
-  imports = with builtins;
+  imports =
+    with builtins;
     map (fn: ./${fn}) (filter (fn: fn != "default.nix") (attrNames (readDir ./.)));
 }

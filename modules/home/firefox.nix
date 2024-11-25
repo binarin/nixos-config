@@ -4,9 +4,12 @@
   lib,
   pkgs,
   ...
-}: let
-  filterExplicitSettings = settings: text:
-    with lib; let
+}:
+let
+  filterExplicitSettings =
+    settings: text:
+    with lib;
+    let
       regexpAlternatives = pipe settings [
         attrNames
         (map (nm: ''\Q${nm}\E''))
@@ -14,15 +17,16 @@
       ];
       regexp = ''"(?:${regexpAlternatives})"'';
     in
-      pkgs.runCommand "filtered-user.js" {} ''
-        cat <<'EOF' > $out
-        // ${regexp}
-        EOF
-        cat <<'EOF' | ${lib.getExe pkgs.perl} -pE 'print "// NIX-DISABLED:" if /${regexp}/' >> $out
-        ${text}
-        EOF
-      '';
-in {
+    pkgs.runCommand "filtered-user.js" { } ''
+      cat <<'EOF' > $out
+      // ${regexp}
+      EOF
+      cat <<'EOF' | ${lib.getExe pkgs.perl} -pE 'print "// NIX-DISABLED:" if /${regexp}/' >> $out
+      ${text}
+      EOF
+    '';
+in
+{
   config = lib.mkIf config.hostConfig.feature.gui {
     home.packages = [
       (pkgs.writeShellScriptBin "x-www-browser" ''
@@ -95,11 +99,11 @@ in {
           ''''
           + (
             with lib;
-              pipe [(builtins.readFile "${flake.inputs.user-js}/user.js")] [
-                (concatStringsSep "\n")
-                (filterExplicitSettings config.programs.firefox.profiles.default.settings)
-                builtins.readFile
-              ]
+            pipe [ (builtins.readFile "${flake.inputs.user-js}/user.js") ] [
+              (concatStringsSep "\n")
+              (filterExplicitSettings config.programs.firefox.profiles.default.settings)
+              builtins.readFile
+            ]
           );
       };
       profiles.test = {

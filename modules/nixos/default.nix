@@ -4,19 +4,19 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
   cfg = config.hostConfig;
-in {
-  imports =
-    [
-      self.sharedModules.default
-      inputs.arion.nixosModules.arion
-    ]
-    ++ lib.attrValues (lib.removeAttrs self.nixosModules ["default"]);
+in
+{
+  imports = [
+    self.sharedModules.default
+    inputs.arion.nixosModules.arion
+  ] ++ lib.attrValues (lib.removeAttrs self.nixosModules [ "default" ]);
 
-  options = {};
+  options = { };
 
   config = {
     system.stateVersion = lib.mkDefault "24.05";

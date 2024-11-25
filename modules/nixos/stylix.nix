@@ -4,17 +4,19 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   # One of the Windows 95 default colors
-  wallpaper = pkgs.runCommand "image.png" {} ''
+  wallpaper = pkgs.runCommand "image.png" { } ''
     ${pkgs.imagemagick}/bin/magick -size 1920x1080 "xc:#00807F" $out
   '';
-in {
-  imports = [flake.inputs.stylix.nixosModules.stylix];
+in
+{
+  imports = [ flake.inputs.stylix.nixosModules.stylix ];
 
-  disabledModules = ["${flake.inputs.stylix}/modules/regreet/nixos.nix"];
+  disabledModules = [ "${flake.inputs.stylix}/modules/regreet/nixos.nix" ];
 
-  options = {};
+  options = { };
 
   config = lib.mkMerge [
     {

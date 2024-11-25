@@ -3,10 +3,12 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
-in {
+in
+{
   imports = [
     self.nixosModules.default
     ./configuration.nix
@@ -14,5 +16,5 @@ in {
 
   inventoryHostName = "nix-cache";
   hostConfig.deployHostName = config.hostConfig.ipAllocation.home.primary.address;
-  hostConfig.features = ["lxc"];
+  hostConfig.features = [ "lxc" ];
 }

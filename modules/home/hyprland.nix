@@ -4,7 +4,8 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   out-u4025qw = "Dell Inc. DELL U4025QW J7Q6FP3";
   out-lg-dualup-left = "LG Electronics LG SDQHD 311NTQDAC572";
   out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
@@ -14,7 +15,8 @@
     ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe pkgs.shellevents} ${config.lib.self.file "hyprland-shellevents.sh"}",nofork
   '';
   rgb = color: "rgb(${lib.removePrefix "#" (config.zenburn.colors."${color}")})";
-in {
+in
+{
   config = lib.mkIf config.hostConfig.feature.hyprland {
     home.sessionVariables = {
       # Fix for some Java AWT applications (e.g. Android Studio),
@@ -344,7 +346,7 @@ in {
 
     systemd.user.services.swaync = {
       Unit = {
-        PartOf = ["graphical-session.target"];
+        PartOf = [ "graphical-session.target" ];
       };
 
       Service = {
@@ -353,7 +355,7 @@ in {
       };
 
       Install = {
-        WantedBy = ["hyprland-session.target"];
+        WantedBy = [ "hyprland-session.target" ];
       };
     };
 

@@ -5,12 +5,14 @@
   config,
   specialArgs,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
   cfg = config.hostConfig;
-in {
-  imports = [inputs.home-manager.nixosModules.home-manager];
+in
+{
+  imports = [ inputs.home-manager.nixosModules.home-manager ];
 
   config = {
     home-manager.extraSpecialArgs = specialArgs;

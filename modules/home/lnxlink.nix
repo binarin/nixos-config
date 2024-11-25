@@ -4,11 +4,12 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
   cfg = config.services.lnxlink;
-  yaml = pkgs.formats.yaml {};
+  yaml = pkgs.formats.yaml { };
 
   passwordPlaceholder = "@MQTT_PASSWORD@";
 
@@ -16,7 +17,8 @@
 
   moduleNameType = lib.types.enum allAddons;
 
-  passwordFileType = with lib;
+  passwordFileType =
+    with lib;
     mkOptionType {
       name = "passwordFile";
       description = "Path to a password file - outside of nix store";
@@ -25,17 +27,18 @@
       merge = lib.mergeEqualOption;
     };
 
-  mqttModule = with lib;
+  mqttModule =
+    with lib;
     types.submodule {
       options = {
-        clientId = mkOption {type = types.str;};
-        server = mkOption {type = types.str;};
+        clientId = mkOption { type = types.str; };
+        server = mkOption { type = types.str; };
         port = mkOption {
           type = types.port;
           default = 1883;
         };
-        user = mkOption {type = types.str;};
-        passwordFile = mkOption {type = passwordFileType;};
+        user = mkOption { type = types.str; };
+        passwordFile = mkOption { type = passwordFileType; };
       };
     };
 
@@ -46,7 +49,7 @@
     hass_api = null;
     modules = enabledAddonsNames;
     custom_modules = null;
-    exclude = [];
+    exclude = [ ];
     mqtt = {
       prefix = "lnxlink";
       clientId = cfg.mqtt.clientId;
@@ -77,8 +80,8 @@
       };
       hotkeys = null;
       disk_usage = {
-        include_disks = [];
-        exclude_disks = [];
+        include_disks = [ ];
+        exclude_disks = [ ];
       };
       statistics = "https://analyzer.bkbilly.workers.dev"; # XXX ?
       bash = {
@@ -87,12 +90,12 @@
       };
       mounts = {
         autocheck = false;
-        directories = [];
+        directories = [ ];
       };
       ir_remote = {
         receiver = null;
         transmitter = null;
-        buttons = [];
+        buttons = [ ];
       };
       restful = {
         port = 8112;
@@ -111,41 +114,48 @@
     ${lib.getExe pkgs.replace-secret} '${passwordPlaceholder}' "$password_file" "$target_file"
   '';
 
-  addonOptions = nm: let
-    meta = cfg.package.meta.addons.getMeta nm;
-    variants =
-      (
-        {variants ? {}, ...}:
+  addonOptions =
+    nm:
+    let
+      meta = cfg.package.meta.addons.getMeta nm;
+      variants =
+        (
+          {
+            variants ? { },
+            ...
+          }:
           builtins.attrNames variants
-      )
-      meta;
-    maybeVariantOption =
-      if (builtins.length variants > 0)
-      then {
-        variant = with lib;
-          mkOption {
-            type = types.enum variants;
-            default = null;
-            description = ''
-              Which variant of this addon to enable (e.g. 'amd' or 'nvidia' for 'gpu' addon).
-            '';
-          };
-      }
-      else {};
-  in {
-    name = nm;
-    value =
-      {
+        )
+          meta;
+      maybeVariantOption =
+        if (builtins.length variants > 0) then
+          {
+            variant =
+              with lib;
+              mkOption {
+                type = types.enum variants;
+                default = null;
+                description = ''
+                  Which variant of this addon to enable (e.g. 'amd' or 'nvidia' for 'gpu' addon).
+                '';
+              };
+          }
+        else
+          { };
+    in
+    {
+      name = nm;
+      value = {
         enable = lib.mkEnableOption "Enable addon ${nm}";
-      }
-      // maybeVariantOption;
-  };
+      } // maybeVariantOption;
+    };
 
   enabledAddonsNames = builtins.filter (x: cfg.addons."${x}".enable) allAddons;
 
   # XXX variants
-  finalPackage = cfg.package.override {addons = enabledAddonsNames;};
-in {
+  finalPackage = cfg.package.override { addons = enabledAddonsNames; };
+in
+{
   options.services.lnxlink = {
     enable = lib.mkEnableOption "Enable LNXlink - linux integration for MQTT/Home Assistant";
 
@@ -164,7 +174,7 @@ in {
 
     mqtt = lib.mkOption {
       type = mqttModule;
-      default = {};
+      default = { };
       example = lib.literalExpression ''
         {
           user = "<username>";
@@ -175,7 +185,8 @@ in {
       '';
     };
 
-    configFile = with lib;
+    configFile =
+      with lib;
       mkOption {
         type = types.either types.str types.path;
         default = "${config.xdg.configHome}/lnxlink/config.yaml";
@@ -187,13 +198,15 @@ in {
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.callPackage "${self}/packages/lnxlink.nix" {};
+      default = pkgs.callPackage "${self}/packages/lnxlink.nix" { };
     };
 
-    daemonPath = with lib;
+    daemonPath =
+      with lib;
       mkOption {
-        default = [pkgs.coreutils];
-        type = with types;
+        default = [ pkgs.coreutils ];
+        type =
+          with types;
           listOf (oneOf [
             package
             str
@@ -218,7 +231,7 @@ in {
           "multi-user.target"
           "graphical.target"
         ];
-        PartOf = ["graphical-session.target"];
+        PartOf = [ "graphical-session.target" ];
       };
 
       Service = {
@@ -237,7 +250,7 @@ in {
         '';
       };
       Install = {
-        WantedBy = ["default.target"];
+        WantedBy = [ "default.target" ];
       };
     };
   };

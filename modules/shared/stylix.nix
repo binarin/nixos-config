@@ -4,12 +4,14 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   # One of the Windows 95 default colors
-  wallpaper = pkgs.runCommand "image.png" {} ''
+  wallpaper = pkgs.runCommand "image.png" { } ''
     ${pkgs.imagemagick}/bin/magick -size 1920x1080 "xc:#00807F" $out
   '';
-in {
+in
+{
   stylix.enable = true;
   stylix.autoEnable = false;
   stylix.image = wallpaper;
@@ -32,7 +34,7 @@ in {
     };
 
     monospace = {
-      package = pkgs.nerdfonts.override {fonts = ["IosevkaTerm"];};
+      package = pkgs.nerdfonts.override { fonts = [ "IosevkaTerm" ]; };
       name = "IosevkaTerm Nerd Font";
     };
 
@@ -85,14 +87,15 @@ in {
     base17 = fg; # ansi white  - if possible pref bg 'fg-1'
   };
 
-  lib.style.template = name: template: data:
+  lib.style.template =
+    name: template: data:
     pkgs.stdenv.mkDerivation {
       name = "${name}";
 
-      nativeBuildInpts = [pkgs.mustache-go];
+      nativeBuildInpts = [ pkgs.mustache-go ];
 
       # Pass Json as file to avoid escaping
-      passAsFile = ["jsonData"];
+      passAsFile = [ "jsonData" ];
       jsonData = builtins.toJSON {
         inherit data;
         zenburn = config.zenburn.colors;
@@ -105,8 +108,7 @@ in {
             "sansSerif"
             "monospace"
             "emoji"
-          ]
-          (nm: config.stylix.fonts."${nm}".name);
+          ] (nm: config.stylix.fonts."${nm}".name);
       };
 
       # Disable phases which are not needed. In particular the unpackPhase will

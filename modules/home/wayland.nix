@@ -4,11 +4,13 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
   cfg = config.hostConfig;
-in {
+in
+{
   config = lib.mkIf config.hostConfig.feature.wayland {
     home.sessionVariables = {
       MOZ_ENABLE_WAYLAND = "1";

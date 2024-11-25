@@ -4,24 +4,25 @@
   config,
   pkgs,
   ...
-}: {
-  imports = [flake.inputs.stylix.homeManagerModules.stylix];
+}:
+{
+  imports = [ flake.inputs.stylix.homeManagerModules.stylix ];
   config = {
     stylix.targets =
       lib.genAttrs
-      [
-        "bat"
-        "tmux"
-        "btop"
-        "firefox"
-        "fzf"
-        "gtk"
-        "swaync"
-        "vscode"
-        "fuzzel"
-      ]
-      (nm: {
-        enable = true;
-      });
+        [
+          "bat"
+          "tmux"
+          "btop"
+          "firefox"
+          "fzf"
+          "gtk"
+          "swaync"
+          "vscode"
+          "fuzzel"
+        ]
+        (nm: {
+          enable = true;
+        });
   };
 }

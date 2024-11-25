@@ -3,16 +3,18 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
-in {
+in
+{
   config = lib.mkIf config.hostConfig.feature.server {
     time.timeZone = "Europe/Amsterdam";
     services.openssh.enable = true;
     services.openssh.settings.PermitRootLogin = "yes";
     services.fail2ban.enable = true;
-    networking.firewall.allowedTCPPorts = [22];
+    networking.firewall.allowedTCPPorts = [ 22 ];
 
     nixpkgs.config = {
       allowUnfree = true;

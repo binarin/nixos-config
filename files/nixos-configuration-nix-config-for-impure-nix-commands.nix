@@ -3,4 +3,4 @@ let
   host = builtins.head (builtins.split "\n" (builtins.readFile "/etc/hostname"));
   configuration = flake.nixosConfigurations."${host}";
 in
-  configuration.config.nixpkgs.config
+configuration.config.nixpkgs.config

@@ -4,10 +4,12 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
-in {
+in
+{
   imports = [
     "${modulesPath}/virtualisation/proxmox-lxc.nix"
     inputs.nixos-generators.nixosModules.all-formats
@@ -25,13 +27,13 @@ in {
       systemd.network.networks."40-lxc" = {
         matchConfig.Name = "eth0";
         dns = config.inventory.networks.home.dns;
-        address = [config.hostConfig.ipAllocation.home.primary.addressWithPrefix];
-        routes = [{routeConfig.Gateway = config.inventory.networks.home.gateway;}];
+        address = [ config.hostConfig.ipAllocation.home.primary.addressWithPrefix ];
+        routes = [ { routeConfig.Gateway = config.inventory.networks.home.gateway; } ];
       };
 
       services.getty.autologinUser = "root";
     })
     # proxmox-lxc.nix enables itself by default, let's override
-    (lib.mkIf (!config.hostConfig.feature.lxc) {proxmoxLXC.enable = lib.mkDefault false;})
+    (lib.mkIf (!config.hostConfig.feature.lxc) { proxmoxLXC.enable = lib.mkDefault false; })
   ];
 }

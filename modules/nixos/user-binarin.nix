@@ -3,7 +3,8 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+{
   config = lib.mkIf (builtins.elem "binarin" config.hostConfig.managedUsers) {
     users.extraGroups = {
       binarin = {

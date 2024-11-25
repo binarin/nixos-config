@@ -5,17 +5,19 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
-in {
+in
+{
   config = lib.mkIf config.hostConfig.feature.hyprland {
     nixpkgs.overlays = [
       inputs.hyprland-contrib.overlays.default
       inputs.hyprland.overlays.default # NOTE: goes last! previous overlays can mess with the same overrides
 
       (final: prev: {
-        aquamarine = prev.aquamarine.override {libinput = final.bleeding.libinput;};
+        aquamarine = prev.aquamarine.override { libinput = final.bleeding.libinput; };
         hyprlock = final.bleeding.hyprlock;
         xdg-desktop-portal-hyprland = prev.xdg-desktop-portal-hyprland.override {
           pipewire = final.bleeding.pipewire;

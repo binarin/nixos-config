@@ -3,11 +3,19 @@
   pkgs,
   lib,
   ...
-}: let
-  ignoringVulns = x: x // {meta = x.meta // {knownVulnerabilities = [];};};
+}:
+let
+  ignoringVulns =
+    x:
+    x
+    // {
+      meta = x.meta // {
+        knownVulnerabilities = [ ];
+      };
+    };
   qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
 
-  texlive-combined = pkgs.texlive.combine {inherit (pkgs.texlive) scheme-full beamer ps2eps;};
+  texlive-combined = pkgs.texlive.combine { inherit (pkgs.texlive) scheme-full beamer ps2eps; };
 
   guiPackages = with pkgs; [
     appimage-run
@@ -37,11 +45,12 @@
     xorg.xhost
   ];
 
-  slowRebuildGuiPackages = with pkgs; [(goldendict.override {qtwebkit = qtwebkitIgnoringVulns;})];
+  slowRebuildGuiPackages = with pkgs; [ (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; }) ];
 
   inherit (lib) optionals;
   inherit (config.hostConfig) feature;
-in {
+in
+{
   config = lib.mkIf feature.gui {
     xdg.mimeApps = {
       enable = true;

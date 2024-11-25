@@ -1,8 +1,4 @@
-{
-  pkgs,
-  fetchFromGitHub,
-  ...
-}:
+{ pkgs, fetchFromGitHub, ... }:
 pkgs.bleeding.walker.overrideAttrs (
   finalAttrs: prevAttrs: {
     version = "0.9.7";

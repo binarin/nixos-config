@@ -4,18 +4,20 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   inherit (flake) inputs;
   inherit (inputs) self;
-in {
+in
+{
   config = lib.mkIf config.hostConfig.feature.hyprland {
-    home.packages = [pkgs.noto-fonts];
+    home.packages = [ pkgs.noto-fonts ];
 
     programs.waybar = {
       enable = true;
       package =
         pkgs.callPackage "${flake.inputs.nixpkgs-unstable}/pkgs/by-name/wa/waybar/package.nix"
-        {};
+          { };
       systemd.enable = true;
       settings = {
         mainBar = {
@@ -27,7 +29,7 @@ in {
             "hyprland/workspaces"
             "wlr/taskbar"
           ];
-          modules-center = ["hyprland/window"];
+          modules-center = [ "hyprland/window" ];
           modules-right = [
             "tray"
             "idle_inhibitor"
@@ -38,7 +40,7 @@ in {
             "custom/notification"
           ];
 
-          "hyprland/workspaces" = {};
+          "hyprland/workspaces" = { };
 
           "wlr/taskbar" = {
             on-click = "activate";
@@ -108,7 +110,7 @@ in {
             format-es = "🇪🇸";
           };
 
-          "hyprland/submap" = {};
+          "hyprland/submap" = { };
 
           "custom/notification" = {
             tooltip = false;
@@ -127,7 +129,7 @@ in {
           };
         };
       };
-      style = config.lib.style.template "waybar-style.css" (config.lib.self.file "waybar-style.css") {};
+      style = config.lib.style.template "waybar-style.css" (config.lib.self.file "waybar-style.css") { };
     };
   };
 }
