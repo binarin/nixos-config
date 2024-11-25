@@ -85,7 +85,7 @@ in
       ipAllocation =
         if options.inventory.ipAllocation ? "${config.inventoryHostName}"
         then options.inventory.ipAllocation."${config.inventoryHostName}"
-        else null;
+        else lib.mkOption { default = {}; type = lib.types.attrs; };
     };
   };
 
