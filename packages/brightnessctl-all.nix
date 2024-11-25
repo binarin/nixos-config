@@ -1,23 +1,24 @@
 {
   writeShellApplication,
-  brightnessctl,
+  ddcutil,
   coreutils,
   ...
 }:
 writeShellApplication {
   name = "brightnessctl-all";
   runtimeInputs = [
-    brightnessctl
+    ddcutil
     coreutils
   ];
   text = ''
-    mapfile -t all < <(brightnessctl -l -c backlight -m | cut -d , -f1)
-    exit_code=0
+    mapfile -t all < <(ddcutil detect --brief | perl -nE 'say $1 if m,/dev/i2c-(\d+),')
+    pids=()
     for dev in "''${all[@]}" ; do
-      if ! brightnessctl -d "$dev" "$@"; then
-        exit_code=$?
-      fi
+      ddcutil -b "$dev" setvcp 10 "$1" &
+      pids[dev]=$!
     done
-    exit $exit_code
+    for pid in "''${pids[@]}"; do
+      wait "$pid"
+    done
   '';
 }

@@ -421,8 +421,8 @@ in
         listener = [
           {
             timeout = 150; # 2.5min.
-            on-timeout = "brightnessctl-all -s set 10"; # set monitor backlight to minimum, avoid 0 on OLED monitor.
-            on-resume = "brightnessctl-all -r"; # monitor backlight restore.
+            on-timeout = "brightnessctl-all 10"; # set monitor backlight to minimum, avoid 0 on OLED monitor.
+            on-resume = "brightnessctl-all 100"; # monitor backlight restore.
           }
 
           {
