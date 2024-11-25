@@ -810,6 +810,18 @@
        :ensure t
        :mode "\\.js\\'$")
    #+end_src
+** SQLite
+   #+begin_src emacs-lisp :tangle yes
+     (defun sqlite-handler (operation &rest args)
+       (ignore operation)
+       (kill-buffer nil)
+       (sqlite-mode-open-file (car args)))
+
+     (put 'sqlite-handler 'operations '(insert-file-contents))
+
+     (add-to-list 'file-name-handler-alist
+                  '("\\.sqlite\\'" . sqlite-handler))
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
