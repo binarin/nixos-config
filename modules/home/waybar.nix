@@ -15,9 +15,9 @@ in
 
     programs.waybar = {
       enable = true;
-      package =
-        pkgs.callPackage "${flake.inputs.nixpkgs-unstable}/pkgs/by-name/wa/waybar/package.nix"
-          { };
+      # package =
+      #   pkgs.callPackage "${flake.inputs.nixpkgs-unstable}/pkgs/by-name/wa/waybar/package.nix"
+      #     { };
       systemd.enable = true;
       settings = {
         mainBar = {

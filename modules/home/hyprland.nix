@@ -33,7 +33,6 @@ in
       shellevents
       sshmenu
       swaynotificationcenter
-      walker
       wl-clipboard
     ];
     xsession.preferStatusNotifierItems = true;
@@ -63,7 +62,6 @@ in
           "${pkgs.kwallet-pam}/libexec/pam_kwallet_init --no-startup-id"
           "uwsm app -t service -u hyprland-exec-once-protonmail-bridge -- protonmail-bridge -n"
           "uwsm app -t service -u hyprland-exec-once-nm-applet -- nm-applet"
-          "uwsm app -t service -u hyprland-exec-once-walker -- walker --gapplication-service"
           "uwsm app -t service -u hyprland-exec-once-hyrpland-per-window-layout -- hyprland-per-window-layout"
           "uwsm app -t service -u hyprland-exec-once-my-shellevents -- ${my-shellevents}"
           "[workspace 1 silent] uwsm app -t service -- foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
