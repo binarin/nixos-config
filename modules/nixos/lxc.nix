@@ -28,7 +28,7 @@ in
         matchConfig.Name = "eth0";
         dns = config.inventory.networks.home.dns;
         address = [ config.hostConfig.ipAllocation.home.primary.addressWithPrefix ];
-        routes = [ { routeConfig.Gateway = config.inventory.networks.home.gateway; } ];
+        routes = [ { Gateway = config.inventory.networks.home.gateway; } ];
       };
 
       services.getty.autologinUser = "root";

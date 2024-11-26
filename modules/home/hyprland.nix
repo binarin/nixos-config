@@ -48,6 +48,7 @@ in
       pinentryPackage = pkgs.pinentry-gtk2;
     };
     wayland.windowManager.hyprland = {
+      systemd.enable = false;
       enable = true;
       settings = {
         "$terminal" = "foot";
@@ -60,16 +61,16 @@ in
 
         exec-once = [
           "${pkgs.kwallet-pam}/libexec/pam_kwallet_init --no-startup-id"
-          "protonmail-bridge -n"
-          "nm-applet"
-          "walker --gapplication-service"
-          "hyprland-per-window-layout"
-          "${my-shellevents}"
-          "[workspace 1 silent] foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
-          "[workspace 2 silent] emacs"
-          "[workspace 4 silent] firefox"
-          "[workspace 5 silent] sleep 5; exec thunderbird" # give protonmail-bridge time to startup
-          "[workspace 5 silent; group new] telegram-desktop"
+          "uwsm app -t service -u hyprland-exec-once-protonmail-bridge -- protonmail-bridge -n"
+          "uwsm app -t service -u hyprland-exec-once-nm-applet -- nm-applet"
+          "uwsm app -t service -u hyprland-exec-once-walker -- walker --gapplication-service"
+          "uwsm app -t service -u hyprland-exec-once-hyrpland-per-window-layout -- hyprland-per-window-layout"
+          "uwsm app -t service -u hyprland-exec-once-my-shellevents -- ${my-shellevents}"
+          "[workspace 1 silent] uwsm app -t service -- foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
+          "[workspace 2 silent] uwsm app -t service -- emacs"
+          "[workspace 4 silent] uwsm app -t service -- firefox"
+          "[workspace 5 silent] sleep 5; uwsm app -t service -- exec thunderbird" # give protonmail-bridge time to startup
+          "[workspace 5 silent; group new] uwsm app -t service -- telegram-desktop"
         ];
 
         # debug.disable_logs = false;
@@ -86,16 +87,20 @@ in
 
         group = {
           "group_on_movetoworkspace" = true;
-          "col.border_active" = rgb "green_plus_3";
-          "col.border_inactive" = rgb "blue_minus_4";
+          "col.border_active" = rgb "red";
+          "col.border_inactive" = rgb "orange";
           "col.border_locked_active" = rgb "red_minus_6";
 
           groupbar = {
-            stacked = true;
+            enabled = true;
+            stacked = false;
+            render_titles = false;
+            height = 3;
             text_color = rgb "fg_plus_2";
             "col.inactive" = rgb "blue_minus_4";
-            "col.active" = rgb "green_minus_5";
+            "col.active" = rgb "red";
           };
+
         };
 
         xwayland = {
@@ -175,6 +180,13 @@ in
           "9, persistent:true, monitor:desc:${out-lg-dualup-right}"
         ];
 
+        monitor = [
+          "desc:${out-u4025qw}, preferred, auto, 2.0"
+          "desc:${out-lg-dualup-right}, preferred, auto, 2.0"
+          "desc:${out-lg-dualup-left}, preferred, auto, 2.0"
+          ", preferred, auto, auto"
+        ];
+
         master = {
           always_center_master = true;
           new_status = "inherited";
@@ -221,7 +233,7 @@ in
           "$mod SHIFT , C, killactive"
           "$hyper     , C, layoutmsg, orientationcenter"
           "$mod       , D, exec, $menu"
-          "$mod       , E, exec, $fileManager"
+          "$mod       , E, exec, uwsm app -t service -- $fileManager"
           "$mod       , F, fullscreen, 0"
           "$mod CTRL  , G, togglegroup"
           "$mod       , J, changegroupactive, f"
@@ -231,7 +243,7 @@ in
           "$mod       , P, exec, hyprshot -m region"
           "$mod SHIFT , P, exec, hyprshot -m window"
           "$mod CTRL  , P, exec, hyprshot -m output"
-          "$mod SHIFT , Q, exit"
+          "$mod SHIFT , Q, exec, uwsm stop"
           "$mod SHIFT , S, movetoworkspace, special:magic"
           "$mod       , S, togglespecialworkspace, magic"
           "$mod       , V, togglefloating,"
@@ -242,7 +254,7 @@ in
           "$mod SHIFT , left, movewindoworgroup, l"
           "$mod       , mouse_down, workspace, e+1"
           "$mod       , mouse_up, workspace, e-1"
-          "$mod       , return, exec, $terminal"
+          "$mod       , return, exec, uwsm app -t service -- $terminal"
           "$mod       , right, movefocus, r"
           "$mod SHIFT , right, movewindoworgroup, r"
           "$mod       , up, movefocus, u"
@@ -343,6 +355,24 @@ in
         }
       ];
     };
+
+    # systemd.user.services.hyprpolkitagent = {
+    #   Unit = {
+    #     Description = "Hyprland Polkit Authentication Agent";
+    #     PartOf = "graphical-session.target";
+    #     After = "graphical-session.target";
+    #     ConditionEnvironment = "WAYLAND_DISPLAY";
+    #   };
+    #   Service = {
+    #     ExecStart = "@LIBEXECDIR@/hyprpolkitagent";
+    #     Slice = "session.slice";
+    #     TimeoutStopSec = "5sec";
+    #     Restart = "on-failure";
+    #   };
+    #   Install = {
+    #     WantedBy = "graphical-session.target";
+    #   };
+    # };
 
     systemd.user.services.swaync = {
       Unit = {

@@ -48,7 +48,7 @@ in
 
   systemd.network.networks."40-lxc".networkConfig.MulticastDNS = lib.mkForce false;
 
-  hardware.opengl = {
+  hardware.graphics = {
     enable = true;
     extraPackages = with pkgs; [
       intel-media-driver

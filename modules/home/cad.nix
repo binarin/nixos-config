@@ -11,7 +11,8 @@
       [
         freecad
         openscad-unstable
-      ]
-      ++ lib.optional (!config.hostConfig.feature.fast-rebuild) pkgs.bleeding.prusa-slicer;
+        prusa-slicer
+      ];
+      # ++ lib.optional (!config.hostConfig.feature.fast-rebuild) pkgs.bleeding.prusa-slicer;
   };
 }

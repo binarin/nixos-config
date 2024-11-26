@@ -1,6 +1,6 @@
 final: prev:
 let
-  flake = builtins.getFlake "path:${builtins.readFile /etc/nix/inputs/self-absolute-path}";
+  flake = builtins.getFlake "${builtins.readFile /etc/nix/inputs/self-absolute-path}"; # can't handle nested symlinks
   host = builtins.head (builtins.split "\n" (builtins.readFile "/etc/hostname"));
   configuration = flake.nixosConfigurations."${host}";
   configurationOverlays = configuration.config.nixpkgs.overlays;

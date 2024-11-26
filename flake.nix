@@ -1,9 +1,10 @@
 {
   inputs = {
-    # Principle inputs
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
 
-    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs";
+
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     emacs-overlay.url = "github:nix-community/emacs-overlay";
@@ -36,14 +37,11 @@
     caddy-cloudflare.url = "github:binarin/caddy-with-plugins";
     caddy-cloudflare.inputs.nixpkgs.follows = "nixpkgs"; # golang < 1.23 - see https://github.com/nix-community/gomod2nix/issues/117
 
-    nixpkgs-unstable.url = "github:nixos/nixpkgs";
-
     arion.url = "github:hercules-ci/arion";
     arion.inputs.nixpkgs.follows = "nixpkgs";
 
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    sops-nix.inputs.nixpkgs-stable.follows = "nixpkgs";
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 

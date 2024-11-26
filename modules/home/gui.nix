@@ -45,7 +45,9 @@ let
     xorg.xhost
   ];
 
-  slowRebuildGuiPackages = with pkgs; [ (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; }) ];
+  slowRebuildGuiPackages = with pkgs; [
+    # (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; })
+  ];
 
   inherit (lib) optionals;
   inherit (config.hostConfig) feature;

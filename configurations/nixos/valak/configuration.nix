@@ -154,7 +154,7 @@ in
             matchConfig.Name = "br0";
 
             address = [ addressWithPrefix ];
-            routes = [ { routeConfig.Gateway = gateway; } ];
+            routes = [ { Gateway = gateway; } ];
 
             dns = dns;
             bridgeConfig = { };
@@ -172,11 +172,11 @@ in
     };
     services.samba = {
       enable = true;
-      extraConfig = ''
-        bind interfaces only = yes
-        interfaces = lo smb-sketchup
-      '';
-      shares = {
+      settings = {
+        global = {
+          "bind interfaces only" = "yes";
+          "interfaces" = "lo smb-sketchup";
+        };
         public = {
           path = "/home/vm-shared/current";
           "guest ok" = "yes";

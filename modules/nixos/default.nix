@@ -25,6 +25,8 @@ in
     system.switch.enableNg = lib.mkDefault true;
     system.switch.enable = lib.mkDefault false;
 
+    services.dbus.implementation = "broker";
+
     users.users."root".openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
     ];

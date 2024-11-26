@@ -10,26 +10,11 @@
 let
   inherit (flake) inputs;
   inherit (inputs) self;
-  forgejoPackage = pkgs.bleeding.forgejo-lts;
 in
 {
   imports = [
     self.nixosModules.server
-
-    {
-      # use forgejo module from nixpkgs-master (and the compatible version of forgejo itself)
-      disabledModules = [ "services/misc/forgejo.nix" ];
-      imports = [ "${inputs.nixpkgs-unstable}/nixos/modules/services/misc/forgejo.nix" ];
-      nixpkgs.overlays = [
-        (final: prev: {
-          forgejo = prev.bleeding.forgejo-lts;
-          forgejo-lts = prev.bleeding.forgejo-lts;
-        })
-      ];
-    }
   ];
-
-  hostConfig.feature.bleeding = lib.mkForce true;
 
   sops.secrets.tailscale-auth = { };
   services.tailscale = {

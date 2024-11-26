@@ -5,7 +5,7 @@
   ...
 }:
 {
-  nixpkgs.overlays = lib.mkIf config.hostConfig.feature.bleeding [
-    flake.inputs.self.overlays.fonts-from-unstable
-  ];
+  # nixpkgs.overlays = lib.mkIf config.hostConfig.feature.bleeding [
+  #   flake.inputs.self.overlays.fonts-from-unstable
+  # ];
 }

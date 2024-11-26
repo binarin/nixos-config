@@ -13,15 +13,10 @@
   config = lib.mkIf config.hostConfig.feature.wsl {
     wsl.defaultUser = lib.mkDefault (lib.elemAt (config.hostConfig.managedUsers) 0);
 
-    # XXX remove on 24.11
-    nixpkgs.overlays = [
-      (final: prev: { switch-to-configuration-ng = final.bleeding.switch-to-configuration-ng; })
-    ];
-
     # XXX Guard on 'gui'
     environment.variables.LD_LIBRARY_PATH = "/run/opengl-driver/lib/";
     wsl.useWindowsDriver = true;
-    hardware.opengl.enable = true;
+    hardware.graphics.enable = true;
     hardware.opengl.driSupport = true;
 
     wsl.enable = true;

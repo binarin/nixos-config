@@ -17,7 +17,12 @@ in
         inherit (prev) system;
         config = config.nixpkgs.config;
         overlays = [
-          (bf: bp: { mesa = final.mesa; }) # diverges too fast, leads to segfaults. a lot of rebuilds is the price.
+          (bf: bp: {
+            # diverges too fast, leads to segfaults. a lot of rebuilds is the price.
+            mesa = final.mesa.override {
+              libdrm = final.bleeding.libdrm;
+            };
+          })
         ];
       };
     })

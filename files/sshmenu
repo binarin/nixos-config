@@ -33,10 +33,7 @@ switch-or-run-foot() {
     if hyprctl clients -j | jq -r '.[].title' | grep -q -F "$title"; then
         hyprctl dispatch focuswindow title:"$titleEscaped"
     else
-        setopt NO_HUP
-        setopt NO_CHECK_JOBS
-        nohup foot --title "$title" "$@" > /dev/null 2>&1 &!
-        sleep 0.1
+        exec uwsm app -t service -a "sshmenu-$title" -- foot --title "$title" "$@"
     fi
     exit 0
 }

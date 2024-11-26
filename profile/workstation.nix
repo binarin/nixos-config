@@ -97,8 +97,8 @@ in
         yt-dlp
         gnuplot
         dconf
-        gnome3.dconf-editor
-        gnome3.gnome-tweaks
+        dconf-editor
+        gnome-tweaks
         dmenu
         dmidecode
         gmrun
@@ -128,12 +128,14 @@ in
     powerOnBoot = true;
   };
 
-  hardware.opengl = {
+
+
+
+  hardware.graphics = {
     enable = true;
-    driSupport32Bit = true;
+    enable32Bit = true;
     extraPackages = with pkgs; [
-      rocm-opencl-icd
-      rocm-opencl-runtime
+      rocmPackages.clr
       intel-media-driver
     ];
   };
@@ -171,8 +173,8 @@ in
     pkgs.epson-escpr
   ];
 
+  programs.gdk-pixbuf.modulePackages = [ pkgs.librsvg ];
   services.xserver = {
-    gdk-pixbuf.modulePackages = [ pkgs.librsvg ];
 
     modules = [ pkgs.xorg.xf86inputlibinput ];
     videoDrivers = [
@@ -284,12 +286,6 @@ in
     docker.enable = true;
     docker.storageDriver = "overlay2";
     libvirtd.enable = true;
-    # podman = {
-    #   enable = true;
-    #   package = pkgs.bleeding.podman;
-    #   dockerCompat = true;
-    #   defaultNetwork.dnsname.enable = true;
-    # };
   };
 
   zramSwap = {

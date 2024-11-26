@@ -1,3 +1,4 @@
+# -*- mode: nix; eval: (rainbow-mode 1); -*-
 {
   flake,
   lib,

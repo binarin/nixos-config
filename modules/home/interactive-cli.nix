@@ -48,9 +48,9 @@
       clock24 = true;
       enable = true;
       shortcut = "o";
-      terminal = "screen-256color";
+      # terminal = "screen-256color";
+      # set -g window-status-current-style bg=red
       extraConfig = ''
-        set -g window-status-current-style bg=red
         set -g allow-rename off
       '';
     };
