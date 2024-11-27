@@ -24,5 +24,6 @@ in
     ];
 
     nix.registry.nixpkgs.flake = flake.inputs.nixpkgs;
+    nix.registry.flake-parts.flake = flake.inputs.flake-parts;
   };
 }
