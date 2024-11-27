@@ -57,9 +57,10 @@ in
       fsType = "ext4";
     };
 
-    fileSystems."/boot" = {
+   fileSystems."/boot" = {
       device = "/dev/disk/by-uuid/DC51-7F5A";
       fsType = "vfat";
+      options = ["umask=0077"];
     };
 
     swapDevices = [ { device = "/dev/disk/by-uuid/27420222-5cdb-440f-9b32-0f2668db7d68"; } ];
