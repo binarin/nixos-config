@@ -18,6 +18,7 @@ let
   texlive-combined = pkgs.texlive.combine { inherit (pkgs.texlive) scheme-full beamer ps2eps; };
 
   guiPackages = with pkgs; [
+    protonmail-bridge
     appimage-run
     chromium
     evince

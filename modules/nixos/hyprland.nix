@@ -11,27 +11,17 @@ let
   inherit (inputs) self;
 in
 {
-
-  # disabledModules = [
-  #   "programs/wayland/hyprland.nix"
-  # ];
-
-  # imports = [
-  #   "${self.inputs.nixpkgs-unstable}/nixos/modules/programs/wayland/hyprland.nix"
-  #   "${self.inputs.nixpkgs-unstable}/nixos/modules/programs/wayland/uwsm.nix"
-  #   "${self.inputs.nixpkgs-unstable}/nixos/modules/services/misc/graphical-desktop.nix"
-  # ];
-
-  # options.services.speechd = lib.mkOption { type = lib.types.attrsOf lib.types.anything; };
-
   config = lib.mkIf config.hostConfig.feature.hyprland {
     nixpkgs.overlays = [
       inputs.hyprland-contrib.overlays.default
-      inputs.hyprland.overlays.default # NOTE: goes last! previous overlays can mess with the same overrides
+      inputs.hyprland.overlays.default
     ];
 
     services.displayManager.sddm.enable = true;
     services.displayManager.defaultSession = "hyprland-uwsm";
+
+    security.pam.services.login.kwallet.enable = true;
+    security.pam.services.login.kwallet.package = pkgs.kdePackages.kwallet-pam;
 
     programs.hyprlock.enable = true;
     programs.hyprland.enable = true;

@@ -13,6 +13,9 @@ in
   config = lib.mkIf config.hostConfig.feature.hyprland {
     home.packages = [ pkgs.noto-fonts ];
 
+    systemd.user.services.waybar.Unit.After = [ "graphical-session.target" ];
+    systemd.user.services.waybar.Unit.BindsTo = [ "graphical-session.target" ];
+
     programs.waybar = {
       enable = true;
       # package =

@@ -12,6 +12,7 @@ let
   out-ishamael-edp = "Sharp Corporation 0x1516 Unknown";
   out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
   my-shellevents = pkgs.writeScript "my-shellevents" ''
+    #!${lib.getExe pkgs.bash}
     ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe pkgs.shellevents} ${config.lib.self.file "hyprland-shellevents.sh"}",nofork
   '';
   rgb = color: "rgb(${lib.removePrefix "#" (config.zenburn.colors."${color}")})";
@@ -23,6 +24,11 @@ in
       # use this if they aren't displayed properly:
       "_JAVA_AWT_WM_NONREPARENTING" = "1";
     };
+
+    xdg.portal.extraPortals = [
+      pkgs.kdePackages.kwallet
+    ];
+
     home.packages = with pkgs; [
       ddcutil
       fuzzel
@@ -36,6 +42,7 @@ in
       wl-clipboard
     ];
     xsession.preferStatusNotifierItems = true;
+
     services.gpg-agent = {
       enable = true;
       defaultCacheTtl = 3600;
@@ -43,15 +50,15 @@ in
       extraConfig = ''
         allow-preset-passphrase
       '';
-      #pinentryFlavor = "gtk2";
       pinentryPackage = pkgs.pinentry-gtk2;
     };
+
     wayland.windowManager.hyprland = {
       systemd.enable = false;
       enable = true;
       settings = {
         "$terminal" = "foot";
-        "$menu" = "walker";
+        "$menu" = "fuzzel --launch-prefix='uwsm app -t service --'";
         "$fileManager" = "dolphin";
         "$mod" = "SUPER";
         "$hyper" = "SUPER SHIFT ALT CTRL";
@@ -59,16 +66,17 @@ in
         "$col_inactive" = "0xff999999";
 
         exec-once = [
-          "${pkgs.kwallet-pam}/libexec/pam_kwallet_init --no-startup-id"
-          "uwsm app -t service -u hyprland-exec-once-protonmail-bridge -- protonmail-bridge -n"
-          "uwsm app -t service -u hyprland-exec-once-nm-applet -- nm-applet"
-          "uwsm app -t service -u hyprland-exec-once-hyrpland-per-window-layout -- hyprland-per-window-layout"
-          "uwsm app -t service -u hyprland-exec-once-my-shellevents -- ${my-shellevents}"
-          "[workspace 1 silent] uwsm app -t service -- foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
-          "[workspace 2 silent] uwsm app -t service -- emacs"
-          "[workspace 4 silent] uwsm app -t service -- firefox"
-          "[workspace 5 silent] sleep 5; uwsm app -t service -- exec thunderbird" # give protonmail-bridge time to startup
-          "[workspace 5 silent; group new] uwsm app -t service -- telegram-desktop"
+          "env PAM_KWALLET5_LOGIN=/run/user/1000/kwallet5.socket ${pkgs.kdePackages.kwallet-pam}/libexec/pam_kwallet_init"
+          "sleep 1; uwsm app -t service -u hyprland-exec-once-protonmail-bridge.service -- protonmail-bridge -n"
+          "uwsm app -t service -u hyprland-exec-once-nm-applet.service -- nm-applet"
+          "uwsm app -t service -u hyprland-exec-once-hyrpland-per-window-layout.service -- hyprland-per-window-layout"
+          "uwsm app -t service -u hyprland-exec-once-my-shellevents.service -- ${my-shellevents}"
+          "[workspace 1 silent] uwsm app -t scope -u hyprland-exec-once-foot.scope -- foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
+          "[workspace 2 silent] uwsm app -t scope -u hyprland-exec-once-emacs.scope -- emacs"
+          "[workspace 4 silent] uwsm app -t scope -u hyprland-exec-once-firefox.scope -- firefox"
+          "[workspace 5 silent] sleep 5; exec uwsm app -t scope -u hyprland-exec-once-thunderbird.scope -- thunderbird" # give protonmail-bridge time to startup
+          "[workspace 5 silent; group new] uwsm app -t scope -u hyprland-exec-once-telegram-desktop.scope -- telegram-desktop"
+          ''sleep 2; hyprctl --batch "dispatch workspace 1; dispatch layoutmsg orientationcenter; dispatch workspace 2; dispatch layoutmsg orientationcenter; dispatch workspace 3; dispatch layoutmsg orientationcenter; dispatch workspace 4; dispatch layoutmsg orientationcenter; dispatch workspace 5; dispatch layoutmsg orientationcenter; dispatch workspace 1"''
         ];
 
         # debug.disable_logs = false;
@@ -161,7 +169,7 @@ in
         input = {
           kb_layout = "us,ru";
           kb_variant = ",winkeys";
-          kb_options = "grp:menu_toggle,ctrl:nocaps,altwin:super_win,grp:sclk_toggle,compose:pause";
+          kb_options = "grp:menu_toggle,ctrl:nocaps,grp:sclk_toggle";
         };
 
         workspace = [
@@ -397,7 +405,7 @@ in
     xdg.dataFile."dbus-1/services/org.freedesktop.secrets.service".text = ''
       [D-BUS Service]
       Name=org.freedesktop.secrets
-      Exec=${lib.getBin pkgs.plasma5Packages.kwallet}/bin/kwalletd5
+      Exec=${lib.getExe' pkgs.kdePackages.kwallet "kwalletd6"}
     '';
 
     programs.hyprlock = {
@@ -437,6 +445,9 @@ in
         ];
       };
     };
+
+    systemd.user.services.hypridle.Unit.After = [ "graphical-session.target" ];
+    systemd.user.services.hypridle.Unit.BindsTo = [ "graphical-session.target" ];
 
     services.hypridle = {
       enable = true;
