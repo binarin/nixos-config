@@ -48,7 +48,7 @@
       clock24 = true;
       enable = true;
       shortcut = "o";
-      # terminal = "screen-256color";
+      terminal = "screen-256color"; # needed, e.g. for emacs -nw
       # set -g window-status-current-style bg=red
       extraConfig = ''
         set -g allow-rename off
