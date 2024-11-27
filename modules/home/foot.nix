@@ -6,6 +6,11 @@
 }:
 {
   config = lib.mkIf config.hostConfig.feature.wayland {
+    xdg.configFile."xdg-terminals.list".text = ''
+      foot.desktop
+      /execarg_default:org.codeberg.dnkl.foot.desktop:--
+    '';
+
     programs.foot = lib.mkIf (config.hostConfig.feature.wayland) {
       enable = true;
       settings = {
