@@ -24,10 +24,6 @@
     user-js.url = "github:arkenfox/user.js";
     user-js.flake = false;
 
-    walker.url = "github:abenz1267/walker";
-    walker.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    walker.inputs.flake-parts.follows = "flake-parts";
-
     stylix.url = "github:binarin/stylix";
     stylix.inputs.home-manager.follows = "home-manager";
     stylix.inputs.nixpkgs.follows = "nixpkgs";

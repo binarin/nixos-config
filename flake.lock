@@ -902,8 +902,7 @@
         "nixpkgs-unstable": "nixpkgs-unstable",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
-        "user-js": "user-js",
-        "walker": "walker"
+        "user-js": "user-js"
       }
     },
     "sops-nix": {
@@ -1116,29 +1115,6 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "walker": {
-      "inputs": {
-        "flake-parts": [
-          "flake-parts"
-        ],
-        "nixpkgs": [
-          "nixpkgs-unstable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1732546570,
-        "narHash": "sha256-b5t84FwgdzlwYZoLXV/PHYjNkIJ11FOi01oVGBX/4TE=",
-        "owner": "abenz1267",
-        "repo": "walker",
-        "rev": "82b106e1632d1c584723b29f5979891861d36858",
-        "type": "github"
-      },
-      "original": {
-        "owner": "abenz1267",
-        "repo": "walker",
         "type": "github"
       }
     },
