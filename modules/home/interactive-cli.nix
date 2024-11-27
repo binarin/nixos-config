@@ -83,7 +83,6 @@
       shellAliases = {
         vi = "emacsclient -a 'emacs -nw' -nw";
         vim = "emacsclient -a 'emacs -nw' -nw";
-        emacs = "emacsclient -a 'emacs -nw' -nw";
         o = ''xdg-open'';
         pst = ''pstree -apU | less'';
       };
