@@ -5,7 +5,9 @@
   system,
   ...
 }:
-{
+let
+  fzf_show_file_or_dir_preview="if [ -d {} ]; then lsd --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi";
+in {
   config = lib.mkIf config.hostConfig.feature.interactive-cli {
     home.packages = with pkgs; [
       age
@@ -16,6 +18,7 @@
       deploy-rs
       docker-compose
       docker-credential-helpers
+      duf
       gcc
       git-annex
       gnumake
@@ -55,10 +58,17 @@
       '';
     };
 
+    programs.fd = {
+      enable = true;
+      ignores = [ ".git/" ".direnv/" ];
+      hidden = true;
+    };
+
     programs.direnv.enable = true;
     programs.direnv.nix-direnv.enable = true;
     programs.direnv.enableZshIntegration = true;
 
+    programs.bash.enable = true;
     programs.zoxide.enable = true;
     programs.bat.enable = true;
     programs.broot = {
@@ -79,12 +89,14 @@
       enable = true;
       autocd = true;
       autosuggestion.enable = true;
+      syntaxHighlighting.enable = true;
 
       shellAliases = {
         vi = "emacsclient -a 'emacs -nw' -nw";
         vim = "emacsclient -a 'emacs -nw' -nw";
         o = ''xdg-open'';
         pst = ''pstree -apU | less'';
+        tldr = ''tldr --quiet'';
       };
 
       dirHashes = {
@@ -126,6 +138,18 @@
         precmd() {
             print -Pn "\e]133;A\e\\"
         }
+
+        _fzf_comprun() {
+          local command=$1
+          shift
+
+          case "$command" in
+            cd)           fzf --preview 'lsd --tree --color=always {} | head -200' "$@" ;;
+            export|unset) fzf --preview "eval 'echo ''${}'"         "$@" ;;
+            ssh)          fzf --preview 'dig {}'                   "$@" ;;
+            *)            fzf --preview "${fzf_show_file_or_dir_preview}" "$@" ;;
+          esac
+        }
       '';
 
       history = {
@@ -159,6 +183,71 @@
       extraConfig = ''
         encoding.add=utf-8
       '';
+    };
+
+    programs.fzf = {
+      enable = true;
+      defaultCommand = "fd";
+      fileWidgetOptions = ["--preview '${fzf_show_file_or_dir_preview}'"];
+      changeDirWidgetOptions = ["--preview 'lsd --tree --color=always {} | head -200'"];
+      tmux = {
+        enableShellIntegration = true;
+        shellIntegrationOptions = [ "-d 40%" ];
+      };
+    };
+
+    # Programs natively supported by home-manager.
+    # They can be configured in `programs.*` instead of using home.packages.
+    programs = {
+      # Type `<ctrl> + r` to fuzzy search your shell history
+      jq.enable = true;
+      # Install btop https://github.com/aristocratos/btop
+      btop.enable = true;
+    };
+
+    home.file."${config.xdg.cacheHome}/tealdeer/tldr-pages" = {
+      source = pkgs.fetchzip {
+        url = "https://github.com/tldr-pages/tldr/releases/download/v2.2/tldr.zip";
+        hash = "sha256-QM5nMRO74LeyG6VB9rFND8Ez6lzG8A512YudoxvlugI=";
+        stripRoot = false;
+      };
+    };
+
+    programs.tealdeer = {
+      enable = true;
+      settings = {
+
+        updates = {
+          auto_update = false;
+        };
+      };
+    };
+
+    programs.starship = {
+      enable = true;
+      settings = {
+        username = {
+          style_user = "blue bold";
+          style_root = "red bold";
+          format = "[$user]($style) ";
+          disabled = false;
+          show_always = true;
+        };
+        hostname = {
+          ssh_only = false;
+          ssh_symbol = "🌐 ";
+          format = "on [$hostname](bold red) ";
+          trim_at = ".local";
+          disabled = false;
+        };
+        shlvl = {
+          disabled = false;
+          symbol = "↕️";
+          repeat = true;
+          repeat_offset = 3;
+          format = "[$symbol](bold yellow) ";
+        };
+      };
     };
   };
 }

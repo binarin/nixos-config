@@ -1,5 +1,27 @@
 #+PROPERTY: header-args:emacs-lisp :lexical yes :results value pp silent
 * File header
+** Directories
+   #+begin_src emacs-lisp :tangle yes
+     (eval-and-compile
+       (defvar xdg-cache-home
+         (or (getenv "XDG_CACHE_HOME")
+             (expand-file-name "~/.cache")))
+
+       (defun cache-file-name (&rest components)
+         (apply #'file-name-concat xdg-cache-home "emacs" components))
+
+       (setq package-user-dir (cache-file-name "elpa/")
+             no-littering-etc-directory (cache-file-name "no-littering" "config")
+             no-littering-var-directory (cache-file-name "no-littering" "data")
+             native-comp-async-env-modifier-form `(setq package-directory-list ',package-directory-list)))
+
+     ;; some stuff inside `eval-and-compile` is because of:
+     ;; no-littering-XXX - https://github.com/emacscollective/no-littering/issues/249
+     ;; native-comp-async-env-modifier-form - of https://github.com/NixOS/nixpkgs/issues/145302#issuecomment-2506666795
+
+     (use-package no-littering
+       :ensure t)
+   #+end_src
 ** Track execution time
 
    Whatever happens before this point, we don't control
@@ -219,7 +241,7 @@
      (require 'recentf)
      (setq history-length 1000
            history-delete-duplicates t
-           savehist-file "~/.emacs.d/savehist"
+           savehist-file (cache-file-name "savehist")
            savehist-additional-variables '(savehist-minibuffer-history-variables
                                            read-expression-history
                                            minibuffer-history
@@ -433,17 +455,39 @@
 ** Saving and backups
    Save backups to one place and don't clutter filesystem with files ending in ~\~~ or ~#~.
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (defvar binarin/backups-directory "~/.emacs.d/backups")
+     (defvar binarin/backups-directory (cache-file-name "backup/"))
      (make-directory binarin/backups-directory t)
-     (setq backup-directory-alist `(("." . ,binarin/backups-directory)))
 
-     (defvar binarin/auto-save-directory "~/.emacs.d/auto-save-list/")
-     (make-directory binarin/auto-save-directory t)
-     (setq auto-save-file-name-transforms `((".*" ,binarin/auto-save-directory t)))
+     (defun home-file-regexp (&rest components)
+       (s-concat "\\`" (expand-file-name (file-name-concat "~/" components))))
 
-     (defvar binarin/undo-tree-history-directory "~/.emacs.d/undo-tree/")
+     (setq backup-directory-alist
+           `(("." . ,binarin/backups-directory)))
+
+     (defvar binarin/undo-tree-history-directory (cache-file-name "undo-tree/"))
      (make-directory binarin/undo-tree-history-directory t)
-     (setq undo-tree-history-directory-alist `(("." . ,binarin/undo-tree-history-directory)))
+     (setq undo-tree-history-directory-alist
+           `(("." . ,binarin/undo-tree-history-directory)))
+
+     (defvar binarin/auto-save-directory (cache-file-name "auto-save/"))
+     (make-directory binarin/auto-save-directory t)
+     (setq auto-save-file-name-transforms
+           `((".*" ,binarin/auto-save-directory t)))
+
+     (setq auto-save-default nil)
+     (setq make-backup-files nil)
+     (setq undo-tree-auto-save-history nil)
+
+     (defun binarin/maybe-enable-autosave ()
+       (when (or (not buffer-file-name) ;; there is some magic for saving incomlete emails etc. without a buffer. let's assume there is no sensitive information in here
+                 (s-matches? (s-concat "\\`" (expand-file-name "~")) ;; and then only the contents of $HOME should be backed up
+                             buffer-file-name))
+         (setq-local make-backup-files t)
+         (setq-local auto-save-default t)
+         (setq-local undo-tree-auto-save-history t)))
+
+     (add-hook 'find-file-hook 'binarin/maybe-enable-autosave)
+     (add-hook 'after-set-visited-file-name-hook 'binarin/maybe-enable-autosave)
    #+END_SRC
 
    Never delete backup files and never re-use them (this generates
@@ -822,6 +866,13 @@
      (add-to-list 'file-name-handler-alist
                   '("\\.sqlite\\'" . sqlite-handler))
    #+end_src
+** Compilation
+   #+begin_src emacs-lisp :tangle yes
+     (use-package fancy-compilation
+       :ensure t
+       :hook
+       (compilation-mode-hook . fancy-compilation-mode))
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
@@ -1084,7 +1135,7 @@
         :title "Link captured"
         :body (cadar org-stored-links)
         :app-name "emacs"
-        :app-icon (expand-file-name "~/.local/share/icons/emacs/org.svg")
+        :app-icon (substitute-in-file-name "$XDG_DATA_HOME/icons/emacs/org.svg")
         :timeout 3000
         :urgency 'low))
 

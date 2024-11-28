@@ -13,11 +13,11 @@ in
   config = lib.mkIf config.hostConfig.feature.vfio {
     home.packages = with pkgs; [ looking-glass-client ];
 
-    home.file.".config/libvirt/libvirt.conf".text = ''
+    xdg.configFile."libvirt/libvirt.conf".text = ''
       uri_default = "qemu:///system"
     '';
 
-    home.file.".config/looking-glass/client.ini".text = ''
+    xdg.configFile."looking-glass/client.ini".text = ''
       [app]
       shmFile=/dev/shm/looking-glass
       renderer=auto

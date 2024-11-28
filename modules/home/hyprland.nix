@@ -395,7 +395,7 @@ in
       };
     };
 
-    home.file.".config/swaync/config.json".text = ''
+    xdg.configFile."swaync/config.json".text = ''
       {
         "scripts": {
         }
