@@ -17,7 +17,6 @@
     environment.variables.LD_LIBRARY_PATH = "/run/opengl-driver/lib/";
     wsl.useWindowsDriver = true;
     hardware.graphics.enable = true;
-    hardware.opengl.driSupport = true;
 
     wsl.enable = true;
     wsl.startMenuLaunchers = true;

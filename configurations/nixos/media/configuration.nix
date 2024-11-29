@@ -54,7 +54,7 @@ in
       intel-media-driver
       intel-ocl
       intel-vaapi-driver
-      onevpl-intel-gpu
+      vpl-gpu-rt
     ];
   };
 
@@ -123,7 +123,7 @@ in
     enable = true;
     openFirewall = true;
 
-    shares = {
+    settings = {
       "Music" = smbShareStandartOptions // {
         path = "/media/music";
       };
@@ -190,7 +190,7 @@ in
     # To use QSV
     package = pkgs.jellyfin.override {
       jellyfin-ffmpeg = pkgs.jellyfin-ffmpeg.override {
-        ffmpeg_6-full = pkgs.ffmpeg_6-full.override {
+        ffmpeg_7-full = pkgs.ffmpeg_7-full.override {
           withMfx = false;
           withVpl = true;
         };
@@ -198,7 +198,7 @@ in
     };
   };
 
-  services.samba.shares.Movies = smbShareStandartOptions // {
+  services.samba.settings.Movies = smbShareStandartOptions // {
     path = "/media/movies";
     "force user" = "jellyfin";
     "force group" = "jellyfin";
@@ -370,7 +370,7 @@ in
     }
   '';
 
-  services.samba.shares.Torrents = smbShareStandartOptions // {
+  services.samba.settings.Torrents = smbShareStandartOptions // {
     path = "/media/torrents";
     "force user" = "jellyfin";
     "force group" = "jellyfin";
