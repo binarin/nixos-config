@@ -873,6 +873,12 @@
        :hook
        (compilation-mode-hook . fancy-compilation-mode))
    #+end_src
+** Git
+   #+begin_src emacs-lisp :tangle yes
+     (use-package git-link
+       :ensure t
+       :commands (git-link git-link-commit git-link-homepage))
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
