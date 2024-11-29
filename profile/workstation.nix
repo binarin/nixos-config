@@ -249,7 +249,6 @@ in
 
     desktopManager.xterm.enable = true;
     desktopManager.gnome.enable = false;
-    desktopManager.plasma5.enable = true;
 
     displayManager = {
       gdm.enable = false;
@@ -257,6 +256,7 @@ in
     };
   };
 
+  services.desktopManager.plasma6.enable = true;
   services.displayManager.sddm.enable = true;
 
   location.latitude = 52.3702;
@@ -269,8 +269,6 @@ in
   };
 
   networking.firewall.enable = true;
-  # XXX is loose enough?
-  # networking.firewall.checkReversePath = false; # I want my DHCP for VM's
   networking.firewall.allowedTCPPorts = [
     27036
     27037

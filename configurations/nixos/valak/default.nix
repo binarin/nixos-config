@@ -13,5 +13,7 @@
     "lnxlink"
     "bleeding"
     "nix-builder"
+    "impermanence"
   ];
+
 }

@@ -3,6 +3,7 @@
   config,
   pkgs,
   lib,
+  osConfig ? null,
   ...
 }:
 let
@@ -29,7 +30,21 @@ in
       pkgs.kdePackages.kwallet
     ];
 
+    xdg.configFile = lib.mapAttrs' (name: value: lib.nameValuePair "autostart/${name}.desktop" {
+      text = ''
+        [Desktop Entry]
+        ${value}
+      '';
+    }) {
+      "org.kde.kalendarac" = "NotShowIn=Hyrpland";
+      "org.kde.kunifiedpush-distributor" = "NotShowIn=Hyrpland";
+      "org.kde.xwaylandvideobridge" = "NotShowIn=Hyrpland";
+      "git-annex" = "Hiddent=True";
+    };
+
     home.packages = with pkgs; [
+      pkgs.kdePackages.kwalletmanager
+      pkgs.kdePackages.kwallet
       ddcutil
       fuzzel
       hyprland-per-window-layout
@@ -41,6 +56,7 @@ in
       swaynotificationcenter
       wl-clipboard
     ];
+
     xsession.preferStatusNotifierItems = true;
 
     services.gpg-agent = {
@@ -66,17 +82,16 @@ in
         "$col_inactive" = "0xff999999";
 
         exec-once = [
-          "env PAM_KWALLET5_LOGIN=/run/user/1000/kwallet5.socket ${pkgs.kdePackages.kwallet-pam}/libexec/pam_kwallet_init"
-          "sleep 1; uwsm app -t service -u hyprland-exec-once-protonmail-bridge.service -- protonmail-bridge -n"
-          "uwsm app -t service -u hyprland-exec-once-nm-applet.service -- nm-applet"
+          "${osConfig.security.pam.services.login.kwallet.package}/libexec/pam_kwallet_init"
+          "sleep 1; uwsm app -t service -u hyprland-exec-once-protonmail-bridge.service -- protonmail-bridge -n" # give pam_kwallet_init some time to fully initialize
           "uwsm app -t service -u hyprland-exec-once-hyrpland-per-window-layout.service -- hyprland-per-window-layout"
           "uwsm app -t service -u hyprland-exec-once-my-shellevents.service -- ${my-shellevents}"
           "[workspace 1 silent] uwsm app -t scope -u hyprland-exec-once-foot.scope -- foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
           "[workspace 2 silent] uwsm app -t scope -u hyprland-exec-once-emacs.scope -- emacs"
           "[workspace 4 silent] uwsm app -t scope -u hyprland-exec-once-firefox.scope -- firefox"
           "[workspace 5 silent] sleep 5; exec uwsm app -t scope -u hyprland-exec-once-thunderbird.scope -- thunderbird" # give protonmail-bridge time to startup
-          "[workspace 5 silent; group new] uwsm app -t scope -u hyprland-exec-once-telegram-desktop.scope -- telegram-desktop"
-          ''sleep 2; hyprctl --batch "dispatch workspace 1; dispatch layoutmsg orientationcenter; dispatch workspace 2; dispatch layoutmsg orientationcenter; dispatch workspace 3; dispatch layoutmsg orientationcenter; dispatch workspace 4; dispatch layoutmsg orientationcenter; dispatch workspace 5; dispatch layoutmsg orientationcenter; dispatch workspace 1"''
+          "[workspace 5 silent; group new] sleep 1; uwsm app -t scope -u hyprland-exec-once-telegram-desktop.scope -- telegram-desktop"
+          ''sleep 1; hyprctl --batch "dispatch workspace 1; dispatch layoutmsg orientationcenter; dispatch workspace 2; dispatch layoutmsg orientationcenter; dispatch workspace 3; dispatch layoutmsg orientationcenter; dispatch workspace 4; dispatch layoutmsg orientationcenter; dispatch workspace 5; dispatch layoutmsg orientationcenter; dispatch workspace 1"''
         ];
 
         # debug.disable_logs = false;
@@ -395,18 +410,18 @@ in
       };
     };
 
-    xdg.configFile."swaync/config.json".text = ''
-      {
-        "scripts": {
-        }
-      }
-    '';
+    # xdg.configFile."swaync/config.json".text = ''
+    #   {
+    #     "scripts": {
+    #     }
+    #   }
+    # '';
 
-    xdg.dataFile."dbus-1/services/org.freedesktop.secrets.service".text = ''
-      [D-BUS Service]
-      Name=org.freedesktop.secrets
-      Exec=${lib.getExe' pkgs.kdePackages.kwallet "kwalletd6"}
-    '';
+    # xdg.dataFile."dbus-1/services/org.freedesktop.secrets.service".text = ''
+    #   [D-BUS Service]
+    #   Name=org.freedesktop.secrets
+    #   Exec=${lib.getExe' pkgs.kdePackages.kwallet "kwalletd6"}
+    # '';
 
     programs.hyprlock = {
       enable = true;

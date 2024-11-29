@@ -32,6 +32,7 @@ let
     nix-builder = [ ];
     interactive-cli = [ ];
     wsl = [ ];
+    impermanence = [ ];
   };
 
   enableFeatureWhen =

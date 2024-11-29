@@ -1,6 +1,6 @@
-{flake, config, pkgs, ...}:
+{flake, config, lib, pkgs, ...}:
 {
-  config = {
+  config = lib.mkIf config.hostConfig.feature.impermanence {
     xdg = {
       enable = true;
       cacheHome = "${config.home.homeDirectory}/.xdg/cache";
