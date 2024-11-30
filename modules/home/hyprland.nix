@@ -40,6 +40,7 @@ in
       "org.kde.kunifiedpush-distributor" = "NotShowIn=Hyrpland";
       "org.kde.xwaylandvideobridge" = "NotShowIn=Hyrpland";
       "git-annex" = "Hiddent=True";
+      "ProtonMailBridge" = "Hidden=True";
     };
 
     home.packages = with pkgs; [
@@ -288,6 +289,11 @@ in
         ];
       };
     };
+
+    systemd.user.services.kanshi.Service.ExecCondition = ''
+      ${pkgs.systemd}/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
+    '';
+
     services.kanshi = {
       enable = true;
       systemdTarget = "graphical-session.target";
@@ -408,19 +414,6 @@ in
         WantedBy = [ "hyprland-session.target" ];
       };
     };
-
-    # xdg.configFile."swaync/config.json".text = ''
-    #   {
-    #     "scripts": {
-    #     }
-    #   }
-    # '';
-
-    # xdg.dataFile."dbus-1/services/org.freedesktop.secrets.service".text = ''
-    #   [D-BUS Service]
-    #   Name=org.freedesktop.secrets
-    #   Exec=${lib.getExe' pkgs.kdePackages.kwallet "kwalletd6"}
-    # '';
 
     programs.hyprlock = {
       enable = true;

@@ -13,11 +13,36 @@ in
   config = lib.mkIf config.hostConfig.feature.hyprland {
     home.packages = [ pkgs.noto-fonts ];
 
-    systemd.user.services.waybar.Unit.After = [ "graphical-session.target" ];
-    systemd.user.services.waybar.Unit.BindsTo = [ "graphical-session.target" ];
+    # systemd.user.services.waybar.Unit.After = [ "graphical-session.target" ];
+    # systemd.user.services.waybar.Unit.BindsTo = [ "graphical-session.target" ];
+    # systemd.user.services.waybar.Service.ExecCondition = [ ''
+    #   ${pkgs.systemd}/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
+    # ''];
+
+    systemd.user.services.waybar = {
+      Unit = {
+        Description =
+          "Highly customizable Wayland bar for Sway and Wlroots based compositors.";
+        Documentation = "https://github.com/Alexays/Waybar/wiki";
+        BindsTo = [ "graphical-session.target" ];
+        After = [ "graphical-session.target" ];
+      };
+
+      Service = {
+        ExecStart = "${config.programs.waybar.package}/bin/waybar";
+        ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
+        Restart = "on-failure";
+        KillMode = "mixed";
+        ExecCondition = ''
+          ${pkgs.systemd}/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
+        '';
+      };
+
+      Install = { WantedBy = [ "graphical-session.target" ]; };
+    };
 
     programs.waybar = {
-      enable = true;
+      enable = false;
       # package =
       #   pkgs.callPackage "${flake.inputs.nixpkgs-unstable}/pkgs/by-name/wa/waybar/package.nix"
       #     { };
