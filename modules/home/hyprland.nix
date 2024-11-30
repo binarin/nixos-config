@@ -290,8 +290,7 @@ in
     };
     services.kanshi = {
       enable = true;
-      # package = pkgs.kanshi; # at least 1.3.1
-      systemdTarget = "hyprland-session.target";
+      systemdTarget = "graphical-session.target";
       settings = [
         {
           profile = {
