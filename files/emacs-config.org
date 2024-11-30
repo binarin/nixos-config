@@ -815,7 +815,7 @@
    #+begin_src emacs-lisp :tangle yes
      (use-package ansible
        :ensure t
-       :commands (ansible-mode ansible))
+       :commands (ansible-mode))
    #+end_src
 ** Open git-backed files in browser
    #+begin_src emacs-lisp :tangle yes
