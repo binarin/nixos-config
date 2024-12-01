@@ -92,7 +92,7 @@ in
           "[workspace 4 silent] uwsm app -t scope -u hyprland-exec-once-firefox.scope -- firefox"
           "[workspace 5 silent] sleep 5; exec uwsm app -t scope -u hyprland-exec-once-thunderbird.scope -- thunderbird" # give protonmail-bridge time to startup
           "[workspace 5 silent; group new] sleep 1; uwsm app -t scope -u hyprland-exec-once-telegram-desktop.scope -- telegram-desktop"
-          ''sleep 1; hyprctl --batch "dispatch workspace 1; dispatch layoutmsg orientationcenter; dispatch workspace 2; dispatch layoutmsg orientationcenter; dispatch workspace 3; dispatch layoutmsg orientationcenter; dispatch workspace 4; dispatch layoutmsg orientationcenter; dispatch workspace 5; dispatch layoutmsg orientationcenter; dispatch workspace 1"''
+          ''sleep 3; hyprctl --batch "dispatch workspace 1; dispatch layoutmsg orientationcenter; dispatch workspace 2; dispatch layoutmsg orientationcenter; dispatch workspace 3; dispatch layoutmsg orientationcenter; dispatch workspace 4; dispatch layoutmsg orientationcenter; dispatch workspace 5; dispatch layoutmsg orientationcenter; dispatch workspace 1"''
         ];
 
         # debug.disable_logs = false;
@@ -114,7 +114,7 @@ in
           "col.border_locked_active" = rgb "red_minus_6";
 
           groupbar = {
-            enabled = true;
+            enabled = false;
             stacked = false;
             render_titles = false;
             height = 3;
