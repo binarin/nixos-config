@@ -44,19 +44,18 @@ in
       profiles.default = {
         id = 0;
         isDefault = true;
-        userChrome = ''
-            @import url("${config.zenburn.cssVars.file}");
-            @import url("${config.lib.self.file "firefox-theme-zenburn.css"}");
 
-            /* hide min/max/close buttons */
-            #titlebar {
-              display: none !important;
-          }
+        userChrome =
+          (config.lib.self.read "firefox-userChrome.css");
+
+        userContent = ''
         '';
 
-        userContent = '''';
-
         settings = {
+          "ui.key.menuAccessKey" = -1;
+          "ui.key.contentAccess" = 5; # Alt-Shift
+          "ui.key.chromeAccess" = 3; # Ctrl-Shift
+
           "font.minimum-size.x-western" = 16;
           "font.size.monospace.x-western" = 16;
           "intl.accept_languages" = "en,nl,ru";

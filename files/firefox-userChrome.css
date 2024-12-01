@@ -1,0 +1,37 @@
+/* There is an zero-width space inside quotes, the matching setting should be set in Sidebery config */
+#main-window[titlepreface="​"] {
+  & #sidebar-box {
+    margin-left: 6px;
+  }
+  & #sidebar-main {
+    /* height: 0 !important; */
+    display: none;
+  }
+  & #browser {
+    background-color: var(--toolbar-bgcolor);
+  }
+}
+
+#TabsToolbar {
+  display: none;
+}
+
+#main-window {
+  & #tabbrowser-tabpanels browser[type] {
+    border-radius: 10px 10px 10px 10px !important;
+    border: solid 1px var(--toolbar-bgcolor);
+    margin-bottom: 7px !important;
+    margin-right: 4px;
+
+    }
+  /* one level up from the one above */
+  & .browserSidebarContainer, .devtools-side-splitter {
+    background-color: var(--toolbar-bgcolor) !important;;
+  }
+
+    & #tabbrowser-tabbox {
+        outline: 0px !important;
+        box-shadow: none !important;
+        border-radius: 10px;
+    }
+}
