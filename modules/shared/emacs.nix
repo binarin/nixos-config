@@ -23,10 +23,18 @@ let
     ${cleanup-unicode-from-emacs-org-babel-config} ${config.lib.self.file cfg.orgBabelConfig} > $out
   '';
 
-  finalEmacsPackage = pkgs.emacsWithPackagesFromUsePackage {
+  finalEmacsPackage = (pkgs.emacsWithPackagesFromUsePackage {
     package = cfg.basePackage;
     config = orgBabelConfigWithoutUnicode;
-  };
+  }).overrideAttrs (prev: {
+    # Can't get directly to wrapper, it's referenced only as
+    # ${./wrapper.nix}. But I can remove the annoying parts later.
+    buildCommand = prev.buildCommand + ''
+      for prog in $out/bin/.*-wrapped; do # */
+        ${lib.getExe pkgs.perl} -ni -E 'print unless /emacsWithPackages_siteLisp/'
+      done
+    '';
+  });
 
   compiledConfig = pkgs.runCommand "emacs-config-tangled" { } ''
     mkdir $out
