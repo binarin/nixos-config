@@ -15,9 +15,11 @@ in {
       autoconf
       automake
       comma
+      curlie
       deploy-rs
       docker-compose
       docker-credential-helpers
+      doggo
       duf
       gcc
       git-annex
