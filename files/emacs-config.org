@@ -1398,8 +1398,9 @@
    #+begin_src emacs-lisp :tangle yes
      (defun binarin/org-sync ()
        (interactive)
-       (org-clock-out nil t)
-       (org-save-all-org-buffers)
+       (when (featurep 'org) ;; org is already loaded
+         (org-clock-out nil t)
+         (org-save-all-org-buffers))
        (let ((default-directory "~/org/"))
          (shell-command "./push.sh")))
 
