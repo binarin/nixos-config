@@ -9,24 +9,27 @@
            (expand-file-name "~/.cache"))
        "emacs" "eln-cache/"))
    #+end_src
-** Directories
+** No littering
    #+begin_src emacs-lisp :tangle yes
-     (eval-and-compile
-       (defvar xdg-cache-home
-         (or (getenv "XDG_CACHE_HOME")
-             (expand-file-name "~/.cache")))
+     (defvar xdg-cache-home
+       (or (getenv "XDG_CACHE_HOME")
+           (expand-file-name "~/.cache")))
 
-       (defun cache-file-name (&rest components)
-         (apply #'file-name-concat xdg-cache-home "emacs" components))
+     (defun cache-file-name (&rest components)
+       (apply #'file-name-concat xdg-cache-home "emacs" components))
 
-       (setq package-user-dir (cache-file-name "elpa/")
-             no-littering-etc-directory (cache-file-name "no-littering" "config")
-             no-littering-var-directory (cache-file-name "no-littering" "data")
-             native-comp-async-env-modifier-form `(setq package-directory-list ',package-directory-list)))
+     ;; If no-littering is not loaded, it means that standalone compilation
+     ;; happens right now. There are a bunch of packages doing IO even
+     ;; during load (or adding it to various hooks/eval-when-load'ing),
+     ;; let's give them a safe playground.
+     ;; NOTE: `(use-package no-littering)` below is mandatory!
+     (eval-when-compile
+       (unless (featurep 'no-littering)
+         (setf user-emacs-directory (make-temp-file "throwaway-emacs.d-for-compilation" t))))
 
-     ;; some stuff inside `eval-and-compile` is because of:
-     ;; no-littering-XXX - https://github.com/emacscollective/no-littering/issues/249
-     ;; native-comp-async-env-modifier-form - of https://github.com/NixOS/nixpkgs/issues/145302#issuecomment-2506666795
+     (defvar no-littering-etc-directory (cache-file-name "no-littering" "config"))
+     (defvar no-littering-var-directory (cache-file-name "no-littering" "data"))
+     (setq package-user-dir (cache-file-name "elpa/"))
 
      (use-package no-littering
        :ensure t)
