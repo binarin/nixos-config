@@ -16,6 +16,10 @@
   display: none;
 }
 
+.titlebar-min, .titlebar-max, .titlebar-restore, .titlebar-spacer[type="post-tabs"] {
+    display: none;
+}
+
 #main-window {
   & #tabbrowser-tabpanels browser[type] {
     border-radius: 10px 10px 10px 10px !important;
