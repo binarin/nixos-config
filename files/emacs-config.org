@@ -706,6 +706,12 @@
        :ensure t
        :commands (vterm))
    #+end_src
+** Auth
+   #+begin_src emacs-lisp :tangle yes
+     (awhen (executable-find "gopass")
+       (setq auth-source-pass-filename (s-trim (shell-command-to-string "gopass config mounts.path")))
+       (auth-source-pass-enable))
+   #+end_src
 * Programming
 ** Projects
    #+BEGIN_SRC emacs-lisp :tangle yes
