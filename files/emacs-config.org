@@ -1321,10 +1321,12 @@
        (cl-dolist
            (elt '(("g" . consult-org-heading)
                   ("i" . org-clock-in)
+                  ("i" . org-clock-out)
                   ("a" . org-archive-subtree-default)
                   ("k" . binarin/org-previous-visible-heading-no-file-header)
                   ("j" . org-next-visible-heading)
-                  ("r" . org-refile)))
+                  ("w" . org-refile)
+                  ("r" . (org-refile 3))))
          (add-to-list 'org-speed-commands elt nil)))
    #+END_SRC
 ** Roam
@@ -1388,6 +1390,7 @@
    #+begin_src emacs-lisp :tangle yes
      (defun binarin/org-sync ()
        (interactive)
+       (org-clock-out nil t)
        (org-save-all-org-buffers)
        (let ((default-directory "~/org/"))
          (shell-command "./push.sh")))
