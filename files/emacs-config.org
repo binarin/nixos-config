@@ -712,6 +712,14 @@
        (general-setq auth-source-pass-filename (s-trim (shell-command-to-string "gopass config mounts.path")))
        (auth-source-pass-enable))
    #+end_src
+** Expanding region
+   #+begin_src emacs-lisp :tangle yes
+     (use-package expreg
+       :ensure t
+       :bind
+       (("C-=" . expreg-expand)
+        ("C-S-=" . expreg-contract)))
+   #+end_src
 * Programming
 ** Projects
    #+BEGIN_SRC emacs-lisp :tangle yes
