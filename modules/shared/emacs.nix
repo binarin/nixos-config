@@ -24,14 +24,31 @@ let
   '';
 
   finalEmacsPackage = (pkgs.emacsWithPackagesFromUsePackage {
-    package = cfg.basePackage;
+    package = cfg.basePackage.override (prev: {
+      siteStart = pkgs.writeText "site-start.el" (
+        (builtins.readFile "${inputs.nixpkgs}/pkgs/applications/editors/emacs/site-start.el")
+        + ''
+            (let ((dir (getenv "emacsWithPackages_invocationDirectory")))
+              (when dir
+                (setq invocation-directory dir)
+                (setenv "emacsWithPackages_invocationDirectory" nil)))
+
+            (let ((name (getenv "emacsWithPackages_invocationName")))
+              (when name
+                (setq invocation-name name)
+                (setenv "emacsWithPackages_invocationName" nil)))
+        ''
+      );
+    });
     config = orgBabelConfigWithoutUnicode;
   }).overrideAttrs (prev: {
     # Can't get directly to wrapper, it's referenced only as
-    # ${./wrapper.nix}. But I can remove the annoying parts later.
+    # ${./wrapper.sh}. But I can patch substitued wrapper.sh's
+    # ${lib.getExe pkgs.perl} -ni -E 'print unless /emacsWithPackages_siteLisp/'
     buildCommand = prev.buildCommand + ''
-      for prog in $out/bin/.*-wrapped; do # */
-        ${lib.getExe pkgs.perl} -ni -E 'print unless /emacsWithPackages_siteLisp/'
+      for prog in $out/bin/.*-wrapped; do
+        sed -i -e "1 aexport emacsWithPackages_invocationDirectory=\"$out/bin\"" "$prog"
+        sed -i -e "1 aexport emacsWithPackages_invocationName=\"$(basename "$prog" -wrapped | cut -c2-)\"" "$prog"
       done
     '';
   });
