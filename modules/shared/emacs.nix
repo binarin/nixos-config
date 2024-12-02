@@ -38,7 +38,7 @@ let
 
   compiledConfig = pkgs.runCommand "emacs-config-tangled" { } ''
     mkdir $out
-    ${lib.getExe pkgs.tangle-emacs-org-babel-config} "${config.lib.self.file cfg.orgBabelConfig}" "$out/init.el"
+    ${lib.getExe pkgs.tangle-emacs-org-babel-config} "${config.lib.self.file cfg.orgBabelConfig}" "$out"
   '';
 in
 {
@@ -68,9 +68,15 @@ in
       nixpkgs.overlays = [
         flake.inputs.emacs-overlay.overlays.default
         (final: prev: {
-          tangle-emacs-org-babel-config = pkgs.writeShellScriptBin "tangle-emacs-org-babel-config" ''
-            ${lib.getExe finalEmacsPackage} --batch --load "${config.lib.self.file "byte-compile.el"}" "$@"
-          '';
+          tangle-emacs-org-babel-config = pkgs.writeShellApplication {
+            name = "tangle-emacs-org-babel-config";
+            runtimeInputs = [
+              finalEmacsPackage
+            ];
+            text = ''
+              emacs -q --batch --load "${config.lib.self.file "byte-compile.el"}" "$@"
+            '';
+          };
         })
       ];
     })

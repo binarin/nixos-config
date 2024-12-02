@@ -12,17 +12,8 @@ in
   config = {
     xdg.configFile."emacs/init.el".source = cfg.compiledConfig + "/init.el";
     xdg.configFile."emacs/init.elc".source = cfg.compiledConfig + "/init.elc";
-
-    xdg.configFile."emacs/early-init.el".text = ''
-      (require 'cl-lib)
-      (let ((xdg-cache-home (or (getenv "XDG_CACHE_HOME")
-                                (expand-file-name "~/.cache"))))
-        (cl-flet ((cache-file-name (&rest components)
-                    (apply #'file-name-concat xdg-cache-home "emacs" components)))
-          (setq
-           package-user-dir (cache-file-name "elpa/"))
-           (startup-redirect-eln-cache (cache-file-name "eln-cache/"))))
-    '';
+    xdg.configFile."emacs/early-init.el".source = cfg.compiledConfig + "/early-init.el";
+    xdg.configFile."emacs/early-init.elc".source = cfg.compiledConfig + "/early-init.elc";
 
     xdg.dataFile."applications/org-protocol.desktop".source = config.lib.self.file "org-protocol.desktop";
 
@@ -38,6 +29,7 @@ in
       pkgs.emacs-all-the-icons-fonts
       (pkgs.tree-sitter.withPlugins (p: [ p.tree-sitter-rust ]))
     ];
+
     home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
   };
 }

@@ -1,5 +1,14 @@
-#+PROPERTY: header-args:emacs-lisp :lexical yes :results value pp silent
+#+PROPERTY: header-args:emacs-lisp :lexical yes :results value pp silent :comments both
 * File header
+** Early init
+   Ideally, ~early-init.el~ should also get the copy of this block. Happens automatically with nix.
+   #+begin_src emacs-lisp :tangle "early-init.el"
+     (startup-redirect-eln-cache
+      (file-name-concat
+       (or (getenv "XDG_CACHE_HOME")
+           (expand-file-name "~/.cache"))
+       "emacs" "eln-cache/"))
+   #+end_src
 ** Directories
    #+begin_src emacs-lisp :tangle yes
      (eval-and-compile
