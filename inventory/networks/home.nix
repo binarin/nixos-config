@@ -15,8 +15,8 @@
     "192.168.2.3" = "forgejo";
     "192.168.2.4" = "lanfear";
     "192.168.2.5" = "nix-cache";
+    "192.168.2.6" = "ishamael";
     "192.168.2.26" = "valak"; # [ "valak" "primary" ]
-    # "192.168.2.7" = [ "valak" "some-tag" "another-tag" ];
     "192.168.2.79" = "media";
   };
 }

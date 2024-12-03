@@ -6,4 +6,5 @@
   monitor = "08779236";
   media = "87bfa995";
   nix-cache = "57f08d9c";
+  ishamael = "d545b657";
 }
