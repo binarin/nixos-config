@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, modulesPath, ... }:
 
 {
   imports =
@@ -55,6 +55,7 @@
   swapDevices = [ ];
 
   # Enable the KDE Plasma Desktop Environment.
+  services.displayManager.sddm.wayland.enable = true;
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
 }
