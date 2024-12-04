@@ -905,6 +905,12 @@
        :ensure t
        :commands (git-link git-link-commit git-link-homepage))
    #+end_src
+** Bazel
+   #+begin_src emacs-lisp :tangle yes
+     (use-package bazel
+       :ensure t
+       :mode "\\(\\.bazel\\|\\.bzl\\|\\.bzlmod\\)\\'")
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
