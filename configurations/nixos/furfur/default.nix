@@ -17,6 +17,7 @@ in
     "fast-rebuild"
     "nix-builder"
     "bleeding"
+    "impermanence"
   ];
 
   hostConfig.managedUsers = [ "binarin" ];

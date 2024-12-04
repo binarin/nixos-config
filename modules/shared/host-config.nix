@@ -21,10 +21,12 @@ let
       "gui"
       "interactive-cli"
     ];
+    gui = [
+      "interactive-cli"
+    ];
 
     vfio = [ ];
     lxc = [ ];
-    gui = [ ];
     lnxlink = [ ];
     bleeding = [ ];
     fast-rebuild = [ ];

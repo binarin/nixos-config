@@ -212,13 +212,13 @@ in {
       btop.enable = true;
     };
 
-    home.file."${config.xdg.cacheHome}/tealdeer/tldr-pages" = {
-      source = pkgs.fetchzip {
-        url = "https://github.com/tldr-pages/tldr/releases/download/v2.2/tldr.zip";
-        hash = "sha256-QM5nMRO74LeyG6VB9rFND8Ez6lzG8A512YudoxvlugI=";
-        stripRoot = false;
-      };
-    };
+    # home.file."${config.xdg.cacheHome}/tealdeer/tldr-pages" = {
+    #   source = pkgs.fetchzip {
+    #     url = "https://github.com/tldr-pages/tldr/releases/download/v2.2/tldr.zip";
+    #     hash = "sha256-QM5nMRO74LeyG6VB9rFND8Ez6lzG8A512YudoxvlugI=";
+    #     stripRoot = false;
+    #   };
+    # };
 
     programs.tealdeer = {
       enable = true;
