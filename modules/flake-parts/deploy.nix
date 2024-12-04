@@ -23,6 +23,7 @@ let
     "monitor"
     "media"
     "nix-cache"
+    "mail"
   ];
 
   deployNixosSystem =

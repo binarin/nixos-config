@@ -33,6 +33,7 @@ let
     interactive-cli = [ ];
     wsl = [ ];
     impermanence = [ ];
+    tailscale = [ ];
   };
 
   enableFeatureWhen =
