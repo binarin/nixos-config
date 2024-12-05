@@ -60,8 +60,8 @@
   # Enable the KDE Plasma Desktop Environment.
   services.displayManager.sddm.wayland.enable = true;
   services.displayManager.sddm.enable = true;
-  services.displayManager.sddm.autoLogin.enable = true;
-  services.displayManager.sddm.autoLogin.user = "binarin";
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "binarin";
   services.desktopManager.plasma6.enable = true;
 
   services.openssh.enable = true;
