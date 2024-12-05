@@ -202,12 +202,18 @@ in
           "9, persistent:true, monitor:desc:${out-lg-dualup-right}"
         ];
 
-        monitor = [
+        monitor = ({
+          valak = [
           "desc:${out-u4025qw}, preferred, auto, 2.0"
           "desc:${out-lg-dualup-right}, preferred, auto, 2.0"
           "desc:${out-lg-dualup-left}, preferred, auto, 2.0"
           ", preferred, auto, auto"
-        ];
+          ];
+          ishamael = [
+            # "HDMI-A-2, Modeline 950.50 5120 5536 6104 7088 2160 2161 2164 2235 -hsync +vsync, 0x0, 2.0"
+            ", preferred, auto, auto"
+          ];
+        })."${config.inventoryHostName}";
 
         master = {
           always_center_master = true;
