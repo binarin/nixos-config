@@ -19,6 +19,15 @@
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   hardware.enableAllFirmware = true;
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+      intel-ocl
+      intel-vaapi-driver
+      vpl-gpu-rt
+    ];
+  };
 
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/c2e9bb0f-3517-45dd-87f5-cc8cd2cd7353";
@@ -69,5 +78,11 @@
   users.users."binarin".openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
   ];
+
+
+  services.sunshine = {
+    enable = true;
+    capSysAdmin = true;
+  };
 
 }
