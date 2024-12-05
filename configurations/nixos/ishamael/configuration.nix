@@ -16,6 +16,9 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  hardware.enableAllFirmware = true;
 
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/c2e9bb0f-3517-45dd-87f5-cc8cd2cd7353";
@@ -57,5 +60,14 @@
   # Enable the KDE Plasma Desktop Environment.
   services.displayManager.sddm.wayland.enable = true;
   services.displayManager.sddm.enable = true;
+  services.displayManager.sddm.autoLogin.enable = true;
+  services.displayManager.sddm.autoLogin.user = "binarin";
   services.desktopManager.plasma6.enable = true;
+
+  services.openssh.enable = true;
+
+  users.users."binarin".openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
+  ];
+
 }
