@@ -64,3 +64,13 @@ all: check
       echo "Building $cf"
       just nixOpts="" build-nixos "$cf" || echo "Failed"
     done
+
+[group('Main')]
+deploy-all: all
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mapfile -t all < <(nix eval "$(pwd)#deploy.nodes" --apply builtins.attrNames --json | jq -r ".[]")
+    for cf in "${all[@]}"; do
+      echo "Deploying $cf"
+      just nixOpts="" deploy "$cf" || echo "Failed"
+    done
