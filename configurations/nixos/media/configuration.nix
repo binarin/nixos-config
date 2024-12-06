@@ -71,6 +71,7 @@ in
   environment.systemPackages = with pkgs; [
     docker-compose
     libva-utils
+    radeontop
   ];
 
   virtualisation.docker.enable = true;
