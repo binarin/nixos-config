@@ -33,7 +33,7 @@ let
         + ''
             (let ((dir (getenv "emacsWithPackages_invocationDirectory")))
               (when dir
-                (setq invocation-directory dir)
+                (setq invocation-directory (file-name-as-directory dir))
                 (setenv "emacsWithPackages_invocationDirectory" nil)))
 
             (let ((name (getenv "emacsWithPackages_invocationName")))
