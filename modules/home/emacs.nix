@@ -27,7 +27,6 @@ in
 
     home.packages = [
       pkgs.emacs-all-the-icons-fonts
-      (pkgs.tree-sitter.withPlugins (p: [ p.tree-sitter-rust ]))
     ];
 
     home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";

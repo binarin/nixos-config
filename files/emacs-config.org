@@ -920,6 +920,16 @@
              (cons (rx "/.bazelignore" eos) 'bazelignore-mode)
              (cons (rx "/.bazeliskrc" eos) 'bazeliskrc-mode)))
    #+end_src
+** C/C++
+   #+begin_src emacs-lisp :tangle yes
+     (add-to-list
+      'auto-mode-alist
+      (cons (rx "."
+                       (submatch (any "ch"))
+                       (or "++" "xx" "pp" (backref 1))
+                       string-end)
+            'c++-ts-mode))
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes

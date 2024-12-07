@@ -24,6 +24,9 @@ let
   '';
 
   finalEmacsPackage = (pkgs.emacsWithPackagesFromUsePackage {
+    extraEmacsPackages = epkgs: with epkgs; [
+      treesit-grammars.with-all-grammars
+    ];
     package = cfg.basePackage.override (prev: {
       siteStart = pkgs.writeText "site-start.el" (
         (builtins.readFile "${inputs.nixpkgs}/pkgs/applications/editors/emacs/site-start.el")
