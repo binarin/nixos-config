@@ -212,9 +212,7 @@ in
       ${pkgs.systemd}/bin/systemd-tmpfiles --create --prefix=/dev/shm/
     '';
 
-    services.logind.extraConfig = ''
-      HandlePowerKey=hibernate
-    '';
+    services.logind.powerKey = "hibernate";
 
     systemd.tmpfiles.rules = [ "f /dev/shm/looking-glass 0660 binarin qemu-libvirtd -" ];
     environment.systemPackages = with pkgs; [
