@@ -26,6 +26,8 @@ let
   finalEmacsPackage = (pkgs.emacsWithPackagesFromUsePackage {
     extraEmacsPackages = epkgs: with epkgs; [
       treesit-grammars.with-all-grammars
+      lsp-bridge
+      # emacs-lsp-booster
     ];
     package = cfg.basePackage.override (prev: {
       siteStart = pkgs.writeText "site-start.el" (

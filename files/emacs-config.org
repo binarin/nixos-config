@@ -743,6 +743,14 @@
        :commands (projectile-ripgrep))
    #+END_SRC
 
+** LSP
+   #+begin_src emacs-lisp :tangle yes
+     (use-package lsp-mode
+       :ensure t
+       :init
+       (setq lsp-keymap-prefix "C-c l")
+       :commands (lsp lsp-deferred))
+   #+end_src
 ** Perl
    #+BEGIN_SRC emacs-lisp :tangle yes
      (defalias 'perl-mode 'cperl-mode)
