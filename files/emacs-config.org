@@ -750,6 +750,12 @@
        :init
        (setq lsp-keymap-prefix "C-c l")
        :commands (lsp lsp-deferred))
+
+     (add-hook 'lsp-mode-hook 'electric-indent-local-mode)
+     (add-hook 'lsp-mode-hook 'electric-pair-local-mode)
+     (add-hook 'lsp-mode-hook 'electric-quote-local-mode)
+     (add-hook 'lsp-mode-hook 'electric-layout-local-mode)
+     (add-hook 'lsp-mode-hook 'yas-minor-mode)
    #+end_src
 ** Perl
    #+BEGIN_SRC emacs-lisp :tangle yes
