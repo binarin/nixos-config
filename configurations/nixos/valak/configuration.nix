@@ -214,7 +214,11 @@ in
 
     services.logind.powerKey = "hibernate";
 
-    systemd.tmpfiles.rules = [ "f /dev/shm/looking-glass 0660 binarin qemu-libvirtd -" ];
+    systemd.tmpfiles.rules = [
+      "f /dev/shm/looking-glass 0660 binarin qemu-libvirtd -"
+      "d- /var/lib/servarr 02775 binarin servarr -"
+      "Z- /var/lib/servarr 02775 binarin servarr -"
+    ];
     environment.systemPackages = with pkgs; [
       # syncoid works better with those
       lzop
@@ -252,5 +256,12 @@ in
         TimeoutIdleSec = "600";
       };
     });
+    services.sabnzbd.enable = true;
+    services.radarr.enable = true;
+    services.prowlarr.enable = true;
+    users.users.sabnzbd.extraGroups = [ "servarr" ];
+    users.users.radarr.extraGroups = [ "servarr" ];
+    users.groups.servarr = {};
   };
+
 }
