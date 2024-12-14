@@ -917,16 +917,20 @@
    #+begin_src emacs-lisp :tangle yes
      (use-package bazel
        :ensure t
-       :mode
-       (list (cons (rx ?/ (or "BUILD" "BUILD.bazel")) 'bazel-build-mode)
-             (cons (rx ?/ (or "WORKSPACE" "WORKSPACE.bazel" "WORKSPACE.bzlmod")
-                       eos)
-                   'bazel-workspace-mode)
-             (cons (rx "/MODULE.bazel" eos) 'bazel-module-mode)
-             (cons (rx ?/ (+ nonl) ".bzl" eos) 'bazel-starlark-mode)
-             (cons (rx ?/ (or "bazel.bazelrc" ".bazelrc") eos) 'bazelrc-mode)
-             (cons (rx "/.bazelignore" eos) 'bazelignore-mode)
-             (cons (rx "/.bazeliskrc" eos) 'bazeliskrc-mode)))
+       :defer t
+       :commands (bazel-build-mode bazel-module-mode bazel-starlark-mode bazelrc-mode bazelignore-mode bazeliskrc-mode))
+
+     (-each (list (cons (rx ?/ (or "BUILD" "BUILD.bazel")) 'bazel-build-mode)
+                                 (cons (rx ?/ (or "WORKSPACE" "WORKSPACE.bazel" "WORKSPACE.bzlmod")
+                                           eos)
+                                       'bazel-workspace-mode)
+                                 (cons (rx "/MODULE.bazel" eos) 'bazel-module-mode)
+                                 (cons (rx ?/ (+ nonl) ".bzl" eos) 'bazel-starlark-mode)
+                                 (cons (rx ?/ (or "bazel.bazelrc" ".bazelrc") eos) 'bazelrc-mode)
+                                 (cons (rx "/.bazelignore" eos) 'bazelignore-mode)
+                                 (cons (rx "/.bazeliskrc" eos) 'bazeliskrc-mode))
+       (lambda (elt) (add-to-list 'auto-mode-alist elt)))
+
    #+end_src
 ** C/C++
    #+begin_src emacs-lisp :tangle yes
