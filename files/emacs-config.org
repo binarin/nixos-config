@@ -1450,6 +1450,17 @@
      (general-define-key
       "C-c o p" 'binarin/org-sync)
    #+end_src
+** org-download
+   #+begin_src emacs-lisp :tangle yes
+     (use-package org-download
+       :ensure t
+       :commands (org-download-clipboard org-download-enable)
+       :config
+       (setq org-download-method 'attach))
+
+     (with-eval-after-load 'org
+       (add-hook 'org-mode-hook 'org-download-enable))
+   #+end_src
 * Test space
 ** [[https://github.com/xenodium/sqlite-mode-extras][GitHub - xenodium/sqlite-mode-extras: Emacs sqlite-mode extras]]
 ** [[https://github.com/karthink/gptel][GitHub - karthink/gptel: A simple LLM client for Emacs]]
