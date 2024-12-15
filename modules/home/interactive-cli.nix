@@ -182,9 +182,21 @@ in {
       };
     };
     programs.gh.enable = true;
+
     programs.ssh = {
       enable = true;
+      matchBlocks.mail = {
+        match = ''
+          host mail.lynx-lizard.ts.net,mail,${config.inventory.ipAllocation.mail.home.primary.address}
+        '';
+        extraOptions = {
+          ControlMaster = "auto";
+          HostKeyAlias = "mail.lynx-lizard.ts.net";
+        };
+      };
+      controlPath = "~/.ssh/master-%r@%k:%p";
     };
+
     programs.rtorrent = {
       enable = true;
       extraConfig = ''
@@ -256,5 +268,8 @@ in {
         };
       };
     };
+
   };
+
+
 }

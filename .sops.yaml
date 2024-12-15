@@ -38,7 +38,7 @@ creation_rules:
       - age:
           - *admin_binarin
           - *server_forgejo
-  - path_regex: secrets/mail/secrets.yaml
+  - path_regex: secrets/mail/(secrets.yaml|dovecot-passwd)
     key_groups:
       - age:
           - *admin_binarin
