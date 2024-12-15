@@ -32,9 +32,6 @@
     hyprland-contrib.inputs.nixpkgs.follows = "nixpkgs";
 
     # Software inputs
-    user-js.url = "github:arkenfox/user.js";
-    user-js.flake = false;
-
     stylix.url = "github:binarin/stylix";
     stylix.inputs.home-manager.follows = "home-manager";
     stylix.inputs.nixpkgs.follows = "nixpkgs";

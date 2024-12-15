@@ -849,8 +849,7 @@
         "nixpkgs-unstable": "nixpkgs-unstable",
         "pre-commit-hooks": "pre-commit-hooks",
         "sops-nix": "sops-nix",
-        "stylix": "stylix",
-        "user-js": "user-js"
+        "stylix": "stylix"
       }
     },
     "sops-nix": {
@@ -1029,22 +1028,6 @@
       "original": {
         "owner": "tinted-theming",
         "repo": "tinted-tmux",
-        "type": "github"
-      }
-    },
-    "user-js": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1731156949,
-        "narHash": "sha256-0qwqVc3hrpbQMMJOhbelSrR8cZOqLLWs4T+qyeHfiAc=",
-        "owner": "arkenfox",
-        "repo": "user.js",
-        "rev": "eae5762d29f18115fbffd73d89bd9e2510b25427",
-        "type": "github"
-      },
-      "original": {
-        "owner": "arkenfox",
-        "repo": "user.js",
         "type": "github"
       }
     },

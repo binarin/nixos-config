@@ -5,27 +5,6 @@
   pkgs,
   ...
 }:
-let
-  filterExplicitSettings =
-    settings: text:
-    with lib;
-    let
-      regexpAlternatives = pipe settings [
-        attrNames
-        (map (nm: ''\Q${nm}\E''))
-        (concatStringsSep "|")
-      ];
-      regexp = ''"(?:${regexpAlternatives})"'';
-    in
-    pkgs.runCommand "filtered-user.js" { } ''
-      cat <<'EOF' > $out
-      // ${regexp}
-      EOF
-      cat <<'EOF' | ${lib.getExe pkgs.perl} -pE 'print "// NIX-DISABLED:" if /${regexp}/' >> $out
-      ${text}
-      EOF
-    '';
-in
 {
   config = lib.mkIf config.hostConfig.feature.gui {
     home.packages = [
@@ -85,17 +64,6 @@ in
           "ui.key.contentAccess" = 5; # Alt-Shift
           "ui.key.menuAccessKey" = -1;
         };
-
-        extraConfig =
-          ''''
-          + (
-            with lib;
-            pipe [ (builtins.readFile "${flake.inputs.user-js}/user.js") ] [
-              (concatStringsSep "\n")
-              (filterExplicitSettings config.programs.firefox.profiles.default.settings)
-              builtins.readFile
-            ]
-          );
       };
       profiles.test = {
         id = 1;
