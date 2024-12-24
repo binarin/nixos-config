@@ -704,7 +704,7 @@
    #+begin_src emacs-lisp :tangle yes
      (use-package vterm
        :ensure t
-       :commands (vterm))
+       :commands (vterm vterm-send-string vterm-send-return))
    #+end_src
 ** Auth
    #+begin_src emacs-lisp :tangle yes
@@ -912,6 +912,82 @@
        :ensure t
        :hook
        (compilation-mode-hook . fancy-compilation-mode))
+   #+end_src
+   #+begin_src emacs-lisp :tangle yes
+     (defvar binarin/after-compilation-armed t)
+     (defvar binarin/after-compilation-commands (make-hash-table :test 'equal))
+     (defvar binarin/project-bazel-target (make-hash-table :test 'equal))
+
+     (add-to-list
+      'display-buffer-alist
+      `(,(rx (or "*compilation*" (seq "*project-vterm:" (1+ anychar) "*")))
+        . (display-buffer-reuse-window
+           . ((reusable-frames . t)))))
+
+     (general-define-key "<f9>" 'binarin/bazel-compile-and-run)
+
+
+     (defun binarin/all-bazel-targets ()
+       (let ((default-directory (projectile-project-root)))
+         (when (and default-directory (file-exists-p "MODULE.bazel"))
+           (cl-remove-if-not #'(lambda (s) (s-starts-with? "//" s)) (process-lines "bazel" "query" "//...:all")))))
+
+     (defun binarin/is-bazel-project (project-dir)
+       (file-exists-p (expand-file-name "MODULE.bazel" project-dir)))
+
+     (defun binarin/bazel-compile-and-run (target)
+       (interactive
+        (let (project-dir current-target)
+          (setf project-dir (projectile-project-root))
+          (when (not project-dir) (error "Can't find project root"))
+          (when (not (binarin/is-bazel-project project-dir)) (error "Not a bazel project"))
+          (setf current-target (gethash (projectile-project-root) binarin/project-bazel-target))
+          (if (or current-prefix-arg (not current-target))
+              (list (completing-read "Pick bazel target: " (binarin/all-bazel-targets)))
+            (list current-target))))
+       (let ((project-dir (projectile-project-root))
+             (bazel-build (concat "bazel build " target))
+             (bazel-run (concat "bazel run " target)))
+         (setf (gethash project-dir binarin/after-compilation-commands) bazel-run)
+         (setf (gethash project-dir binarin/project-bazel-target) target)
+         (setf compile-command bazel-build)
+         (setf compilation-directory project-dir)
+         (binarin/recompile-and-run)))
+
+     (defun binarin/recompile-and-run ()
+       (interactive)
+       (setf binarin/after-compilation-armed t)
+       (recompile))
+
+     (defun run-in-vterm-kill (process event)
+       "A process sentinel. Kills PROCESS's buffer if it is live."
+       (ignore event)
+       (let ((b (process-buffer process)))
+         (and (buffer-live-p b)
+              (kill-buffer b))))
+
+     (defun binarin/run-project-command (project-dir command)
+       (let ((default-directory project-dir)
+             (vterm-name (concat "*project-vterm:" project-dir "*")))
+         (with-current-buffer (or (get-buffer vterm-name)
+                                  (vterm vterm-name))
+           (set-process-sentinel vterm--process #'run-in-vterm-kill) ;; XXX
+           (vterm-send-string command)
+           (vterm-send-return))))
+
+     (defun binarin/maybe-run-after-compilation (comp-buffer msg)
+       (interactive)
+       (when binarin/after-compilation-armed
+         (setf binarin/after-compilation-armed nil)
+         (when (s-contains? "finished" msg)
+           (let ((project (with-current-buffer comp-buffer (projectile-project-root))))
+             (when project
+               (let ((command (gethash project binarin/after-compilation-commands)))
+                 (message "PROJ '%s' CMD '%s'" project command)
+                 (when command
+                   (binarin/run-project-command project command))))))))
+
+     (add-hook 'compilation-finish-functions 'binarin/maybe-run-after-compilation)
    #+end_src
 ** Git
    #+begin_src emacs-lisp :tangle yes
