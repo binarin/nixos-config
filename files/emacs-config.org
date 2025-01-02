@@ -1282,13 +1282,14 @@
 
      (defun binarin/display-notify-after-capture (&rest args)
        (ignore args)
-       (notifications-notify
-        :title "Link captured"
-        :body (cadar org-stored-links)
-        :app-name "emacs"
-        :app-icon (substitute-in-file-name "$XDG_DATA_HOME/icons/emacs/org.svg")
-        :timeout 3000
-        :urgency 'low))
+       (when (eq binarin/system-type 'linux)
+         (notifications-notify
+          :title "Link captured"
+          :body (cadar org-stored-links)
+          :app-name "emacs"
+          :app-icon (substitute-in-file-name "$XDG_DATA_HOME/icons/emacs/org.svg")
+          :timeout 3000
+          :urgency 'low)))
 
      (advice-add 'org-protocol-capture :after #'binarin/display-notify-after-capture)
    #+END_SRC
