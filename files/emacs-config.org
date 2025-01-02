@@ -1453,6 +1453,7 @@
                   ("k" . binarin/org-previous-visible-heading-no-file-header)
                   ("j" . org-next-visible-heading)
                   ("w" . org-refile)
+                  ("m" . org-roam-refile)
                   ("r" . (org-refile 3))))
          (add-to-list 'org-speed-commands elt nil)))
    #+END_SRC
@@ -1538,6 +1539,78 @@
        (add-hook 'org-mode-hook 'org-download-enable))
    #+end_src
 * Test space
+** [[https://github.com/positron-solutions/moc][positron-solutions/moc: Master of Ceremonies. Display & presentation utilities to make presentation packages more effective]]
+ :PROPERTIES:
+  :ID: 04a3574b-4f25-42e5-ba23-1b8fb623908e
+  :END:
+  [2025-01-01 Wed 19:15]
+** [[https://github.com/Chobbes/org-chef][Chobbes/org-chef: A package for making a cookbook and managing recipes with org-mode.]]
+ :PROPERTIES:
+  :ID: 273e795d-9589-4743-a852-22c4ccbdf8ff
+  :END:
+  [2025-01-01 Wed 19:15]
+** [[https://github.com/svaante/dape][svaante/dape: Debug Adapter Protocol for Emacs]]
+ :PROPERTIES:
+  :ID: 99d7c1e2-6845-4a47-bb2b-221011c2711b
+  :END:
+  [2025-01-01 Wed 19:10]
+** [[https://github.com/tumashu/posframe][tumashu/posframe: Pop a posframe (just a child-frame) at point, posframe is a **GNU ELPA** package!]]
+ :PROPERTIES:
+  :ID: cb11770f-819c-4573-b201-fa964d542569
+  :END:
+  [2025-01-01 Wed 19:13]
+** [[https://protesilaos.com/codelog/2023-06-03-emacs-spacious-padding/][Emacs: my new ‘spacious-padding’ package | Protesilaos Stavrou]]
+ :PROPERTIES:
+  :ID: b33cde10-ebc7-4a1e-bcd0-ab26753a7d02
+  :END:
+  [2025-01-01 Wed 19:14]
+** [[https://github.com/meow-edit/meow][meow-edit/meow: Yet another modal editing on Emacs / 猫态编辑]]
+ :PROPERTIES:
+  :ID: b1c6e4de-8a63-418d-98e5-be1f0dd92541
+  :END:
+  [2025-01-01 Wed 19:14]
+** [[https://github.com/leoliu/easy-kill][leoliu/easy-kill: Kill & Mark Things Easily in Emacs]]
+ :PROPERTIES:
+  :ID: 55d130f9-519e-4283-b986-bef6f6fa94ee
+  :END:
+  [2025-01-01 Wed 19:14]
+** [[https://lmno.lol/alvaro/an-experimental-e-shell-pager][An experimental (e)shell pager]]
+ :PROPERTIES:
+  :ID: b81b7885-7138-4be2-b8e8-5d1ebbad9fa3
+  :END:
+  [2025-01-01 Wed 19:08]
+** [[https://etown.dev/nice-org-html/README][Nice Org to HTML pipeline]]
+ :PROPERTIES:
+  :ID: 9f4497a2-213a-4099-a668-81d84a6a74ae
+  :END:
+  [2025-01-01 Wed 19:08]
+
+** [[https://www.jamescherti.com/emacs-buffer-terminator/][Emacs: buffer-terminator.el – Safely Terminate Emacs Buffers Automatically | James Cherti]]
+ :PROPERTIES:
+  :ID: 1a279ff8-fce1-46ad-b86d-69b98dbdf851
+  :END:
+  [2025-01-01 Wed 19:07]
+** [[https://www.reddit.com/r/emacs/comments/1h5t31o/omdash_03_improved_github_support_imap_support/?share_id=hUy9ZiftaMN3UVABZOlVY][om-dash 0.3: improved github support, imap support, more : r/emacs]]
+ :PROPERTIES:
+  :ID: 00cdeb5f-3981-4f77-9844-303579a6d487
+  :END:
+  [2025-01-01 Wed 18:58]
+** [[https://github.com/fosskers/transducers.el][fosskers/transducers.el: Ergonomic, efficient data processing for Emacs Lisp.]]
+ :PROPERTIES:
+  :ID: 15af4b7b-2c6f-4274-b4d0-4864705d8204
+  :END:
+  [2025-01-01 Wed 18:45]
+** [[https://github.com/mickeynp/combobulate][mickeynp/combobulate: Structured Editing and Navigation in Emacs with Tree-Sitter]]
+ :PROPERTIES:
+  :ID: e115334f-d952-40ae-a8d9-18d223ff8ca2
+  :END:
+  [2025-01-01 Wed 18:35]
+** [[https://github.com/dash-docs-el/helm-dash][dash-docs-el/helm-dash: Browse Dash docsets inside emacs]]
+ :PROPERTIES:
+  :ID: f1614be4-29ae-465a-a3bc-27ccda375d4e
+  :END:
+  [2024-11-26 Tue 13:15]
+
 ** [[https://github.com/xenodium/sqlite-mode-extras][GitHub - xenodium/sqlite-mode-extras: Emacs sqlite-mode extras]]
 ** [[https://github.com/karthink/gptel][GitHub - karthink/gptel: A simple LLM client for Emacs]]
 ** [[https://github.com/bbatsov/crux][bbatsov/crux: A Collection of Ridiculously Useful eXtensions for Emacs]]
@@ -1550,6 +1623,7 @@
   :ID: 631aa604-cae0-40ec-bd96-996666abc7ac
   :END:
   [2024-11-24 Sun 09:12]
+** Devdocs
 ** [[https://devdocs.io/ansible/][Ansible documentation — DevDocs]]
  :PROPERTIES:
   :ID: f6f93098-79e1-4a9e-a4d6-32260b225e71
