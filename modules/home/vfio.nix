@@ -11,7 +11,10 @@ let
 in
 {
   config = lib.mkIf config.hostConfig.feature.vfio {
-    home.packages = with pkgs; [ looking-glass-client ];
+    home.packages = with pkgs; [
+      looking-glass-client
+      remmina
+    ];
 
     xdg.configFile."libvirt/libvirt.conf".text = ''
       uri_default = "qemu:///system"

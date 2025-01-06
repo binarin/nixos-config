@@ -8,7 +8,9 @@
   inventoryHostName = "valak";
 
   hostConfig.managedUsers = [ "binarin" ];
+
   hostConfig.features = [
+    "vfio"
     "hyprland"
     "lnxlink"
     "bleeding"
