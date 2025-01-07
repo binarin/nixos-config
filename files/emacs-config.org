@@ -1058,6 +1058,9 @@
      (use-package org-contrib
        :ensure t
        :defer)
+
+     (with-eval-after-load 'org-mouse
+       (setf (symbol-function 'org--mouse-open-at-point) #'(lambda (orig-fun &rest args) (apply orig-fun args))))
    #+END_SRC
 ** Keyboard navigation tuning
    #+begin_src emacs-lisp :tangle yes
