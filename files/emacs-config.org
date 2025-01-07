@@ -1545,6 +1545,11 @@
        (add-hook 'org-mode-hook 'org-download-enable))
    #+end_src
 * Test space
+** [[https://github.com/zbelial/treesitter-context.el][GitHub - zbelial/treesitter-context.el: A package built on top of Emacs built-in treesit to show code context, dim surrouding text, and fold code.]]
+ :PROPERTIES:
+  :ID: ffe770c7-bba0-49ff-b0c7-b39d3f0169b0
+  :END:
+  [2025-01-06 Mon 10:01]
 ** [[https://github.com/positron-solutions/moc][positron-solutions/moc: Master of Ceremonies. Display & presentation utilities to make presentation packages more effective]]
  :PROPERTIES:
   :ID: 04a3574b-4f25-42e5-ba23-1b8fb623908e
