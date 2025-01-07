@@ -36,6 +36,10 @@ run:
     sudo time nixos-rebuild switch --flake "$(pwd)#$(hostname -s)" --keep-going -j {{ jobs }} {{ nixOpts }}
 
 [group('Main')]
+boot:
+    sudo time nixos-rebuild boot --flake "$(pwd)#$(hostname -s)" --keep-going -j {{ jobs }} {{ nixOpts }}
+
+[group('Main')]
 build-hm host=`hostname -s` user=x"$USER":
     nix build "$(pwd)#nixosConfigurations.{{ host }}.config.home-manager.users.{{ user }}.home.activationPackage" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'home-configuration' / host / user }}"
 
@@ -46,6 +50,7 @@ hm host=`hostname -s` user=x"$USER":
 [group('Main')]
 build-nixos configuration=`hostname -s`:
     nix build "$(pwd)#nixosConfigurations.{{ configuration }}.config.system.build.toplevel" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'nixos-configuration' / configuration }}"
+
 
 [group('Deploy')]
 deploy target profile="system":

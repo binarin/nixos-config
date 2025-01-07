@@ -16,7 +16,7 @@
 
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
-      ref = "refs/tags/v0.45.2";
+      ref = "refs/tags/v0.46.2";
       type = "git";
       submodules = true;
       inputs.nixpkgs.follows = "nixpkgs";
@@ -26,13 +26,12 @@
     # XXX Only to override the one in hyprland, until nested overrides are possible
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    pre-commit-hooks.inputs.nixpkgs-stable.follows = "nixpkgs";
 
     hyprland-contrib.url = "github:hyprwm/contrib";
     hyprland-contrib.inputs.nixpkgs.follows = "nixpkgs";
 
     # Software inputs
-    stylix.url = "github:binarin/stylix";
+    stylix.url = "github:danth/stylix/release-24.11";
     stylix.inputs.home-manager.follows = "home-manager";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
 
