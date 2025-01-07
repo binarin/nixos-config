@@ -1043,8 +1043,9 @@
                                                "~/org/caldav.org"
                                                "~/org/refile.org"
                                                "~/org/ference.org")))
-             org-directory "~/org"
-             org-attach-id-dir (file-name-as-directory (expand-file-name "~/org/data"))))
+             org-directory "~/org"))
+
+     (general-setq org-attach-id-dir (file-name-as-directory (expand-file-name "~/org/data")))
 
      (use-package org-super-agenda
        :ensure t
