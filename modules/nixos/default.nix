@@ -31,6 +31,11 @@ in
 
     services.dbus.implementation = "broker";
 
+    services.openssh.settings.TrustedUserCaKeys = "/etc/ssh/trusted_user_ca_keys";
+    services.openssh.authorizedKeysInHomedir = false;
+
+    environment.etc."ssh/trusted_user_ca_keys".text = lib.concatStringsSep "\n" ( config.lib.publicKeys.secureWithTag "user-ca");
+
     users.users = lib.genAttrs (["root"] ++ config.hostConfig.managedUsers) (user: {
       openssh.authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser user;
     });

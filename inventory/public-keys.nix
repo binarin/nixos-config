@@ -77,5 +77,33 @@
         "raum"
       ];
     };
+
+    "yubi-usb-c-5-nfc" = {
+      description = "resident SSH key on Yubikey 5 NFC (usb-c)";
+      public_key = "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIDaRvW2TCKgLVQuHAv5FyNqQuFidJ+5WhIaV9j6nGU3HAAAABHNzaDo= usb-c yubi - residen ssh fido2";
+      secure = true;
+      tags = [ "default" "user-ca" ];
+    };
+
+    "yubi-usb-a-security-key-nfc" = {
+      description = "resident SSH key on Yubikey Security Key (usb-a)";
+      public_key = "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIBecanJ4q2FCAu5iw1Ah+19Ki5k9bncJ2ROXQQn/Bv8rAAAABHNzaDo= usb-a yubikey security key(fido only)  - resident ssh fido2";
+      secure = true;
+      tags = [ "default" "user-ca" ];
+    };
+
+    "yubi-usb-a-5-nfc-fixed" = {
+      description = "resident SSH key on Yubikey 5 NFC (usb-a, fixed)";
+      public_key = "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIEriEHU1OODgpI5oWyeH0zjyUA8N5MsgUiiYIVNXMdQrAAAABHNzaDo= usb-a yubikey 5 nfc - fixed  - resident ssh fido2";
+      secure = true;
+      tags = [ "default" "user-ca" ];
+    };
+
+    "yubi-usb-a-5-nfc-keychain" = {
+      description = "resident SSH key on Yubikey 5 NFC (usb-a, keychain)";
+      public_key = "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAINC200GwDhLpi27iCDBppww5QPuRtXACjXsrtJ5hnW0LAAAABHNzaDo= usb-a yubikey 5 nfc - keychain  - resident ssh fido2";
+      secure = true;
+      tags = [ "default" "user-ca" ];
+    };
   };
 }

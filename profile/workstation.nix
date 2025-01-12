@@ -94,6 +94,7 @@ in
         borgbackup
       ];
       otherPackages = with pkgs; [
+        yubikey-manager
         yt-dlp
         gnuplot
         dconf
