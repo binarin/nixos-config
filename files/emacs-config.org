@@ -1029,6 +1029,12 @@
        :ensure t
        :mode "\\.j2\\'")
    #+end_src
+** CMake
+   #+begin_src emacs-lisp :tangle yes
+     (use-package cmake-mode
+       :ensure t
+       :mode "\\(CMakeLists.txt\\|\\.cmake\\)\\'")
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
