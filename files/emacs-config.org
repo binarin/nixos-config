@@ -793,7 +793,6 @@
        :ensure t
        :mode "\\.nix\\'")
    #+END_SRC
-
 ** Share source position
    #+BEGIN_SRC emacs-lisp :tangle yes
      (defun binarin/get-git-remote-urls ()
@@ -1023,6 +1022,12 @@
                        (or "++" "xx" "pp" (backref 1))
                        string-end)
             'c++-ts-mode))
+   #+end_src
+** Jinja2
+   #+begin_src emacs-lisp :tangle yes
+     (use-package jinja2-mode
+       :ensure t
+       :mode "\\.j2\\'")
    #+end_src
 * Org mode
 ** Load modules

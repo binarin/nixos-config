@@ -79,3 +79,12 @@ deploy-all: all
       echo "Deploying $cf"
       just nixOpts="" deploy "$cf" || echo "Failed"
     done
+
+[group('Ansible')]
+ansible-inventory:
+    nix build --impure --expr 'let pkgs = import <nixpkgs> {}; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (import ./inventory/public-keys.nix)' -o ansible/ssh-public-keys.yaml
+
+[group('Ansible')]
+[working-directory: 'ansible']
+ping-all:
+    ansible --one-line all -m ping -u root

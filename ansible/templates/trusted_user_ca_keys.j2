@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+{%+ for key, value in ssh_keys.items() %}
+{% if ('tags' in value and 'user-ca' in value.tags) %}
+{{ value.public_key }} {{ value.description }}
+{% endif %}
+{% endfor %}

@@ -1,0 +1,40 @@
+#jinja2: lstrip_blocks: "True"
+# {{ ansible_managed }}
+
+{% set ns = namespace(comment_printed = False, seen_keys = {}) %}
+{% for key, value in ssh_keys.items() %}
+  {% if ('tags' in value and 'default' in value.tags) %}
+    {% if not ns.comment_printed -%}
+      # Operators
+    {% endif %}
+    {% set ns.comment_printed = True %}
+    {% set xxx = ns.seen_keys.__setitem__(key, True) -%}
+    {{value.public_key }} {{ value.description }}
+  {% endif %}
+{% endfor %}
+
+{% set ns.comment_printed = False %}
+{% for key, value in ssh_keys.items() %}
+  {% if ('tags' in value and 'user-ca' in value.tags) %}
+    {% if not ns.comment_printed -%}
+      # Trusted CA keys
+    {% endif %}
+    {% set ns.comment_printed = True %}
+    {% if (key not in ns.seen_keys) -%}
+    {{ value.public_key }} {{ value.description }}
+    {% else -%}
+      # Already included above: {{ value.description }}
+    {% endif %}
+  {% endif %}
+{% endfor %}
+
+{% set ns.comment_printed = False %}
+{% for key, value in ssh_keys.items() %}
+  {% if ('force_install_on' in value and inventory_hostname in value.force_install_on and username in value.force_install_on[inventory_hostname]) -%}
+    {% if not ns.comment_printed -%}
+      # Per-host overrides
+    {% endif %}
+    {% set ns.comment_printed = True -%}
+    {{ value.public_key }} {{ value.description }}
+  {% endif %}
+{% endfor %}
