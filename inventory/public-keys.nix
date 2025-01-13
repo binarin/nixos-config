@@ -67,5 +67,12 @@
       secure = true;
       tags = [ "default" "user-ca" ];
     };
+
+    "trezor-trusted-user-ca" = {
+      description = "trezor-agent with 'trusted-user-ca' identity";
+      public_key = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKx4e7PnTrPabkbTwYVsCum+j/Fxgs46NR2ltvgqmUnsJyxVm42rhoqNBp9+1D2Xt0WxikWUBXpe5liSPZzFleo=";
+      secure = true;
+      tags = [ "user-ca" ];
+    };
   };
 }
