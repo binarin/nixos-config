@@ -138,6 +138,7 @@ in
     "Z- /var/lib/tubearchivist/es 0775 1000 0 -"
     "Z- /var/lib/tubearchivist/redis 0775 999 100 -"
     "Z- /media/tubearchivist 2775 1000 1000 -"
+    "Z- /media/usenet 02775 root usenet -"
   ];
 
   nix.gc = {
@@ -318,6 +319,25 @@ in
     };
   };
 
+  systemd.timers."restart-tubearchivist" = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "*-*-* 03:15:00";
+      Unit = "restart-tubearchivist.service";
+    };
+  };
+
+  systemd.services."restart-tubearchivist" = {
+    script = ''
+      ${lib.getExe pkgs.docker} restart tubearchivist
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";
+    };
+  };
+
+
   services.caddy.virtualHosts."ta.binarin.info".extraConfig = ''
     reverse_proxy http://127.0.0.1:8001
     tls {
@@ -387,6 +407,63 @@ in
       ''command="GIT_ANNEX_SHELL_DIRECTORY=/media/annex/annex.git GIT_ANNEX_SHELL_APPENDONLY=true git-annex-shell -c \"$SSH_ORIGINAL_COMMAND\"",restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos''
     ];
   };
+
+  users.groups.usenet = {};
+
+  services.sabnzbd.enable = true;
+  users.users.sabnzbd.extraGroups = [ "usenet" ];
+
+  sops.secrets."sabnzbd/username" = {};
+  sops.secrets."sabnzbd/password" = {};
+  sops.secrets."sabnzbd/api_key" = {};
+  sops.secrets."sabnzbd/nzb_key" = {};
+  sops.secrets."sabnzbd/eweka_username" = {};
+  sops.secrets."sabnzbd/eweka_password" = {};
+
+  sops.templates."sabnzbd.ini" = {
+    content = import ./sabnzbd.ini.nix { ph = config.sops.placeholder; };
+    owner = "sabnzbd";
+    restartUnits = [ "sabnzbd.service" ];
+  };
+
+  services.sabnzbd.configFile = "/var/lib/sabnzbd/sabnzbd.ini";
+  systemd.services.sabnzbd.serviceConfig.ExecStartPre = [
+    ''
+      ${lib.getExe' pkgs.coreutils "cp"} -f ${config.sops.templates."sabnzbd.ini".path} ${config.services.sabnzbd.configFile}-orig
+    ''
+    ''
+      ${lib.getExe' pkgs.coreutils "cp"} -f ${config.sops.templates."sabnzbd.ini".path} ${config.services.sabnzbd.configFile}
+    ''
+  ];
+
+
+  services.caddy.virtualHosts."sabnzbd.binarin.info".extraConfig = ''
+    reverse_proxy http://127.0.0.1:8085
+    tls {
+        dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
+        resolvers 1.1.1.1
+    }
+  '';
+
+  services.prowlarr.enable = true;
+  services.caddy.virtualHosts."prowlarr.binarin.info".extraConfig = ''
+    reverse_proxy http://127.0.0.1:9696
+    tls {
+        dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
+        resolvers 1.1.1.1
+    }
+  '';
+
+  services.radarr.enable = true;
+  users.users.radarr.extraGroups = [ "usenet" "jellyfin" ];
+  services.caddy.virtualHosts."radarr.binarin.info".extraConfig = ''
+    reverse_proxy http://127.0.0.1:7878
+    tls {
+        dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
+        resolvers 1.1.1.1
+    }
+  '';
+
 
   system.stateVersion = "24.05";
 }
