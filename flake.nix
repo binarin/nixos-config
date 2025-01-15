@@ -67,6 +67,11 @@
     in
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       inherit systems;
+      flake = {
+        hydraJobs = {
+          valak = inputs.self.nixosConfigurations.valak.config.system.build.toplevel;
+        };
+      };
       imports = [
         ./modules/flake-parts/autowire.nix
         ./modules/flake-parts/deploy.nix

@@ -25,7 +25,7 @@
        )
    #+end_src
 ** MELPA on windows
-   #+begin_src emacs-lisp :tangle t
+   #+begin_src emacs-lisp :tangle yes
      (eval-and-compile
        (when (eq system-type 'windows-nt)
          (funcall 'require 'package)
