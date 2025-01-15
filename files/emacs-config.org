@@ -9,27 +9,44 @@
            (expand-file-name "~/.cache"))
        "emacs" "eln-cache/"))
    #+end_src
+** Common folders
+   #+begin_src emacs-lisp :tangle yes
+     (eval-and-compile
+       (defvar xdg-cache-home
+         (or (getenv "XDG_CACHE_HOME")
+             (expand-file-name "~/.cache")))
+
+       (defun cache-file-name (&rest components)
+         (apply #'file-name-concat (if (eql system-type 'windows-nt) (expand-file-name "~/.emacs.d/") xdg-cache-home) "emacs" components))
+
+       (setf no-littering-etc-directory (cache-file-name "no-littering" "config"))
+       (setf no-littering-var-directory (cache-file-name "no-littering" "data"))
+       ;; (setf package-user-dir (cache-file-name "elpa/"))
+       )
+   #+end_src
+** MELPA on windows
+   #+begin_src emacs-lisp :tangle t
+     (eval-and-compile
+       (when (eq system-type 'windows-nt)
+         (funcall 'require 'package)
+         (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+         (package-initialize t)
+         (when (not (package-installed-p 'no-littering))
+           (package-install 'no-littering))
+         (funcall 'require 'no-littering)))
+
+   #+end_src
 ** No littering
    #+begin_src emacs-lisp :tangle yes
-     (defvar xdg-cache-home
-       (or (getenv "XDG_CACHE_HOME")
-           (expand-file-name "~/.cache")))
-
-     (defun cache-file-name (&rest components)
-       (apply #'file-name-concat xdg-cache-home "emacs" components))
-
      ;; If no-littering is not loaded, it means that standalone compilation
      ;; happens right now. There are a bunch of packages doing IO even
      ;; during load (or adding it to various hooks/eval-when-load'ing),
      ;; let's give them a safe playground.
      ;; NOTE: `(use-package no-littering)` below is mandatory!
      (eval-when-compile
-       (unless (featurep 'no-littering)
+       (if (and (not (featurep 'no-littering))
+                (not (eql system-type 'windows)))
          (setf user-emacs-directory (make-temp-file "throwaway-emacs.d-for-compilation" t))))
-
-     (defvar no-littering-etc-directory (cache-file-name "no-littering" "config"))
-     (defvar no-littering-var-directory (cache-file-name "no-littering" "data"))
-     (setq package-user-dir (cache-file-name "elpa/"))
 
      (use-package no-littering
        :ensure t)
@@ -111,7 +128,8 @@
      (defconst binarin/system-type
        (cond
         ((getenv "WSL_DISTRO_NAME") 'wsl)
-        ((s-equals? system-type "darwin") 'darwin)
+        ((s-equals? system-type 'darwin) 'darwin)
+        ((s-equals? system-type 'windows-nt) 'windows)
         (t 'linux)))
    #+end_src
 * Appearance
@@ -152,17 +170,23 @@
        :ensure t
        :if (display-graphic-p))
 
+     (defvar binarin/nerd-font-family (if (eq binarin/system-type 'windows)
+                                          "IosevkaTerm NFM"
+                                        "IosevkaTerm Nerd Font"))
+
+
      ;; This is needed explicitly for other nerd-icons-based packages to work better (otherwise you can see a problem e.g. with a marked file in a dired buffer)
      (use-package nerd-icons
        :ensure t
        :config
-       (setq nerd-icons-font-family "IosevkaTerm Nerd Font"))
+       (setq nerd-icons-font-family binarin/nerd-font-family))
    #+end_src
 
    #+BEGIN_SRC emacs-lisp :tangle yes
      (add-to-list 'default-frame-alist
                   `(font . ,(cl-case binarin/system-type
                               (wsl "IosevkaTerm Nerd Font-18")
+                              (windows "IosevkaTerm NFM-16")
                               (darwin "JetBrains Mono-14")
                               (t "IosevkaTerm Nerd Font-12"))))
 
@@ -174,6 +198,10 @@
        :ensure t
        :commands (telephone-line-mode))
      (telephone-line-mode 1)
+     (custom-set-faces
+        '(mode-line ((t (:box nil))))
+        '(mode-line-inactive ((t (:box nil))))
+        '(mode-line-highlight ((t (:box nil)))))
    #+end_src
 
 ** Long lines handling
@@ -194,6 +222,12 @@
        :commands (rainbow-mode))
    #+end_src
 * Behaviour
+** Windows Quirks
+   #+begin_src emacs-lisp :tangle yes
+     (general-setq explicit-shell-file-name "c:/tools/msys64/usr/bin/bash.exe")
+     (general-setq shell-file-name "c:/tools/msys64/usr/bin/bash.exe")
+     (add-to-list 'exec-path "c:/tools/msys64/usr/bin")
+   #+end_src
 ** Startup profiling
    #+begin_src emacs-lisp :tangle yes
      (use-package esup
@@ -434,9 +468,9 @@
 
 ** External shell
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (setq shell-file-name "/bin/sh") ;; mostly for TRAMP, should work everywhere
+     (unless (eq system-type 'windows-nt)
+       (setq shell-file-name "/bin/sh")) ;; mostly for TRAMP, should work everywhere
    #+END_SRC
-
 ** Dired
    #+BEGIN_SRC emacs-lisp :tangle yes
      (add-hook 'dired-mode-hook 'dired-hide-details-mode)
@@ -478,8 +512,8 @@
 
      (defvar binarin/undo-tree-history-directory (cache-file-name "undo-tree/"))
      (make-directory binarin/undo-tree-history-directory t)
-     (setq undo-tree-history-directory-alist
-           `(("." . ,binarin/undo-tree-history-directory)))
+     (general-setq undo-tree-history-directory-alist
+                   `(("." . ,binarin/undo-tree-history-directory)))
 
      (defvar binarin/auto-save-directory (cache-file-name "auto-save/"))
      (make-directory binarin/auto-save-directory t)
@@ -488,7 +522,7 @@
 
      (setq auto-save-default nil)
      (setq make-backup-files nil)
-     (setq undo-tree-auto-save-history nil)
+     (general-setq undo-tree-auto-save-history nil)
 
      (defun binarin/maybe-enable-autosave ()
        (when (or (not buffer-file-name) ;; there is some magic for saving incomlete emails etc. without a buffer. let's assume there is no sensitive information in here
@@ -496,7 +530,7 @@
                              buffer-file-name))
          (setq-local make-backup-files t)
          (setq-local auto-save-default t)
-         (setq-local undo-tree-auto-save-history t)))
+         (general-setq-local undo-tree-auto-save-history t)))
 
      (add-hook 'find-file-hook 'binarin/maybe-enable-autosave)
      (add-hook 'after-set-visited-file-name-hook 'binarin/maybe-enable-autosave)
@@ -646,6 +680,7 @@
    #+begin_src emacs-lisp :tangle yes
      (use-package direnv
        :ensure t
+       :if (not (eq system-type 'windows-nt))
        :config
        (direnv-mode)
        (advice-add 'direnv--summarise-changes :around 'binarin/cleanup_direnv--summarise-changes)
@@ -683,8 +718,7 @@
      ;; Yo dawg! I heard you like advices so I added an advice around your advice
 
      (defun binarin/augment-buffer-name (basename projectile-root)
-       (s-concat basename "⦗" (projectile-project-name projectile-root) "⦘"))
-
+       (s-concat basename (if (eq system-type 'windows-nt) "(" "⦗") (projectile-project-name projectile-root) (if (eq system-type 'windows-nt) ")" "⦘")))
 
      (defun binarin/uniquify--create-file-buffer-advice-advice (orig-fun buf filename basename)
        (awhen (projectile-project-root (file-name-directory filename))
@@ -700,11 +734,18 @@
 
      (advice-add 'uniquify--rename-buffer-advice :around 'binarin/uniquify--rename-buffer-advice-advice)
    #+end_src
+** Eat
+   #+begin_src emacs-lisp :tangle yes
+     (use-package eat
+       :ensure t
+       :commands (eat))
+   #+end_src
 ** vterm
    #+begin_src emacs-lisp :tangle yes
      (use-package vterm
        :ensure t
-       :commands (vterm vterm-send-string vterm-send-return))
+       :commands (vterm vterm-send-string vterm-send-return)
+       :no-require t)
    #+end_src
 ** Auth
    #+begin_src emacs-lisp :tangle yes
@@ -719,6 +760,10 @@
        :bind
        (("C-=" . expreg-expand)
         ("C-S-=" . expreg-contract)))
+   #+end_src
+** Bell
+   #+begin_src emacs-lisp :tangle yes
+     (setf visible-bell t)
    #+end_src
 * Programming
 ** Projects
@@ -912,6 +957,7 @@
        :hook
        (compilation-mode-hook . fancy-compilation-mode))
    #+end_src
+
    #+begin_src emacs-lisp :tangle yes
      (defvar binarin/after-compilation-armed t)
      (defvar binarin/after-compilation-commands (make-hash-table :test 'equal))
@@ -970,7 +1016,8 @@
              (vterm-name (concat "*project-vterm:" project-dir "*")))
          (with-current-buffer (or (get-buffer vterm-name)
                                   (vterm vterm-name))
-           (set-process-sentinel vterm--process #'run-in-vterm-kill) ;; XXX
+           (with-suppressed-warnings ((free-vars vterm--process))
+             (set-process-sentinel vterm--process #'run-in-vterm-kill)) ;; XXX
            (vterm-send-string command)
            (vterm-send-return))))
 
@@ -1295,17 +1342,25 @@
      (advice-add 'server-visit-files :around #'org-protocol-lazy-load)
 
      (autoload 'notifications-notify "notifications")
+     (declare-function binarin/notifications-notify "init")
+     (if (eq system-type 'windows-nt)
+         (setf (symbol-function 'binarin/notifications-notify)
+               (cl-function (lambda (&key title body app-name app-icon timeout urgency)
+                              (ignore app-name app-icon timeout urgency app-icon)
+                              (call-process "c:/emacs/bin/toast.exe" nil nil nil "--title" title "--message" body))))
+       (setf (symbol-function 'binarin/notifications-notify)
+             (cl-function (lambda (&rest args)
+                            (apply 'notifications-notify args)))))
 
      (defun binarin/display-notify-after-capture (&rest args)
        (ignore args)
-       (when (eq binarin/system-type 'linux)
-         (notifications-notify
-          :title "Link captured"
-          :body (cadar org-stored-links)
-          :app-name "emacs"
-          :app-icon (substitute-in-file-name "$XDG_DATA_HOME/icons/emacs/org.svg")
-          :timeout 3000
-          :urgency 'low)))
+       (binarin/notifications-notify
+        :title "Link captured"
+        :body (cadar org-stored-links)
+        :app-name "emacs"
+        :app-icon (substitute-in-file-name "$XDG_DATA_HOME/icons/emacs/org.svg")
+        :timeout 3000
+        :urgency 'low))
 
      (advice-add 'org-protocol-capture :after #'binarin/display-notify-after-capture)
    #+END_SRC
@@ -1766,11 +1821,6 @@
   :ID: 59267e8c-3506-46c2-8f87-fb6fc734721c
   :END:
   [2024-11-24 Sun 09:36]
-** [[https://codeberg.org/akib/emacs-eat][akib/emacs-eat: Emulate A Terminal, in a region, in a buffer and in Eshell - Codeberg.org]]
- :PROPERTIES:
-  :ID: e3fec0bb-e13b-4708-a87c-40cc4317a269
-  :END:
-  [2024-11-24 Sun 09:37]
 ** [[https://github.com/zwild/eshell-prompt-extras][zwild/eshell-prompt-extras: Display extra information and color for your eshell prompt.]]
  :PROPERTIES:
   :ID: 21d0b3ed-990d-4ca6-b644-90f6517cd5d1
