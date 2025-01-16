@@ -46,6 +46,7 @@ in
 
   services.forgejo = {
     enable = true;
+    package = pkgs.forgejo; # at least 9.0, for SSH keys in push mirror
     user = "git";
 
     settings = {
