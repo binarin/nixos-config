@@ -11,13 +11,6 @@ let
   inherit (inputs) self;
 in
 {
-
-  sops.secrets.tailscale-auth = { };
-  services.tailscale = {
-    enable = true;
-    authKeyFile = config.sops.secrets.tailscale-auth.path;
-  };
-
   nix.usePersonalNixCache = false; # we are the cache itself
   nix.settings.substituters = [ (lib.mkBefore "http://localhost?priority=10") ];
 
@@ -124,24 +117,4 @@ in
       }
     }
   '';
-
-  services.nix-serve = {
-    enable = true;
-    secretKeyFile = "/var/lib/nix-cache/cache-priv-key.pem";
-  };
-
-  services.hydra = {
-    enable = true;
-    minimumDiskFreeEvaluator = 5;
-    minimumDiskFree = 20;
-    hydraURL = "https://nix-cache.lynx-lizard.ts.net/";
-    useSubstitutes = true;
-    notificationSender = "nix-cache-hydra@binarin.info";
-  };
-
-  nix.settings.allowed-uris = [
-    "github:"
-    "git+https://github.com/"
-    "git+ssh://github.com/"
-  ];
 }
