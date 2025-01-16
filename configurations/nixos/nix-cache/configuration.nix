@@ -145,16 +145,17 @@ in
         tokenFile = config.sops.templates.nixos-config-runner-token-env-file.path;
         labels = [ "native:host" ];
         hostPackages = with pkgs; [
-          nix
           bash
           coreutils
           curl
           gawk
           gitMinimal
           gnused
-          wget
-          just
           jq
+          just
+          nix
+          nodejs
+          wget
         ];
       };
     };
