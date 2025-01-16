@@ -3,4 +3,5 @@ jobs:
   check:
     runs-on: native
     steps:
+      - uses: actions/checkout@v4
       - run: just check
