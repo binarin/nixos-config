@@ -14,6 +14,13 @@ in
   nix.usePersonalNixCache = false; # we are the cache itself
   nix.settings.substituters = [ (lib.mkBefore "http://localhost?priority=10") ];
 
+  sops.secrets.tailscale-auth = { };
+  services.tailscale = {
+    enable = true;
+    authKeyFile = config.sops.secrets.tailscale-auth.path;
+  };
+
+
   networking.firewall.allowedTCPPorts = [ 80 ];
   systemd.tmpfiles.rules = [ "Z- /cache 0755 nginx nginx -" ];
   systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/cache" ];
@@ -117,4 +124,39 @@ in
       }
     }
   '';
+
+  sops.secrets."nixos-config-runner-token" = {
+     restartUnits = [
+       ''gitea-runner-nixos\x2dconfig.service''
+     ];
+  };
+
+  sops.templates.nixos-config-runner-token-env-file.content = ''
+    TOKEN=${config.sops.placeholder."nixos-config-runner-token"}
+  '';
+
+  services.gitea-actions-runner = {
+    package = pkgs.forgejo-runner;
+    instances = {
+      nixos-config = {
+        enable = true;
+        name = config.networking.hostName;
+        url = "https://forgejo.lynx-lizard.ts.net";
+        tokenFile = config.sops.templates.nixos-config-runner-token-env-file.path;
+        labels = [ "native:host" ];
+        hostPackages = with pkgs; [
+          nix
+          bash
+          coreutils
+          curl
+          gawk
+          gitMinimal
+          gnused
+          wget
+          just
+          jq
+        ];
+      };
+    };
+  };
 }
