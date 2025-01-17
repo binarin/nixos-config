@@ -8,6 +8,8 @@ jobs:
         ref: master
     - name: Update flake inputs
       run: nix flake update
+    - name: Run flake check
+      run: nix flake check
     - name: Set git username for commits
       run: 'git config user.name "Automatic Flake Updater" '
     - name: Set git email for commits

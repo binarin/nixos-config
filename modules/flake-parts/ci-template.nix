@@ -58,10 +58,8 @@ let
       };
     };
     jobs = {
-#      check = check-job;
       propose-inputs-update = {
         runs-on = "native";
-#        needs = [ "check" ];
         steps = [
           {
             uses = "actions/checkout@v4";
@@ -72,6 +70,10 @@ let
           {
             name = "Update flake inputs";
             run = "nix flake update";
+          }
+          {
+            name = "Run flake check";
+            run = "nix flake check";
           }
           {
             name = "Set git username for commits";
