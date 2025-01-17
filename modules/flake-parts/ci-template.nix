@@ -4,20 +4,20 @@ let
   configurationsToBuild = builtins.attrNames self.nixosConfigurations;
   check-job = {
     runs-on = "native";
+    needs = [ "build-all-configurations-job" ];
     steps = [
       {
         uses = ''actions/checkout@v4'';
       }
       {
         run = ''
-          nix flake check --no-build
+          nix flake check
         '';
       }
     ];
   };
   build-all-configurations-job = {
     runs-on = "native";
-    needs = [ "check" ];
     strategy = {
       fail-fast = false;
       matrix = {
@@ -44,8 +44,8 @@ let
       push = { branches = [ "master" ]; };
     };
     jobs = {
-      check = check-job;
       nixos-configuration = build-all-configurations-job;
+      check = check-job;
     };
   };
 
@@ -84,10 +84,6 @@ let
             name = "Commit updates";
             run = ''git commit --allow-empty -am "Bump inputs"'';
           }
-          {
-            name = "Run flake check";
-            run = "nix flake check --no-build";
-          }
         ] ++ (lib.forEach configurationsToBuild (cfg: {
           name = "Build nixosConfiguration.${cfg}";
           run = ''
@@ -97,6 +93,10 @@ let
                 -o "temp-result/${cfg}"
           '';
         })) ++ [
+          {
+            name = "Run flake check";
+            run = "nix flake check";
+          }
           {
             name = "Clean-up old GC roots";
             run = ''

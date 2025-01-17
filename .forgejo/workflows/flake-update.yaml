@@ -14,8 +14,6 @@ jobs:
       run: git config user.email "flake-updater@binarin.info"
     - name: Commit updates
       run: git commit --allow-empty -am "Bump inputs"
-    - name: Run flake check
-      run: nix flake check --no-build
     - name: Build nixosConfiguration.forgejo
       run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/forgejo\"\n"
@@ -43,6 +41,8 @@ jobs:
     - name: Build nixosConfiguration.valak-fast
       run: "nix build \"$(pwd)#nixosConfigurations.valak-fast.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/valak-fast\"\n"
+    - name: Run flake check
+      run: nix flake check
     - name: Clean-up old GC roots
       run: 'rm -rf "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
 

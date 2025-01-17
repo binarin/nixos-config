@@ -1,15 +1,15 @@
 # auto-generated via: nix run .#ci-template-generator
 jobs:
   check:
+    needs:
+    - build-all-configurations-job
     runs-on: native
     steps:
     - uses: actions/checkout@v4
-    - run: 'nix flake check --no-build
+    - run: 'nix flake check
 
         '
   nixos-configuration:
-    needs:
-    - check
     runs-on: native
     steps:
     - uses: actions/checkout@v4
