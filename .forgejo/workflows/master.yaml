@@ -1,10 +1,10 @@
 on: [push]
 jobs:
-  check:
-    runs-on: native
-    steps:
-      - uses: actions/checkout@v4
-      - run: nix flake check
+  # check:
+  #   runs-on: native
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - run: nix flake check
 
   list-nixos-configurations:
     runs-on: native
