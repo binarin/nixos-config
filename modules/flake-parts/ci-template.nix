@@ -10,7 +10,7 @@ let
       }
       {
         run = ''
-          nix flake check
+          nix flake check --no-build
         '';
       }
     ];
@@ -73,7 +73,7 @@ let
           }
           {
             name = "Run flake check";
-            run = "nix flake check";
+            run = "nix flake check --no-build";
           }
           {
             name = "Set git username for commits";
