@@ -13,7 +13,7 @@
     };
   };
 
-  config = {
+  config = lib.mkIf config.nix.usePersonalNixCache {
     services.nginx.enable = true;
 
     networking.hosts."127.0.0.1" = [ "cache-nixos-org.nix-cache" ];
