@@ -17,12 +17,10 @@
              (expand-file-name "~/.cache")))
 
        (defun cache-file-name (&rest components)
-         (apply #'file-name-concat (if (eql system-type 'windows-nt) (expand-file-name "~/.emacs.d/") xdg-cache-home) "emacs" components))
+         (apply #'file-name-concat (if (eq system-type 'windows-nt) (expand-file-name "~/.emacs.d/") xdg-cache-home) "emacs" components))
 
        (setf no-littering-etc-directory (cache-file-name "no-littering" "config"))
-       (setf no-littering-var-directory (cache-file-name "no-littering" "data"))
-       ;; (setf package-user-dir (cache-file-name "elpa/"))
-       )
+       (setf no-littering-var-directory (cache-file-name "no-littering" "data")))
    #+end_src
 ** MELPA on windows
    #+begin_src emacs-lisp :tangle yes
@@ -34,7 +32,6 @@
          (when (not (package-installed-p 'no-littering))
            (package-install 'no-littering))
          (funcall 'require 'no-littering)))
-
    #+end_src
 ** No littering
    #+begin_src emacs-lisp :tangle yes
@@ -222,11 +219,17 @@
        :commands (rainbow-mode))
    #+end_src
 * Behaviour
+** SSH agent
+   #+begin_src emacs-lisp :tangle yes
+     (when (file-exists-p "~/.xdg/local/state/ssh/stable_ssh_auth_sock")
+       (setenv "SSH_AUTH_SOCK" (expand-file-name "~/.xdg/local/state/ssh/stable_ssh_auth_sock")))
+   #+end_src
 ** Windows Quirks
    #+begin_src emacs-lisp :tangle yes
-     (general-setq explicit-shell-file-name "c:/tools/msys64/usr/bin/bash.exe")
-     (general-setq shell-file-name "c:/tools/msys64/usr/bin/bash.exe")
-     (add-to-list 'exec-path "c:/tools/msys64/usr/bin")
+     (when (eq system-type 'windows-nt)
+       (general-setq explicit-shell-file-name "c:/tools/msys64/usr/bin/bash.exe")
+       (general-setq shell-file-name "c:/tools/msys64/usr/bin/bash.exe")
+       (add-to-list 'exec-path "c:/tools/msys64/usr/bin"))
    #+end_src
 ** Startup profiling
    #+begin_src emacs-lisp :tangle yes

@@ -58,6 +58,8 @@ in {
       # set -g window-status-current-style bg=red
       extraConfig = ''
         set -g allow-rename off
+        set -g update-environment "DISPLAY KRB5CCNAME SSH_ASKPASS SSH_AGENT_PID SSH_CONNECTION WINDOWID XAUTHORITY"
+        setenv -g SSH_AUTH_SOCK ${config.xdg.stateHome}/ssh/stable_ssh_auth_sock
       '';
     };
 
@@ -195,6 +197,33 @@ in {
         };
       };
       controlPath = "~/.ssh/master-%r@%k:%p";
+      userKnownHostsFile = "${config.xdg.stateHome}/ssh/known_hosts";
+    };
+
+    home.file.".ssh/rc".text = ''
+      # Fix SSH auth socket location so agent forwarding works with tmux
+      if test "$SSH_AUTH_SOCK" ; then
+          ln -sf $SSH_AUTH_SOCK ${config.xdg.stateHome}/ssh/stable_ssh_auth_sock
+      fi
+    '';
+
+    home.activation.createSshStateDirs = lib.hm.dag.entryAfter ["linkGeneration"] ''
+      mkdir -p ${config.xdg.stateHome}/ssh/
+    '';
+
+    systemd.user.services.stable-ssh-agent-socket-use-local = {
+      Unit = {
+        After = [ "graphical-session.target" ];
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = ''
+          ${lib.getExe' pkgs.coreutils "ln"} -sf "%t/ssh-agent" ${config.xdg.stateHome}/ssh/stable_ssh_auth_sock
+        '';
+      };
+      Install = {
+        WantedBy = [ "graphical-session.target" ];
+      };
     };
 
     programs.rtorrent = {
