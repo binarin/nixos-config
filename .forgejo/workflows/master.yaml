@@ -1,0 +1,32 @@
+on: [push]
+jobs:
+  check:
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+      - run: nix flake check --quiet
+
+  list-nixos-configurations:
+    runs-on: native
+    outputs:
+      nixosConfigurations: ${{ steps.set-matrix.outputs.nixosConfigurations }}
+      steps:
+        - uses: actions/checkout@v4
+        - run: (echo -n "nixosConfigurations="; nix flake show --json | jq  -c '.nixosConfigurations | keys | join("\n")') > $GITHUB_OUTPUT
+          id: set-matrix
+
+  nixos-configuration:
+    runs-on: native
+    name: nixosConfiguration.$${matrix.nixosConfiguration}}
+    if: needs.list-nixos-configurations.outputs.nixosConfigurations != ''
+    needs: [list-nixos-configurations]
+    strategy:
+      fail-fast: false
+      matrix:
+        nixosConfiguration: $${ fromJSON(needs.list-nixos-configurations.outputs.nixosConfigurations) }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: >-
+          nix build "$(pwd)#nixosConfigurations.${{ matrix.nixosConfiguration }}.config.system.build.toplevel"
+            --keep-going -j auto --quiet
+            -o "$HOME/.cache/nixos-config/master/nixos-configuration/${{ matrix.nixosConfiguration }}"
