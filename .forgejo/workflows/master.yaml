@@ -8,6 +8,8 @@ jobs:
 
         '
   nixos-configuration:
+    needs:
+    - check
     runs-on: native
     steps:
     - uses: actions/checkout@v4

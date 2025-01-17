@@ -1,0 +1,65 @@
+# auto-generated via: nix run .#ci-template-generator
+jobs:
+  check:
+    runs-on: native
+    steps:
+    - uses: actions/checkout@v4
+    - run: 'nix flake check
+
+        '
+  propose-inputs-update:
+    needs:
+    - check
+    runs-on: native
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: master
+    - run: echo nix flake update
+    - run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.mail.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.media.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.monitor.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.valak-fast.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.mail.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.media.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.monitor.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
+    - run: "nix build \"$(pwd)#nixosConfigurations.valak-fast.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
+    - run: 'git config --global user.name "Automatic Flake Updater" '
+    - run: git config --global user.emal "flake-updater@binarin.info"
+    - run: 'git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN
+        }}@GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+
+        '
+    - run: git commit -am "Bump inputs"
+    - run: git push --force origin master:flake-bump
+'on':
+  schedule:
+  - cron: 13 10 * * Mon

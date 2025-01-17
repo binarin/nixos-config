@@ -1,45 +1,94 @@
 {self, inputs, lib, ...}:
 
 let
+  check-job = {
+    runs-on = "native";
+    steps = [
+      {
+        uses = ''actions/checkout@v4'';
+      }
+      {
+        run = ''
+          nix flake check
+        '';
+      }
+    ];
+  };
+  build-all-configurations-job = {
+    runs-on = "native";
+    needs = [ "check" ];
+    strategy = {
+      fail-fast = false;
+      matrix = {
+        nixosConfiguration = builtins.attrNames self.nixosConfigurations;
+      };
+    };
+    steps = [
+      {
+        uses = ''actions/checkout@v4'';
+      }
+      {
+        run = ''
+          nix build "$(pwd)#nixosConfigurations.''${{ matrix.nixosConfiguration }}.config.system.build.toplevel" \
+            --keep-going \
+            -j auto \
+            -o "$HOME/.cache/nixos-config/master/nixos-configuration/''${{ matrix.nixosConfiguration }}"
+        '';
+      }
+    ];
+  };
+
   master-yaml-data = {
     on = {
       push = { branches = [ "master" ]; };
     };
     jobs = {
-      check = {
-        runs-on = "native";
-        steps = [
-          {
-            uses = ''actions/checkout@v4'';
-          }
-          {
-            run = ''
-              nix flake check
-            '';
-          }
-        ];
-      };
+      check = check-job;
+      nixos-configuration = build-all-configurations-job;
+    };
+  };
 
-      nixos-configuration = {
+  flake-update-yaml-data = {
+    on = {
+      schedule = [
+        { cron = "13 10 * * Mon"; }
+      ];
+    };
+    jobs = {
+      check = check-job;
+      propose-inputs-update = {
         runs-on = "native";
-        strategy = {
-          fail-fast = false;
-          matrix = {
-            nixosConfiguration = builtins.attrNames self.nixosConfigurations;
-          };
-        };
+        needs = [ "check" ];
         steps = [
           {
-            uses = ''actions/checkout@v4'';
+            uses = "actions/checkout@v4";
+            "with" = {
+              ref = "master";
+            };
           }
-          {
-            run = ''
-              nix build "$(pwd)#nixosConfigurations.''${{ matrix.nixosConfiguration }}.config.system.build.toplevel" \
+          { run = "echo nix flake update"; }
+        ] ++ (lib.forEach (builtins.attrNames self.nixosConfigurations) (cfg: {
+          run = ''
+              nix build "$(pwd)#nixosConfigurations.${cfg}.config.system.build.toplevel" \
                 --keep-going \
                 -j auto \
-                -o "$HOME/.cache/nixos-config/master/nixos-configuration/''${{ matrix.nixosConfiguration }}"
-            '';
-          }
+                --no-link
+          '';
+        })) ++ (lib.forEach (builtins.attrNames self.nixosConfigurations) (cfg: {
+          run = ''
+              nix build "$(pwd)#nixosConfigurations.${cfg}.config.system.build.toplevel" \
+                --keep-going \
+                -j auto \
+                -o "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/
+          '';
+        })) ++ [
+          { run = ''git config --global user.name "Automatic Flake Updater" ''; }
+          { run = ''git config --global user.emal "flake-updater@binarin.info"''; }
+          { run = ''
+              git remote set-url origin https://x-access-token:''${{ secrets.GITHUB_TOKEN }}@GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+            ''; }
+          { run = ''git commit -am "Bump inputs"''; }
+          { run = ''git push --force origin master:flake-bump''; }
         ];
       };
     };
@@ -51,6 +100,7 @@ in {
     let
       yaml = pkgs.formats.yaml { };
       master-yaml = yaml.generate "master.yaml" master-yaml-data;
+      flake-update-yaml = yaml.generate "flake-update.yaml" flake-update-yaml-data;
     in {
       packages.ci-template-generator = pkgs.writeShellApplication {
         name = "ci-template-generator";
@@ -64,6 +114,11 @@ in {
           # auto-generated via: nix run .#ci-template-generator
           EOF
           cat ${master-yaml} >> "$git_wt/.forgejo/workflows/master.yaml"
+
+          cat <<'EOF' > "$git_wt/.forgejo/workflows/flake-update.yaml"
+          # auto-generated via: nix run .#ci-template-generator
+          EOF
+          cat ${flake-update-yaml} >> "$git_wt/.forgejo/workflows/flake-update.yaml"
         '';
       };
     };
