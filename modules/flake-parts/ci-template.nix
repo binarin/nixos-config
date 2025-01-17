@@ -88,11 +88,11 @@ let
         })) ++ [
           {
             id = "git-set-user-name";
-            run = ''git config --global user.name "Automatic Flake Updater" '';
+            run = ''git config user.name "Automatic Flake Updater" '';
           }
           {
             id = "git-set-user-email";
-            run = ''git config --global user.emal "flake-updater@binarin.info"'';
+            run = ''git config user.email "flake-updater@binarin.info"'';
           }
           # { run = ''
           #     git remote set-url origin https://x-access-token:''${{ secrets.GITHUB_TOKEN }}@GITHUB_SERVER_URL/$GITHUB_REPOSITORY

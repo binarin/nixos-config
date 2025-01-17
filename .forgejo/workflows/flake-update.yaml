@@ -71,9 +71,9 @@ jobs:
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/valak-fast\"\
         \n"
     - id: git-set-user-name
-      run: 'git config --global user.name "Automatic Flake Updater" '
+      run: 'git config user.name "Automatic Flake Updater" '
     - id: git-set-user-email
-      run: git config --global user.emal "flake-updater@binarin.info"
+      run: git config user.email "flake-updater@binarin.info"
     - id: git-commit-bump
       run: git commit -am "Bump inputs"
     - id: git-push-proposed
