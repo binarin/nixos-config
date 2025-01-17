@@ -1,6 +1,8 @@
 {self, inputs, lib, ...}:
 
 let
+  # configurationsToBuild = builtins.attrNames self.nixosConfigurations;
+  configurationsToBuild = [ "valak" ];
   check-job = {
     runs-on = "native";
     steps = [
@@ -69,7 +71,7 @@ let
             };
           }
           { run = "echo nix flake update"; }
-        ] ++ (lib.forEach (builtins.attrNames self.nixosConfigurations) (cfg: {
+        ] ++ (lib.forEach configurationsToBuild (cfg: {
           name = "build-${cfg}";
           run = ''
               nix build "$(pwd)#nixosConfigurations.${cfg}.config.system.build.toplevel" \
@@ -77,11 +79,11 @@ let
                 -j auto \
                 -o "temp-result/${cfg}"
           '';
-        })) ++ (lib.forEach (builtins.attrNames self.nixosConfigurations) (cfg: {
+        })) ++ (lib.forEach configurationsToBuild (cfg: {
           name = "build-${cfg}-add-gc-root";
           run = ''
             nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/${cfg}" \
-              "$(readlink -f "temp-result/${cfg}")"
+              -r "$(readlink -f "temp-result/${cfg}")"
           '';
         })) ++ [
           {
