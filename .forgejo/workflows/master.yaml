@@ -1,14 +1,33 @@
-on: [push]
+# auto-generated via: nix run .#ci-template-generator
 jobs:
+  check:
+    runs-on: native
+    steps:
+    - uses: actions/checkout@v4
+    - run: 'nix flake check
+
+        '
   nixos-configuration:
     runs-on: native
+    steps:
+    - uses: actions/checkout@v4
+    - run: "nix build \"$(pwd)#nixosConfigurations.${{ matrix.nixosConfiguration }}.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/master/nixos-configuration/${{\
+        \ matrix.nixosConfiguration }}\"\n"
     strategy:
       fail-fast: false
       matrix:
         nixosConfiguration:
-          - valak
-          - media
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo ${{ needs.list-nixos-configurations.outputs.nixosConfigurations }}
-      - run: nix build "$(pwd)#nixosConfigurations.${{ matrix.nixosConfiguration }}.config.system.build.toplevel" --keep-going -j auto -o "$HOME/.cache/nixos-config/master/nixos-configuration/${{ matrix.nixosConfiguration }}"
+        - forgejo
+        - furfur
+        - ishamael
+        - mail
+        - media
+        - monitor
+        - nix-cache
+        - valak
+        - valak-fast
+'on':
+  push:
+    branches:
+    - master

@@ -72,6 +72,7 @@
         ./modules/flake-parts/deploy.nix
         ./modules/flake-parts/devshell.nix
         ./modules/flake-parts/formatter.nix
+        ./modules/flake-parts/ci-template.nix
       ];
     };
 }
