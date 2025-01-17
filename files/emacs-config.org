@@ -877,7 +877,7 @@
               (dolist (url (binarin/get-git-remote-urls))
                 (acond
                  ((s-match  "\\(gitlab\\.[^/:]+\\)[:/]\\(.*?\\)\\(\\.git\\)?$" url)
-                  (cl-return (binarin/make-gitlab-link (nth 1 it) (nth 2 it))))
+                  (cl-return-from loop (binarin/make-gitlab-link (nth 1 it) (nth 2 it))))
                  ((or
                    (s-match "https://github.com/\\(.*\\)" url)
                    (s-match "git@github.com:\\(.*\\)" url))
