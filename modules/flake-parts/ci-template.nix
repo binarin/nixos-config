@@ -53,7 +53,7 @@ let
       schedule = [
         { cron = "13 10 * * Mon"; }
       ];
-      workflow-dispatch = {
+      workflow_dispatch = {
       };
     };
     jobs = {
