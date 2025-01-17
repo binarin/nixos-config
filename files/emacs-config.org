@@ -46,7 +46,12 @@
          (setf user-emacs-directory (make-temp-file "throwaway-emacs.d-for-compilation" t))))
 
      (use-package no-littering
-       :ensure t)
+       :ensure t
+       :no-require t)
+
+     ;; look like a sandboxed nix build
+     (unless (string= (getenv "HOME") "/homeless-shelter")
+       (funcall 'require 'no-littering))
    #+end_src
 ** Track execution time
 
@@ -876,7 +881,7 @@
                  ((or
                    (s-match "https://github.com/\\(.*\\)" url)
                    (s-match "git@github.com:\\(.*\\)" url))
-                  (cl-return (binarin/make-github-link (nth 1 it)))))))
+                  (cl-return-from loop (binarin/make-github-link (nth 1 it)))))))
            (browse-url it)
          (message "Failed to generate a link from that file")))
    #+END_SRC
