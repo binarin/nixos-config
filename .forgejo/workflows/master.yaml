@@ -12,7 +12,7 @@ jobs:
       nixosConfigurations: ${{ steps.set-matrix.outputs.nixosConfigurations }}
     steps:
       - uses: actions/checkout@v4
-      - run: (echo -n "nixosConfigurations="; nix flake show --quiet --json | jq  -c '.nixosConfigurations | keys | join("\n")') > $GITHUB_OUTPUT
+      - run: (echo -n "nixosConfigurations="; nix flake show --quiet --json | jq  -c '.nixosConfigurations | keys') > $GITHUB_OUTPUT
         id: set-matrix
 
   nixos-configuration:
