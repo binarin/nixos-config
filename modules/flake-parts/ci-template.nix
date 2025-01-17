@@ -1,8 +1,7 @@
 {self, inputs, lib, ...}:
 
 let
-  # configurationsToBuild = builtins.attrNames self.nixosConfigurations;
-  configurationsToBuild = [ "valak" ];
+  configurationsToBuild = builtins.attrNames self.nixosConfigurations;
   check-job = {
     runs-on = "native";
     steps = [

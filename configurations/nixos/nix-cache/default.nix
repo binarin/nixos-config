@@ -16,5 +16,5 @@ in
 
   inventoryHostName = "nix-cache";
   hostConfig.deployHostName = config.hostConfig.ipAllocation.home.primary.address;
-  hostConfig.features = [ "lxc" ];
+  hostConfig.features = [ "lxc" "nix-builder" ];
 }
