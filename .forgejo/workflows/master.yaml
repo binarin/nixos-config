@@ -23,10 +23,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nixosConfiguration: ${ fromJSON(needs.list-nixos-configurations.outputs.nixosConfigurations) }}
+        nixosConfiguration: ${{ fromJSON(needs.list-nixos-configurations.outputs.nixosConfigurations) }}
     steps:
       - uses: actions/checkout@v4
-      - run: echo ${ needs.list-nixos-configurations.outputs.nixosConfigurations }}
+      - run: echo ${{ needs.list-nixos-configurations.outputs.nixosConfigurations }}
       - run: >-
           nix build "$(pwd)#nixosConfigurations.${{ matrix.nixosConfiguration }}.config.system.build.toplevel"
             --keep-going -j auto
