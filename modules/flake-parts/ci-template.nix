@@ -57,10 +57,10 @@ let
       };
     };
     jobs = {
-      check = check-job;
+#      check = check-job;
       propose-inputs-update = {
         runs-on = "native";
-        needs = [ "check" ];
+#        needs = [ "check" ];
         steps = [
           {
             uses = "actions/checkout@v4";
@@ -70,6 +70,7 @@ let
           }
           { run = "echo nix flake update"; }
         ] ++ (lib.forEach (builtins.attrNames self.nixosConfigurations) (cfg: {
+          id = "build-${cfg}";
           run = ''
               nix build "$(pwd)#nixosConfigurations.${cfg}.config.system.build.toplevel" \
                 --keep-going \
@@ -77,20 +78,35 @@ let
                 --no-link
           '';
         })) ++ (lib.forEach (builtins.attrNames self.nixosConfigurations) (cfg: {
+          id = "build-${cfg}-add-gc-root";
           run = ''
               nix build "$(pwd)#nixosConfigurations.${cfg}.config.system.build.toplevel" \
                 --keep-going \
                 -j auto \
-                -o "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/
+                -o "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/${cfg}"
           '';
         })) ++ [
-          { run = ''git config --global user.name "Automatic Flake Updater" ''; }
-          { run = ''git config --global user.emal "flake-updater@binarin.info"''; }
-          { run = ''
-              git remote set-url origin https://x-access-token:''${{ secrets.GITHUB_TOKEN }}@GITHUB_SERVER_URL/$GITHUB_REPOSITORY
-            ''; }
-          { run = ''git commit -am "Bump inputs"''; }
-          { run = ''git push --force origin master:flake-bump''; }
+          {
+            id = "git-set-user-name";
+            run = ''git config --global user.name "Automatic Flake Updater" '';
+          }
+          {
+            id = "git-set-user-email";
+            run = ''git config --global user.emal "flake-updater@binarin.info"'';
+          }
+          # { run = ''
+          #     git remote set-url origin https://x-access-token:''${{ secrets.GITHUB_TOKEN }}@GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+          #   '';
+          #   id = "git-set-remote";
+          # }
+          {
+            id = "git-commit-bump";
+            run = ''git commit -am "Bump inputs"'';
+          }
+          {
+            id = "git-push-proposed";
+            run = ''git push --force origin master:flake-bump'';
+          }
         ];
       };
     };

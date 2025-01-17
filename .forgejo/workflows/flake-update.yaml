@@ -1,65 +1,83 @@
 # auto-generated via: nix run .#ci-template-generator
 jobs:
-  check:
-    runs-on: native
-    steps:
-    - uses: actions/checkout@v4
-    - run: 'nix flake check
-
-        '
   propose-inputs-update:
-    needs:
-    - check
     runs-on: native
     steps:
     - uses: actions/checkout@v4
       with:
         ref: master
     - run: echo nix flake update
-    - run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
+    - id: build-forgejo
+      run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel\"\
+    - id: build-furfur
+      run: "nix build \"$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel\"\
+    - id: build-ishamael
+      run: "nix build \"$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.mail.config.system.build.toplevel\"\
+    - id: build-mail
+      run: "nix build \"$(pwd)#nixosConfigurations.mail.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.media.config.system.build.toplevel\"\
+    - id: build-media
+      run: "nix build \"$(pwd)#nixosConfigurations.media.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.monitor.config.system.build.toplevel\"\
+    - id: build-monitor
+      run: "nix build \"$(pwd)#nixosConfigurations.monitor.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel\"\
+    - id: build-nix-cache
+      run: "nix build \"$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
+    - id: build-valak
+      run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.valak-fast.config.system.build.toplevel\"\
+    - id: build-valak-fast
+      run: "nix build \"$(pwd)#nixosConfigurations.valak-fast.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  --no-link\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.mail.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.media.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.monitor.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
-    - run: "nix build \"$(pwd)#nixosConfigurations.valak-fast.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/\n"
-    - run: 'git config --global user.name "Automatic Flake Updater" '
-    - run: git config --global user.emal "flake-updater@binarin.info"
-    - run: 'git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN
-        }}@GITHUB_SERVER_URL/$GITHUB_REPOSITORY
-
-        '
-    - run: git commit -am "Bump inputs"
-    - run: git push --force origin master:flake-bump
+    - id: build-forgejo-add-gc-root
+      run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/forgejo\"\
+        \n"
+    - id: build-furfur-add-gc-root
+      run: "nix build \"$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/furfur\"\
+        \n"
+    - id: build-ishamael-add-gc-root
+      run: "nix build \"$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/ishamael\"\
+        \n"
+    - id: build-mail-add-gc-root
+      run: "nix build \"$(pwd)#nixosConfigurations.mail.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/mail\"\
+        \n"
+    - id: build-media-add-gc-root
+      run: "nix build \"$(pwd)#nixosConfigurations.media.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/media\"\
+        \n"
+    - id: build-monitor-add-gc-root
+      run: "nix build \"$(pwd)#nixosConfigurations.monitor.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/monitor\"\
+        \n"
+    - id: build-nix-cache-add-gc-root
+      run: "nix build \"$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/nix-cache\"\
+        \n"
+    - id: build-valak-add-gc-root
+      run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/valak\"\
+        \n"
+    - id: build-valak-fast-add-gc-root
+      run: "nix build \"$(pwd)#nixosConfigurations.valak-fast.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/valak-fast\"\
+        \n"
+    - id: git-set-user-name
+      run: 'git config --global user.name "Automatic Flake Updater" '
+    - id: git-set-user-email
+      run: git config --global user.emal "flake-updater@binarin.info"
+    - id: git-commit-bump
+      run: git commit -am "Bump inputs"
+    - id: git-push-proposed
+      run: git push --force origin master:flake-bump
 'on':
   schedule:
   - cron: 13 10 * * Mon
