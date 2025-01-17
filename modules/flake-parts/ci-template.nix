@@ -70,9 +70,12 @@ let
               ref = "master";
             };
           }
-          { run = "echo nix flake update"; }
+          {
+            name = "Update flake inputs";
+            run = "nix flake update";
+          }
         ] ++ (lib.forEach configurationsToBuild (cfg: {
-          name = "build-${cfg}";
+          name = "Build nixosConfiguration.${cfg}";
           run = ''
               nix build "$(pwd)#nixosConfigurations.${cfg}.config.system.build.toplevel" \
                 --keep-going \
@@ -80,31 +83,26 @@ let
                 -o "temp-result/${cfg}"
           '';
         })) ++ (lib.forEach configurationsToBuild (cfg: {
-          name = "build-${cfg}-add-gc-root";
+          name = "Add nix-store GC root for nixosConfiguraion.${cfg}";
           run = ''
             nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/${cfg}" \
               -r "$(readlink -f "temp-result/${cfg}")"
           '';
         })) ++ [
           {
-            name = "git-set-user-name";
+            name = "Set git username for commits";
             run = ''git config user.name "Automatic Flake Updater" '';
           }
           {
-            name = "git-set-user-email";
+            name = "Set git email for commits";
             run = ''git config user.email "flake-updater@binarin.info"'';
           }
-          # { run = ''
-          #     git remote set-url origin https://x-access-token:''${{ secrets.GITHUB_TOKEN }}@GITHUB_SERVER_URL/$GITHUB_REPOSITORY
-          #   '';
-          #   id = "git-set-remote";
-          # }
           {
-            name = "git-commit-bump";
+            name = "Commit updates";
             run = ''git commit --allow-empty -am "Bump inputs"'';
           }
           {
-            name = "git-push-proposed";
+            name = "Push to flake-bump branch";
             run = ''git push --force origin master:flake-bump'';
           }
         ];
