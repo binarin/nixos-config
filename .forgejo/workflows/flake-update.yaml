@@ -8,18 +8,22 @@ jobs:
         ref: master
     - name: Update flake inputs
       run: nix flake update
-    - name: Build nixosConfiguration.valak
-      run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/valak\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.valak
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/valak\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/valak\")\"\n"
     - name: Set git username for commits
       run: 'git config user.name "Automatic Flake Updater" '
     - name: Set git email for commits
       run: git config user.email "flake-updater@binarin.info"
     - name: Commit updates
       run: git commit --allow-empty -am "Bump inputs"
+    - name: Build nixosConfiguration.valak
+      run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/valak\"\n"
+    - name: Clean-up old GC roots
+      run: 'rm -rf "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
+
+        '
+    - name: Add nix-store GC root for nixosConfiguraion.valak
+      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/valak\"\
+        \ \\\n  -r \"$(readlink -f \"temp-result/valak\")\"\n"
     - name: Push to flake-bump branch
       run: git push --force origin master:flake-bump
 'on':
