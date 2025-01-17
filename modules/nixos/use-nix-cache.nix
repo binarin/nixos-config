@@ -23,7 +23,7 @@
 
     nix.settings.substituters = [
       (lib.mkBefore "http://cache-nixos-org.nix-cache:48080?priority=10")
-      (lib.mkBefore "http://nix-cache-lynx-lizard-ts-net.nix-cache?priority=11")
+      (lib.mkBefore "http://nix-cache-lynx-lizard-ts-net.nix-cache:48080?priority=11")
     ];
 
     nix.settings.trusted-public-keys = [
