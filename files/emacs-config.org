@@ -1085,6 +1085,18 @@
        :ensure t
        :mode "\\(CMakeLists.txt\\|\\.cmake\\)\\'")
    #+end_src
+** Lua
+   #+begin_src emacs-lisp :tangle yes
+     (use-package lua-mode
+       :ensure t
+       :mode "\\.lua\\'")
+   #+end_src
+** PowerShell
+   #+begin_src emacs-lisp :tangle yes
+     (use-package powershell
+       :ensure t
+       :mode "\\.ps1\\'")
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
