@@ -72,10 +72,6 @@ let
             run = "nix flake update";
           }
           {
-            name = "Run flake check";
-            run = "nix flake check --no-build";
-          }
-          {
             name = "Set git username for commits";
             run = ''git config user.name "Automatic Flake Updater" '';
           }
@@ -87,6 +83,10 @@ let
             # Do it early, so the flake will get a proper git id
             name = "Commit updates";
             run = ''git commit --allow-empty -am "Bump inputs"'';
+          }
+          {
+            name = "Run flake check";
+            run = "nix flake check --no-build";
           }
         ] ++ (lib.forEach configurationsToBuild (cfg: {
           name = "Build nixosConfiguration.${cfg}";
