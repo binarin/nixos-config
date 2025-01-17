@@ -9,6 +9,7 @@
 let
   inherit (flake) inputs;
   inherit (inputs) self;
+  nginx-cache-zone = "nix_cache_cache_zone";
 in
 {
   nix.usePersonalNixCache = false; # we are the cache itself
@@ -26,6 +27,17 @@ in
   systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/cache" ];
 
   services.nginx.enable = true;
+
+  services.nginx.appendHttpConfig = ''
+    # Tell Nginx to set up a response cache at `/data/nginx/cache`, with a maximum
+    # size of 800 GB or 400_000 stored files.
+    # Also set `inactive` to tell Nginx to keep files until they haven't been
+    # accessed for a year, instead of the default of removing files after they
+    # haven't been accessed for 10 minutes.
+    # See: https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_path
+    proxy_cache_path /cache max_size=800G keys_zone=${nginx-cache-zone}:50m inactive=365d;
+  '';
+
   services.nginx.virtualHosts."cache-nixos-org.nix-cache" = {
     listen = [
       { port = 80; addr  = "0.0.0.0"; }
@@ -40,17 +52,10 @@ in
       proxyPass = "https://cache.nixos.org";
       extraConfig = ''
         proxy_set_header Host $proxy_host;
-        # Tell Nginx to set up a response cache at `/data/nginx/cache`, with a maximum
-        # size of 800 GB or 400_000 stored files.
-        # Also set `inactive` to tell Nginx to keep files until they haven't been
-        # accessed for a year, instead of the default of removing files after they
-        # haven't been accessed for 10 minutes.
-        # See: https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_path
-        proxy_cache_path /cache max_size=800G keys_zone=cache_zone:50m inactive=365d;
 
         # Tell Nginx to actually use the response cache to cache requests.
         # See: https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache
-        proxy_cache cache_zone;
+        proxy_cache ${nginx-cache-zone};
 
         # Since Nix store paths are immutable, we can cache successful responses for a
         # long time.
