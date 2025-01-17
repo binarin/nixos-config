@@ -17,7 +17,7 @@ jobs:
 
   nixos-configuration:
     runs-on: native
-    name: nixosConfiguration.$${matrix.nixosConfiguration}}
+    name: ${{ matrix.nickname }}
     if: needs.list-nixos-configurations.outputs.nixosConfigurations != ''
     needs: [list-nixos-configurations]
     strategy:
