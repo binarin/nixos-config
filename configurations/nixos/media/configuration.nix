@@ -465,5 +465,112 @@ in
   '';
 
 
+  # XXX make a better suited machine, with caddy
+  services.homepage-dashboard = let
+    svc = title: href: icon: {
+      "${title}" = {
+        inherit href icon;
+      };
+    };
+  in {
+    enable = true;
+    listenPort = 8082;
+    services = [
+      {
+        "Services" = [
+          (svc "Jellyfin" "https://jellyfin.binarin.info/" "jellyfin.svg")
+          (svc "paperless-ngx" "https://paperless.lynx-lizard.ts.net/" "paperless-ngx.svg")
+          (svc "tube-archivist" "https://ta.binarin.info/" "/custom-icons/tube-archivist-logo-dark.png")
+          (svc "Home Assistant" "https://hass.lynx-lizard.ts.net/" "home-assistant.svg")
+          (svc "qbittorrent" "https://qbittorrent.binarin.info/" "qbittorrent.svg")
+        ];
+      }
+    ];
+    settings = {
+      target = "_self";
+    };
+  };
+
+
+
+# - Servers:
+#     - Unifi:
+#         icon: unifi.svg
+#         href: https://unifi.binarin.info/
+#     - Proxmox Bael:
+#         icon: proxmox.svg
+#         href: https://bael.lynx-lizard.ts.net
+#     - Proxmox Barbatos:
+#         icon: proxmox.svg
+#         href: https://barbatos.lynx-lizard.ts.net
+#     - Proxmox Portainer:
+#         icon: portainer
+#         href: https://docker.lynx-lizard.ts.net
+#     - Fileserver cockpit:
+#         icon: cockpit
+#         href: https://fileserver.lynx-lizard.ts.net
+#     - Proxmox Backup Server - amon:
+#         icon: /icons/pbs.png
+#         href: https://pbs-amon.lynx-lizard.ts.net/
+#     - Proxmox Backup Server - hetzner:
+#         icon: /icons/pbs.png
+#         href: https://pbs-hetzner.binarin.info:8007/
+#     - Synology Raum:
+#         icon: synology-dsm.svg
+#         href: https://raum.ts.binarin.info/
+#     - OMV Amon:
+#         icon: openmediavault.svg
+#         href: https://amon.ts.binarin.info/
+#     - tinypilot wired:
+#         icon: /icons/tiny-pilot.png
+#         href: https://192.168.2.50/
+#     - "Pi-hole 1":
+#         icon: pi-hole.svg
+#         href: https://pihole-1.binarin.info/
+#     - "Pi-hole 2":
+#         icon: pi-hole.svg
+#         href: https://pihole-2.binarin.info/
+
+# - Raum:
+#     - nginx-proxy-manager:
+#         icon: nginx-proxy-manager.svg
+#         href: https://raum-nginx-proxy-manager.ts.binarin.info/
+#     - Portainer:
+#         icon: portainer.svg
+#         href: https://raum-portainer.ts.binarin.info/
+
+# - Amon:
+#     - nginx-proxy-manager:
+#         icon: nginx-proxy-manager.svg
+#         href: https://amon-nginx-proxy-manager.ts.binarin.info/
+#     - Portainer:
+#         icon: portainer
+#         href: https://amon-portainer.ts.binarin.info/
+
+#   };
+
+# ---
+# # For configuration options and examples, please see:
+# # https://gethomepage.dev/latest/configs/services
+
+  services.caddy.virtualHosts."homepage.binarin.info".extraConfig = let
+    customIconsDir = config.lib.self.base64Dir "dashboard-icons";
+  in ''
+    handle_path /custom-icons/* {
+      root * ${customIconsDir}
+      @png {
+        path *.png
+      }
+      header @png Content-Type "image/png"
+      file_server browse
+    }
+
+    reverse_proxy http://127.0.0.1:8082
+    tls {
+        dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
+        resolvers 1.1.1.1
+    }
+  '';
+
   system.stateVersion = "24.05";
 }
