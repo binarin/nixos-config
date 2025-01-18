@@ -57,6 +57,16 @@ deploy target profile="system":
     deploy "$(pwd)#{{ target }}.{{ profile }}" -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
 
 [group('Deploy')]
+deploy-boot target profile="system":
+    deploy "$(pwd)#{{ target }}.{{ profile }}" --boot -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
+    ssh "root@{{ target }}" systemctl reboot
+
+[group('Deploy')]
+deploy-no-rollback target profile="system":
+    deploy "$(pwd)#{{ target }}.{{ profile }}" --auto-rollback false --magic-rollback -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
+
+
+[group('Deploy')]
 lxc target:
     nix build "$(pwd)#nixosConfigurations.{{ target }}.config.formats.proxmox-lxc" --keep-going -j {{ jobs }} {{ nixOpts }} -o "proxmox-lxc-{{ target }}.tar.xz"
 
