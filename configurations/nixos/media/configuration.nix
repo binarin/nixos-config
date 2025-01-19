@@ -483,6 +483,20 @@ in
           (svc "tube-archivist" "https://ta.binarin.info/" "/custom-icons/tube-archivist-logo-dark.png")
           (svc "Home Assistant" "https://hass.lynx-lizard.ts.net/" "home-assistant.svg")
           (svc "qbittorrent" "https://qbittorrent.binarin.info/" "qbittorrent.svg")
+          (svc "NextCloud" "https://nc.binarin.info/" "nextcloud.svg")
+        ];
+      }
+      {
+        "Servers" = [
+          (svc "Unifi" "https://unifi.binarin.info/" "unifi.svg")
+          (svc "Proxmox Raum" "https://raum.lynx-lizard.ts.net" "proxmox.svg")
+          (svc "Proxmox Bael" "https://bael.lynx-lizard.ts.net"  "proxmox.svg")
+          (svc "Proxmox Backup Server - bael" "https://bael.lynx-lizard.ts.net:8007/" "/custom-icons/pbs.png")
+          (svc "Proxmox Backup Server - hetzner" "https://pbs-hetzner.binarin.info:8007/" "/custom-icons/pbs.png")
+          (svc "tinypilot wired" "https://${config.inventory.ipAllocation.tinypilot.home.primary.address}/" "/custom-icons/tiny-pilot.png")
+          (svc "nanokvm - home" "http://${config.inventory.ipAllocation.nanokvm.home.primary.address}/" "/custom-icons/sipeed.png")
+          (svc "nanokvm - ts" "http://nanokvm.lynx-lizard.ts.net/" "/custom-icons/sipeed.png")
+          (svc "NextCloud AIO" "https://nextcloud.lynx-lizard.ts.net:8080/" "nextcloud.svg")
         ];
       }
     ];
@@ -490,68 +504,6 @@ in
       target = "_self";
     };
   };
-
-
-
-# - Servers:
-#     - Unifi:
-#         icon: unifi.svg
-#         href: https://unifi.binarin.info/
-#     - Proxmox Bael:
-#         icon: proxmox.svg
-#         href: https://bael.lynx-lizard.ts.net
-#     - Proxmox Barbatos:
-#         icon: proxmox.svg
-#         href: https://barbatos.lynx-lizard.ts.net
-#     - Proxmox Portainer:
-#         icon: portainer
-#         href: https://docker.lynx-lizard.ts.net
-#     - Fileserver cockpit:
-#         icon: cockpit
-#         href: https://fileserver.lynx-lizard.ts.net
-#     - Proxmox Backup Server - amon:
-#         icon: /icons/pbs.png
-#         href: https://pbs-amon.lynx-lizard.ts.net/
-#     - Proxmox Backup Server - hetzner:
-#         icon: /icons/pbs.png
-#         href: https://pbs-hetzner.binarin.info:8007/
-#     - Synology Raum:
-#         icon: synology-dsm.svg
-#         href: https://raum.ts.binarin.info/
-#     - OMV Amon:
-#         icon: openmediavault.svg
-#         href: https://amon.ts.binarin.info/
-#     - tinypilot wired:
-#         icon: /icons/tiny-pilot.png
-#         href: https://192.168.2.50/
-#     - "Pi-hole 1":
-#         icon: pi-hole.svg
-#         href: https://pihole-1.binarin.info/
-#     - "Pi-hole 2":
-#         icon: pi-hole.svg
-#         href: https://pihole-2.binarin.info/
-
-# - Raum:
-#     - nginx-proxy-manager:
-#         icon: nginx-proxy-manager.svg
-#         href: https://raum-nginx-proxy-manager.ts.binarin.info/
-#     - Portainer:
-#         icon: portainer.svg
-#         href: https://raum-portainer.ts.binarin.info/
-
-# - Amon:
-#     - nginx-proxy-manager:
-#         icon: nginx-proxy-manager.svg
-#         href: https://amon-nginx-proxy-manager.ts.binarin.info/
-#     - Portainer:
-#         icon: portainer
-#         href: https://amon-portainer.ts.binarin.info/
-
-#   };
-
-# ---
-# # For configuration options and examples, please see:
-# # https://gethomepage.dev/latest/configs/services
 
   services.caddy.virtualHosts."homepage.binarin.info".extraConfig = let
     customIconsDir = config.lib.self.base64Dir "dashboard-icons";
