@@ -366,14 +366,13 @@ in
 
   systemd.services.external_webcam =
     let
-      hosts = import ../nixops/personal-hosts.nix;
       lightsOn = pkgs.writeShellScript "elgatos-on" ''
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights || true
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights || true
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${config.inventory.ipAllocation.elgato-key-left.home.primary.address}:9123/elgato/lights || true
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":1,"brightness":47,"temperature":213}]}' http://${config.inventory.ipAllocation.elgato-key-right.home.primary.address}:9123/elgato/lights || true
       '';
       lightsOff = pkgs.writeShellScript "elgatos-off" ''
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-left.lan.ip}:9123/elgato/lights || true
-        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${hosts.elgato-key-right.lan.ip}:9123/elgato/lights || true
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${config.inventory.ipAllocation.elgato-key-left.home.primary.address}:9123/elgato/lights || true
+        ${pkgs.curl}/bin/curl -X PUT -H "Content-Type: application/json"  --json '{"numberOfLights":1,"lights":[{"on":0,"brightness":47,"temperature":213}]}' http://${config.inventory.ipAllocation.elgato-key-right.home.primary.address}:9123/elgato/lights || true
       '';
     in
     {
