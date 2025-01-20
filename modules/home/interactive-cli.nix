@@ -298,6 +298,10 @@ in {
       };
     };
 
+    programs.zellij = {
+      enable = true;
+    };
+
   };
 
 
