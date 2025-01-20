@@ -65,7 +65,7 @@ let
     feature:
     elem feature cfg.features
     || any (dep: elem dep cfg.features) enableFeatureWhen."${feature}"
-    || (feature ? defaultEnabled && defaultEnabled."${feature}");
+    || (hasAttr feature defaultEnabled && getAttr feature defaultEnabled);
 
   allFeatures = builtins.attrNames featureDeps;
 

@@ -101,6 +101,11 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf needOverlays {
+      assertions = [
+        { assertion = config.hostConfig.feature.bleeding;
+          message = "'bleeding' feature is expected to make emacs work";
+        }
+      ];
       nixpkgs.overlays = [
         flake.inputs.emacs-overlay.overlays.default
         (final: prev: {
