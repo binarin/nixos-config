@@ -302,6 +302,8 @@ in {
       enable = true;
     };
 
+    xdg.configFile."zellij/config.kdl".source = config.lib.self.file "zellij.kdl";
+    home.sessionVariables."ZELLIJ_CONFIG_FILE" = "${config.xdg.configHome}/zellij/config.kdl";
   };
 
 

@@ -20,6 +20,7 @@
           "swaync"
           "vscode"
           "fuzzel"
+          "zellij"
         ]
         (nm: {
           enable = true;
