@@ -23,7 +23,21 @@ let
     ${cleanup-unicode-from-emacs-org-babel-config} ${config.lib.self.file cfg.orgBabelConfig} > $out
   '';
 
+  kdl-ts-mode = {trivialBuild}: trivialBuild {
+    pname = "kdl-ts-mode";
+    version = "main-2024-01-06";
+    src = pkgs.fetchFromGitHub {
+      owner = "dataphract";
+        repo = "kdl-ts-mode";
+        rev = "3dbf116cd19261d8d70f456ae3385e1d20208452";
+        hash = "sha256-4bfKUzzLhBFg4TeGQD0dClumcO4caIBU8/uRncFVVFQ=";
+    };
+  };
+
   finalEmacsPackage = (pkgs.emacsWithPackagesFromUsePackage {
+    override = epkgs: epkgs // {
+      kdl-ts-mode = kdl-ts-mode {inherit (epkgs) trivialBuild; };
+    };
     extraEmacsPackages = epkgs: with epkgs; [
       treesit-grammars.with-all-grammars
       lsp-bridge
@@ -90,6 +104,7 @@ in
       nixpkgs.overlays = [
         flake.inputs.emacs-overlay.overlays.default
         (final: prev: {
+          tree-sitter = prev.bleeding.tree-sitter;
           tangle-emacs-org-babel-config = pkgs.writeShellApplication {
             name = "tangle-emacs-org-babel-config";
             runtimeInputs = [
