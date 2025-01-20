@@ -16,7 +16,6 @@ in
     "wsl"
     "fast-rebuild"
     "nix-builder"
-    "bleeding"
     "impermanence"
   ];
 

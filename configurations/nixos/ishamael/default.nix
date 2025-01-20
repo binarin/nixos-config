@@ -9,7 +9,6 @@
   hostConfig.managedUsers = [ "binarin" ];
   hostConfig.features = [
     "hyprland"
-    "bleeding"
     "nix-builder"
     "impermanence"
   ];

@@ -38,6 +38,10 @@ let
     tailscale = [ ];
   };
 
+  defaultEnabled = {
+    bleeding = true;
+  };
+
   enableFeatureWhen =
     let
       # [ {name = "hyprland"; value = ["wayland" "gui"]}
@@ -59,7 +63,9 @@ let
     with builtins;
     with lib;
     feature:
-    elem feature cfg.features || any (dep: elem dep cfg.features) enableFeatureWhen."${feature}";
+    elem feature cfg.features
+    || any (dep: elem dep cfg.features) enableFeatureWhen."${feature}"
+    || (feature ? defaultEnabled && defaultEnabled."${feature}");
 
   allFeatures = builtins.attrNames featureDeps;
 

@@ -13,7 +13,6 @@
     "vfio"
     "hyprland"
     "lnxlink"
-    "bleeding"
     "nix-builder"
     "impermanence"
   ];
