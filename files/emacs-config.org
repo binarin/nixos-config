@@ -1572,12 +1572,14 @@
        :config
        (org-roam-db-autosync-mode 1))
 
-     (cl-defmethod org-roam-node-maybe-file-and-title ((node org-roam-node))
-       (if (> (org-roam-node-level node) 0)
-           (format "[%s] %s"
-                   (org-roam-node-file-title node)
-                   (org-roam-node-title node))
-         (org-roam-node-title node)))
+
+     (with-eval-after-load "org-roam"
+       (cl-defmethod org-roam-node-maybe-file-and-title ((node org-roam-node))
+         (if (> (org-roam-node-level node) 0)
+             (format "[%s] %s"
+                     (org-roam-node-file-title node)
+                     (org-roam-node-title node))
+           (org-roam-node-title node))))
 
      (general-setq org-roam-node-display-template
                    (concat "${maybe-file-and-title:*}"
