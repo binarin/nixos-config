@@ -13,6 +13,5 @@
         openscad-unstable
         prusa-slicer
       ];
-      # ++ lib.optional (!config.hostConfig.feature.fast-rebuild) pkgs.bleeding.prusa-slicer;
   };
 }
