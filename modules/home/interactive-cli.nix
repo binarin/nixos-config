@@ -21,6 +21,7 @@ in {
       docker-credential-helpers
       doggo
       duf
+      bleeding.forgejo-cli
       gcc
       git-annex
       gnumake

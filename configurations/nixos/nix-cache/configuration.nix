@@ -126,6 +126,7 @@ in
           bash
           coreutils
           curl
+          forgejo-cli
           gawk
           gitMinimal
           gnused

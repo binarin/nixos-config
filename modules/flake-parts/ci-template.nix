@@ -114,6 +114,14 @@ let
             name = "Push to flake-bump branch";
             run = ''git push --force origin master:flake-bump'';
           }
+          {
+            name = "API auth";
+            run = ''fj -H forgejo.lynx-lizard.ts.net auth add-key binarin "$PR_TOKEN"'';
+          }
+          {
+            name = "Maybe create PR";
+            run = ''fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config --base master --head flake-bump --body "Bump flake inputs" "Bump everything"'';
+          }
         ];
       };
     };

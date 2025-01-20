@@ -63,7 +63,7 @@ deploy-boot target profile="system":
 
 [group('Deploy')]
 deploy-no-rollback target profile="system":
-    deploy "$(pwd)#{{ target }}.{{ profile }}" --auto-rollback false --magic-rollback -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
+    deploy "$(pwd)#{{ target }}.{{ profile }}" --auto-rollback false --magic-rollback false -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
 
 
 [group('Deploy')]
