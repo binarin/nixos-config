@@ -116,11 +116,11 @@ let
           }
           {
             name = "API auth";
-            run = ''fj -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper "''${{ secrets.PR_TOKEN }}"'';
+            run = ''echo "''${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper'';
           }
           {
             name = "Maybe create PR";
-            run = ''fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config --base master --head flake-bump --body "Bump flake inputs" "Bump everything"'';
+            run = ''fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config --base master --head flake-bump --body "Bump flake inputs" "Bump everything" || true'';
           }
         ];
       };
