@@ -14,71 +14,11 @@ jobs:
       run: git config user.email "flake-updater@binarin.info"
     - name: Commit updates
       run: git commit --allow-empty -am "Bump inputs"
-    - name: Build nixosConfiguration.forgejo
-      run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/forgejo\"\n"
-    - name: Build nixosConfiguration.furfur
-      run: "nix build \"$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/furfur\"\n"
-    - name: Build nixosConfiguration.ishamael
-      run: "nix build \"$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/ishamael\"\n"
-    - name: Build nixosConfiguration.mail
-      run: "nix build \"$(pwd)#nixosConfigurations.mail.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/mail\"\n"
-    - name: Build nixosConfiguration.media
-      run: "nix build \"$(pwd)#nixosConfigurations.media.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/media\"\n"
-    - name: Build nixosConfiguration.monitor
-      run: "nix build \"$(pwd)#nixosConfigurations.monitor.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/monitor\"\n"
-    - name: Build nixosConfiguration.nix-cache
-      run: "nix build \"$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/nix-cache\"\n"
-    - name: Build nixosConfiguration.valak
-      run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/valak\"\n"
-    - name: Build nixosConfiguration.valak-fast
-      run: "nix build \"$(pwd)#nixosConfigurations.valak-fast.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/valak-fast\"\n"
-    - name: Run flake check
-      run: nix flake check
-    - name: Clean-up old GC roots
-      run: 'rm -rf "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
-
-        '
-    - name: Add nix-store GC root for nixosConfiguraion.forgejo
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/forgejo\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/forgejo\")\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.furfur
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/furfur\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/furfur\")\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.ishamael
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/ishamael\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/ishamael\")\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.mail
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/mail\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/mail\")\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.media
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/media\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/media\")\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.monitor
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/monitor\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/monitor\")\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.nix-cache
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/nix-cache\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/nix-cache\")\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.valak
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/valak\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/valak\")\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.valak-fast
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/valak-fast\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/valak-fast\")\"\n"
     - name: Push to flake-bump branch
       run: git push --force origin master:flake-bump
     - name: API auth
-      run: echo "${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net auth
-        add-key nixos-config-bumper
+      run: set -x; echo "${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net
+        auth add-key nixos-config-bumper
     - name: Maybe create PR
       run: fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config --base
         master --head flake-bump --body "Bump flake inputs" "Bump everything" || true

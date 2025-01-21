@@ -84,39 +84,40 @@ let
             name = "Commit updates";
             run = ''git commit --allow-empty -am "Bump inputs"'';
           }
-        ] ++ (lib.forEach configurationsToBuild (cfg: {
-          name = "Build nixosConfiguration.${cfg}";
-          run = ''
-              nix build "$(pwd)#nixosConfigurations.${cfg}.config.system.build.toplevel" \
-                --keep-going \
-                -j auto \
-                -o "temp-result/${cfg}"
-          '';
-        })) ++ [
-          {
-            name = "Run flake check";
-            run = "nix flake check";
-          }
-          {
-            name = "Clean-up old GC roots";
-            run = ''
-              rm -rf "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
-            '';
-          }
-        ] ++ (lib.forEach configurationsToBuild (cfg: {
-          name = "Add nix-store GC root for nixosConfiguraion.${cfg}";
-          run = ''
-            nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/${cfg}" \
-              -r "$(readlink -f "temp-result/${cfg}")"
-          '';
-        })) ++ [
+        ] ++ # (lib.forEach configurationsToBuild (cfg: {
+        #   name = "Build nixosConfiguration.${cfg}";
+        #   run = ''
+        #       nix build "$(pwd)#nixosConfigurations.${cfg}.config.system.build.toplevel" \
+        #         --keep-going \
+        #         -j auto \
+        #         -o "temp-result/${cfg}"
+        #   '';
+        # })) ++ [
+        #   {
+        #     name = "Run flake check";
+        #     run = "nix flake check";
+        #   }
+        #   {
+        #     name = "Clean-up old GC roots";
+        #     run = ''
+        #       rm -rf "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
+        #     '';
+        #   }
+        # ] ++ (lib.forEach configurationsToBuild (cfg: {
+        #   name = "Add nix-store GC root for nixosConfiguraion.${cfg}";
+        #   run = ''
+        #     nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/${cfg}" \
+        #       -r "$(readlink -f "temp-result/${cfg}")"
+        #   '';
+        # })) ++
+        [
           {
             name = "Push to flake-bump branch";
             run = ''git push --force origin master:flake-bump'';
           }
           {
             name = "API auth";
-            run = ''echo "''${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper'';
+            run = ''set -x; echo "''${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper'';
           }
           {
             name = "Maybe create PR";
