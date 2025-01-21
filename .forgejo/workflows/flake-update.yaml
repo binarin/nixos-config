@@ -17,7 +17,8 @@ jobs:
     - name: Push to flake-bump branch
       run: git push --force origin master:flake-bump
     - name: API auth
-      run: set -x; echo "${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net
+      run: set -x; fj -H forgejo.lynx-lizard.ts.net auth logout forgejo.lynx-lizard.ts.net
+        || true; echo "${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net
         auth add-key nixos-config-bumper
     - name: Maybe create PR
       run: fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config --base

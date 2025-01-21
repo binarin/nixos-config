@@ -117,7 +117,7 @@ let
           }
           {
             name = "API auth";
-            run = ''set -x; echo "''${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper'';
+            run = ''set -x; fj -H forgejo.lynx-lizard.ts.net auth logout forgejo.lynx-lizard.ts.net || true; echo "''${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper'';
           }
           {
             name = "Maybe create PR";
