@@ -1651,6 +1651,16 @@
        (add-hook 'org-mode-hook 'org-download-enable))
    #+end_src
 * Test space
+** [[https://shaunlebron.github.io/parinfer/][Parinfer - simpler Lisp editing]]
+ :PROPERTIES:
+  :ID: 5fa409fd-6165-458d-88dc-0e6fbb408da9
+  :END:
+  [2025-01-21 Tue 06:36]
+** [[https://github.com/joaotavora/breadcrumb][joaotavora/breadcrumb: Emacs headerline indication of where you are in a large project]]
+ :PROPERTIES:
+  :ID: 651872cc-df10-497c-bef2-803905a961b4
+  :END:
+  [2025-01-20 Mon 09:30]
 ** [[https://github.com/zbelial/treesitter-context.el][GitHub - zbelial/treesitter-context.el: A package built on top of Emacs built-in treesit to show code context, dim surrouding text, and fold code.]]
  :PROPERTIES:
   :ID: ffe770c7-bba0-49ff-b0c7-b39d3f0169b0
