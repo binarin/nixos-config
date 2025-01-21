@@ -116,7 +116,7 @@ let
           }
           {
             name = "API auth";
-            run = ''fj -H forgejo.lynx-lizard.ts.net auth add-key binarin "$PR_TOKEN"'';
+            run = ''fj -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper "''${{ secrets.PR_TOKEN }}"'';
           }
           {
             name = "Maybe create PR";
