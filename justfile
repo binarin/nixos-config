@@ -40,11 +40,11 @@ boot:
     sudo time nixos-rebuild boot --flake "$(pwd)#$(hostname -s)" --keep-going -j {{ jobs }} {{ nixOpts }}
 
 [group('Main')]
-build-hm host=`hostname -s` user=x"$USER":
+build-hm host=`hostname -s` user="$USER":
     nix build "$(pwd)#nixosConfigurations.{{ host }}.config.home-manager.users.{{ user }}.home.activationPackage" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'home-configuration' / host / user }}"
 
 [group('Main')]
-hm host=`hostname -s` user=x"$USER":
+hm host=`hostname -s` user="$USER":
     nix run --keep-going -j {{ jobs }} {{ nixOpts }} "$(pwd)#nixosConfigurations.{{ host }}.config.home-manager.users.{{ user }}.home.activationPackage"
 
 [group('Main')]
@@ -98,3 +98,10 @@ ansible-inventory:
 [working-directory: 'ansible']
 ping-all:
     ansible --one-line all -m ping -u root
+
+[group('CI')]
+render-ci-workflows:
+    nix run '.#ci-template-generator'
+
+[group('dev')]
+render-templates: ansible-inventory render-ci-workflows
