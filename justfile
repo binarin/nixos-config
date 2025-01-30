@@ -90,6 +90,17 @@ deploy-all: all
       just nixOpts="" deploy "$cf" || echo "Failed"
     done
 
+[group('Main')]
+deploy-boot-all: all
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mapfile -t all < <(nix eval "$(pwd)#deploy.nodes" --apply builtins.attrNames --json | jq -r ".[]")
+    for cf in "${all[@]}"; do
+      echo "Deploying $cf"
+      just nixOpts="" deploy-boot "$cf" || echo "Failed"
+    done
+
+
 [group('Ansible')]
 ansible-inventory:
     nix build --impure --expr 'let pkgs = import <nixpkgs> {}; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (import ./inventory/public-keys.nix)' -o ansible/ssh-public-keys.yaml
