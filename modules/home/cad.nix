@@ -11,7 +11,7 @@
       [
         freecad
         openscad-unstable
-        prusa-slicer
+        bleeding.prusa-slicer
       ];
   };
 }
