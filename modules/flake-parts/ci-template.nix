@@ -42,6 +42,7 @@ let
   master-yaml-data = {
     on = {
       push = { branches = [ "master" ]; };
+      pull_request = { types = ["opened" "synchronize" "reopened"]; };
     };
     jobs = {
       nixos-configuration = build-all-configurations-job;

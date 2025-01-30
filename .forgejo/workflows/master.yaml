@@ -30,6 +30,11 @@ jobs:
         - valak
         - valak-fast
 'on':
+  pull_request:
+    types:
+    - opened
+    - synchronize
+    - reopened
   push:
     branches:
     - master
