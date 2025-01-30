@@ -31,7 +31,7 @@ let
     imhex
     libnotify
     mplayer
-    onedrive
+    insync
     protonvpn-cli
     skypeforlinux
     steam-run
