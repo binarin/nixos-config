@@ -23,6 +23,7 @@ in
         hyprlock = prev.hyprlock.override {
           stdenv = prev.gcc14Stdenv;
         };
+        hyprpicker = final.bleeding.hyprpicker;
         xdg-desktop-portal-hyprland = prev.xdg-desktop-portal-hyprland.override {
           stdenv = prev.gcc14Stdenv;
         };
