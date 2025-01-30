@@ -216,7 +216,7 @@ in
         })."${config.inventoryHostName}";
 
         master = {
-          always_center_master = true;
+          slave_count_for_center_master = 0;
           new_status = "inherited";
           orientation = "master";
         };
