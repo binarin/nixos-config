@@ -88,6 +88,7 @@ in {
       enableZshIntegration = true;
       enableBashIntegration = true;
       settings = {
+      	daemon.enabled = true;
         search_mode = "fuzzy";
       };
     };

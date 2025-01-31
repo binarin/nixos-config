@@ -19,10 +19,6 @@ in
   options = { };
 
   config = {
-    security.pam.services.login.rules.session.env.args = [ "debug" ];
-    security.pam.services.login.rules.session.systemd.args = [ "debug" ];
-    security.pam.services.login.rules.session.kwallet.args = [ "debug" ];
-
     system.stateVersion = lib.mkDefault "24.05";
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
@@ -39,6 +35,5 @@ in
     users.users = lib.genAttrs (["root"] ++ config.hostConfig.managedUsers) (user: {
       openssh.authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser user;
     });
-
   };
 }

@@ -213,6 +213,9 @@ in
             # "HDMI-A-2, Modeline 950.50 5120 5536 6104 7088 2160 2161 2164 2235 -hsync +vsync, 0x0, 2.0"
             ", preferred, auto, auto"
           ];
+          demandred = [
+            ", preferred, auto, auto"
+          ];
         })."${config.inventoryHostName}";
 
         master = {

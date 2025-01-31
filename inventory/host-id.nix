@@ -8,4 +8,5 @@
   nix-cache = "57f08d9c";
   ishamael = "d545b657";
   mail = "d8d300dc";
+  demandred = "e312c428";
 }
