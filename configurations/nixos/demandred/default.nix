@@ -13,6 +13,8 @@
     "hyprland"
     "interactive-cli"
     "impermanence"
+    "airgapped"
+    "nix-builder"
   ];
 
 }

@@ -84,14 +84,17 @@ in
 
         exec-once = [
           "${osConfig.security.pam.services.login.kwallet.package}/libexec/pam_kwallet_init"
-          "sleep 1; uwsm app -t service -u hyprland-exec-once-protonmail-bridge.service -- protonmail-bridge -n" # give pam_kwallet_init some time to fully initialize
           "uwsm app -t service -u hyprland-exec-once-hyrpland-per-window-layout.service -- hyprland-per-window-layout"
           "uwsm app -t service -u hyprland-exec-once-my-shellevents.service -- ${my-shellevents}"
           "[workspace 1 silent] uwsm app -t scope -u hyprland-exec-once-foot.scope -- foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
           "[workspace 2 silent] uwsm app -t scope -u hyprland-exec-once-emacs.scope -- emacs"
           "[workspace 4 silent] uwsm app -t scope -u hyprland-exec-once-firefox.scope -- firefox"
-          "[workspace 5 silent] sleep 5; exec uwsm app -t scope -u hyprland-exec-once-thunderbird.scope -- thunderbird" # give protonmail-bridge time to startup
+        ]
+        ++ (lib.optionals (!config.hostConfig.feature.airgapped) [
+          "[workspace 5 silent] sleep 2; exec uwsm app -t scope -u hyprland-exec-once-thunderbird.scope -- thunderbird"
           "[workspace 5 silent; group new] sleep 1; uwsm app -t scope -u hyprland-exec-once-telegram-desktop.scope -- telegram-desktop"
+        ])
+        ++ [
           ''sleep 3; hyprctl --batch "dispatch workspace 1; dispatch layoutmsg orientationcenter; dispatch workspace 2; dispatch layoutmsg orientationcenter; dispatch workspace 3; dispatch layoutmsg orientationcenter; dispatch workspace 4; dispatch layoutmsg orientationcenter; dispatch workspace 5; dispatch layoutmsg orientationcenter; dispatch workspace 1"''
         ];
 

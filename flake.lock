@@ -516,6 +516,26 @@
         "type": "github"
       }
     },
+    "home-manager-master": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1738275749,
+        "narHash": "sha256-PM+cGduJ05EZ+YXulqAwUFjvfKpPmW080mcuN6R1POw=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "a8159195bfaef3c64df75d3b1e6a68d49d392be9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
     "hyprcursor": {
       "inputs": {
         "hyprlang": [
@@ -853,6 +873,21 @@
         "type": "github"
       }
     },
+    "impermanence": {
+      "locked": {
+        "lastModified": 1737831083,
+        "narHash": "sha256-LJggUHbpyeDvNagTUrdhe/pRVp4pnS6wVKALS782gRI=",
+        "owner": "nix-community",
+        "repo": "impermanence",
+        "rev": "4b3e914cdf97a5b536a889e939fb2fd2b043a170",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "impermanence",
+        "type": "github"
+      }
+    },
     "nix-index-database": {
       "inputs": {
         "nixpkgs": [
@@ -993,8 +1028,10 @@
         "emacs-overlay": "emacs-overlay",
         "flake-parts": "flake-parts_2",
         "home-manager": "home-manager",
+        "home-manager-master": "home-manager-master",
         "hyprland": "hyprland",
         "hyprland-contrib": "hyprland-contrib",
+        "impermanence": "impermanence",
         "nix-index-database": "nix-index-database",
         "nixos-generators": "nixos-generators",
         "nixos-wsl": "nixos-wsl",

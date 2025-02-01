@@ -3,11 +3,20 @@
   pkgs,
   config,
   system,
+  modulesPath,
+  flake,
   ...
 }:
 let
   fzf_show_file_or_dir_preview="if [ -d {} ]; then lsd --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi";
 in {
+
+  # XXX 2025-01-31 daemon mode for atuin, maybe remove soon
+  imports = [
+    "${flake.inputs.home-manager-master}/modules/programs/atuin.nix"
+  ];
+  disabledModules = [ "${flake.inputs.home-manager}/modules/programs/atuin.nix" ];
+
   config = lib.mkIf config.hostConfig.feature.interactive-cli {
     home.packages = with pkgs; [
       age
@@ -41,6 +50,7 @@ in {
       sops
       sshfs
       trezor-agent
+      gparted
     ];
 
     programs.dircolors = {
@@ -75,7 +85,9 @@ in {
     programs.direnv.enableZshIntegration = true;
 
     programs.bash.enable = true;
+
     programs.zoxide.enable = true;
+
     programs.bat.enable = true;
     programs.broot = {
       enable = true;
@@ -85,12 +97,13 @@ in {
     home.sessionVariables.ATUIN_NOBIND = "1";
     programs.atuin = {
       enable = true;
+      package = pkgs.bleeding.atuin; # at least 18.4.0 for proper socket handling on impermanence machines
       enableZshIntegration = true;
       enableBashIntegration = true;
       settings = {
-      	daemon.enabled = true;
         search_mode = "fuzzy";
       };
+      daemon.enable = true;
     };
     programs.zsh = {
       enable = true;
@@ -107,8 +120,8 @@ in {
       };
 
       dirHashes = {
-        docs = "$HOME/Documents";
-        dl = "$HOME/Downloads";
+        docs = config.xdg.userDirs.documents;
+        dl = config.xdg.userDirs.download;
       };
 
       initExtra = ''

@@ -8,30 +8,13 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
+  nix.usePersonalNixCache = false;
 
   boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "ahci" "usb_storage" "sd_mod" "sr_mod" "sdhci_pci" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
-
-  boot.initrd.postDeviceCommands = lib.mkAfter ''
-    zfs rollback -r rpool/local/root@blank
-  '';
-  
-  fileSystems."/" =
-    { device = "rpool/local/root";
-      fsType = "zfs";
-    };
-
-  fileSystems."/nix" =
-    { device = "rpool/local/nix";
-      fsType = "zfs";
-    };
-
-  fileSystems."/persist" =
-    { device = "rpool/safe/persist";
-      fsType = "zfs";
-    };
+  boot.initrd.systemd.enable = true;
 
   fileSystems."/boot" =
     { device = "/dev/disk/by-uuid/EE30-EA3C";
@@ -48,7 +31,7 @@
   };
 
   swapDevices = [ { device = "/dev/mapper/luks-swap-1"; } ];
-  
+
   networking.networkmanager.enable = true;
   networking.useDHCP = lib.mkDefault true;
 
@@ -58,6 +41,6 @@
   services.desktopManager.plasma6.enable = true;
   services.displayManager.sddm.enable = true;
 
-users.users.root.initialHashedPassword = "$7$CU..../....2tYl/rrPqgcDE/0wbfkSR/$BDDtkNKdAi/yfv3P7ETmpoCKBxfHdiRIM8B4K8nFuB3";
+  users.users.root.initialHashedPassword = "$7$CU..../....2tYl/rrPqgcDE/0wbfkSR/$BDDtkNKdAi/yfv3P7ETmpoCKBxfHdiRIM8B4K8nFuB3";
   users.users.binarin.initialHashedPassword = "$7$CU..../....2tYl/rrPqgcDE/0wbfkSR/$BDDtkNKdAi/yfv3P7ETmpoCKBxfHdiRIM8B4K8nFuB3";
 }

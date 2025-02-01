@@ -23,9 +23,9 @@ let
     ${cleanup-unicode-from-emacs-org-babel-config} ${config.lib.self.file cfg.orgBabelConfig} > $out
   '';
 
-  kdl-ts-mode = {trivialBuild}: trivialBuild {
+  kdl-ts-mode = {melpaBuild}: melpaBuild {
     pname = "kdl-ts-mode";
-    version = "main-2024-01-06";
+    version = "20240106.01";
     src = pkgs.fetchFromGitHub {
       owner = "dataphract";
         repo = "kdl-ts-mode";
@@ -36,7 +36,7 @@ let
 
   finalEmacsPackage = (pkgs.emacsWithPackagesFromUsePackage {
     override = epkgs: epkgs // {
-      kdl-ts-mode = kdl-ts-mode {inherit (epkgs) trivialBuild; };
+      kdl-ts-mode = kdl-ts-mode {inherit (epkgs) melpaBuild; };
     };
     extraEmacsPackages = epkgs: with epkgs; [
       treesit-grammars.with-all-grammars

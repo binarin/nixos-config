@@ -14,7 +14,7 @@
     "hyprland"
     "lnxlink"
     "nix-builder"
-    "impermanence"
+    "move-xdg"
   ];
 
 }

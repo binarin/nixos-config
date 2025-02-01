@@ -10,7 +10,7 @@
   hostConfig.features = [
     "hyprland"
     "nix-builder"
-    "impermanence"
+    "move-xdg"
   ];
 
 }

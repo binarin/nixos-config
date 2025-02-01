@@ -16,7 +16,7 @@ in
     "wsl"
     "fast-rebuild"
     "nix-builder"
-    "impermanence"
+    "move-xdg"
   ];
 
   hostConfig.managedUsers = [ "binarin" ];

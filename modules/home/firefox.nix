@@ -56,7 +56,7 @@
           "privacy.clearOnShutdown_v2.historyFormDataAndDownloads" = false;
           "privacy.sanitize.sanitizeOnShutdown" = false;
           "sidebar.revamp" = true;
-          "sidebar.verticalTabs" = false;
+          "sidebar.verticalTabs" = config.hostConfig.feature.airgapped; # no sideberry extension on airgapped machines
           "svg.context-properties.content.enabled" = true;
           "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
           "toolkit.tabbox.switchByScrolling" = false;

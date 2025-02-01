@@ -34,8 +34,11 @@ let
     nix-builder = [ ];
     interactive-cli = [ ];
     wsl = [ ];
+    move-xdg = [ ];
     impermanence = [ ];
     tailscale = [ ];
+    airgapped = [ ];
+    secure-boot = [ ];
   };
 
   defaultEnabled = {
