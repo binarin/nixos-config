@@ -10,7 +10,6 @@
   config = {
     environment.systemPackages = with pkgs; [
       bat
-
       bind # for dig
       binutils
       bridge-utils
@@ -64,7 +63,11 @@
       wol
       zip
       zsh
-    ];
+      e2fsprogs
+      parted
+    ] ++ (lib.optionals config.hostConfig.feature.gui [
+      gparted
+    ]);
 
     services.locate = {
       enable = true;

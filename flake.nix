@@ -12,7 +12,15 @@
     home-manager-master.url = "github:nix-community/home-manager";
     home-manager-master.inputs.nixpkgs.follows = "nixpkgs";
 
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
     impermanence.url = "github:nix-community/impermanence";
+
+    lanzaboote.url = "github:nix-community/lanzaboote";
+    lanzaboote.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    lanzaboote.inputs.flake-parts.follows = "flake-parts";
+    # lanzaboote.inputs.pre-commit-hooks-nix.follows = "";
 
     emacs-overlay.url = "emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";

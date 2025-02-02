@@ -28,6 +28,7 @@ let
 
   allInputs = fl: lib.collect (x: x ? _type && x._type == "leaf") (flakeInputsRecursive fl);
 
+  # XXX handle empty .follows somehow
   flake-all-sources-keeper =
     pkgs:
     pkgs.writeShellScriptBin "flake-all-sources-keeper" ''

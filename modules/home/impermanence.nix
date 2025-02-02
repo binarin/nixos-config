@@ -1,7 +1,7 @@
 {flake, lib, pkgs, config, ...}:
 let
-  safeDir = "/persist/${config.home.homeDirectory}";
-  localCache = "/cache/${config.home.homeDirectory}/.cache";
+  safeDir = "/persist${config.home.homeDirectory}";
+  localCache = "/local${config.home.homeDirectory}/.cache";
   safeState = "${safeDir}/.state";
   garbageDir = "${config.home.homeDirectory}/.garbage";
 in {
