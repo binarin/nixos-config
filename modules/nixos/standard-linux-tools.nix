@@ -5,87 +5,37 @@
   lib,
   ...
 }:
-{
-  imports = [ flake.inputs.self.nixosModules.perl-packages ];
-  config = {
+let
+  defEnable = config.hostConfig.lib.defaults.enable;
+in {
+  config = lib.mkIf config.hostConfig.feature.interactive-cli {
+
+    programs.iftop.enable = defEnable;
+
+    programs.iotop.enable = defEnable;
+
+    programs.mosh.enable = defEnable;
+
+    programs.wireshark.enable = defEnable;
+    programs.wireshark.package = if config.hostConfig.feature.gui
+                                 then pkgs.wireshark-qt
+                                 else pkgs.tshark;
+
     environment.systemPackages = with pkgs; [
-      bat
-      bind # for dig
-      binutils
       bridge-utils
-      broot
       cryptsetup
-      curl
-      darcs
-      dpkg
-      elinks
-      file
-      fzf
-      gdb
-      git
-      gitAndTools.diff-so-fancy
-      gnum4
-      gnumake
-      htop
-      httpie
-      iftop
-      inetutils
       inotify-tools
-      iotop
-      ipcalc
       iptables
-      jq
-      lsof
-      man-pages
-      mc
-      mosh
-      nix-output-monitor
-      nmap
-      openssl
-      ov
-      p7zip
-      parallel
+      nftables
       pciutils
-      psmisc
-      pv
-      reptyr
-      ripgrep
-      rtorrent
-      socat
-      sysstat
-      tcpdump
-      unrar
-      unzip
       usbutils
-      wget
-      which
-      whois
-      wol
-      zip
-      zsh
-      e2fsprogs
-      parted
-    ] ++ (lib.optionals config.hostConfig.feature.gui [
-      gparted
-    ]);
+    ];
+
+    environment.enableAllTerminfo = true;
 
     services.locate = {
-      enable = true;
+      enable = defEnable;
       localuser = "root";
     };
-
-    security.sudo = {
-      enable = true;
-      wheelNeedsPassword = false;
-    };
-
-    security.pam.loginLimits = [
-      {
-        domain = "*";
-        type = "-";
-        item = "nofile";
-        value = "131072";
-      }
-    ];
   };
 }

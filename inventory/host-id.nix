@@ -9,4 +9,5 @@
   ishamael = "d545b657";
   mail = "d8d300dc";
   demandred = "e312c428";
+  iso = "aaaaaaaa";
 }

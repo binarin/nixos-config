@@ -15,7 +15,6 @@
     "impermanence"
     "airgapped"
     "nix-builder"
-    # "secure-boot"
   ];
 
 }

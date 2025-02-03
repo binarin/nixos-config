@@ -1,41 +1,10 @@
-{
-  flake,
-  pkgs,
-  lib,
-  config,
-  ...
-}:
+{ flake, lib, ... }:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
-  cfg = config.hostConfig;
-in
-{
+in {
   imports = [
     self.sharedModules.default
     inputs.arion.nixosModules.arion
-  ] ++ lib.attrValues (lib.removeAttrs self.nixosModules [ "default" ]);
-
-  options = { };
-
-  config = {
-    security.polkit.enable = true;
-
-    system.stateVersion = lib.mkDefault "24.05";
-    nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-
-    system.switch.enableNg = lib.mkDefault true;
-    system.switch.enable = lib.mkDefault false;
-
-    services.dbus.implementation = "broker";
-
-    services.openssh.settings.TrustedUserCaKeys = "/etc/ssh/trusted_user_ca_keys";
-    services.openssh.authorizedKeysInHomedir = false;
-
-    environment.etc."ssh/trusted_user_ca_keys".text = lib.concatStringsSep "\n" ( config.lib.publicKeys.secureWithTag "user-ca");
-
-    users.users = lib.genAttrs (["root"] ++ config.hostConfig.managedUsers) (user: {
-      openssh.authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser user;
-    });
-  };
+  ] ++ (with builtins; map (fn: ./${fn}) (filter (fn: fn != "default.nix") (attrNames (readDir ./.))));
 }

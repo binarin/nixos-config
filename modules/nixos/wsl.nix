@@ -8,7 +8,6 @@
 {
   imports = [
     flake.inputs.nixos-wsl.nixosModules.default
-    flake.inputs.self.nixosModules.vscode-remote-workaround
   ];
   config = lib.mkIf config.hostConfig.feature.wsl {
     wsl.defaultUser = lib.mkDefault (lib.elemAt (config.hostConfig.managedUsers) 0);

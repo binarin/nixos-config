@@ -5,7 +5,7 @@
   ...
 }:
 {
-  config = lib.mkIf (config.hostConfig.feature.gui) {
+  config = lib.mkIf (config.hostConfig.feature.workstation) {
     hardware.spacenavd.enable = true;
   };
 }

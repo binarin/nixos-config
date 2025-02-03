@@ -15,6 +15,14 @@ in
   ];
 
   inventoryHostName = "nix-cache";
+
   hostConfig.deployHostName = config.hostConfig.ipAllocation.home.primary.address;
-  hostConfig.features = [ "lxc" "nix-builder" ];
+
+  hostConfig.features = [
+    "lxc"
+    "nix-builder"
+    "interactive-cli"
+  ];
+
+  system.stateVersion = "24.11";
 }

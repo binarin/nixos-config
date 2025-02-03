@@ -11,7 +11,7 @@
       /execarg_default:org.codeberg.dnkl.foot.desktop:--
     '';
 
-    programs.foot = lib.mkIf (config.hostConfig.feature.wayland) {
+    programs.foot = {
       enable = true;
       settings = {
         main = {

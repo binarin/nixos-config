@@ -54,7 +54,7 @@ let
   inherit (config.hostConfig) feature;
 in
 {
-  config = lib.mkIf feature.gui {
+  config = lib.mkIf feature.workstation {
     xdg.mimeApps = {
       enable = true;
       defaultApplications = {

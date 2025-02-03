@@ -1,11 +1,4 @@
-{
-  flake,
-  pkgs,
-  lib,
-  config,
-  specialArgs,
-  ...
-}:
+{flake, pkgs, lib, config, specialArgs, ...}:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -22,15 +15,17 @@ in
     # So for small changes I can run only home-manager activation script, to reduce iteration time
     home-manager.useUserPackages = lib.mkForce false;
 
-    home-manager.users = lib.genAttrs cfg.managedUsers (user: {
+    home-manager.users = lib.genAttrs cfg.managedUsers (user: let
+      hmConfigurationFile = self + "/configurations/home/" + user + ".nix";
+    in {
       imports = [
         self.homeModules.default
-        (self + "/configurations/home/" + user + ".nix")
-      ];
+      ] ++ (lib.optional (builtins.pathExists hmConfigurationFile) hmConfigurationFile);
       config = {
         inherit (config) hostConfig inventoryHostName;
         home.homeDirectory = config.users.users."${user}".home;
         home.username = user;
+        home.stateVersion = config.system.stateVersion;
       };
     });
   };

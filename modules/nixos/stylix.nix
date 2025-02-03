@@ -24,13 +24,9 @@ in
       stylix.homeManagerIntegration.autoImport = false;
     }
     (lib.mkIf config.hostConfig.feature.gui {
-      environment.systemPackages = with pkgs; [
-        fontpreview
-        inter
-      ];
-      stylix.targets.lightdm.enable = true;
+      # XXX stylix.targets.lightdm.enable = true;
       stylix.targets.gtk.enable = true;
-      stylix.targets.chromium.enable = true;
+      # XXX stylix.targets.chromium.enable = true;
     })
   ];
 }

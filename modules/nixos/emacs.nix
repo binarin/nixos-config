@@ -10,13 +10,12 @@ let
   inherit (inputs) self;
 in
 {
-  imports = [ self.sharedModules.emacs ];
-
-  environment.systemPackages = [
-    config.programs.emacs.finalEmacsPackage
-    pkgs.tangle-emacs-org-babel-config
-  ];
-
-  # home-manager.users = lib.genAttrs config.hostConfig.managedUsers (user: {
-  # });
+  config = lib.mkIf config.hostConfig.feature.emacs {
+    nixpkgs.overlays = [
+      flake.inputs.emacs-overlay.overlays.default
+      (final: prev: {
+        tree-sitter = final.bleeding.tree-sitter;
+      })
+    ];
+  };
 }

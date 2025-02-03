@@ -2,6 +2,7 @@
   flake,
   pkgs,
   config,
+  lib,
   ...
 }:
 let
@@ -9,38 +10,42 @@ let
   inherit (inputs) self;
 in
 {
-  home.shellAliases = {
-    g = "git";
-    # lg = "lazygit";
-  };
+  config = lib.mkIf config.hostConfig.feature.interactive-cli {
+    home.shellAliases = {
+      g = "git";
+    };
 
-  programs.git = {
-    enable = true;
-    package = pkgs.gitAndTools.gitFull;
-    userName = "Alexey Lebedeff";
-    userEmail = "binarin@binarin.info";
-    delta.enable = true;
-    extraConfig = {
-      core = {
-        autocrlf = false;
-      };
-      url = {
-        "git@github.com:binarin/" = {
-          insteadOf = "gh:";
-          pushInsteadOf = "gh:";
+    programs.git = {
+      enable = true;
+      package = pkgs.gitAndTools.gitFull;
+      delta.enable = true;
+      extraConfig = {
+        core = {
+          autocrlf = false;
         };
-      };
-      commit = {
-        template = "${config.lib.self.file "git-commit-template.txt"}";
-      };
-      "delta \"decorations\"" = {
-        commit-decoration-style = "bold yellow box ul";
-        file-style = "bold yellow ul";
-        file-decoration-style = "none";
-      };
-      init = {
-        defaultBranch = "master";
+        url = {
+          "git@github.com:binarin/" = {
+            insteadOf = "gh:";
+            pushInsteadOf = "gh:";
+          };
+          "git@forgejo.lynx-lizard.ts.net:binarin/" = {
+            insteadOf = "fj:";
+            pushInsteadOf = "fj:";
+          };
+        };
+        commit = {
+          template = "${config.lib.self.file "git-commit-template.txt"}";
+        };
+        "delta \"decorations\"" = {
+          commit-decoration-style = "bold yellow box ul";
+          file-style = "bold yellow ul";
+          file-decoration-style = "none";
+        };
+        init = {
+          defaultBranch = "master";
+        };
       };
     };
   };
+
 }

@@ -1,10 +1,4 @@
-{
-  flake,
-  pkgs,
-  lib,
-  config,
-  ...
-}:
+{ flake, pkgs, lib, config, ... }:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -21,6 +15,7 @@ in
       '';
     };
     nix.settings.trusted-users = [ "root" ];
+
     nixpkgs.config = {
       allowUnfree = true;
       oraclejdk.accept_license = true;

@@ -21,7 +21,6 @@ in
     authKeyFile = config.sops.secrets.tailscale-auth.path;
   };
 
-
   networking.firewall.allowedTCPPorts = [ 80 ];
   systemd.tmpfiles.rules = [ "Z- /cache 0755 nginx nginx -" ];
   systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/cache" ];
@@ -143,6 +142,7 @@ in
   services.nix-serve = {
     enable = true;
     port = 5000;
+    openFirewall = true;
     secretKeyFile = "/var/lib/nix-cache/cache-priv-key.pem";
   };
 }

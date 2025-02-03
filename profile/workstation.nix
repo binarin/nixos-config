@@ -60,9 +60,6 @@ in
   time.timeZone = "Europe/Amsterdam";
 
   programs.nix-ld.enable = true;
-  programs.wireshark.enable = true;
-  programs.wireshark.package = pkgs.wireshark-qt;
-
   # programs.chromium.enable = true;
   # programs.chromium.extraOpts = {
   #   ExternalProtocolDialogShowAlwaysOpenCheckbox = true;

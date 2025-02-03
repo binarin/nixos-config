@@ -51,6 +51,10 @@ hm host=`hostname -s` user="$USER":
 build-nixos configuration=`hostname -s`:
     nix build "$(pwd)#nixosConfigurations.{{ configuration }}.config.system.build.toplevel" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'nixos-configuration' / configuration }}"
 
+[group('Deploy')]
+iso:
+    nix build "$(pwd)#nixosConfigurations.iso.config.system.build.isoImage" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'nixos-configuration' / 'iso' }}"
+
 
 [group('Deploy')]
 deploy target profile="system":

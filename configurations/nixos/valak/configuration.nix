@@ -19,6 +19,8 @@ in
   imports = [ "${self}/profile/workstation.nix" ];
 
   config = {
+    console.useLargeFonts = true;
+
     # Use the systemd-boot EFI boot loader.
     boot.loader.systemd-boot.enable = true;
     boot.loader.efi.canTouchEfiVariables = true;

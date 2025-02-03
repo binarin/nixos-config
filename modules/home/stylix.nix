@@ -6,7 +6,9 @@
   ...
 }:
 {
-  imports = [ flake.inputs.stylix.homeManagerModules.stylix ];
+  imports = [
+    flake.inputs.stylix.homeManagerModules.stylix
+  ];
   config = {
     stylix.targets =
       lib.genAttrs

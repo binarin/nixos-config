@@ -26,7 +26,6 @@
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
       ref = "refs/tags/v0.47.1";

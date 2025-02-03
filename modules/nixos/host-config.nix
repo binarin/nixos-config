@@ -14,4 +14,6 @@ in
   networking.hostName = config.inventoryHostName;
   networking.hostId = config.hostConfig.hostId;
   nix.settings.trusted-users = cfg.managedUsers;
+
+  networking.hosts = config.inventory.networks.home.hosts;
 }

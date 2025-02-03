@@ -37,6 +37,16 @@ let
     else
       hostNameWithTags;
 
+  normalizeIpam = lib.mapAttrs (k: v: expandIpAllocationTarget v);
+
+  taggedHostnames = {domain, ...}: hostnameWithTags:
+    with lib;
+    let
+      hostname = head hostnameWithTags;
+      tags = tail hostnameWithTags;
+    in
+      map (tag: if tag == "primary" then "${hostname}.${domain}" else "${hostname}-${tag}.${domain}") tags;
+
   assignIp =
     ipAllocationTarget: ip:
     let
@@ -156,7 +166,7 @@ in
     # inventory.networks.<NETWORK>.gateway - "<GATEWAY-IP>"
     inventory.networks = lib.mapAttrs (
       netName:
-      { info, ... }:
+      { info, ipam ? null, ... }:
       lib.foldr lib.mergeAttrs { } [
         (lib.optionalAttrs (info ? "dns") {
           dns = lib.mkOption {
@@ -170,6 +180,16 @@ in
             description = "Gateway for network ${netName}";
             type = lib.types.nonEmptyStr;
             default = info.gateway;
+          };
+        })
+        (lib.optionalAttrs (ipam != null) {
+          hosts = with lib; mkOption {
+            description = "All hosts ready to be included in /etc/hosts";
+            type = types.attrsOf (types.listOf types.str);
+            default = pipe ipam [
+              normalizeIpam
+              (lib.mapAttrs (_: (taggedHostnames info)))
+            ];
           };
         })
       ]
