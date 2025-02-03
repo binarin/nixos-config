@@ -19,6 +19,8 @@ in
   options = { };
 
   config = {
+    security.polkit.enable = true;
+
     system.stateVersion = lib.mkDefault "24.05";
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
