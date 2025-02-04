@@ -22,7 +22,7 @@
               content = {
                 type = "luks";
                 name = "demandred-lvm";
-                # passwordFile = "/tmp/luks.pass";
+                passwordFile = "/tmp/luks.pass";
                 settings = {
                   allowDiscards = true;
                 };

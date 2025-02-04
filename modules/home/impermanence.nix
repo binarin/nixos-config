@@ -14,10 +14,10 @@ in {
     programs.atuin.settings.db_path = "${safeState}/atuin/history.db";
 
     home.sessionVariables = {
-      STARSHIP_CACHE = lib.mkIf config.programs.starship.enable "${garbageDir}/starship";
+#      STARSHIP_CACHE = lib.mkIf config.programs.starship.enable "${garbageDir}/starship";
       GPGHOME = "${safeState}/gnupg";
       IMPERMANENCE_LOCAL_CACHE = "${localCache}";
-      _ZO_DATA_DIR = lib.mkIf config.programs.zoxide.enable "${localCache}/zoxide";
+#      _ZO_DATA_DIR = lib.mkIf config.programs.zoxide.enable "${localCache}/zoxide";
     };
 
     programs.ssh.userKnownHostsFile = lib.mkForce "${safeState}/ssh/known_hosts";

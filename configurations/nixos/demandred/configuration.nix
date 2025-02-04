@@ -11,9 +11,6 @@
       ./disko-config.nix
     ];
 
-  nix.usePersonalNixCache = false;
-
-  # XXX can't hibernate with zfs
   boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "ahci" "usb_storage" "sd_mod" "sr_mod" "sdhci_pci" ];
   boot.initrd.kernelModules = [ "dm-snapshot" ];
   boot.kernelModules = [ "kvm-intel" ];
@@ -33,12 +30,9 @@
 
   hardware.cpu.intel.updateMicrocode = lib.mkDefault true;
 
-  services.tailscale.enable = true;
-  services.desktopManager.plasma6.enable = true;
-  services.displayManager.sddm.enable = true;
-
   users.users.root.initialHashedPassword = "$7$CU..../....2tYl/rrPqgcDE/0wbfkSR/$BDDtkNKdAi/yfv3P7ETmpoCKBxfHdiRIM8B4K8nFuB3";
   users.users.binarin.initialHashedPassword = "$7$CU..../....w.WruOOmFL2KKwVMMMysm1$OxbByS3HBVRsOdmYlqBtpivURr1QWVBVf87M1gXAEQC";
 
   console.useLargeFonts = true;
 }
+
