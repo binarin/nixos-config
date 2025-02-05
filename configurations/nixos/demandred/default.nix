@@ -19,6 +19,7 @@ in {
     "impermanence"
     "emacs"
     "workstation"
+    "tailscale"
     # "airgapped"
     "nix-builder"
   ];

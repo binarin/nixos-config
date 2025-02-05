@@ -59,12 +59,24 @@ in
     #   '';
     # };
 
+    programs.ssh.extraConfig = ''
+      UserKnownHostsFile /persist/%d/.ssh/known_hosts.d
+      IdentityFile /persist/%d/.ssh/keys.d/id_rsa
+      IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa
+      IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa_sk
+      IdentityFile /persist/%d/.ssh/keys.d/id_ed25519
+      IdentityFile /persist/%d/.ssh/keys.d/id_ed25519_sk
+    '';
+
     system.activationScripts = let
       userFragment = u: let
         home = config.users.users."${u}".home;
       in ''
         mkdir -p /persist/${home} /local/${home}
         chown ${u}:${u} /persist/${home} /local/${home}
+
+        mkdir -p /persist/${home}/.ssh/{know_hosts.d,keys.d}
+        chown ${u}:${u} /persist/${home}/.ssh/{know_hosts.d,keys.d}
       '';
       createPerUserDirs = with lib; concatStringsSep "\n" (map userFragment config.hostConfig.managedUsers);
     in {
