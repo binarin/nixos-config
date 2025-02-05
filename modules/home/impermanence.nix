@@ -20,7 +20,7 @@ in {
 #      _ZO_DATA_DIR = lib.mkIf config.programs.zoxide.enable "${localCache}/zoxide";
     };
 
-    programs.ssh.userKnownHostsFile = lib.mkForce "${safeState}/ssh/known_hosts";
+    programs.ssh.userKnownHostsFile = lib.mkForce "${safeDir}/.ssh/known_hosts.d/known_hosts";
     programs.zsh.dotDir = ".config/zsh";
     programs.zsh.history.path = "${localCache}/zsh";
 

@@ -59,8 +59,9 @@ in
     #   '';
     # };
 
+    sops.age.sshKeyPaths = [ "/persist/ssh/ssh_host_ed25519_key" ];
     programs.ssh.extraConfig = ''
-      UserKnownHostsFile /persist/%d/.ssh/known_hosts.d
+      # UserKnownHostsFile /persist/%d/.ssh/known_hosts.d
       IdentityFile /persist/%d/.ssh/keys.d/id_rsa
       IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa
       IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa_sk
@@ -75,8 +76,8 @@ in
         mkdir -p /persist/${home} /local/${home}
         chown ${u}:${u} /persist/${home} /local/${home}
 
-        mkdir -p /persist/${home}/.ssh/{know_hosts.d,keys.d}
-        chown ${u}:${u} /persist/${home}/.ssh/{know_hosts.d,keys.d}
+        mkdir -p /persist/${home}/.ssh/{known_hosts.d,keys.d}
+        chown ${u}:${u} /persist/${home}/.ssh/{known_hosts.d,keys.d}
       '';
       createPerUserDirs = with lib; concatStringsSep "\n" (map userFragment config.hostConfig.managedUsers);
     in {
@@ -85,6 +86,7 @@ in
         text = ''
           mkdir -p /local/etc/NetworkManager/system-connections/
           mkdir -p /local/var/lib/bluetooth/
+          mkdir -p /local/var/lib/tailscale/
 
           mkdir -p /persist/sbctl
           chmod 0700 /persist/sbctl
@@ -114,7 +116,8 @@ in
     };
 
     systemd.tmpfiles.rules = [
-      "L /var/lib/bluetooth - - - - /local/var/lib/bluetooth"
+      "L+ /var/lib/bluetooth - - - - /local/var/lib/bluetooth"
+      "L+ /var/lib/tailscale - - - - /local/var/lib/tailscale"
     ];
 
     environment.persistence."/persist" = {

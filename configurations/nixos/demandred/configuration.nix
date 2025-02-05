@@ -20,6 +20,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  services.tailscale.authKeyFile = lib.mkForce null;
   boot.initrd.luks.devices.demandred-lvm.crypttabExtraOpts = [ "fido2-device=auto" ];
 
   fileSystems."/persist".neededForBoot = true;
