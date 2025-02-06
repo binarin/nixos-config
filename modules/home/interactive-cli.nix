@@ -256,10 +256,12 @@ in {
         file
         gdb
         git-annex
+        git-crypt
         gnum4
         gnumake
         gnupg
         gopass
+        gron
         httpie
         inetutils
         ipcalc
@@ -295,6 +297,7 @@ in {
         which
         whois
         wol
+        yubikey-manager
         zip
       ];
     })
