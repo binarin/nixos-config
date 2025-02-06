@@ -17,6 +17,11 @@ let
     ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe pkgs.shellevents} ${config.lib.self.file "hyprland-shellevents.sh"}",nofork
   '';
   rgb = color: "rgb(${lib.removePrefix "#" (config.zenburn.colors."${color}")})";
+  hyprlandDefaultOrientation = {
+    demandred = "left";
+    valak = "center";
+    _default = "left";
+  };
 in
 {
   config = lib.mkIf config.hostConfig.feature.hyprland {
@@ -96,7 +101,7 @@ in
           "[workspace 5 silent; group new] sleep 1; uwsm app -t scope -u hyprland-exec-once-telegram-desktop.scope -- telegram-desktop"
         ])
         ++ [
-          ''sleep 3; hyprctl --batch "dispatch workspace 1; dispatch layoutmsg orientationcenter; dispatch workspace 2; dispatch layoutmsg orientationcenter; dispatch workspace 3; dispatch layoutmsg orientationcenter; dispatch workspace 4; dispatch layoutmsg orientationcenter; dispatch workspace 5; dispatch layoutmsg orientationcenter; dispatch workspace 1"''
+          ''sleep 3; hyprctl --batch "dispatch workspace 1"''
         ];
 
         # debug.disable_logs = false;
@@ -225,7 +230,9 @@ in
         master = {
           slave_count_for_center_master = 0;
           new_status = "inherited";
-          orientation = "master";
+          orientation = if hyprlandDefaultOrientation ? config.inventoryHostName
+                        then hyprlandDefaultOrientation."${config.inventoryHostName}"
+                        else hyprlandDefaultOrientation._default;
         };
 
         windowrulev2 = [
