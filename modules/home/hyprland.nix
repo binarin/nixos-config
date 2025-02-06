@@ -86,7 +86,8 @@ in
           "${osConfig.security.pam.services.login.kwallet.package}/libexec/pam_kwallet_init"
           "uwsm app -t service -u hyprland-exec-once-hyrpland-per-window-layout.service -- hyprland-per-window-layout"
           "uwsm app -t service -u hyprland-exec-once-my-shellevents.service -- ${my-shellevents}"
-          "[workspace 1 silent] uwsm app -t scope -u hyprland-exec-once-foot.scope -- foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
+          # "[workspace 1 silent] uwsm app -t scope -u hyprland-exec-once-foot.scope -- foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
+          "[workspace 1 silent] uwsm app -t scope -u hyprland-exec-once-wezterm.scope -- wezterm"
           "[workspace 2 silent] uwsm app -t scope -u hyprland-exec-once-emacs.scope -- emacs"
           "[workspace 4 silent] uwsm app -t scope -u hyprland-exec-once-firefox.scope -- firefox"
         ]
