@@ -44,13 +44,6 @@ in {
 
       programs.darcs.enable = defEnable;
 
-      programs.dircolors = {
-        enable = defEnable;
-        settings = {
-          DIR = "01;34;46";
-        };
-      };
-
       programs.direnv = {
         enable = defEnable;
         enableZshIntegration = defEnable;
@@ -215,6 +208,7 @@ in {
           precmd() {
               print -Pn "\e]133;A\e\\"
           }
+          export LS_COLORS="$(${lib.getExe pkgs.vivid} generate zenburn)"
         '';
 
         history = {
