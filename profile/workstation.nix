@@ -251,9 +251,6 @@ in
     };
   };
 
-  services.desktopManager.plasma6.enable = true;
-  services.displayManager.sddm.enable = true;
-
   location.latitude = 52.3702;
   location.longitude = 4.8952;
 
