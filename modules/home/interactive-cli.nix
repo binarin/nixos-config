@@ -357,7 +357,7 @@ in {
       ]))
     (lib.mkIf config.programs.starship.enable {
       home.sessionVariables = {
-        STARSHIP_CACHE = "${config.xdg.cacheHome}/starship";
+        STARSHIP_CACHE = lib.mkDefault "${config.xdg.cacheHome}/starship";
       };
     })
     (lib.mkIf config.programs.zellij.enable {
