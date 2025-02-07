@@ -35,7 +35,4 @@
   users.users.binarin.initialHashedPassword = "$7$CU..../....w.WruOOmFL2KKwVMMMysm1$OxbByS3HBVRsOdmYlqBtpivURr1QWVBVf87M1gXAEQC";
 
   console.useLargeFonts = true;
-
-  security.pam-u2f.services.sddm.enable = true;
 }
-
