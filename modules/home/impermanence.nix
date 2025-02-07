@@ -34,6 +34,14 @@ in {
           videos = "${safeDir}/Videos";
         };
 
+        home.persistence."${safeDir}" = {
+          enable = true;
+          directories = [
+            "org"
+          ];
+          allowOther = true;
+        };
+
         home.persistence."${localCache}" = {
           enable = true;
           directories = [
