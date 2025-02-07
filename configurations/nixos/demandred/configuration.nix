@@ -21,7 +21,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   services.tailscale.authKeyFile = lib.mkForce null;
-  boot.initrd.luks.devices.demandred-lvm.crypttabExtraOpts = [ "fido2-device=auto" ];
+  boot.initrd.luks.devices.demandred-lvm.crypttabExtraOpts = [ "fido2-device=auto" "token-timeout=10s" ];
 
   fileSystems."/persist".neededForBoot = true;
   fileSystems."/local".neededForBoot = true;
