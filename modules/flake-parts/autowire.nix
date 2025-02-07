@@ -62,6 +62,8 @@ in
       overlays = forAllNixFiles "${self}/overlays" (fn: import fn specialArgs);
 
       sharedModules = forAllNixFiles "${self}/modules/shared" (fn: fn);
+
+      helpers = forAllNixFiles "${self}/modules/helpers" (fn: import fn { inherit self lib; });
     };
   };
 }
