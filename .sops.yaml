@@ -27,11 +27,13 @@ creation_rules:
     key_groups:
       - age:
           - *admin_binarin
+          - *user_demandred_binarin
           - *server_valak
   - path_regex: secrets/demandred/secrets.yaml
     key_groups:
       - age:
           - *admin_binarin
+          - *user_demandred_binarin
           - *server_demandred
   - path_regex: secrets/demandred/user-binarin.yaml
     key_groups:
@@ -43,26 +45,31 @@ creation_rules:
     key_groups:
       - age:
           - *admin_binarin
+          - *user_demandred_binarin
           - *server_media
   - path_regex: secrets/monitor/secrets.yaml
     key_groups:
       - age:
           - *admin_binarin
+          - *user_demandred_binarin
           - *server_monitor
   - path_regex: secrets/forgejo/secrets.yaml
     key_groups:
       - age:
           - *admin_binarin
+          - *user_demandred_binarin
           - *server_forgejo
   - path_regex: secrets/nix-cache/secrets.yaml
     key_groups:
       - age:
           - *admin_binarin
+          - *user_demandred_binarin
           - *server_nix-cache
   - path_regex: secrets/mail/(secrets.yaml|dovecot-passwd)
     key_groups:
       - age:
           - *admin_binarin
+          - *user_demandred_binarin
           - *server_mail
   - path_regex: secrets/docker-on-nixos/secrets.yaml
     key_groups:
@@ -74,4 +81,6 @@ creation_rules:
     key_groups:
       - age:
           - *admin_binarin
+          - *user_demandred_binarin
           - *server_media
+          - *server_docker-on-nixos
