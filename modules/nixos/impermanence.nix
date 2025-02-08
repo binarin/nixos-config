@@ -132,7 +132,6 @@ in
         hideMounts = true;
         directories = [
           "/var/lib/nixos"
-          "/nix/var/nix"
         ];
         files = [
           "/etc/machine-id"
