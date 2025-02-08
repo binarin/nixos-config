@@ -14,7 +14,7 @@ in
 
       users.mutableUsers = false;
 
-      # programs.fuse.userAllowOther = true;
+      programs.fuse.userAllowOther = true;
 
       boot.initrd.systemd.services.impermanence-root-rollback = {
         description = "Rollback root btrfs subvolume to a pristine state";
