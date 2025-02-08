@@ -288,6 +288,7 @@ in {
         ripgrep
         socat
         sops
+        ssh-to-age
         sshfs
         sysstat
         tcpdump
