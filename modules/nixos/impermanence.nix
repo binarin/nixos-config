@@ -7,11 +7,16 @@ in
     inputs.impermanence.nixosModules.impermanence
   ];
 
+  options.impermanence = {
+    symlinks = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+    };
+  };
+
   config = lib.mkIf config.hostConfig.feature.impermanence (lib.mkMerge [
     {
-      # XXX temp to check what's going on in stage1 systemd
-      # boot.initrd.systemd.emergencyAccess = true;
-
+      boot.initrd.systemd.emergencyAccess = true;
       users.mutableUsers = false;
 
       programs.fuse.userAllowOther = true;
@@ -65,7 +70,7 @@ in
       '';
       };
 
-      sops.age.sshKeyPaths = [ "/persist/ssh/ssh_host_ed25519_key" ];
+      sops.age.sshKeyPaths = lib.mkForce [ "/persist/ssh/ssh_host_ed25519_key" ];
 
       programs.ssh.extraConfig = ''
         # UserKnownHostsFile /persist/%d/.ssh/known_hosts.d

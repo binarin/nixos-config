@@ -52,6 +52,13 @@ in {
           allowOther = true;
         };
       }
+      (lib.mkIf config.hostConfig.feature.interactive-cli {
+        home.persistence."${safeDir}" = {
+          files = [
+            ".config/sops/age/keys.txt"
+          ];
+        };
+      })
       (lib.mkIf config.programs.starship.enable {
         home.sessionVariables = {
           STARSHIP_CACHE = "${garbageDir}/starship";
