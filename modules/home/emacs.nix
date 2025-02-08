@@ -82,7 +82,7 @@ in
     programs.custom-emacs = {
       enable = lib.mkOption {
         type = lib.types.bool;
-        default = config.hostConfig.feature.gui || config.hostConfig.feature.interactive-cli;
+        default = config.hostConfig.feature.emacs;
       };
 
       orgBabelConfig = lib.mkOption {
@@ -116,7 +116,7 @@ in
 
       home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
 
-      home.packages = [ 
+      home.packages = [
         finalEmacsPackage
         tangle-emacs-org-babel-config
       ];
