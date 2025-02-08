@@ -15,7 +15,7 @@ in
   # lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
   imports = [
     "${modulesPath}/virtualisation/proxmox-lxc.nix"
-    inputs.nixos-generators.nixosModules.all-formats
+    # inputs.nixos-generators.nixosModules.all-formats
   ];
 
   config = lib.mkMerge [

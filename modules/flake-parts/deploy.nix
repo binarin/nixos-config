@@ -24,6 +24,7 @@ let
     "media"
     "nix-cache"
     "mail"
+    "docker-on-nixos"
   ];
 
   deployNixosSystem =

@@ -10,4 +10,5 @@
   mail = "d8d300dc";
   demandred = "e312c428";
   iso = "aaaaaaaa";
+  docker-on-nixos = "be23faba";
 }

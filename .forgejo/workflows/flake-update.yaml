@@ -14,6 +14,13 @@ jobs:
       run: git config user.email "flake-updater@binarin.info"
     - name: Commit updates
       run: git commit --allow-empty -am "Bump inputs"
+    - name: Build nixosConfiguration.demandred
+      run: "nix build \"$(pwd)#nixosConfigurations.demandred.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/demandred\"\n"
+    - name: Build nixosConfiguration.docker-on-nixos
+      run: "nix build \"$(pwd)#nixosConfigurations.docker-on-nixos.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/docker-on-nixos\"\
+        \n"
     - name: Build nixosConfiguration.forgejo
       run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/forgejo\"\n"
@@ -23,6 +30,9 @@ jobs:
     - name: Build nixosConfiguration.ishamael
       run: "nix build \"$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/ishamael\"\n"
+    - name: Build nixosConfiguration.iso
+      run: "nix build \"$(pwd)#nixosConfigurations.iso.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/iso\"\n"
     - name: Build nixosConfiguration.mail
       run: "nix build \"$(pwd)#nixosConfigurations.mail.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/mail\"\n"
@@ -47,6 +57,12 @@ jobs:
       run: 'rm -rf "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
 
         '
+    - name: Add nix-store GC root for nixosConfiguraion.demandred
+      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/demandred\"\
+        \ \\\n  -r \"$(readlink -f \"temp-result/demandred\")\"\n"
+    - name: Add nix-store GC root for nixosConfiguraion.docker-on-nixos
+      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/docker-on-nixos\"\
+        \ \\\n  -r \"$(readlink -f \"temp-result/docker-on-nixos\")\"\n"
     - name: Add nix-store GC root for nixosConfiguraion.forgejo
       run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/forgejo\"\
         \ \\\n  -r \"$(readlink -f \"temp-result/forgejo\")\"\n"
@@ -56,6 +72,9 @@ jobs:
     - name: Add nix-store GC root for nixosConfiguraion.ishamael
       run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/ishamael\"\
         \ \\\n  -r \"$(readlink -f \"temp-result/ishamael\")\"\n"
+    - name: Add nix-store GC root for nixosConfiguraion.iso
+      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/iso\"\
+        \ \\\n  -r \"$(readlink -f \"temp-result/iso\")\"\n"
     - name: Add nix-store GC root for nixosConfiguraion.mail
       run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/mail\"\
         \ \\\n  -r \"$(readlink -f \"temp-result/mail\")\"\n"

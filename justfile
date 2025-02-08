@@ -63,7 +63,8 @@ deploy target profile="system":
 [group('Deploy')]
 deploy-boot target profile="system":
     deploy "$(pwd)#{{ target }}.{{ profile }}" --boot -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
-    ssh "root@{{ target }}" systemctl reboot
+    ssh "root@$(nix eval "$(pwd)#nixosConfigurations.{{ target }}.config.hostConfig.deployHostName" --json | jq -r)" systemctl reload dbus-broker.service
+    ssh "root@$(nix eval "$(pwd)#nixosConfigurations.{{ target }}.config.hostConfig.deployHostName" --json | jq -r)" systemctl reboot
 
 [group('Deploy')]
 deploy-no-rollback target profile="system":
@@ -72,7 +73,15 @@ deploy-no-rollback target profile="system":
 
 [group('Deploy')]
 lxc target:
-    nix build "$(pwd)#nixosConfigurations.{{ target }}.config.formats.proxmox-lxc" --keep-going -j {{ jobs }} {{ nixOpts }} -o "proxmox-lxc-{{ target }}.tar.xz"
+    nix build "$(pwd)#nixosConfigurations.{{ target }}.config.system.build.tarball" --keep-going -j {{ jobs }} {{ nixOpts }} -o "proxmox-lxc-{{ target }}"
+
+[group('Deploy')]
+lxc-upload target host="raum": (lxc target)
+    rsync -vL proxmox-lxc-{{ target }}/tarball/nixos-system-x86_64-linux.tar.xz root@{{ host }}:/var/lib/vz/template/cache/proxmox-lxc-{{ target }}.tar.xz
+
+[group('Deploy')]
+lxc-create target id host="raum": (lxc-upload target)
+    nix eval "$(pwd)#nixosConfigurations.docker-on-nixos.config.lib.lxc.createCommand" --apply 'f: f "{{ id }}"' --json | jq -r . | ssh root@raum bash -xeu -
 
 [group('Main')]
 all: check

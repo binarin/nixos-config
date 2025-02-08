@@ -20,9 +20,12 @@ jobs:
       fail-fast: false
       matrix:
         nixosConfiguration:
+        - demandred
+        - docker-on-nixos
         - forgejo
         - furfur
         - ishamael
+        - iso
         - mail
         - media
         - monitor

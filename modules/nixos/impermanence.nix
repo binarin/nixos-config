@@ -3,39 +3,38 @@ let
   inherit (flake) inputs;
 in
 {
-  # nixos-install --root /mnt/ --option experimental-features "nix-command flakes" --option builders "ssh://nix-build x86_64-linux" --flake /run/media/nixos/orico-nvme-ext4/demandred-old-persist/binarin-shelter/personal-workspace/nixos-config#demandred
-
   imports = [
     inputs.impermanence.nixosModules.impermanence
   ];
-  config = lib.mkIf config.hostConfig.feature.impermanence {
 
-    # XXX temp to check what's going on in stage1 systemd
-    boot.initrd.systemd.emergencyAccess = true;
+  config = lib.mkIf config.hostConfig.feature.impermanence (lib.mkMerge [
+    {
+      # XXX temp to check what's going on in stage1 systemd
+      # boot.initrd.systemd.emergencyAccess = true;
 
-    users.mutableUsers = false;
+      users.mutableUsers = false;
 
-    programs.fuse.userAllowOther = true;
+      # programs.fuse.userAllowOther = true;
 
-    boot.initrd.systemd.services.impermanence-root-rollback = {
-      description = "Rollback root btrfs subvolume to a pristine state";
-      wantedBy = [
-        "initrd.target"
-      ];
-      after = [
-        "dev-main-all.device"
-      ];
-      before = [
-        "sysroot.mount"
-      ];
-      path = with pkgs; [
-        btrfs-progs
-        findutils
-        # core-utils / util-linux "mount" are already in /bin
-      ];
-      unitConfig.DefaultDependencies = "no";
-      serviceConfig.Type = "oneshot";
-      script = ''
+      boot.initrd.systemd.services.impermanence-root-rollback = {
+        description = "Rollback root btrfs subvolume to a pristine state";
+        wantedBy = [
+          "initrd.target"
+        ];
+        after = [
+          "dev-main-all.device"
+        ];
+        before = [
+          "sysroot.mount"
+        ];
+        path = with pkgs; [
+          btrfs-progs
+          findutils
+          # core-utils / util-linux "mount" are already in /bin
+        ];
+        unitConfig.DefaultDependencies = "no";
+        serviceConfig.Type = "oneshot";
+        script = ''
         export PATH="$PATH:/bin"
         mkdir /btrfs_tmp
         mount /dev/main/all /btrfs_tmp
@@ -64,34 +63,34 @@ in
 
         umount /btrfs_tmp
       '';
-    };
+      };
 
-    sops.age.sshKeyPaths = [ "/persist/ssh/ssh_host_ed25519_key" ];
+      sops.age.sshKeyPaths = [ "/persist/ssh/ssh_host_ed25519_key" ];
 
-    programs.ssh.extraConfig = ''
-      # UserKnownHostsFile /persist/%d/.ssh/known_hosts.d
-      IdentityFile /persist/%d/.ssh/keys.d/id_rsa
-      IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa
-      IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa_sk
-      IdentityFile /persist/%d/.ssh/keys.d/id_ed25519
-      IdentityFile /persist/%d/.ssh/keys.d/id_ed25519_sk
-    '';
+      programs.ssh.extraConfig = ''
+        # UserKnownHostsFile /persist/%d/.ssh/known_hosts.d
+        IdentityFile /persist/%d/.ssh/keys.d/id_rsa
+        IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa
+        IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa_sk
+        IdentityFile /persist/%d/.ssh/keys.d/id_ed25519
+        IdentityFile /persist/%d/.ssh/keys.d/id_ed25519_sk
+      '';
 
-    system.activationScripts = let
-      userFragment = u: let
-        home = config.users.users."${u}".home;
-      in ''
+      system.activationScripts = let
+        userFragment = u: let
+          home = config.users.users."${u}".home;
+        in ''
         mkdir -p /persist/${home} /local/${home}
         chown ${u}:${u} /persist/${home} /local/${home}
 
         mkdir -p /persist/${home}/.ssh/{known_hosts.d,keys.d}
         chown ${u}:${u} /persist/${home}/.ssh/{known_hosts.d,keys.d}
       '';
-      createPerUserDirs = with lib; concatStringsSep "\n" (map userFragment config.hostConfig.managedUsers);
-    in {
-      "manual-impermanence-create-dirs" = {
-        deps = [ "users" "groups" ];
-        text = ''
+        createPerUserDirs = with lib; concatStringsSep "\n" (map userFragment config.hostConfig.managedUsers);
+      in {
+        "manual-impermanence-create-dirs" = {
+          deps = [ "users" "groups" ];
+          text = ''
           mkdir -p /local/etc/NetworkManager/system-connections/
           mkdir -p /local/var/lib/bluetooth/
           mkdir -p /local/var/lib/tailscale/
@@ -101,53 +100,62 @@ in
 
           ${createPerUserDirs}
         '';
+        };
       };
-    };
 
-    services.openssh = {
-      enable = true;
-      hostKeys = [
-        {
-          path = "/persist/ssh/ssh_host_ed25519_key";
-          type = "ed25519";
-        }
-        {
-          path = "/persist/ssh/ssh_host_rsa_key";
-          type = "rsa";
-          bits = 4096;
-        }
+      services.openssh = {
+        enable = true;
+        hostKeys = [
+          {
+            path = "/persist/ssh/ssh_host_ed25519_key";
+            type = "ed25519";
+          }
+          {
+            path = "/persist/ssh/ssh_host_rsa_key";
+            type = "rsa";
+            bits = 4096;
+          }
+        ];
+      };
+
+      environment.etc."NetworkManager/system-connections" = {
+        source = "/local/etc/NetworkManager/system-connections/";
+      };
+
+      systemd.tmpfiles.rules = [
+        "L+ /var/lib/bluetooth - - - - /local/var/lib/bluetooth"
+        "L+ /var/lib/tailscale - - - - /local/var/lib/tailscale"
       ];
-    };
 
-    environment.etc."NetworkManager/system-connections" = {
-      source = "/local/etc/NetworkManager/system-connections/";
-    };
+      environment.persistence."/persist" = {
+        enable = true;
+        hideMounts = true;
+        directories = [
+          "/var/lib/nixos"
+          "/nix/var/nix"
+        ];
+        files = [
+          "/etc/machine-id"
+        ];
+      };
 
-    systemd.tmpfiles.rules = [
-      "L+ /var/lib/bluetooth - - - - /local/var/lib/bluetooth"
-      "L+ /var/lib/tailscale - - - - /local/var/lib/tailscale"
-    ];
+      environment.persistence."/local" = {
+        enable = true;
+        hideMounts = true;
+        directories = [
+          "/var/log"
+          "/var/lib/systemd/coredump"
+        ];
+      };
 
-    environment.persistence."/persist" = {
-      enable = true;
-      hideMounts = true;
-      directories = [
-        "/var/lib/nixos"
-      ];
-      files = [
-        "/etc/machine-id"
-      ];
-    };
-
-    environment.persistence."/local" = {
-      enable = true;
-      hideMounts = true;
-      directories = [
-        "/var/log"
-        "/var/lib/systemd/coredump"
-      ];
-    };
-
-    programs.sbctl.pkiBundle = "/persist/sbctl";
-  };
+      programs.sbctl.pkiBundle = "/persist/sbctl";
+    }
+    (lib.mkIf config.virtualisation.docker.enable {
+      environment.persistence."/persist" = {
+        directories = [
+          "/var/lib/docker"
+        ];
+      };
+    })
+  ]);
 }
