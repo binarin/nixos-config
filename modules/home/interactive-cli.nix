@@ -272,6 +272,7 @@ in {
         mc
         nil # nix language server
         nix-output-monitor
+        nix-tree
         nmap
         ntfsprogs
         openssl
