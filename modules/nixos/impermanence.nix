@@ -149,6 +149,13 @@ in
 
       programs.sbctl.pkiBundle = "/persist/sbctl";
     }
+    (lib.mkIf config.services.homebox.enable {
+      environment.persistence."/persist" = {
+        directories = [
+          "/var/lib/homebox"
+        ];
+      };
+    })
     (lib.mkIf config.virtualisation.docker.enable {
       environment.persistence."/persist" = {
         directories = [

@@ -17,6 +17,7 @@ in
   hostConfig.features = [
     "lxc"
     "impermanence"
+    "tailscale"
   ];
 
   system.stateVersion = "24.11";

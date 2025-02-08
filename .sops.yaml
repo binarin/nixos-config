@@ -14,6 +14,7 @@ keys:
   - &server_forgejo age17jnj7kvw0wn0nfk02wll05yhe8xnu86u489tfks6hgnd4gfs4f2qy9chtv
   - &server_mail age14n05u2z9u9h7chvn2rmmwr9flc25790rapxtvx97lqt78uk3ce3sy3xc6s
   - &server_nix-cache age1a4lwvtxlnz8vzhqva8cwvrvkumjdzeau6rmrwg0xu7tseyxe33zs5sw04d
+  - &server_docker-on-nixos age1j6rw67wmjz4ngmnl57efxmfyytk7rj6swer6e677pl83s60u7spq5hjt6t
 
 creation_rules:
   - path_regex: secrets/valak/user-binarin.yaml
@@ -63,6 +64,12 @@ creation_rules:
       - age:
           - *admin_binarin
           - *server_mail
+  - path_regex: secrets/docker-on-nixos/secrets.yaml
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *user_demandred_binarin
+          - *server_docker-on-nixos
   - path_regex: secrets/webservers.yaml
     key_groups:
       - age:
