@@ -1,0 +1,4 @@
+---
+- name: Update initrd via initramfs-tools
+  listen: update-initramfs
+  command: update-initramfs -u -k all

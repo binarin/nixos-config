@@ -1,0 +1,8 @@
+---
+- name: Provision authorized_keys for initramfs
+  vars:
+    username: root
+  template:
+    src: authorized_keys.j2
+    dest: "/etc/dropbear/initramfs/authorized_keys"
+  notify: update-initramfs
