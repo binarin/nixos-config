@@ -154,6 +154,7 @@ in
 
       programs.sbctl.pkiBundle = "/persist/sbctl";
     }
+
     (lib.mkIf config.services.homebox.enable {
       environment.persistence."/persist" = {
         directories = [
@@ -161,6 +162,14 @@ in
         ];
       };
     })
+
+    (lib.mkIf config.services.caddy.enable {
+      services.caddy.dataDir = "/local/var/lib/caddy";
+      systemd.tmpfiles.rules = [
+        "d /local/var/lib/caddy 0700 ${config.services.caddy.user} ${config.services.caddy.group} - -"
+      ];
+    })
+
     (lib.mkIf config.virtualisation.docker.enable {
       environment.persistence."/persist" = {
         directories = [

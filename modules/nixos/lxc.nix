@@ -1,10 +1,4 @@
-{
-  flake,
-  modulesPath,
-  config,
-  lib,
-  ...
-}:
+{ flake, modulesPath, config, lib, pkgs, ... }:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -35,6 +29,17 @@ in
       };
 
       services.getty.autologinUser = "root";
+
+      # XXX this creates /sbin/init with /bin/sh shebang, not compatible with impermanence
+      boot.loader.initScript.enable = lib.mkForce false;
+      # XXX so copy it from regular lxc-container.nix for the time being
+      system.build.installBootLoader = pkgs.writeScript "install-lxc-sbin-init.sh" ''
+        #!${pkgs.runtimeShell}
+        ${pkgs.coreutils}/bin/ln -fs "$1/init" /sbin/init
+      '';
+      system.activationScripts.installInitScript = lib.mkForce ''
+        ln -fs $systemConfig/init /init
+      '';
     })
     # proxmox-lxc.nix enables itself by default, let's override
     (lib.mkIf (!config.hostConfig.feature.lxc) { proxmoxLXC.enable = lib.mkDefault false; })
