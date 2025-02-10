@@ -37,6 +37,16 @@ config.keys = {
 
 config.key_tables = {
    ctrl_o = {
+      { key = 'o',
+        action = act.SendKey {
+           key = 'o',
+           mods = 'CTRL',
+        },
+      },
+      { key = 'o',
+        mods = 'CTRL',
+        action = act.ActivateLastTab,
+      },
       { key = 'n', action = wezterm.action.ActivateTabRelative(1) },
       { key = 'p', action = wezterm.action.ActivateTabRelative(-1) },
       { key = 'c', action = act.SpawnTab 'CurrentPaneDomain' },
