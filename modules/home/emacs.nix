@@ -109,6 +109,8 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
+      impermanence.persist-bind-directories-no-root = [ "org" ];
+
       xdg.configFile."emacs/init.el".source = cfg.compiledConfig + "/init.el";
       xdg.configFile."emacs/init.elc".source = cfg.compiledConfig + "/init.elc";
       xdg.configFile."emacs/early-init.el".source = cfg.compiledConfig + "/early-init.el";

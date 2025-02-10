@@ -7,6 +7,11 @@
 }:
 {
   config = lib.mkIf config.hostConfig.feature.gui {
+
+    # XXX can't link because home-manager home.files doesn't allow creating files outside of $HOME
+    # And with symlink it's detectable, in comparison to a bind mount
+    impermanence.local-bind-directories-no-root = [ ".mozilla/firefox" ];
+
     home.packages = [
       (pkgs.writeShellScriptBin "x-www-browser" ''
         exec firefox "$@"

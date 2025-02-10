@@ -18,6 +18,7 @@
         uid = 1000;
         isNormalUser = true;
         group = "binarin";
+        home = "/home/binarin";
         shell = "/run/current-system/sw/bin/zsh";
         extraGroups = [
           "users"

@@ -1,6 +1,7 @@
 {pkgs, lib, config, flake, ...}:
 let
   inherit (flake) inputs;
+  inherit (inputs) self;
 in
 {
   imports = [
@@ -177,5 +178,35 @@ in
         ];
       };
     })
+
+    {
+      environment.persistence."/persist" = {
+        users =
+          with lib;
+          genAttrs config.hostConfig.managedUsers (user: let
+            hmCfg = config.home-manager.users."${user}";
+            homeDir = self.helpers.user-dirs.homeDir user; # hmCfg.home.homeDirectory;
+            persist-binds = forEach hmCfg.impermanence.persist-bind-directories (removePrefix homeDir);
+            persist-binds-no-root = if user == "root" then [] else forEach hmCfg.impermanence.persist-bind-directories-no-root (removePrefix homeDir);
+          in {
+            home = homeDir;
+            directories = persist-binds ++ persist-binds-no-root;
+          });
+      };
+
+      environment.persistence."/local" = {
+        users =
+          with lib;
+          genAttrs config.hostConfig.managedUsers (user: let
+            hmCfg = config.home-manager.users."${user}";
+            homeDir = self.helpers.user-dirs.homeDir user; # hmCfg.home.homeDirectory;
+            local-binds = forEach hmCfg.impermanence.local-bind-directories (removePrefix homeDir);
+            local-binds-no-root = if user == "root" then [] else forEach hmCfg.impermanence.local-bind-directories-no-root (removePrefix homeDir);
+          in {
+            home = homeDir;
+            directories = local-binds ++ local-binds-no-root;
+          });
+      };
+    }
   ]);
 }

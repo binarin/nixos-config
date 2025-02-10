@@ -17,15 +17,23 @@ in
 
     home-manager.users = lib.genAttrs cfg.managedUsers (user: let
       hmConfigurationFile = self + "/configurations/home/" + user + ".nix";
-    in {
+      homeDirectory = self.helpers.user-dirs.homeDir user;
+    in {config, osConfig, ...}: {
       imports = [
         self.homeModules.default
       ] ++ (lib.optional (builtins.pathExists hmConfigurationFile) hmConfigurationFile);
       config = {
-        inherit (config) hostConfig inventoryHostName;
-        home.homeDirectory = config.users.users."${user}".home;
+        inherit (osConfig) hostConfig inventoryHostName;
+
+        # XXX I don't know yet why it can easily cause infinite recursion
+        home.homeDirectory = homeDirectory;
+        xdg.cacheHome = "${homeDirectory}/${config.xdg.cacheHomeRelative}";
+        xdg.configHome = "${homeDirectory}/${config.xdg.configHomeRelative}";
+        xdg.dataHome = "${homeDirectory}/${config.xdg.dataHomeRelative}";
+        xdg.stateHome = "${homeDirectory}/${config.xdg.stateHomeRelative}";
+
         home.username = user;
-        home.stateVersion = config.system.stateVersion;
+        home.stateVersion = osConfig.system.stateVersion;
       };
     });
   };

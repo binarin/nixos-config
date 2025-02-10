@@ -61,10 +61,6 @@
                   mountpoint = "/local";
                   mountOptions = [ "compress=zstd" ];
                 };
-                "/persist/binarin/personal-workspace" = {
-                  mountpoint = "/home/binarin/personal-workspace";
-                  mountOptions = [ "compress=zstd" ];
-                };
               };
             };
           };

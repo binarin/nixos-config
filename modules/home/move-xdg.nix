@@ -1,12 +1,30 @@
 {flake, config, lib, pkgs, ...}:
 {
+  options.xdg = with lib; with types; {
+    cacheHomeRelative = mkOption {
+      type = str;
+      default = ".cache";
+    };
+    configHomeRelative = mkOption {
+      type = str;
+      default = ".config";
+    };
+    dataHomeRelative = mkOption {
+      type = str;
+      default = ".local/share";
+    };
+    stateHomeRelative = mkOption {
+      type = str;
+      default = ".local/state";
+    };
+  };
   config = lib.mkIf config.hostConfig.feature.move-xdg {
     xdg = {
       enable = true;
-      cacheHome = "${config.home.homeDirectory}/.xdg/cache";
-      configHome = "${config.home.homeDirectory}/.xdg/config";
-      dataHome = "${config.home.homeDirectory}/.xdg/local/share";
-      stateHome = "${config.home.homeDirectory}/.xdg/local/state";
+      cacheHomeRelative = ".xdg/cache";
+      configHomeRelative = ".xdg/config";
+      dataHomeRelative = ".xdg/local/share";
+      stateHomeRelative = ".xdg/local/state";
     };
   };
 }
