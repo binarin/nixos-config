@@ -9,11 +9,12 @@ in
   ];
 
   config = {
+    impermanence.persist-bind-directories-no-root = lib.mkIf config.hostConfig.feature.workstation [
+      "personal-workspace"
+    ];
     programs.git = {
       userName = "Alexey Lebedeff";
       userEmail = "binarin@binarin.info";
     };
   };
-
-
 }

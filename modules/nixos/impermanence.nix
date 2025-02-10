@@ -18,6 +18,11 @@ in
   config = lib.mkIf config.hostConfig.feature.impermanence (lib.mkMerge [
     {
       boot.initrd.systemd.emergencyAccess = true;
+      boot.initrd.systemd.initrdBin = with pkgs; [
+        rsync
+      ];
+      boot.supportedFilesystems = [ "ext4" "vfat" "exfat" ];
+
       users.mutableUsers = false;
 
       programs.fuse.userAllowOther = true;
@@ -41,40 +46,38 @@ in
         unitConfig.DefaultDependencies = "no";
         serviceConfig.Type = "oneshot";
         script = ''
-        export PATH="$PATH:/bin"
-        mkdir /btrfs_tmp
-        mount /dev/main/all /btrfs_tmp
-        if [[ -e /btrfs_tmp/root ]]; then
-            mkdir -p /btrfs_tmp/old_roots
-            timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
-            mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
-        fi
+          export PATH="$PATH:/bin"
+          mkdir /btrfs_tmp
+          mount /dev/main/all /btrfs_tmp
+          if [[ -e /btrfs_tmp/root ]]; then
+              mkdir -p /btrfs_tmp/old_roots
+              timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
+              mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
+          fi
 
-        delete_subvolume_recursively() {
-            IFS=$'\n'
-            for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
-                delete_subvolume_recursively "/btrfs_tmp/$i"
-            done
-            btrfs subvolume delete "$1"
-        }
+          delete_subvolume_recursively() {
+              IFS=$'\n'
+              for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
+                  delete_subvolume_recursively "/btrfs_tmp/$i"
+              done
+              btrfs subvolume delete "$1"
+          }
 
-        for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
-            delete_subvolume_recursively "$i"
-        done
+          for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
+              delete_subvolume_recursively "$i"
+          done
 
-        btrfs subvolume create /btrfs_tmp/root
+          btrfs subvolume create /btrfs_tmp/root
 
-        # They are created with 'Q' by tmpfiles, let's prevent creating those subvolumes
-        mkdir -p /btrfs_tmp/root/var/lib/{machines,portables}
+          # They are created with 'Q' by tmpfiles, let's prevent creating those subvolumes
+          mkdir -p /btrfs_tmp/root/var/lib/{machines,portables}
 
-        umount /btrfs_tmp
-      '';
+          umount /btrfs_tmp
+        '';
       };
-
       sops.age.sshKeyPaths = lib.mkForce [ "/persist/ssh/ssh_host_ed25519_key" ];
 
       programs.ssh.extraConfig = ''
-        # UserKnownHostsFile /persist/%d/.ssh/known_hosts.d
         IdentityFile /persist/%d/.ssh/keys.d/id_rsa
         IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa
         IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa_sk
@@ -185,7 +188,7 @@ in
           with lib;
           genAttrs config.hostConfig.managedUsers (user: let
             hmCfg = config.home-manager.users."${user}";
-            homeDir = self.helpers.user-dirs.homeDir user; # hmCfg.home.homeDirectory;
+            homeDir = self.helpers.user-dirs.homeDir user;
             persist-binds = forEach hmCfg.impermanence.persist-bind-directories (removePrefix homeDir);
             persist-binds-no-root = if user == "root" then [] else forEach hmCfg.impermanence.persist-bind-directories-no-root (removePrefix homeDir);
           in {
@@ -199,7 +202,7 @@ in
           with lib;
           genAttrs config.hostConfig.managedUsers (user: let
             hmCfg = config.home-manager.users."${user}";
-            homeDir = self.helpers.user-dirs.homeDir user; # hmCfg.home.homeDirectory;
+            homeDir = self.helpers.user-dirs.homeDir user;
             local-binds = forEach hmCfg.impermanence.local-bind-directories (removePrefix homeDir);
             local-binds-no-root = if user == "root" then [] else forEach hmCfg.impermanence.local-bind-directories-no-root (removePrefix homeDir);
           in {
