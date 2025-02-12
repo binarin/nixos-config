@@ -221,13 +221,14 @@ in
       "d- /var/lib/servarr 02775 binarin servarr -"
       "Z- /var/lib/servarr 02775 binarin servarr -"
     ];
+
     environment.systemPackages = with pkgs; [
       # syncoid works better with those
       lzop
       mbuffer
       brightnessctl-all
     ];
-    services.blueman.enable = true;
+
     specialisation.headless.configuration = {
       virtualization.vfio = {
         devices = [

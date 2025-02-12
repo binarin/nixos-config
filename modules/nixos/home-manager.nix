@@ -27,6 +27,7 @@ in
 
         # XXX I don't know yet why it can easily cause infinite recursion
         home.homeDirectory = homeDirectory;
+
         xdg.cacheHome = "${homeDirectory}/${config.xdg.cacheHomeRelative}";
         xdg.configHome = "${homeDirectory}/${config.xdg.configHomeRelative}";
         xdg.dataHome = "${homeDirectory}/${config.xdg.dataHomeRelative}";
