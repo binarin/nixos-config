@@ -1,9 +1,4 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ osConfig, flake, config, pkgs, lib, ... }:
 let
   ignoringVulns =
     x:
@@ -76,10 +71,11 @@ in
       xdg.configFile."mimeapps.list".force = true;
       gtk = {
         enable = true;
-        # iconTheme = {
-        #   package = pkgs.gnome3.adwaita-icon-theme;
-        #   name = "Adwaita";
-        # };
+        gtk3.bookmarks = [
+          ''file://${config.home.homeDirectory}/personal-workspace''
+          ''file://${config.home.homeDirectory}/OneDrive/3D%20Printing''
+          ''file://${config.home.homeDirectory}/org''
+        ];
       };
       home.packages = guiPackages ++ (optionals (!feature.fast-rebuild) slowRebuildGuiPackages);
     }
