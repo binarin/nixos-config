@@ -33,6 +33,7 @@ in
 
     xdg.portal.extraPortals = [
       pkgs.kdePackages.kwallet
+      pkgs.xdg-portal-kde
     ];
 
     xdg.configFile = lib.mapAttrs' (name: value: lib.nameValuePair "autostart/${name}.desktop" {
