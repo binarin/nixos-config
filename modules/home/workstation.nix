@@ -87,5 +87,17 @@ in
       programs.thunderbird.profiles = {};
       impermanence.local-bind-directories-no-root = [ ".thunderbird" ];
     })
+    ({
+      home.packages = [
+        (pkgs.ptouch-print.overrideAttrs {
+          version = "1.6.0";
+          src = pkgs.fetchgit {
+            url = "https://git.familie-radermacher.ch/linux/ptouch-print.git";
+            rev = "aa5392bc135161252d06c48745c0d53c281d69f3";
+            hash = "sha256-CG1ZituzJ5l9nuTXjk+yjsKZidoiWh6o/vArchQYsd8=";
+          };
+        })
+      ];
+    })
   ]);
 }
