@@ -1112,6 +1112,12 @@
        :no-require t
        :mode "\\.kdl\\'")
    #+end_src
+** OpenSCAD
+   #+begin_src emacs-lisp :tangle yes
+     (use-package scad-mode
+       :ensure t
+       :mode "\\.scad\\'")
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
