@@ -24,6 +24,7 @@ wezterm.on('update-right-status', function(window, pane)
 end)
 
 config.keys = {
+   { key = 'Enter', mods = 'ALT', action = act.DisableDefaultAssignment },
    { key = 'l', mods = 'ALT', action = act.ShowLauncher },
    {
       key = 'o',
