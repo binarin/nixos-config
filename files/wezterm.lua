@@ -65,31 +65,31 @@ for tab_no=1,9 do
 end
 
 
-config.color_scheme = 'Zenburn'
--- config.colors = {
---    background = "#000000",
---    foreground = "#faebd7",
---    ansi = {
---       "#000000",
---       "#cd0000",
---       "#00cd00",
---       "#cdcd00",
---       "#0000cd",
---       "#cd00cd",
---       "#00cdcd",
---       "#faebd7",
---    },
---    brights = {
---       "#404040",
---       "#ff0000",
---       "#00ff00",
---       "#ffff00",
---       "#0000ff",
---       "#ff00ff",
---       "#00ffff",
---       "#ffffff",
---    }
--- }
+-- config.color_scheme = 'Zenburn'
+config.colors = {
+   background = "#000000",
+   foreground = "#faebd7",
+   ansi = {
+      "#000000",
+      "#cd0000",
+      "#00cd00",
+      "#cdcd00",
+      "#0000cd",
+      "#cd00cd",
+      "#00cdcd",
+      "#faebd7",
+   },
+   brights = {
+      "#404040",
+      "#ff0000",
+      "#00ff00",
+      "#ffff00",
+      "#0000ff",
+      "#ff00ff",
+      "#00ffff",
+      "#ffffff",
+   }
+}
 
 config.window_frame = {
    font_size = 11,
