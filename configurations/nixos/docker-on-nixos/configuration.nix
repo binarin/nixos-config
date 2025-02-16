@@ -4,6 +4,8 @@ let
   inherit (inputs) self;
   create = lxcId: ''
     pct create ${lxcId} /var/lib/vz/template/cache/proxmox-lxc-docker-on-nixos.tar.xz \
+      --hostname docker-on-nixos \
+      --onboot 1 \
       --cores 4 --features nesting=1 --memory 8192 --swap 0 \
       --unprivileged 1 --ostype unmanaged --arch amd64 \
       --rootfs local-zfs:8 \
