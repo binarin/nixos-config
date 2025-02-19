@@ -4,9 +4,9 @@ let
   fzf_show_file_or_dir_preview="if [ -d {} ]; then lsd --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi";
 in {
 
-  # XXX 2025-01-31 daemon mode for atuin, maybe remove soon
+  # XXX 2025-01-31 daemon mode for atuin, maybe remove soon - otherwise some zfs-related warnings
   imports = [
-    "${flake.inputs.home-manager-master}/modules/programs/atuin.nix"
+    ./atuin-copy-from-hm-6aa38ffdf77fb4250f5d832fd5a09eb99226fba7.nix
     flake.inputs.nix-index-database.hmModules.nix-index
   ];
   disabledModules = [ "${flake.inputs.home-manager}/modules/programs/atuin.nix" ];
