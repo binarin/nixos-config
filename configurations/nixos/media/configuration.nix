@@ -72,6 +72,9 @@ in
     docker-compose
     libva-utils
     radeontop
+
+    git
+    git-annex
   ];
 
   virtualisation.docker.enable = true;
@@ -404,10 +407,10 @@ in
     home = "/media/annex";
     createHome = true;
     openssh.authorizedKeys.keys = [
-      ''command="GIT_ANNEX_SHELL_DIRECTORY=/media/annex/annex.git GIT_ANNEX_SHELL_APPENDONLY=true git-annex-shell -c \"$SSH_ORIGINAL_COMMAND\"",restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos''
+      ''command="GIT_ANNEX_SHELL_DIRECTORY=/media/annex/annex.git GIT_ANNEX_SHELL_APPENDONLY=true ${lib.getExe' pkgs.git-annex "git-annex-shell"} -c \"$SSH_ORIGINAL_COMMAND\"",restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos''
     ];
     openssh.authorizedPrincipals = [
-      ''command="GIT_ANNEX_SHELL_DIRECTORY=/media/annex/annex.git GIT_ANNEX_SHELL_APPENDONLY=true git-annex-shell -c \"$SSH_ORIGINAL_COMMAND\"",restrict binarin''
+      ''command="GIT_ANNEX_SHELL_DIRECTORY=/media/annex/annex.git GIT_ANNEX_SHELL_APPENDONLY=true ${lib.getExe' pkgs.git-annex "git-annex-shell"} -c \"$SSH_ORIGINAL_COMMAND\"",restrict binarin''
     ];
   };
 
