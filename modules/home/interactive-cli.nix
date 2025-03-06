@@ -175,6 +175,20 @@ in {
             readlink -f $(type -p $1 | awk '{print $3}')
           }
 
+          rrb() {
+            local f="$(rr $1)"
+            if [[ -r "$f" ]]; then
+              bat "$f"
+            fi
+          }
+
+          rre() {
+            local f="$(rr $1)"
+            if [[ -r "$f" ]]; then
+              $EDITOR "$f"
+            fi
+          }
+
           ds() {
             nix derivation show "$@" | jless .
           }
