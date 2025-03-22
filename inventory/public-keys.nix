@@ -74,5 +74,14 @@
       secure = true;
       tags = [ "user-ca" ];
     };
+
+    brother-scanner = {
+      description = "Brother scanner key, for SFTP uploads";
+      public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCrBq26K0dIo5wDqyMF8FL4NoqP9p4+IJxuTa5bLfEdp/yS9F07orqIfJDx6j+Pb4dRV3F4o9Qe23250SBEmf6z5SY8PxrzkECpx+EzzegkNJkTCgJN0XAep4treDnnO0YqYNtcVCsz+/Td+6aRr/cJGVlKdnqMAUAN35wmBbsc+npwt3yt3K2N11ZmCAQj9sBbS8FCRxFJhBB3h0JiSGeYDQZZle63j2gavDUbBUR0dXuiMnRoitCc1d9Bv3rBMhy4sRKqubcXK48g2CDDxHno5hXd3pyEfbx1N3HdIevV7OnhTUCp6X4KG7h9Sh18ccsJNVr5Awagb5RKAM/9kYbL";
+      secure = false;
+      force_install_on = {
+        paperless = [ "paperless" ];
+      };
+    };
   };
 }
