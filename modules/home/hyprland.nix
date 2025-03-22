@@ -240,15 +240,17 @@ in
           "float, title:^(FAST_CHOICE)$"
           "center, title:^(FAST_CHOICE)$"
 
+          "noinitialfocus, class:FreeCAD"
+
           # noanim isn't necessary but animations with these rules might look bad. use at your own discretion.
-          "noanim, class:^(flameshot)$"
-          "float, class:^(flameshot)$"
-          "move 0 0, class:^(flameshot)$"
-          "pin, class:^(flameshot)$"
+          # "noanim, class:^(flameshot)$"
+          # "float, class:^(flameshot)$"
+          # "move 0 0, class:^(flameshot)$"
+          # "pin, class:^(flameshot)$"
 
           # set this to your leftmost monitor id, otherwise you have to move your cursor to the leftmost monitor
           # before executing flameshot
-          "monitor 2, class:^(flameshot)$"
+          # "monitor 2, class:^(flameshot)$"
           # "suppressevent fullscreen,title:^(flameshot)"
         ];
 
