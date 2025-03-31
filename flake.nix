@@ -3,7 +3,9 @@
     # nixpkgs.url = "path:/home/binarin/personal-workspace/nixpkgs";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
 
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/staging";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs";
+
+    nixpkgs-staging.url = "github:nixos/nixpkgs/staging";
 
     # home-manager.url = "path:/home/binarin/personal-workspace/home-manager";
     home-manager.url = "github:nix-community/home-manager/release-24.11";

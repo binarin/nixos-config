@@ -1024,7 +1024,7 @@
         "type": "github"
       }
     },
-    "nixpkgs-unstable": {
+    "nixpkgs-staging": {
       "locked": {
         "lastModified": 1743422794,
         "narHash": "sha256-K0uVv0iiZAT3mkULko8EpTlwl60vUNs2KPKTEXggcmc=",
@@ -1036,6 +1036,21 @@
       "original": {
         "owner": "nixos",
         "ref": "staging",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-unstable": {
+      "locked": {
+        "lastModified": 1743422680,
+        "narHash": "sha256-FEaewEooyjhVQBuUFVUhyhSwagNmXJN/hfKFr5eRJ94=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "4a8e787879f2ae0106bbfa3f0e81ec028de15fb8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -1105,6 +1120,7 @@
         "nixos-generators": "nixos-generators",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-staging": "nixpkgs-staging",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "pre-commit-hooks": "pre-commit-hooks",
         "sops-nix": "sops-nix",

@@ -12,14 +12,13 @@ let
 in
 {
   config = lib.mkIf config.hostConfig.feature.hyprland {
-
     nixpkgs.overlays = [
       inputs.hyprland-contrib.overlays.default
       inputs.hyprland.overlays.default
       ( final: prev: {
         libgbm = prev.mesa;
         hyprland = prev.hyprland.override {
-          wayland-protocols = final.bleeding.wayland-protocols;
+          wayland-protocols = final.bleeding-staging.wayland-protocols;
         };
         hypridle = prev.hypridle.override {
           stdenv = prev.gcc14Stdenv;
