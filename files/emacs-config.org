@@ -259,14 +259,6 @@
      (put 'suspend-frame 'disabled t)
    #+end_src
 
-** Evil
-   #+begin_src emacs-lisp :tangle yes
-     (use-package evil
-       :ensure t
-       :bind
-       (("C-z" . evil-mode)))
-     (general-setq evil-default-state 'emacs)
-   #+end_src
 ** Change "yes or no" to "y or n"
    #+begin_src emacs-lisp :tangle yes
      (fset 'yes-or-no-p 'y-or-n-p)
