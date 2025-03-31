@@ -1010,6 +1010,7 @@
          (setf compilation-directory project-dir)
          (binarin/recompile-and-run)))
 
+     (autoload 'recompile "compile")
      (defun binarin/recompile-and-run ()
        (interactive)
        (setf binarin/after-compilation-armed t)
