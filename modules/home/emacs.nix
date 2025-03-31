@@ -34,6 +34,7 @@ let
       # emacs-lsp-booster
     ];
     package = cfg.basePackage.override (prev: {
+      # XXX Okay, this is the reason for regular emacs rebuild - but the fix wasn't merged in 24.11
       siteStart = pkgs.writeText "site-start.el" (
         (builtins.readFile "${inputs.nixpkgs}/pkgs/applications/editors/emacs/site-start.el")
         + ''
