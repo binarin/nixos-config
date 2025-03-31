@@ -23,10 +23,10 @@
           static_configs:
             - targets: ["127.0.0.1:8429"]
 
-  roles:
-    - victoriametrics.cluster.vmagent
-    - prometheus.prometheus.node_exporter
-    - aroberts.zfs_exporter
+  # roles:
+  #   - victoriametrics.cluster.vmagent
+  #   - prometheus.prometheus.node_exporter
+  #   - aroberts.zfs_exporter
   handlers:
     - name: Update initramfs
       listen:
