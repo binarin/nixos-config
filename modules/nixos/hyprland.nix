@@ -18,6 +18,9 @@ in
       inputs.hyprland.overlays.default
       ( final: prev: {
         libgbm = prev.mesa;
+        hyprland = prev.hyprland.override {
+          wayland-protocols = final.bleeding.wayland-protocols;
+        };
         hypridle = prev.hypridle.override {
           stdenv = prev.gcc14Stdenv;
         };
