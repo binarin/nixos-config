@@ -17,6 +17,7 @@ in
       inputs.hyprland-contrib.overlays.default
       inputs.hyprland.overlays.default
       ( final: prev: {
+        libgbm = prev.mesa;
         hypridle = prev.hypridle.override {
           stdenv = prev.gcc14Stdenv;
         };
