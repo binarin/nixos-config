@@ -16,9 +16,9 @@ in
         emacs-pgtk-nixpkgs = prev.emacs-pgtk;
       })
       flake.inputs.emacs-overlay.overlays.default
-      (final: prev: {
-        tree-sitter = final.bleeding.tree-sitter;
-      })
+      # (final: prev: {
+      #   tree-sitter = final.bleeding.tree-sitter;
+      # })
     ];
   };
 }
