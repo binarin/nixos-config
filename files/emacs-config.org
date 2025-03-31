@@ -767,6 +767,13 @@
 ** Bell
    #+begin_src emacs-lisp :tangle yes
      (setf visible-bell t)
+     (awhen (eq binarin/system-type 'darwin)
+       (setq ring-bell-function 'ignore))
+
+     (use-package mode-line-bell
+       :ensure t)
+     (mode-line-bell-mode)
+
    #+end_src
 * Programming
 ** Projects
