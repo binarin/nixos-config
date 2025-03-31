@@ -49,11 +49,19 @@ let
       inherit specialArgs;
       modules = [ mod ];
     };
+  mkDarwinSystem =
+    mod:
+    inputs.nix-darwin.lib.darwinSystem {
+      inherit specialArgs;
+      modules = [ mod ];
+    };
 in
 {
   config = {
     flake = {
       nixosConfigurations = forAllNixFiles "${self}/configurations/nixos" (fn: mkLinuxSystem fn);
+
+      darwinConfigurations = forAllNixFiles "${self}/configurations/darwin" (fn: mkDarwinSystem fn);
 
       nixosModules = forAllNixFiles "${self}/modules/nixos" (fn: fn);
 
