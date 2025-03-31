@@ -25,18 +25,6 @@ in
           })
         ];
       };
-      bleeding-staging = import inputs.nixpkgs-staging {
-        inherit (prev) system;
-        config = config.nixpkgs.config;
-        overlays = [
-          (bf: bp: {
-            # diverges too fast, leads to segfaults. a lot of rebuilds is the price.
-            mesa = final.mesa.override {
-              libdrm = final.bleeding.libdrm;
-            };
-          })
-        ];
-      };
     })
   ];
 }

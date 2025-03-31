@@ -5,8 +5,6 @@
 
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
 
-    nixpkgs-staging.url = "github:nixos/nixpkgs/staging";
-
     # home-manager.url = "path:/home/binarin/personal-workspace/home-manager";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -27,7 +25,7 @@
 
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
-      ref = "refs/tags/v0.48.1";
+      ref = "refs/tags/v0.47.1";
       type = "git";
       submodules = true;
       inputs.nixpkgs.follows = "nixpkgs";
