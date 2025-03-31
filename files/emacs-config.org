@@ -1660,6 +1660,10 @@
        (add-hook 'org-mode-hook 'org-download-enable))
    #+end_src
 * Test space
+** Android - how to show keyboard
+   #+begin_src emacs-lisp
+     (defun tk () (interactive) (frame-toggle-on-screen-keyboard (selected-frame) nil))
+   #+end_src
 ** [[https://shaunlebron.github.io/parinfer/][Parinfer - simpler Lisp editing]]
  :PROPERTIES:
   :ID: 5fa409fd-6165-458d-88dc-0e6fbb408da9
