@@ -192,7 +192,7 @@
                   `(font . ,(cl-case binarin/system-type
                               (wsl "IosevkaTerm Nerd Font-18")
                               (windows "IosevkaTerm NFM-16")
-                              (darwin "JetBrains Mono-14")
+                              (darwin "IosevkaTerm Nerd Font Mono-20")
                               (t "IosevkaTerm Nerd Font-12"))))
 
      (setf face-ignored-fonts '("Adobe Blank"))
