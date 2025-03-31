@@ -45,12 +45,6 @@ in
       };
     };
 
-    stylix.cursor = {
-      package = pkgs.bibata-cursors;
-      name = "Bibata-Modern-Amber";
-      size = 16;
-    };
-
     stylix.base16Scheme = with config.zenburn.colors; {
       scheme = "Zenburn";
       slug = "zenburn";

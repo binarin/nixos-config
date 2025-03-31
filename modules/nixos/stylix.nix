@@ -26,6 +26,13 @@ in
     (lib.mkIf config.hostConfig.feature.gui {
       # XXX stylix.targets.lightdm.enable = true;
       stylix.targets.gtk.enable = true;
+
+      # XXX Another copy in home/stylix.nix
+      stylix.cursor = {
+        package = pkgs.bibata-cursors;
+        name = "Bibata-Modern-Amber";
+        size = 16;
+      };
       # XXX stylix.targets.chromium.enable = true;
     })
   ];
