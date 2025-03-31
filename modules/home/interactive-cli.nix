@@ -100,7 +100,7 @@ in {
         userKnownHostsFile = "${config.xdg.stateHome}/ssh/known_hosts";
       };
 
-      services.ssh-agent.enable = true;
+      services.ssh-agent.enable = pkgs.stdenv.isLinux;
 
       programs.starship = {
         enable = defEnable;
@@ -243,7 +243,6 @@ in {
         age
         ansible
         binutils # 'strings' mostly
-        btrfs-progs
         curl
         curlie
         deploy-rs
@@ -253,9 +252,7 @@ in {
         duf
         e2fsprogs
         elinks
-        exfatprogs
         file
-        gdb
         git-annex
         git-crypt
         gnum4
@@ -281,18 +278,14 @@ in {
         ov
         p7zip
         parallel
-        parted
-        psmisc
         pv
         python3
         recode
-        reptyr
         ripgrep
         socat
         sops
         ssh-to-age
         sshfs
-        sysstat
         tcpdump
         trezor-agent
         unrar
@@ -300,7 +293,6 @@ in {
         wget
         which
         whois
-        wol
         yubikey-manager
         zip
       ];
@@ -377,7 +369,7 @@ in {
         fi
       '';
     })
-    (lib.mkIf config.hostConfig.feature.gui {
+    (lib.mkIf (config.hostConfig.feature.gui && pkgs.stdenv.isLinux) {
       home.packages = with pkgs; [
         gparted
       ];
@@ -394,6 +386,19 @@ in {
         };
       };
       impermanence.local-bind-directories = [ "${config.xdg.dataHome}/direnv" ];
+    })
+    (lib.mkIf pkgs.stdenv.isLinux {
+      home.packages = with pkgs; [
+        btrfs-progs
+        exfatprogs
+        gdb
+        parted
+        psmisc
+        reptyr
+        sysstat
+        wol
+      ];
+
     })
   ];
 }
