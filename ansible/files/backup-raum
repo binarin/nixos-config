@@ -21,4 +21,5 @@ for dataset in ${datasets[@]}
 do
     # zfs create -p $target/$(dirname $dataset)
     syncoid --quiet --insecure-direct-connection=192.168.2.68:63333 --no-rollback --delete-target-snapshots root@192.168.2.44:$dataset $target/$dataset
+    syncoid --quiet --insecure-direct-connection=192.168.2.68:63333 --no-rollback root@192.168.2.44:$dataset $target/$dataset
 done
