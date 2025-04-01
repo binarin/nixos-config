@@ -1,0 +1,11 @@
+[Unit]
+Description=Backup ZFS volumes from raum->bael using syncoid
+Wants=backup-raum.timer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/backup-raum
+User=root
+
+[Install]
+WantedBy=multi-user.target

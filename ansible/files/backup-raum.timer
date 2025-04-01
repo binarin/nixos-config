@@ -1,0 +1,11 @@
+[Unit]
+Description=Regularly copy snaphots of raum volumes that are important, but not enough to include them into a proper PBS backups
+Requires=backup-raum.service
+
+[Timer]
+Unit=backup-raum.service
+OnStartupSec=600
+OnUnitActiveSec=3600
+
+[Install]
+WantedBy=timers.target

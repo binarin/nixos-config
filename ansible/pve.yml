@@ -86,7 +86,24 @@
     - name: Copy and enable hourly raum->bael backup script
       copy:
         src: backup-raum
-        dest: /etc/cron.hourly/backup-raum
+        dest: /usr/local/bin/backup-raum
         mode: '0755'
         owner: root
         group: root
+
+    - name: create the backup-raum.service file
+      copy:
+        src: backup-raum.service
+        dest: /etc/systemd/system/backup-raum.service
+
+    - name: create the backup-raum.timer file
+      copy:
+        src: backup-raum.timer
+        dest: /etc/systemd/system/backup-raum.timer
+
+    - name: make sure that the backup-raum.timer is started
+      systemd:
+        name: backup-raum.timer
+        state: started
+        enabled: yes
+        daemon_reload: yes

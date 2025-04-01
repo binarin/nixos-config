@@ -21,5 +21,5 @@ target=spinning-zfs/raum-oob-backups
 for dataset in ${datasets[@]}
 do
     zfs create -p $target/$(dirname $dataset)
-    syncoid --quiet --insecure-direct-connection=192.168.2.68:63333 --no-rollback root@192.168.2.44:$dataset $target/$dataset
+    syncoid --sshkey /root/.ssh/id_rsa --insecure-direct-connection=192.168.2.68:63333 --no-rollback root@192.168.2.44:$dataset $target/$dataset
 done
