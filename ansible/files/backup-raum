@@ -14,12 +14,12 @@ datasets=(
     spinning-zfs/pve-data/subvol-111-disk-4 #,mp=/media/torrents/rare,backup=1
     spinning-zfs/pve-data/subvol-111-disk-5 #,mp=/media/tubearchivist
     spinning-zfs/pve-data/subvol-111-disk-6 #,mp=/media/annex
+    spinning-zfs/pve-data/subvol-111-disk-7 #,mp=/media/usenet
 )
 target=spinning-zfs/raum-oob-backups
 
 for dataset in ${datasets[@]}
 do
-    # zfs create -p $target/$(dirname $dataset)
-    syncoid --quiet --insecure-direct-connection=192.168.2.68:63333 --no-rollback --delete-target-snapshots root@192.168.2.44:$dataset $target/$dataset
+    zfs create -p $target/$(dirname $dataset)
     syncoid --quiet --insecure-direct-connection=192.168.2.68:63333 --no-rollback root@192.168.2.44:$dataset $target/$dataset
 done
