@@ -59,6 +59,28 @@ let
         sed -i -e "1 aexport emacsWithPackages_invocationDirectory=\"$out/bin\"" "$prog"
         sed -i -e "1 aexport emacsWithPackages_invocationName=\"$(basename "$prog" -wrapped | cut -c2-)\"" "$prog"
       done
+
+      cat << 'EOF' > env-sourcer
+      if [[ -z "''${__ETC_BASHRC_SOURCED-}" && -f /etc/bashrc ]]; then
+        . /etc/bashrc
+      fi
+
+      if [[ -z "''${__HM_SESS_VARS_SOURCED-}" && -f $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh ]]; then
+        . $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh
+      fi
+      EOF
+
+      if [ -d "$out/Applications/Emacs.app" ]; then
+        for prog in $out/Applications/Emacs.app/Contents/MacOS/.*-wrapped; do
+          sed -i -e "2 e cat env-sourcer" "$prog"
+          sed -i -e "1 aexport emacsWithPackages_invocationDirectory=\"$out/bin\"" "$prog"
+          sed -i -e "1 aexport emacsWithPackages_invocationName=\"$(basename "$prog" -wrapped | cut -c2-)\"" "$prog"
+        done
+      fi
+
+
+
+
     '';
   });
 
