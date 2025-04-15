@@ -64,6 +64,18 @@
 - hosts: pve
   become: true
   tasks:
+    - name: Set UDP receive buffer size (for tailscale in CTs)
+      ansible.posix.sysctl:
+        name: net.core.rmem_max
+        value: '10000000'
+    - name: Set UDP send buffer size (for tailscale in CTs)
+      ansible.posix.sysctl:
+        name: net.core.wmem_max
+        value: '10000000'
+
+- hosts: pve
+  become: true
+  tasks:
     - name: Install packages to use SSH key in tpm 2.0
       package:
         state: present
