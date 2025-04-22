@@ -34,6 +34,7 @@ let
       # emacs-lsp-booster
     ];
     package = cfg.basePackage.override (prev: {
+      withNativeCompilation = pkgs.stdenv.isLinux;
       siteStart = pkgs.writeText "site-start.el" (
         (builtins.readFile "${inputs.nixpkgs}/pkgs/applications/editors/emacs/site-start.el")
         + ''

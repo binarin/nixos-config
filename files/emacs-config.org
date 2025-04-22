@@ -3,12 +3,14 @@
 ** Early init
    Ideally, ~early-init.el~ should also get the copy of this block. Happens automatically with nix.
    #+begin_src emacs-lisp :tangle "early-init.el"
-          (startup-redirect-eln-cache
-           (file-name-concat
-            (or (getenv "IMPERMANENCE_LOCAL_CACHE")
-                (getenv "XDG_CACHE_HOME")
-                (expand-file-name "~/.cache"))
-            "emacs" "eln-cache/"))
+     (when (and (fboundp 'native-comp-available-p)
+                (native-comp-available-p))
+       (startup-redirect-eln-cache
+        (file-name-concat
+         (or (getenv "IMPERMANENCE_LOCAL_CACHE")
+             (getenv "XDG_CACHE_HOME")
+             (expand-file-name "~/.cache"))
+         "emacs" "eln-cache/")))
    #+end_src
 ** Common folders
    #+begin_src emacs-lisp :tangle yes
