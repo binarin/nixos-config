@@ -160,7 +160,10 @@
      (when (window-system)
        (toggle-scroll-bar -1)
        (tool-bar-mode -1))
-     (menu-bar-mode -1)
+
+     (unless (and (eq binarin/system-type 'darwin)
+                (window-system))
+         (menu-bar-mode -1))
 
      (setf (alist-get 'vertical-scroll-bars default-frame-alist) nil)
    #+END_SRC
