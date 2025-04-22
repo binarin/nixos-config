@@ -2,7 +2,7 @@
 let
   propagatedConfig = pkgs.writeText "stylix-vars.lua" ''
     local vars = {
-      fontName = "${lib.escapeShellArg (builtins.toString config.stylix.fonts.monospace.name)}",
+      fontName = ${lib.escapeShellArg (builtins.toString config.stylix.fonts.monospace.name)},
       fontSize = ${builtins.toString config.stylix.fonts.sizes.terminal},
     }
     return vars
