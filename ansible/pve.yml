@@ -91,7 +91,6 @@
         mode: '0644'
         owner: root
 
-
 - hosts: bael
   become: true
   tasks:
@@ -119,3 +118,17 @@
         state: started
         enabled: yes
         daemon_reload: yes
+
+
+- hosts: pve_at_home
+  tags: networking
+  become: true
+  vars:
+    ip_allocation: "{{ lookup('file', 'ip-allocation.yaml') | from_yaml }}"
+  tasks:
+    - name: Redirect tailscale DNS names to local IPs
+      lineinfile:
+        dest: /etc/hosts
+        state: present
+        line: '{{ ip_allocation[item].home.primary.address  }} {{ item }}.lynx-lizard.ts.net'
+      with_items: "{{ groups['pve_at_home'] | select('ne', inventory_hostname) }}"
