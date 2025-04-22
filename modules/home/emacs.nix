@@ -1,4 +1,4 @@
-{ flake, config, pkgs, lib, ... }:
+{ flake, config, pkgs, lib, hostConfig, ... }:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -132,13 +132,6 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      impermanence.persist-bind-directories-no-root = [ "org" ];
-
-      xdg.configFile."emacs/init.el".source = cfg.compiledConfig + "/init.el";
-      xdg.configFile."emacs/init.elc".source = cfg.compiledConfig + "/init.elc";
-      xdg.configFile."emacs/early-init.el".source = cfg.compiledConfig + "/early-init.el";
-      xdg.configFile."emacs/early-init.elc".source = cfg.compiledConfig + "/early-init.elc";
-
       home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
 
       home.packages = [
@@ -146,6 +139,21 @@ in
         tangle-emacs-org-babel-config
       ];
     }
+    (lib.optionalAttrs hostConfig.isLinux {
+      impermanence.persist-bind-directories-no-root = [ "org" ];
+
+      xdg.configFile."emacs/init.el".source = cfg.compiledConfig + "/init.el";
+      xdg.configFile."emacs/init.elc".source = cfg.compiledConfig + "/init.elc";
+      xdg.configFile."emacs/early-init.el".source = cfg.compiledConfig + "/early-init.el";
+      xdg.configFile."emacs/early-init.elc".source = cfg.compiledConfig + "/early-init.elc";
+    })
+
+    (lib.optionalAttrs hostConfig.isDarwin {
+      home.file.".emacs.d/init.el".source = cfg.compiledConfig + "/init.el";
+      home.file.".emacs.d/init.elc".source = cfg.compiledConfig + "/init.elc";
+      home.file.".emacs.d/early-init.el".source = cfg.compiledConfig + "/early-init.el";
+      home.file."emacs/early-init.elc".source = cfg.compiledConfig + "/early-init.elc";
+    })
 
     (lib.mkIf config.hostConfig.feature.gui {
       xdg.dataFile."applications/org-protocol.desktop".source = config.lib.self.file "org-protocol.desktop";
@@ -155,8 +163,6 @@ in
       };
 
       xdg.dataFile."icons/emacs/org.svg".source = config.lib.self.file "org.svg";
-
-      fonts.nerdfonts = [ "IosevkaTerm" ];
 
       home.packages = [
         pkgs.emacs-all-the-icons-fonts
