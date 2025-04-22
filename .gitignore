@@ -2,3 +2,4 @@
 result
 .direnv
 ansible/ssh-public-keys.yaml
+/ansible/home-network.yaml
