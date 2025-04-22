@@ -1,6 +1,7 @@
 {
   flake,
   config,
+  hostConfig,
   lib,
   pkgs,
   ...
@@ -19,7 +20,7 @@ in
 
     stylix.fonts = {
       sizes = {
-        terminal = 14;
+        terminal = if hostConfig.isDarwin then 20 else 14;
         desktop = 10;
         applications = 12;
       };

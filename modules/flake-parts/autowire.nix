@@ -46,13 +46,23 @@ let
   mkLinuxSystem =
     mod:
     inputs.nixpkgs.lib.nixosSystem {
-      inherit specialArgs;
+      specialArgs = specialArgs // {
+        hostConfig = {
+          isLinux = true;
+          isDarwin = false;
+        };
+      };
       modules = [ mod ];
     };
   mkDarwinSystem =
     mod:
     inputs.nix-darwin.lib.darwinSystem {
-      inherit specialArgs;
+      specialArgs = specialArgs // {
+        hostConfig = {
+          isLinux = false;
+          isDarwin = true;
+        };
+      };
       modules = [ mod ];
     };
 in
