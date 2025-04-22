@@ -3,3 +3,4 @@ result
 .direnv
 ansible/ssh-public-keys.yaml
 /ansible/home-network.yaml
+/ansible/ip-allocation.yaml

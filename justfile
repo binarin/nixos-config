@@ -117,7 +117,7 @@ deploy-boot-all: all
 [group('Ansible')]
 ansible-inventory:
     nix build --impure --expr 'let pkgs = import <nixpkgs> {}; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (import ./inventory/public-keys.nix)' -o ansible/ssh-public-keys.yaml
-    nix build --impure --expr 'let pkgs = import <nixpkgs> {}; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (import ./inventory/networks/home.nix)' -o ansible/home-network.yaml
+    nix build --impure --expr 'let pkgs = import <nixpkgs> {}; fl = builtins.getFlake "'$(pwd)'"; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (fl.helpers.networks-lookup.buildHostLookupTable (fl.helpers.networks-lookup.readRawInventory))' -o ansible/ip-allocation.yaml
 
 [group('Ansible')]
 [working-directory: 'ansible']
