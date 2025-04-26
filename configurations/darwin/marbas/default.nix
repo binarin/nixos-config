@@ -79,6 +79,7 @@
     home-manager.users.binarin = {osConfig, ...}: {
       imports = [
         flake.inputs.self.sharedModules.default
+        flake.inputs.self.homeModules.git
         flake.inputs.self.homeModules.emacs
         flake.inputs.self.homeModules.wezterm
         flake.inputs.self.homeModules.interactive-cli
@@ -87,6 +88,13 @@
       ];
       config = {
       	inherit (osConfig) hostConfig inventoryHostName;
+
+        # XXX duplicate
+        programs.git = {
+          userName = "Alexey Lebedeff";
+          userEmail = "binarin@binarin.info";
+        };
+
         home.stateVersion = "24.11";
         home.packages = with pkgs; [
           # telegram-desktop
