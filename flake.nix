@@ -11,6 +11,9 @@
     nix-darwin.url = "github:LnL7/nix-darwin/nix-darwin-24.11";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
+    nix-darwin-master.url = "github:LnL7/nix-darwin";
+    nix-darwin-master.inputs.nixpkgs.follows = "nixpkgs";
+
     # home-manager.url = "path:/home/binarin/personal-workspace/home-manager";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";

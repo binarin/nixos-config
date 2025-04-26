@@ -77,6 +77,8 @@ in
 
       homeModules = forAllNixFiles "${self}/modules/home" (fn: fn);
 
+      darwinModules = forAllNixFiles "${self}/modules/darwin" (fn: fn);
+
       overlays = forAllNixFiles "${self}/overlays" (fn: import fn specialArgs);
 
       sharedModules = forAllNixFiles "${self}/modules/shared" (fn: fn);

@@ -3,6 +3,7 @@
   imports = [
     flake.inputs.home-manager.darwinModules.home-manager
     flake.inputs.self.sharedModules.default
+    flake.inputs.self.darwinModules.touch-id
     flake.inputs.stylix.darwinModules.stylix
     flake.inputs.self.nixosModules.bleeding
     flake.inputs.mac-app-util.darwinModules.default
