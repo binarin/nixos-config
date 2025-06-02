@@ -25,6 +25,8 @@
       keep-derivations = true
     '';
 
+    nix.settings.trusted-users = [ "binarin" ];
+
     hostConfig.features = [
       "interactive-cli"
       "emacs"

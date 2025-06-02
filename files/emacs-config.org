@@ -1123,6 +1123,12 @@
        :ensure t
        :mode "\\.scad\\'")
    #+end_src
+** Haskell
+   #+begin_src emacs-lisp :tangle yes
+     (use-package haskell-mode
+       :ensure t
+       :mode "\\.hs\\'")
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
