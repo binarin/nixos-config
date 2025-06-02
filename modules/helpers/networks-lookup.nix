@@ -93,5 +93,5 @@ let
     else
       throw "Should be a singleton attrSet, but has ${builtins.toJSON keys}";
 in {
-  inherit readRawInventory buildHostLookupTable normalizeIpam;
+  inherit readRawInventory buildHostLookupTable normalizeIpam taggedHostnames;
 }

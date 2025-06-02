@@ -9,7 +9,7 @@ let
   inherit (flake) inputs;
   inherit (inputs) self;
 
-  inherit (self.helpers.networks-lookup) normalizeIpam;
+  inherit (self.helpers.networks-lookup) normalizeIpam taggedHostnames;
 
   networks = self.helpers.networks-lookup.readRawInventory;
   networksLookup = self.helpers.networks-lookup.buildHostLookupTable networks;
