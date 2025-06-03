@@ -28,7 +28,6 @@ let
     mplayer
     insync
     protonvpn-cli
-    skypeforlinux
     steam-run
     texlive-combined
     usbutils.python
