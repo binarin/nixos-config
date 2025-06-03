@@ -239,7 +239,7 @@ in
           service = {
             container_name = "tubearchivist";
             restart = "unless-stopped";
-            image = "bbilly1/tubearchivist:v0.4.13";
+            image = "bbilly1/tubearchivist:v0.5.2";
             ports = [ "8001:8000" ];
             volumes = [
               "/media/tubearchivist:/youtube"
@@ -247,10 +247,10 @@ in
             ];
             environment = {
               ES_URL = "http://archivist-es:9200"; # needs protocol e.g. http and port
-              REDIS_HOST = "archivist-redis"; # don't add protocol
+              REDIS_CON = "redis://archivist-redis:6379";
               HOST_UID = "1000";
               HOST_GID = "1000";
-              TA_HOST = "ta.binarin.info";
+              TA_HOST = "https://ta.binarin.info";
               TZ = "Europe/Amsterdam"; # set your time zone
             };
             env_file = [
@@ -307,11 +307,11 @@ in
         };
         archivist-redis = {
           service = {
-            image = "redis/redis-stack-server";
+            image = "redis";
             container_name = "archivist-redis";
             restart = "unless-stopped";
             environment = {
-              REDISEARCH_ARGS = "MAXSEARCHRESULTS 30000";
+              # REDISEARCH_ARGS = "MAXSEARCHRESULTS 30000";
             };
             expose = [ "6379" ];
             volumes = [ "/var/lib/tubearchivist/redis:/data" ];
