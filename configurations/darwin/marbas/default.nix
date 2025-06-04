@@ -65,6 +65,7 @@
       ripgrep
       openssh
       vscode
+      mosh
     ];
 
     environment.shells = with pkgs; [

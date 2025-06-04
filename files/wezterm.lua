@@ -99,4 +99,13 @@ config.window_frame = {
    -- inactive_titlebar_bg = '',
 }
 
+config.launch_menu = {
+   {
+      label = "MOSH:valak",
+      args = {
+         "bash", "--login", "-c", "mosh valak",
+      },
+   },
+}
+
 return config
