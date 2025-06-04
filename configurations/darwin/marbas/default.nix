@@ -87,7 +87,7 @@
         flake.inputs.self.homeModules.wezterm
         flake.inputs.self.homeModules.interactive-cli
         flake.inputs.self.homeModules.impermanence
-        flake.inputs.mac-app-util.homeModules.default
+        flake.inputs.mac-app-util.homeManagerModules.default
       ];
       config = {
       	inherit (osConfig) hostConfig inventoryHostName;
