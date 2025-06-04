@@ -13,6 +13,8 @@ in {
     };
 
     services.openssh.enable = true;
+    services.openssh.settings.PermitRootLogin = lib.mkForce "yes";
+
     services.tailscale.enable = true;
 
     environment.systemPackages = with pkgs; [
