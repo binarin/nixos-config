@@ -30,7 +30,7 @@ in {
       [
         freecad-dpi-wrapper
         openscad-unstable
-        bleeding.prusa-slicer
+        prusa-slicer
       ];
   };
 }

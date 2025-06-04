@@ -4,12 +4,9 @@ let
   fzf_show_file_or_dir_preview="if [ -d {} ]; then lsd --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi";
 in {
 
-  # XXX 2025-01-31 daemon mode for atuin, maybe remove soon - otherwise some zfs-related warnings
   imports = [
-    ./atuin-copy-from-hm-6aa38ffdf77fb4250f5d832fd5a09eb99226fba7.nix
     flake.inputs.nix-index-database.hmModules.nix-index
   ];
-  disabledModules = [ "${flake.inputs.home-manager}/modules/programs/atuin.nix" ];
 
   options = {
     programs.doggo.enable = lib.mkEnableOption "Install `doggo` (`dig` replacement)";
@@ -21,7 +18,6 @@ in {
 
       programs.atuin = {
         enable = defEnable;
-        package = pkgs.bleeding.atuin; # at least 18.4.0 for proper socket handling on impermanence machines
         enableZshIntegration = defEnable;
         enableBashIntegration = defEnable;
         settings = {
@@ -166,7 +162,7 @@ in {
           dl = config.xdg.userDirs.download;
         };
 
-        initExtra = ''
+        initContent = ''
           # Dir=/some/path
           # cd ~Dir
           setopt cdablevars
@@ -304,7 +300,7 @@ in {
       programs.doggo.enable = true;
       programs.fd.enable = true;
       programs.lsd.enable = true;
-      programs.zsh.initExtra = ''
+      programs.zsh.initContent = ''
         _fzf_comprun() {
           local command=$1
           shift
@@ -353,12 +349,8 @@ in {
         STARSHIP_CACHE = lib.mkDefault "${config.xdg.cacheHome}/starship";
       };
     })
-    (lib.mkIf config.programs.zellij.enable {
-      xdg.configFile."zellij/config.kdl".source = config.lib.self.file "zellij.kdl";
-      home.sessionVariables."ZELLIJ_CONFIG_FILE" = "${config.xdg.configHome}/zellij/config.kdl";
-    })
     (lib.mkIf config.programs.zsh.syntaxHighlighting.enable {
-      programs.zsh.initExtra = ''
+      programs.zsh.initContent = ''
         # there is an option in home-manager module, but then I can't set it dynamically
         source ${pkgs.zsh-syntax-highlighting}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
         ZSH_HIGHLIGHT_STYLES+=('comment' 'fg=white,bold')

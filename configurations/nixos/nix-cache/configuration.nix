@@ -125,7 +125,7 @@ in
           bash
           coreutils
           curl
-          bleeding.forgejo-cli
+          forgejo-cli
           gawk
           gitMinimal
           gnused

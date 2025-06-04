@@ -1110,13 +1110,6 @@
        :ensure t
        :mode "\\.ps1\\'")
    #+end_src
-** KDL mode
-   #+begin_src emacs-lisp :tangle yes
-     (use-package kdl-ts-mode
-       :ensure t
-       :no-require t
-       :mode "\\.kdl\\'")
-   #+end_src
 ** OpenSCAD
    #+begin_src emacs-lisp :tangle yes
      (use-package scad-mode

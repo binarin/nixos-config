@@ -1,21 +1,21 @@
 {
   inputs = {
     # nixpkgs.url = "path:/home/binarin/personal-workspace/nixpkgs";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
 
     mac-app-util.url = "github:hraban/mac-app-util";
     mac-app-util.inputs.nixpkgs.follows = "nixpkgs";
 
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-24.11-darwin";
-    nix-darwin.url = "github:LnL7/nix-darwin/nix-darwin-24.11";
+    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.05-darwin";
+    nix-darwin.url = "github:LnL7/nix-darwin/nix-darwin-25.05";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     nix-darwin-master.url = "github:LnL7/nix-darwin";
     nix-darwin-master.inputs.nixpkgs.follows = "nixpkgs";
 
     # home-manager.url = "path:/home/binarin/personal-workspace/home-manager";
-    home-manager.url = "github:nix-community/home-manager/release-24.11";
+    home-manager.url = "github:nix-community/home-manager/release-25.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     disko.url = "github:nix-community/disko";
@@ -34,7 +34,7 @@
 
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
-      ref = "refs/tags/v0.47.1";
+      ref = "refs/tags/v0.49.0";
       type = "git";
       submodules = true;
       inputs.nixpkgs.follows = "nixpkgs";
@@ -52,15 +52,12 @@
     hyprland-contrib.inputs.nixpkgs.follows = "nixpkgs";
 
     # Software inputs
-    stylix.url = "github:danth/stylix/release-24.11";
+    stylix.url = "github:danth/stylix/release-25.05";
     stylix.inputs.home-manager.follows = "home-manager";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
 
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
-
-    nixos-generators.url = "github:nix-community/nixos-generators/1.8.0";
-    nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
 
     caddy-cloudflare.url = "github:binarin/caddy-with-plugins";
     caddy-cloudflare.inputs.nixpkgs.follows = "nixpkgs"; # golang < 1.23 - see https://github.com/nix-community/gomod2nix/issues/117

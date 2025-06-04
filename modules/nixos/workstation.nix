@@ -3,7 +3,7 @@
   config = lib.mkIf config.hostConfig.feature.workstation {
     environment.systemPackages = with pkgs; [
       sddm-astronaut
-      bleeding.sddm-chili-theme
+      sddm-chili-theme
     ];
 
     hardware.bluetooth = {

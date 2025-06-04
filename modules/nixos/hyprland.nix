@@ -15,18 +15,18 @@ in
 
     nixpkgs.overlays = [
       inputs.hyprland-contrib.overlays.default
-      inputs.hyprland.overlays.default
+      # inputs.hyprland.overlays.default
       ( final: prev: {
-        hypridle = prev.hypridle.override {
-          stdenv = prev.gcc14Stdenv;
-        };
-        hyprlock = prev.hyprlock.override {
-          stdenv = prev.gcc14Stdenv;
-        };
-        hyprpicker = final.bleeding.hyprpicker;
-        xdg-desktop-portal-hyprland = prev.xdg-desktop-portal-hyprland.override {
-          stdenv = prev.gcc14Stdenv;
-        };
+        # hypridle = prev.hypridle.override {
+        #   stdenv = prev.gcc14Stdenv;
+        # };
+        # hyprlock = prev.hyprlock.override {
+        #   stdenv = prev.gcc14Stdenv;
+        # };
+        # hyprpicker = final.bleeding.hyprpicker;
+        # xdg-desktop-portal-hyprland = prev.xdg-desktop-portal-hyprland.override {
+        #   stdenv = prev.gcc14Stdenv;
+        # };
         uwsm = prev.uwsm.overrideAttrs {
           version = "0.20.5-dev-5fafff9";
           src = pkgs.fetchFromGitHub {

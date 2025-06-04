@@ -13,43 +13,16 @@ let
     ${cleanup-unicode-from-emacs-org-babel-config} ${config.lib.self.file cfg.orgBabelConfig} > $out
   '';
 
-  kdl-ts-mode = {melpaBuild}: melpaBuild {
-    pname = "kdl-ts-mode";
-    version = "20240106.01";
-    src = pkgs.fetchFromGitHub {
-      owner = "dataphract";
-        repo = "kdl-ts-mode";
-        rev = "3dbf116cd19261d8d70f456ae3385e1d20208452";
-        hash = "sha256-4bfKUzzLhBFg4TeGQD0dClumcO4caIBU8/uRncFVVFQ=";
-    };
-  };
-
   finalEmacsPackage = (pkgs.emacsWithPackagesFromUsePackage {
     override = epkgs: epkgs // {
-      kdl-ts-mode = kdl-ts-mode {inherit (epkgs) melpaBuild; };
+      # kdl-ts-mode = kdl-ts-mode {inherit (epkgs) melpaBuild; };
     };
     extraEmacsPackages = epkgs: with epkgs; [
       treesit-grammars.with-all-grammars
-      lsp-bridge
+      # lsp-bridge
       # emacs-lsp-booster
     ];
-    package = cfg.basePackage.override (prev: {
-      withNativeCompilation = pkgs.stdenv.isLinux;
-      siteStart = pkgs.writeText "site-start.el" (
-        (builtins.readFile "${inputs.nixpkgs}/pkgs/applications/editors/emacs/site-start.el")
-        + ''
-            (let ((dir (getenv "emacsWithPackages_invocationDirectory")))
-              (when dir
-                (setq invocation-directory (file-name-as-directory dir))
-                (setenv "emacsWithPackages_invocationDirectory" nil)))
-
-            (let ((name (getenv "emacsWithPackages_invocationName")))
-              (when name
-                (setq invocation-name name)
-                (setenv "emacsWithPackages_invocationName" nil)))
-        ''
-      );
-    });
+    package = cfg.basePackage;
     config = orgBabelConfigWithoutUnicode;
   }).overrideAttrs (prev: {
     # Can't get directly to wrapper, it's referenced only as

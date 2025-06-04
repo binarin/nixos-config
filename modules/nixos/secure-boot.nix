@@ -20,7 +20,7 @@ in {
   };
   config = lib.mkIf config.hostConfig.feature.secure-boot {
     environment.systemPackages = with pkgs; [
-      bleeding.sbctl # 0.16 respects sbctl.conf
+      sbctl
     ];
     environment.etc."sbctl/sbctl.conf".source = yamlFormat.generate "sbctl.conf" config.programs.sbctl.config;
 

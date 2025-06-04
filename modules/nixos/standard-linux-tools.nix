@@ -34,8 +34,7 @@ in {
     environment.enableAllTerminfo = true;
 
     services.locate = {
-      enable = defEnable;
-      localuser = "root";
+      enable = config.hostConfig.feature.interactive-cli;
     };
   };
 }

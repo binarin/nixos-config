@@ -33,7 +33,7 @@ in
 
     xdg.portal.extraPortals = [
       pkgs.kdePackages.kwallet
-      pkgs.xdg-portal-kde
+      pkgs.kdePackages.xdg-desktop-portal-kde
     ];
 
     xdg.configFile = lib.mapAttrs' (name: value: lib.nameValuePair "autostart/${name}.desktop" {
@@ -73,7 +73,7 @@ in
       extraConfig = ''
         allow-preset-passphrase
       '';
-      pinentryPackage = pkgs.pinentry-gtk2;
+      pinentry.package = pkgs.pinentry-gtk2;
     };
 
     wayland.windowManager.hyprland = {

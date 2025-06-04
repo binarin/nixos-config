@@ -7,7 +7,7 @@
 }:
 {
   imports = [
-    flake.inputs.stylix.homeManagerModules.stylix
+    flake.inputs.stylix.homeModules.stylix
   ];
   config = {
     # XXX Another copy in nixos/stylix.nix
