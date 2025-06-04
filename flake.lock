@@ -131,11 +131,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1749041902,
-        "narHash": "sha256-fUDf3WVqAAcn/wy4EaIjOepUHO4kvf3v6Cxfh3HHIRU=",
+        "lastModified": 1749042819,
+        "narHash": "sha256-/ZbRGICfWe6RMsc40BuvDh0sHiaKawUZdZfS2Ox0uVg=",
         "owner": "binarin",
         "repo": "caddy-with-plugins",
-        "rev": "6be8544fa0b9dde7747cd071a90a11780cfcd8fa",
+        "rev": "8e9fcbec685560c4c5b559e86120d64dd8e911af",
         "type": "github"
       },
       "original": {
