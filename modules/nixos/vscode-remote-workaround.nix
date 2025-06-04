@@ -12,8 +12,8 @@ in
     enable = lib.mkEnableOption "automatic VSCode remote server patch";
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.nodejs-18_x;
-      defaultText = lib.literalExpression "pkgs.nodejs-18_x";
+      default = pkgs.nodejs_22;
+      defaultText = lib.literalExpression "pkgs.nodejs-22_x";
       description = lib.mdDoc "The Node.js package to use. You generally shouldn't need to override this.";
     };
   };
