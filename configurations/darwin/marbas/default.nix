@@ -56,6 +56,7 @@
     nixpkgs.hostPlatform = "aarch64-darwin";
     nix.settings.experimental-features = "nix-command flakes";
     system.stateVersion = 5;
+    system.primaryUser = "binarin";
     environment.darwinConfig = "$HOME/personal-workspace/nixos-config";
     environment.systemPackages = with pkgs; [
       vim
