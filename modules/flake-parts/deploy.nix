@@ -7,7 +7,7 @@ let
   deployPkgs = import inputs.nixpkgs {
     inherit system;
     overlays = [
-      inputs.deploy-rs.overlay # or deploy-rs.overlays.default
+      inputs.deploy-rs.overlays.default
       (self: super: {
         deploy-rs = {
           inherit (unmodifiedPkgs) deploy-rs;
