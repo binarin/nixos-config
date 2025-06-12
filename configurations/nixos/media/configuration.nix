@@ -354,8 +354,8 @@ in
 
   sops.templates."linkwarden-env".content = ''
     NEXTAUTH_URL=http://localhost:3000/api/v1/auth
-    NEXTAUTH_SECRET="${config.sops.placeholder."linkwarden/nextauth-secret"}"
-    POSTGRES_PASSWORD="${config.sops.placeholder."linkwarden/postgres-password"}"
+    NEXTAUTH_SECRET=${config.sops.placeholder."linkwarden/nextauth-secret"}
+    POSTGRES_PASSWORD=${config.sops.placeholder."linkwarden/postgres-password"}
   '';
 
   virtualisation.arion.projects.linkwarden = {
