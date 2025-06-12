@@ -356,6 +356,11 @@ in
     NEXTAUTH_URL=http://localhost:3000/api/v1/auth
     NEXTAUTH_SECRET=${config.sops.placeholder."linkwarden/nextauth-secret"}
     POSTGRES_PASSWORD=${config.sops.placeholder."linkwarden/postgres-password"}
+
+  '';
+
+  sops.templates."linkwarden-database-url-env".content = ''
+    DATABASE_URL = "postgresql://postgres:${config.sops.placeholder."linkwarden/postgres-password"}@postgres:5432/postgres";
   '';
 
   virtualisation.arion.projects.linkwarden = {
@@ -375,10 +380,8 @@ in
         linkwarden.service = {
           env_file = [
             config.sops.templates."linkwarden-env".path
+            config.sops.templates."linkwarden-database-url-env".path
           ];
-          environment = {
-            DATABASE_URL = "postgresql://postgres:\${POSTGRES_PASSWORD}@postgres:5432/postgres";
-          };
           restart = "unless-stopped";
           image = "ghcr.io/linkwarden/linkwarden:latest";
           ports = [ "3000:3000" ];
