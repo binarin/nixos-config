@@ -349,6 +349,62 @@ in
     }
   '';
 
+  sops.secrets."linkwarden/nextauth-secret" = { };
+  sops.secrets."linkwarden/postgres-password" = { };
+
+  sops.templates."linkwarden-env".content = ''
+    NEXTAUTH_URL=http://localhost:3000/api/v1/auth
+    NEXTAUTH_SECRET="${config.sops.placeholder."linkwarden/nextauth-secret"}"
+    POSTGRES_PASSWORD="${config.sops.placeholder."linkwarden/postgres-password"}"
+  '';
+
+  virtualisation.arion.projects.linkwarden = {
+    serviceName = "linkwarden-docker-compose";
+    settings = {
+      services = {
+        postgres = {
+          image = "postgres:16-alpine";
+          env_file = [
+            config.sops.templates."linkwarden-env".path
+          ];
+          restart = "unless-stopped";
+          volumes = [
+            "/var/lib/linkwarden/postgres-data:/var/lib/postgresql/data"
+          ];
+        };
+        linkwarden = {
+          env_file = [
+            config.sops.templates."linkwarden-env".path
+          ];
+          environment = {
+            DATABASE_URL = "postgresql://postgres:\${POSTGRES_PASSWORD}@postgres:5432/postgres";
+          };
+          restart = "unless-stopped";
+          image = "ghcr.io/linkwarden/linkwarden:latest";
+          ports = [ "3000:3000" ];
+          volumes = [
+            "/var/lib/linkwarden/linkwarden-data:/data/data"
+          ];
+          depends_on = [
+            "postgres"
+            "meilisearch"
+          ];
+        };
+        meilisearch = {
+          image = "getmeili/meilisearch:v1.12.8";
+          restart = "unless-stopped";
+          env_file = [
+            config.sops.templates."linkwarden-env".path
+          ];
+          volumes = [
+            "/var/lib/linkwarden/meilisearch-data:/meili_data"
+          ];
+        };
+      };
+    };
+  };
+
+
   virtualisation.arion.projects.qbittorrent = {
     serviceName = "qbittorrent-docker-compose";
     settings.services.qbittorrent = {
