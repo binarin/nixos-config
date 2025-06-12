@@ -362,7 +362,7 @@ in
     serviceName = "linkwarden-docker-compose";
     settings = {
       services = {
-        postgres = {
+        postgres.service = {
           image = "postgres:16-alpine";
           env_file = [
             config.sops.templates."linkwarden-env".path
@@ -372,7 +372,7 @@ in
             "/var/lib/linkwarden/postgres-data:/var/lib/postgresql/data"
           ];
         };
-        linkwarden = {
+        linkwarden.service = {
           env_file = [
             config.sops.templates."linkwarden-env".path
           ];
@@ -390,7 +390,7 @@ in
             "meilisearch"
           ];
         };
-        meilisearch = {
+        meilisearch.service = {
           image = "getmeili/meilisearch:v1.12.8";
           restart = "unless-stopped";
           env_file = [
