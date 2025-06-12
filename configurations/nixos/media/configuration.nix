@@ -352,6 +352,15 @@ in
   sops.secrets."linkwarden/nextauth-secret" = { };
   sops.secrets."linkwarden/postgres-password" = { };
 
+
+  services.caddy.virtualHosts."linkwarden.binarin.info".extraConfig = ''
+    reverse_proxy http://127.0.0.1:3000
+    tls {
+        dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
+        resolvers 1.1.1.1
+    }
+  '';
+
   sops.templates."linkwarden-env".content = ''
     NEXTAUTH_URL=http://localhost:3000/api/v1/auth
     NEXTAUTH_SECRET=${config.sops.placeholder."linkwarden/nextauth-secret"}
