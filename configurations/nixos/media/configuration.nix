@@ -365,7 +365,8 @@ in
     NEXTAUTH_URL=http://localhost:3000/api/v1/auth
     NEXTAUTH_SECRET=${config.sops.placeholder."linkwarden/nextauth-secret"}
     POSTGRES_PASSWORD=${config.sops.placeholder."linkwarden/postgres-password"}
-
+    NEXT_PUBLIC_DISABLE_REGISTRATION=true
+    DISABLE_NEW_SSO_USERS=true
   '';
 
   sops.templates."linkwarden-database-url-env".content = ''
