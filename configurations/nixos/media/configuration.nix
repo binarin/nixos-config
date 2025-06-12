@@ -360,7 +360,7 @@ in
   '';
 
   sops.templates."linkwarden-database-url-env".content = ''
-    DATABASE_URL = "postgresql://postgres:${config.sops.placeholder."linkwarden/postgres-password"}@postgres:5432/postgres";
+    DATABASE_URL="postgresql://postgres:${config.sops.placeholder."linkwarden/postgres-password"}@postgres:5432/postgres"
   '';
 
   virtualisation.arion.projects.linkwarden = {
