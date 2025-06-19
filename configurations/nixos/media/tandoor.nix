@@ -27,7 +27,7 @@
       }
     '';
 
-    virtualisation.arion.projects.tandoot = {
+    virtualisation.arion.projects.tandoor = {
       serviceName = "tandoor-docker-compose";
       settings.services = {
         db_recipes.service = {
