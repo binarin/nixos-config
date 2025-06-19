@@ -24,6 +24,10 @@ let
   };
 in
 {
+  imports = [
+    ./tandoor.nix
+  ];
+
   services.avahi = {
     enable = true;
     allowInterfaces = [ "eth0" ];
