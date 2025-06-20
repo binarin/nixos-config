@@ -20,6 +20,10 @@
     '';
 
     services.caddy.virtualHosts."tandoor.binarin.info".extraConfig = ''
+      file_server /media/* {
+        root /var/lib/tandoor/mediafiles
+      }
+
       reverse_proxy http://127.0.0.1:8081
       tls {
           dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
@@ -49,30 +53,9 @@
           ];
           volumes = [
             "/var/lib/tandoor/staticfiles:/opt/recipes/staticfiles"
-
-            # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
-            # XXX?
-            # "/var/lib/tandoor/nginx_config:/opt/recipes/nginx/conf.d"
-            "nginx_config:/opt/recipes/nginx/conf.d"
             "/var/lib/tandoor/mediafiles:/opt/recipes/mediafiles"
           ];
           depends_on = [ "db_recipes" ];
-        };
-
-        nginx_recipes.service = {
-          image = "nginx:mainline-alpine";
-          restart = "unless-stopped";
-          ports = [ "8081:80" ];
-          env_file = [
-            config.sops.templates.tandoor-env.path
-          ];
-          depends_on = [ "web_recipes" ];
-          volumes = [
-            # "/var/lib/tandoor/nginx_config:/etc/nginx/conf.d:ro"
-            "nginx_config:/opt/recipes/nginx/conf.d"
-            "/var/lib/tandoor/staticfiles:/static:ro"
-            "/var/lib/tandoor/mediafiles:/media:ro"
-          ];
         };
       };
     };
