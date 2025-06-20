@@ -32,6 +32,11 @@
       import letsencrypt
     '';
 
+    systemd.services.caddy.serviceConfig.ReadOnlyPaths = [
+      "/var/lib/tandoor/staticfiles"
+      "/var/lib/tandoor/mediafiles"
+    ];
+
     virtualisation.arion.projects.tandoor = {
       serviceName = "tandoor-docker-compose";
       settings.docker-compose.volumes.nginx_config = {};
