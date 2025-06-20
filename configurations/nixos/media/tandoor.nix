@@ -24,6 +24,10 @@
         root /var/lib/tandoor/mediafiles
       }
 
+      file_server /static/* {
+        root /var/lib/tandoor/staticfiles
+      }
+
       reverse_proxy http://127.0.0.1:8081
       tls {
           dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
