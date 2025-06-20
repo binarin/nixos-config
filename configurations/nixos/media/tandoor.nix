@@ -29,10 +29,7 @@
       }
 
       reverse_proxy http://127.0.0.1:8081
-      tls {
-          dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-          resolvers 1.1.1.1
-      }
+      import letsencrypt
     '';
 
     virtualisation.arion.projects.tandoor = {
