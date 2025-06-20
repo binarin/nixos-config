@@ -47,7 +47,7 @@
         };
         web_recipes.service = {
           restart = "unless-stopped";
-          image = "vabene1111/recipes";
+          image = "vabene1111/recipes:1.5.34";
           ports = [
             "8081:8080"
           ];
