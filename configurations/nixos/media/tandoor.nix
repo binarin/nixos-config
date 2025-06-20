@@ -20,15 +20,15 @@
     '';
 
     services.caddy.virtualHosts."tandoor.binarin.info".extraConfig = ''
-      file_server /media/* browse {
-        root /var/lib/tandoor/mediafiles
-      }
+      route {
+        file_server /media/* browse {
+          root /var/lib/tandoor/mediafiles
+        }
 
-      file_server /static/* {
-        root /var/lib/tandoor/staticfiles
-      }
+        file_server /static/* {
+          root /var/lib/tandoor/staticfiles
+        }
 
-      route * {
         reverse_proxy http://127.0.0.1:8081
       }
 
