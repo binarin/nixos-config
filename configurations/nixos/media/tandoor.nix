@@ -29,7 +29,7 @@
 
     virtualisation.arion.projects.tandoor = {
       serviceName = "tandoor-docker-compose";
-      settings.volumes = [
+      settings.docker-compose.volumes = [
         "nginx_config"
       ];
       settings.services = {
