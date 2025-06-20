@@ -29,6 +29,9 @@
 
     virtualisation.arion.projects.tandoor = {
       serviceName = "tandoor-docker-compose";
+      settings.volumes = [
+        "nginx_config"
+      ];
       settings.services = {
         db_recipes.service = {
           restart = "unless-stopped";
@@ -51,8 +54,8 @@
 
             # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
             # XXX?
-            "/var/lib/tandoor/nginx_config:/opt/recipes/nginx/conf.d"
-
+            # "/var/lib/tandoor/nginx_config:/opt/recipes/nginx/conf.d"
+            "nginx_config:/opt/recipes/nginx/conf.d"
             "/var/lib/tandoor/mediafiles:/opt/recipes/mediafiles"
           ];
           depends_on = [ "db_recipes" ];
@@ -67,7 +70,8 @@
           ];
           depends_on = [ "web_recipes" ];
           volumes = [
-            "/var/lib/tandoor/nginx_config:/etc/nginx/conf.d:ro"
+            # "/var/lib/tandoor/nginx_config:/etc/nginx/conf.d:ro"
+            "nginx_config:/opt/recipes/nginx/conf.d"
             "/var/lib/tandoor/staticfiles:/static:ro"
             "/var/lib/tandoor/mediafiles:/media:ro"
           ];
