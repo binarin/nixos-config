@@ -20,7 +20,7 @@
     '';
 
     services.caddy.virtualHosts."tandoor.binarin.info".extraConfig = ''
-      file_server /media/* {
+      file_server /media/* browse {
         root /var/lib/tandoor/mediafiles
       }
 
