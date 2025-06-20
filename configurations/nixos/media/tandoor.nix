@@ -20,11 +20,13 @@
     '';
 
     services.caddy.virtualHosts."tandoor.binarin.info".extraConfig = ''
-      route {
-        file_server /media/* browse {
-          root /var/lib/tandoor/mediafiles
-        }
+      handle_path /media/* {
+        root * /var/lib/tandoor/mediafiles
+        header Content-Disposition `"attachment; filename="{file}"`
+        file_server browse
+      }
 
+      route {
         file_server /static/* {
           root /var/lib/tandoor/staticfiles
         }
