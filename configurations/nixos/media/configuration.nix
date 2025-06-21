@@ -620,5 +620,7 @@ in
   '';
   services.atuin.enable = true;
 
+  services.atuin.openRegistration = true;
+
   system.stateVersion = "24.05";
 }
