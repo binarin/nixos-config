@@ -618,9 +618,8 @@ in
     reverse_proxy http://127.0.0.1:8888
     import letsencrypt
   '';
-  services.atuin.enable = true;
 
-  services.atuin.openRegistration = true;
+  services.atuin.enable = true;
 
   system.stateVersion = "24.05";
 }
