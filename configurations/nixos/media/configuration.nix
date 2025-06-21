@@ -614,6 +614,10 @@ in
     }
   '';
 
+  services.caddy.virtualHosts."atuin.binarin.info".extraConfig = ''
+    reverse_proxy http://127.0.0.1:8888
+    import letsencrypt
+  '';
   services.atuin.enable = true;
 
   system.stateVersion = "24.05";

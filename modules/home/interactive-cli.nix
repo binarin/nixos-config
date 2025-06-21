@@ -22,6 +22,7 @@ in {
         enableBashIntegration = defEnable;
         settings = {
           search_mode = "fuzzy";
+          sync_address = "https://atuin.binarin.info";
         };
         daemon.enable = defEnable;
       };
