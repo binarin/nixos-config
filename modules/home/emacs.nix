@@ -126,6 +126,8 @@ in
       home.file.".emacs.d/init.elc".source = cfg.compiledConfig + "/init.elc";
       home.file.".emacs.d/early-init.el".source = cfg.compiledConfig + "/early-init.el";
       home.file."emacs/early-init.elc".source = cfg.compiledConfig + "/early-init.elc";
+
+      home.packages = with pkgs; [ terminal-notifier ];
     })
 
     (lib.mkIf config.hostConfig.feature.gui {
