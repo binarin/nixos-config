@@ -1706,12 +1706,16 @@
        (org-roam-dailies-capture-templates
         '(("d" "default" entry "* %<%H:%M>: %?"
            :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
-       :bind (("C-c n f" . org-roam-node-find)
-              ("C-c n i" . org-roam-node-insert)
-              ("C-c n l" . org-roam-buffer-toggle))
+       :functions (org-roam-node-find
+                   org-roam-node-insert
+                   org-roam-buffer-toggle)
        :config
        (org-roam-db-autosync-mode 1))
 
+     (general-define-key
+      "C-c n f" 'org-roam-node-find
+      "C-c n i" 'org-roam-node-insert
+      "C-c n l" 'org-roam-buffer-toggle)
 
      (with-eval-after-load "org-roam"
        (cl-defmethod org-roam-node-maybe-file-and-title ((node org-roam-node))
@@ -1728,7 +1732,6 @@
      (use-package org-roam-dailies
        :bind-keymap
        (("C-c n d" . org-roam-dailies-map))
-       :bind
        (:map org-roam-dailies-map
              ("Y" . org-roam-dailies-capture-yesterday)
              ("T" . org-roam-dailies-capture-tomorrow)))
