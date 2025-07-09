@@ -770,15 +770,37 @@
 
 ** TRAMP
    #+begin_src emacs-lisp :tangle yes
+     (use-package tramp
+       :functions tramp-compile-disable-ssh-controlmaster-options)
+
      (eval-after-load "tramp"
        (general-setq tramp-login-prompt-regexp ".*\\(user\\|login\\|2FA Token\\)\\( .*\\)?: *"))
 
-     (general-setq remote-file-name-inhibit-delete-by-moving-to-trash t)
+     (general-setq
+      remote-file-name-inhibit-delete-by-moving-to-trash t
+      tramp-use-scp-direct-remote-copying t
+      remote-file-name-inhibit-auto-save-visited t
+      tramp-copy-size-limit (* 1024 1024) ;; 1MB
+      tramp-verbose 2)
 
      (setq vc-ignore-dir-regexp
            (format "\\(%s\\)\\|\\(%s\\)"
                    vc-ignore-dir-regexp
                    tramp-file-name-regexp))
+
+     (connection-local-set-profile-variables
+      'remote-direct-async-process
+      '((tramp-direct-async-process . t)))
+
+     (connection-local-set-profiles
+      '(:application tramp :protocol "scp")
+      'remote-direct-async-process)
+
+     (setq magit-tramp-pipe-stty-settings 'pty)
+
+     (with-eval-after-load 'tramp
+       (with-eval-after-load 'compile
+         (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
    #+end_src
 ** Direnv
    #+begin_src emacs-lisp :tangle yes
