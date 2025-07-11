@@ -318,7 +318,8 @@
         '("<escape>" . ignore)))
 
      (use-package meow
-       :functions meow-motion-define-key meow-normal-define-key meow-leader-define-key
+       :functions meow-motion-define-key meow-normal-define-key meow-leader-define-key meow-define-keys meow-register-state
+       meow--set-cursor-color meow--set-cursor-type meow-update-display meow--disable-current-state
        :defines meow-cheatsheet-layout meow-cheatsheet-layout-qwerty
        :ensure t
        :config
@@ -326,7 +327,47 @@
        (meow-setup)
        (meow-global-mode))
 
+     (defvar meow-org-motion-keymap (make-keymap))
 
+     (meow-define-state org-motion
+       "Org-mode structural motion"
+       :lighter "[O]"
+       :keymap meow-org-motion-keymap)
+
+     (meow-define-keys 'org-motion
+       '("<escape>" . meow-normal-mode)
+       '("i" . meow-insert-mode)
+       '("g" . meow-normal-mode)
+       '("u" .  meow-undo)
+       ;; Moving between headlines
+       '("k" .  org-previous-visible-heading)
+       '("j" .  org-next-visible-heading)
+       ;; Moving between headings at the same level
+       '("p" .  org-backward-heading-same-level)
+       '("n" .  org-forward-heading-same-level)
+       ;; Moving subtrees themselves
+       '("K" .  org-subtree-up)
+       '("J" .  org-subtree-down)
+       ;; Subtree de/promotion
+       '("L" .  org-demote-subtree)
+       '("H" .  org-promote-subtree)
+       ;; Completion-style search of headings
+       '("v" .  consult-org-heading)
+       ;; Setting subtree metadata
+       '("l" .  org-set-property)
+       '("t" .  org-todo)
+       '("d" .  org-deadline)
+       '("s" .  org-schedule)
+       '("e" .  org-set-effort)
+       ;; Block navigation
+       '("b" .  org-previous-block)
+       '("f" .  org-next-block)
+       ;; Narrowing/widening
+       '("N" .  org-narrow-to-subtree)
+       '("W" .  widen))
+
+     (meow-define-keys 'normal
+       '("O" . meow-org-motion-mode))
    #+end_src
 ** SSH agent
    #+begin_src emacs-lisp :tangle yes
