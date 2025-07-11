@@ -625,6 +625,17 @@
        :ensure t
        :hook
        (dired-mode . nerd-icons-dired-mode))
+
+     (use-package casual
+       :ensure t
+       :after dired
+       :bind
+       (:map dired-mode-map
+             ("C-o" . casual-dired-tmenu)
+             ("s" . casual-dired-sort-by-tmenu)
+             ("/" . casual-dired-search-replace-tmenu)))
+
+
    #+END_SRC
 
 ** Magit
