@@ -1784,6 +1784,7 @@
      (use-package org-roam-dailies
        :bind-keymap
        (("C-c n d" . org-roam-dailies-map))
+       :bind
        (:map org-roam-dailies-map
              ("Y" . org-roam-dailies-capture-yesterday)
              ("T" . org-roam-dailies-capture-tomorrow)))
