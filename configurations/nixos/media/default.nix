@@ -18,5 +18,10 @@ in
 
   inventoryHostName = "media";
   hostConfig.deployHostName = config.hostConfig.ipAllocation.home.primary.address;
-  hostConfig.features = [ "lxc" ];
+  hostConfig.features = [
+    "lxc"
+    "interactive-cli"
+  ];
+
+  hostConfig.managedUsers = [ "binarin" ];
 }

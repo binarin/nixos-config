@@ -15,6 +15,7 @@ in
 
     users.users = lib.genAttrs (["root"] ++ config.hostConfig.managedUsers) (user: {
       openssh.authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser user;
+      openssh.authorizedPrincipals = if user == "root" then ["root"] else [user] ++ ["root"];
     });
   };
 }

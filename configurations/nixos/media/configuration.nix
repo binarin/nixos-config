@@ -28,6 +28,12 @@ in
     ./tandoor.nix
   ];
 
+  home-manager.users.binarin.home.packages = with pkgs; [
+    beets-unstable
+    shntool
+    cuetools
+  ];
+
   services.avahi = {
     enable = true;
     allowInterfaces = [ "eth0" ];
