@@ -53,7 +53,6 @@
 
     # Software inputs
     stylix.url = "github:danth/stylix/release-25.05";
-    stylix.inputs.home-manager.follows = "home-manager";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
 
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";

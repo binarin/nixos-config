@@ -5,7 +5,7 @@ let
 in {
 
   imports = [
-    flake.inputs.nix-index-database.hmModules.nix-index
+    flake.inputs.nix-index-database.homeModules.nix-index
   ];
 
   options = {

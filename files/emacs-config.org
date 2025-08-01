@@ -1299,6 +1299,7 @@
      (use-package org
        :ensure t
        :commands (org-save-all-org-buffers)
+       :defines (org-capture-templates)
        :mode ("\\.org\\'" . org-mode)
        :bind
        (("C-c a" . org-agenda)
@@ -1462,7 +1463,7 @@
 
    #+END_SRC
 ** Contacts
-   #+BEGIN_SRC emacs-lisp :tangle yes
+   #+BEGIN_SRC emacs-lisp :tangle no
      (use-package org-contacts
        :ensure t
        :after (org)
