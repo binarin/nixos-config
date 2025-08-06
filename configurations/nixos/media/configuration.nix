@@ -26,6 +26,7 @@ in
 {
   imports = [
     ./tandoor.nix
+    ./grocy.nix
   ];
 
   home-manager.users.binarin.home.packages = with pkgs; [
