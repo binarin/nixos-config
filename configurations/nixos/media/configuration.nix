@@ -32,6 +32,8 @@ in
     beets-unstable
     shntool
     cuetools
+    flac
+    mac
   ];
 
   services.avahi = {
