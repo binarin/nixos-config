@@ -59,6 +59,7 @@
     system.primaryUser = "binarin";
     environment.darwinConfig = "$HOME/personal-workspace/nixos-config";
     environment.systemPackages = with pkgs; [
+      maven
       vim
       git
       # wezterm
