@@ -371,6 +371,8 @@
 
      (add-hook 'git-commit-mode-hook 'meow-insert-mode)
      (add-hook 'org-capture-mode-hook 'meow-insert-mode)
+
+     (add-to-list 'meow-mode-state-list '(org-mode . org-motion))
    #+end_src
 ** SSH agent
    #+begin_src emacs-lisp :tangle yes
