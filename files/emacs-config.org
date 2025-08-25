@@ -901,7 +901,7 @@
      ;; Yo dawg! I heard you like advices so I added an advice around your advice
 
      (defun binarin/augment-buffer-name (basename projectile-root)
-       (s-concat basename (if (eq system-type 'windows-nt) "(" "⦗") (projectile-project-name projectile-root) (if (eq system-type 'windows-nt) ")" "⦘")))
+       (s-concat basename "(" (projectile-project-name projectile-root) ")"))
 
      (defun binarin/uniquify--create-file-buffer-advice-advice (orig-fun buf filename basename)
        (awhen (projectile-project-root (file-name-directory filename))
