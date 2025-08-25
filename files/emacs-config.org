@@ -205,13 +205,10 @@
 ** Modeline
    #+begin_src emacs-lisp :tangle yes
      (use-package telephone-line
-       :ensure t
-       :commands (telephone-line-mode))
-     (telephone-line-mode 1)
-     (custom-set-faces
-        '(mode-line ((t (:box nil))))
-        '(mode-line-inactive ((t (:box nil))))
-        '(mode-line-highlight ((t (:box nil)))))
+       :ensure t)
+
+     (add-hook 'after-init-hook (lambda () (telephone-line-mode 1)))
+
    #+end_src
 
 ** Long lines handling
