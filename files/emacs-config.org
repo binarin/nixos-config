@@ -209,6 +209,12 @@
 
      (add-hook 'after-init-hook (lambda () (telephone-line-mode 1)))
 
+     (custom-set-faces
+      '(mode-line ((t (:box nil))))
+      '(mode-line-inactive ((t (:box nil))))
+      '(mode-line-highlight ((t (:box nil)))))
+
+
    #+end_src
 
 ** Long lines handling
@@ -370,6 +376,31 @@
      (add-hook 'org-capture-mode-hook 'meow-insert-mode)
 
      (add-to-list 'meow-mode-state-list '(org-mode . org-motion))
+
+     (with-no-warnings ;; unused lexicals from zenburn-with-color-variables
+       (zenburn-with-color-variables
+         (ignore class)
+         (defface telephone-line-meow-org-motion
+           `((t (:background ,zenburn-orange :inherit telephone-line-evil)))
+           "Face for my custom org-motion meow state"
+           :group 'telephone-line-evil)
+         (set-face-attribute 'telephone-line-evil-normal nil :background zenburn-green-4)
+         (set-face-attribute 'telephone-line-evil-insert nil :background zenburn-red-5)
+         (set-face-attribute 'telephone-line-evil-emacs nil :background zenburn-magenta)
+         (set-face-attribute 'telephone-line-evil-operator nil :background zenburn-blue-5)
+         (set-face-attribute 'telephone-line-evil-replace nil :background zenburn-yellow)))
+
+     (defun binarin/telephone-line-modal-face (orig-fun active)
+       (ignore orig-fun)
+       (cond ((not active) 'mode-line-inactive)
+             (meow-normal-mode 'telephone-line-evil-normal)
+             (meow-insert-mode 'telephone-line-evil-insert)
+             (meow-motion-mode 'telephone-line-evil-emacs)
+             (meow-keypad-mode 'telephone-line-evil-operator)
+             (meow-beacon-mode 'telephone-line-evil-replace)
+             (meow-org-motion-mode 'telephone-line-meow-org-motion)))
+
+     (advice-add 'telephone-line-modal-face :around 'binarin/telephone-line-modal-face)
    #+end_src
 ** SSH agent
    #+begin_src emacs-lisp :tangle yes
