@@ -912,7 +912,13 @@
          "depsHostHost" "depsHostHostPropagated" "depsTargetTarget" "depsTargetTargetPropagated"
          "doCheck" "doInstallCheck" "dontAddDisableDepTrack" "mesonFlags" "name" "nativeBuildInputs"
          "out" "outputs" "patches" "phases" "propagatedBuildInputs" "propagatedNativeBuildInputs"
-         "shell" "shellHook" "stdenv" "strictDeps" "system" "XDG_DATA_DIRS" "__structuredAttrs" "preferLocalBuild"))
+         "shell" "shellHook" "stdenv" "strictDeps" "system" "XDG_DATA_DIRS" "__structuredAttrs" "preferLocalBuild"
+         "DEVELOPER_DIR" "LD_DYLD_PATH" "MACOSX_DEPLOYMENT_TARGET" "NIX_APPLE_SDK_VERSION"
+         "NIX_BINTOOLS_WRAPPER_TARGET_HOST_arm64_apple_darwin" "NIX_CC_WRAPPER_TARGET_HOST_arm64_apple_darwin" "NIX_DONT_SET_RPATH"
+         "NIX_DONT_SET_RPATH_FOR_BUILD" "NIX_IGNORE_LD_THROUGH_GCC" "NIX_NO_SELF_RPATH" "PATH_LOCALE" "SDKROOT" "ZERO_AR_DATE"
+         "__darwinAllowLocalNetworking" "__impureHostDeps" "__propagatedImpureHostDeps" "__propagatedSandboxProfile"
+         "__sandboxProfile" "XPC_SERVICE_NAME"
+         ))
 
      (defun binarin/cleanup_direnv--summarise-changes (orig-fun items)
        (funcall orig-fun (-remove (lambda (elt) (-elem-index (car elt) binarin/direnv-boring-items)) items)))
