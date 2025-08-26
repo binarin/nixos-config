@@ -369,8 +369,13 @@
        '("N" .  org-narrow-to-subtree)
        '("W" .  widen))
 
+     (defun binarin/maybe-meow-org-motion-mode ()
+       (interactive)
+       (when (eq major-mode 'org-mode)
+         (meow-org-motion-mode)))
+
      (meow-define-keys 'normal
-       '("O" . meow-org-motion-mode))
+       '("O" . binarin/maybe-meow-org-motion-mode))
 
      (add-hook 'git-commit-mode-hook 'meow-insert-mode)
      (add-hook 'org-capture-mode-hook 'meow-insert-mode)
