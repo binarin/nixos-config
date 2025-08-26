@@ -377,6 +377,15 @@
 
      (add-to-list 'meow-mode-state-list '(org-mode . org-motion))
 
+     (setf meow-replace-state-name-list
+           '((org-motion . "ORG")
+             (normal . "NRM")
+             (motion . "MOT")
+             (keypad . "KPD")
+             (insert . "INS")
+             (beacon . "IND")))
+
+
      (with-no-warnings ;; unused lexicals from zenburn-with-color-variables
        (zenburn-with-color-variables
          (ignore class)
@@ -399,6 +408,13 @@
              (meow-keypad-mode 'telephone-line-evil-operator)
              (meow-beacon-mode 'telephone-line-evil-replace)
              (meow-org-motion-mode 'telephone-line-meow-org-motion)))
+
+     (telephone-line-defsegment* binarin/meow-state-segment ()
+       (when (bound-and-true-p meow-mode)
+         (ignore face)
+         (s-trim (meow-indicator))))
+
+     (add-to-list 'telephone-line-lhs '(evil binarin/meow-state-segment))
 
      (advice-add 'telephone-line-modal-face :around 'binarin/telephone-line-modal-face)
    #+end_src
@@ -2158,3 +2174,8 @@
   #+begin_src emacs-lisp :tangle yes
      (add-hook 'window-setup-hook 'binarin/report-full-startup-time 100)
   #+end_src
+
+# Local Variables:
+# compile-command: "tangle-emacs-org-babel-config emacs-config.org /tmp/"
+# eval: (add-hook 'after-save-hook 'recompile 98 t)
+# End:
