@@ -23,9 +23,8 @@
 
     services.firefly-iii = {
       enable = true;
-      hostName = "ff.binarin.info";
+      virtualHost = "ff.binarin.info";
       enableNginx = true;
-      nginx.enableSSL = false;
       settings = {
         DB_CONNECTION = "sqlite";
 
@@ -35,6 +34,7 @@
         MAIL_MAILER = "smtp";
         MAIL_HOST = "mail.smtp2go.com";
         MAIL_PORT = 465;
+        MAIL_FROM = "firefly-iii@binarin.info";
         MAIL_ENCRYPTION = "ssl";
         MAIL_USERNAME_FILE = config.sops.secrets."smtp2go/username".path;
         MAIL_PASSWORD_FILE = config.sops.secrets."smtp2go/password".path;
