@@ -339,6 +339,7 @@
 
      (meow-define-keys 'org-motion
        '("<escape>" . meow-normal-mode)
+       '("SPC" . meow-keypad)
        '("i" . meow-insert-mode)
        '("g" . meow-normal-mode)
        '("u" .  meow-undo)
