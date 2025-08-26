@@ -945,6 +945,11 @@
      (setq safe-local-variable-directories
            (-map #'expand-file-name '("~/personal-workspace/nixos-config/files"
                                       "~/personal-workspace/nixos-config/ansible")))
+
+     (setq safe-local-variable-values
+           '((compile-command . "tangle-emacs-org-babel-config emacs-config.org /tmp/")))
+
+     (add-to-list 'safe-local-eval-forms '(add-hook 'after-save-hook 'recompile 98 t))
    #+end_src
 ** Uniquify buffer names
    #+begin_src emacs-lisp :tangle yes
