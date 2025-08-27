@@ -30,6 +30,7 @@
 
         APP_KEY_FILE = config.sops.secrets."firefly-iii/app_key".path;
         APP_URL = "https://ff.binarin.info";
+        TRUSTED_PROXIES = "**";
 
         MAIL_MAILER = "smtp";
         MAIL_HOST = "mail.smtp2go.com";
