@@ -7,6 +7,12 @@
       mode = "0400";
     };
 
+    sops.secrets."firefly-iii/importer-token" = {
+      owner = config.services.firefly-iii-data-importer.user;
+      group = config.services.firefly-iii-data-importer.group;
+      mode = "0400";
+    };
+
     sops.secrets."smtp2go/username" = {
       sopsFile = "${config.lib.self.file' "secrets/webservers.yaml"}";
       owner = config.services.firefly-iii.user;
@@ -54,5 +60,28 @@
 
       import letsencrypt
     '';
+
+    services.firefly-iii-data-importer = {
+      enable = true;
+      enableNginx = true;
+      virtualHost = "ffi.binarin.info";
+      settings = {
+        FIREFLY_III_ACCESS_TOKEN = ${config.sops.secrets."firefly-iii/importer-token".path};
+      };
+    };
+
+    services.nginx.virtualHosts."ffi.binarin.info".listen = [
+      {
+        addr = "127.0.0.1";
+        port = 64086;
+      }
+    ];
+
+    services.caddy.virtualHosts."ffi.binarin.info".extraConfig = ''
+      reverse_proxy http://127.0.0.1:64086
+
+      import letsencrypt
+    '';
+
   };
 }
