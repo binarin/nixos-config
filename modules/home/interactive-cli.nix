@@ -268,6 +268,8 @@ in {
         gnupg
         gopass
         gron
+        hledger
+        haskellPackages.hledger-flow
         httpie
         inetutils
         ipcalc

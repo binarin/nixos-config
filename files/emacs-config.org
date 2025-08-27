@@ -1363,6 +1363,22 @@
        :ensure t
        :mode "\\.hs\\'")
    #+end_src
+
+** ledger/hledger
+ #+begin_src emacs-lisp :tangle yes
+   (use-package ledger-mode
+     :ensure t
+     :mode ("\\.hledger\\'" "\\.ledger\\'" "\\.journal\\'"))
+
+   (general-setq
+    ledger-binary-path "hledger-emacs-compat"
+    ledger-mode-should-check-version nil
+    ledger-report-auto-width nil
+    ledger-report-links-in-register nil
+    ledger-report-native-highlighting-arguments '("--color=always")
+    ledger-default-date-format "%Y-%m-%d"
+    ledger-reconcile-default-date-format "%Y-%m-%d")
+ #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
