@@ -66,7 +66,7 @@
       enableNginx = true;
       virtualHost = "ffi.binarin.info";
       settings = {
-        FIREFLY_III_ACCESS_TOKEN = ${config.sops.secrets."firefly-iii/importer-token".path};
+        FIREFLY_III_ACCESS_TOKEN = config.sops.secrets."firefly-iii/importer-token".path;
       };
     };
 
