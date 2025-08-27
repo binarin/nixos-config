@@ -7,7 +7,7 @@
       services = {
         homebox = {
           service = {
-            image = "ghcr.io/sysadminsmedia/homebox:latest";
+            image = "ghcr.io/sysadminsmedia/homebox:0.21";
             container_name = "homebox";
             restart = "unless-stopped";
             environment = {
