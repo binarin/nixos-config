@@ -259,6 +259,7 @@ in {
         duf
         e2fsprogs
         elinks
+        eternal-terminal
         file
         git-annex
         git-crypt
