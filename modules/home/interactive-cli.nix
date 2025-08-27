@@ -84,13 +84,23 @@ in {
       programs.ssh = {
         enable = defEnable;
         stableAgentSocket = defEnable;
-        matchBlocks.mail = {
-          match = ''
-            host mail.lynx-lizard.ts.net,mail,${config.inventory.ipAllocation.mail.home.primary.address}
-          '';
-          extraOptions = {
-            ControlMaster = "auto";
-            HostKeyAlias = "mail.lynx-lizard.ts.net";
+        matchBlocks = {
+          mail = {
+            match = ''
+              host mail.lynx-lizard.ts.net,mail,${config.inventory.ipAllocation.mail.home.primary.address}
+            '';
+            extraOptions = {
+              ControlMaster = "auto";
+              HostKeyAlias = "mail.lynx-lizard.ts.net";
+            };
+          };
+          valak = {
+            match = ''
+              host valak.lynx-lizard.ts.net,valak,${config.inventory.ipAllocation.valak.home.primary.address}
+            '';
+            extraOptions = {
+              ForwardAgent = "yes";
+            };
           };
         };
         controlPath = "~/.ssh/master-%r@%k:%p";
