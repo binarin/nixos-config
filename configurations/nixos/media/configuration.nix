@@ -27,7 +27,6 @@ in
   imports = [
     ./tandoor.nix
     ./grocy.nix
-    ./firefly-iii.nix
   ];
 
   home-manager.users.binarin.home.packages = with pkgs; [
