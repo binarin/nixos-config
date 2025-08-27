@@ -265,6 +265,8 @@ in
     users.users.sabnzbd.extraGroups = [ "servarr" ];
     users.users.radarr.extraGroups = [ "servarr" ];
     users.groups.servarr = {};
-  };
+    networking.firewall.allowedTCPPorts = [ 443 ];
 
+    services.xray = import ./priv-xray.nix;
+  };
 }
