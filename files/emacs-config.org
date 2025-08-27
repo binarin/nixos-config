@@ -905,6 +905,11 @@
 
      (setq magit-tramp-pipe-stty-settings 'pty)
 
+     (with-eval-after-load 'tramp-sh
+       (setq tramp-remote-path
+             (append tramp-remote-path
+     	        '(tramp-own-remote-path))))
+
      (with-eval-after-load 'tramp
        (with-eval-after-load 'compile
          (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
