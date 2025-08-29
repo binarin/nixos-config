@@ -237,10 +237,15 @@
 * Behaviour
 ** Meow
    #+begin_src emacs-lisp :tangle yes
+     (general-define-key :keymaps 'Info-mode-map
+                         "C-v" 'Info-scroll-up
+                         "M-v" 'Info-scroll-down)
+
      (defun meow-setup ()
        (meow-motion-define-key
         '("j" . meow-next)
         '("k" . meow-prev)
+        '("v" . meow-page-down)
         '("<escape>" . ignore))
 
        (meow-leader-define-key
