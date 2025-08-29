@@ -960,7 +960,8 @@
    #+begin_src emacs-lisp :tangle yes
      (setq safe-local-variable-directories
            (-map #'expand-file-name '("~/personal-workspace/nixos-config/files"
-                                      "~/personal-workspace/nixos-config/ansible")))
+                                      "~/personal-workspace/nixos-config/ansible"
+                                      "~/finance")))
 
      (setq safe-local-variable-values
            '((compile-command . "tangle-emacs-org-babel-config emacs-config.org /tmp/")))
