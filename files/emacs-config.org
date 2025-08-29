@@ -1080,6 +1080,7 @@
        :ensure t
        :hook
        (emacs-lisp-mode                  . paredit-mode)
+       (emacs-data-mode                  . paredit-mode)
        (lisp-mode                        . paredit-mode)
        (lisp-interaction-mode            . paredit-mode)
        (eval-expression-minibuffer-setup . paredit-mode)
