@@ -163,7 +163,6 @@ in
       home.packages = [
         finalEmacsPackage
         tangle-emacs-org-babel-config
-        hledger-emacs-compat
       ];
     }
     (lib.optionalAttrs hostConfig.isLinux {
@@ -193,8 +192,9 @@ in
 
       xdg.dataFile."icons/emacs/org.svg".source = config.lib.self.file "org.svg";
 
-      home.packages = [
-        pkgs.emacs-all-the-icons-fonts
+      home.packages = with pkgs; [
+        emacs-all-the-icons-fonts
+        ghostscript
       ];
     })
   ]);
