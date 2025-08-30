@@ -1238,7 +1238,8 @@
         . (display-buffer-reuse-window
            . ((reusable-frames . t)))))
 
-     (general-define-key "<f9>" 'binarin/bazel-compile-and-run)
+     ;; (general-define-key "<f9>" 'binarin/bazel-compile-and-run)
+     (general-define-key "<f9>" 'recompile)
 
 
      (defun binarin/all-bazel-targets ()
