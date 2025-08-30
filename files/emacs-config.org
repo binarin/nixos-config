@@ -1393,6 +1393,14 @@
     ledger-default-date-format "%Y-%m-%d"
     ledger-reconcile-default-date-format "%Y-%m-%d")
  #+end_src
+* Major modes
+** pdf-tools
+   #+begin_src emacs-lisp :tangle yes
+     (use-package pdf-tools
+       :ensure t)
+
+     (pdf-loader-install)
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
