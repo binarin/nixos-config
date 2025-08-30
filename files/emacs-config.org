@@ -387,6 +387,7 @@
      (add-hook 'org-capture-mode-hook 'meow-insert-mode)
 
      (add-to-list 'meow-mode-state-list '(org-mode . org-motion))
+     (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
 
      (setf meow-replace-state-name-list
            '((org-motion . "ORG")
@@ -1003,7 +1004,9 @@
      (use-package vterm
        :ensure t
        :commands (vterm vterm-send-string vterm-send-return)
-       :no-require t)
+       :no-require t
+       :custom
+       ((vterm-shell "zsh")))
    #+end_src
 ** Auth
    #+begin_src emacs-lisp :tangle yes
