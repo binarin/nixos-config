@@ -127,13 +127,16 @@ in
         ];
       };
 
+      systemd.services.tailscaled.serviceConfig.BindPaths = [
+        "/local/var/lib/tailscale:/var/lib/tailscale"
+      ];
+
       environment.etc."NetworkManager/system-connections" = {
         source = "/local/etc/NetworkManager/system-connections/";
       };
 
       systemd.tmpfiles.rules = [
         "L+ /var/lib/bluetooth - - - - /local/var/lib/bluetooth"
-        "L+ /var/lib/tailscale - - - - /local/var/lib/tailscale"
       ];
 
       environment.persistence."/persist" = {
