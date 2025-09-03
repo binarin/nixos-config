@@ -23,7 +23,7 @@ creation_rules:
           - *admin_binarin
           - *server_valak
           - *user_valak_binarin
-  - path_regex: secrets/valak/secrets.yaml
+  - path_regex: secrets/valak/(secrets.yaml|xray-json.bin)
     key_groups:
       - age:
           - *admin_binarin

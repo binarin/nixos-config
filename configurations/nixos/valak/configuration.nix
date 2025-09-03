@@ -267,6 +267,15 @@ in
     users.groups.servarr = {};
     networking.firewall.allowedTCPPorts = [ 443 ];
 
-    services.xray = import ./priv-xray.nix;
+
+    sops.secrets.xray-config = {
+      format = "binary";
+      sopsFile = "${config.lib.self.file' "secrets/valak/xray-json.bin"}";
+    };
+
+    services.xray = {
+      enable = true;
+      settingsFile = config.sops.secrets.xray-config.path;
+    };
   };
 }
