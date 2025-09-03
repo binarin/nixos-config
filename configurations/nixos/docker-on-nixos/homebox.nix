@@ -16,8 +16,9 @@
               HBOX_WEB_MAX_FILE_UPLOAD = "10";
               HBOX_OPTIONS_ALLOW_REGISTRATION = "false";
               HBOX_MODE = "production";
-              HBOX_STORAGE_SQLITE_URL = "/data/homebox.db?_pragma=busy_timeout=999&_pragma=journal_mode=WAL&_fk=1";
               HBOX_STORAGE_DATA = "/data";
+              HBOX_DATABASE_DRIVER = "sqlite3";
+              HBOX_STORAGE_SQLITE_PATH = "/data/homebox.db?_pragma=busy_timeout=999&_pragma=journal_mode=WAL&_fk=1";
             };
             volumes = [
               "/persist/homebox/data:/data/"
