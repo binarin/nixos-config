@@ -574,6 +574,7 @@ in
   in {
     enable = true;
     listenPort = 8082;
+    allowedHosts = "homepage.binarin.info,localhost:8082,127.0.0.1:8082";
     services = [
       {
         "Services" = [
