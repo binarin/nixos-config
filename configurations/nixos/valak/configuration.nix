@@ -125,6 +125,7 @@ in
         "20-eth25" = {
           matchConfig.MACAddress = "6c:1f:f7:15:cc:f7";
           linkConfig.Name = "eth25";
+          linkConfig.WakeOnLan = "magic";
         };
       };
       netdevs = {
