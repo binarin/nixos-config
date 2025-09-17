@@ -298,6 +298,7 @@ in {
         trezor-agent
         unrar
         unzip
+        viddy
         wget
         which
         whois
