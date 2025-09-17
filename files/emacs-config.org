@@ -261,7 +261,9 @@
         '("9" . meow-digit-argument)
         '("0" . meow-digit-argument)
         '("/" . meow-keypad-describe-key)
-        '("?" . meow-cheatsheet))
+        '("?" . meow-cheatsheet)
+        '(";" . embark-act))
+
        (meow-normal-define-key
         '("0" . meow-expand-0)
         '("9" . meow-expand-9)
@@ -323,6 +325,7 @@
         '("Y" . meow-sync-grab)
         '("z" . meow-pop-selection)
         '("'" . repeat)
+        '("/" . meow-indent)
         '("<escape>" . ignore)))
 
      (use-package meow
@@ -1382,16 +1385,70 @@
  #+begin_src emacs-lisp :tangle yes
    (use-package ledger-mode
      :ensure t
+     :autoload ledger-context-at-point
      :mode ("\\.hledger\\'" "\\.ledger\\'" "\\.journal\\'"))
 
    (general-setq
-    ledger-binary-path "hledger-emacs-compat"
+    ledger-post-amount-alignment-column 70
     ledger-mode-should-check-version nil
     ledger-report-auto-width nil
     ledger-report-links-in-register nil
     ledger-report-native-highlighting-arguments '("--color=always")
     ledger-default-date-format "%Y-%m-%d"
     ledger-reconcile-default-date-format "%Y-%m-%d")
+
+
+   (defun binarin/csv-dir-for-ledger-account (ledger-account)
+     (let ((account (cadr (s-split ":" ledger-account))))
+       (file-name-concat (projectile-project-root) "import" account "csv")))
+
+   (defun binarin/extract-number (amount)
+     (car (s-match "-?[0-9]+\\(?:\\.[0-9]+\\)" amount)))
+
+   (cl-defstruct resolve-trn date payee account amount)
+
+   (defun binarin/get-resolve-trn ()
+     (save-excursion
+       (beginning-of-line)
+       (when (and (not (looking-at-p ledger-payee-any-status-regex))
+                  (re-search-backward ledger-payee-any-status-regex nil t))
+         (goto-char (match-beginning 0)))
+       (let* ((xact-ctx (caddr (ledger-context-at-point)))
+              (first-trn-ctx (progn
+                               (forward-line)
+                               (caddr (ledger-context-at-point)))))
+         (make-resolve-trn :date (cadr (assoc 'date xact-ctx))
+               :payee (cadr (assoc 'payee xact-ctx))
+               :account (cadr (assoc 'account first-trn-ctx))
+               :amount (binarin/extract-number (cadr (assoc 'commoditized-amount first-trn-ctx)))))))
+
+   ;; with date/without date
+   ;; per-file (with date implies)/per-account
+   ;; with amount/without amount
+   ;; with re/without re
+
+   (cl-defstruct resolve-scope trn date use-date amount use-amount regex use-regex rules-file)
+
+   (defun binarin/resolve-ledger-transaction ()
+     (interactive)
+     (let ((scope (transient-scope)))
+       (message "%s" (resolve-scope-trn scope))))
+
+   (transient-define-infix binarin/ledger-resolve-regex-infix ()
+     "Configure regex")
+
+
+   (transient-define-prefix binarin/ledger-resolve ()
+     "Classify unknown transaction."
+     [:description (lambda () (format "Date: %s" (resolve-trn-date (resolve-scope-trn (transient-scope)))))
+                   ""]
+     ["Actions\n"
+      ("g" binarin/resolve-ledger-transaction :description "Resolve to global")]
+     (interactive)
+     (let ((trn (binarin/get-resolve-trn)))
+       (with-slots (date payee amount account) trn
+         (transient-setup 'binarin/ledger-resolve nil nil
+                          :scope (make-resolve-scope :trn trn :date date :use-date nil :amount amount :use-amount nil :regex payee :use-regex nil :rules-file nil)))))
  #+end_src
 * Major modes
 ** pdf-tools
