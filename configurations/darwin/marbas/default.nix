@@ -68,6 +68,7 @@
       openssh
       vscode
       mosh
+      claude-code
     ];
 
     environment.shells = with pkgs; [
