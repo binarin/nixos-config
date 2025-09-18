@@ -286,6 +286,14 @@
        (setq select-enable-primary nil)
        (setq interprogram-cut-function #'gui-select-text))
    #+END_SRC
+
+** MacOS specific
+   #+begin_src emacs-lisp :tangle yes
+     (when (eq system-type 'darwin)
+       (global-set-key [help] #'overwrite-mode))
+
+   #+end_src
+
 ** Prevent accidental exit
    Prompt on C-x C-c - no more accidential exits
    #+begin_src emacs-lisp :tangle yes
