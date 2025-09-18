@@ -1707,35 +1707,246 @@
        (add-hook 'org-mode-hook 'org-download-enable))
    #+end_src
 * Test space
+** [[https://github.com/abo-abo/org-download][abo-abo/org-download: Drag and drop images to Emacs org-mode]]
+ :PROPERTIES:
+  :ID: db3ae4d0-2bbf-4e3a-ba21-b0f27e454c5a
+  :END:
+  [2024-11-24 Sun 09:34]
+** [[https://github.com/akermu/emacs-libvterm][akermu/emacs-libvterm: Emacs libvterm integration]]
+ :PROPERTIES:
+  :ID: 59267e8c-3506-46c2-8f87-fb6fc734721c
+  :END:
+  [2024-11-24 Sun 09:36]
+** [[https://github.com/alexluigit/dirvish][alexluigit/dirvish: A polished Dired with batteries included.]]
+ :PROPERTIES:
+  :ID: ad454f8f-b89a-4b62-be33-36494d769316
+  :END:
+  [2024-11-24 Sun 09:18]
+** [[https://github.com/alphapapa/org-protocol-capture-html][alphapapa/org-protocol-capture-html: Capture HTML from the browser selection into Emacs as org-mode content]]
+ :PROPERTIES:
+  :ID: 47a0ce00-e3d1-4eb2-a613-31a1c35f1d4c
+  :END:
+  [2024-11-24 Sun 09:34]
+** [[https://lmno.lol/alvaro/an-experimental-e-shell-pager][An experimental (e)shell pager]]
+ :PROPERTIES:
+  :ID: b81b7885-7138-4be2-b8e8-5d1ebbad9fa3
+  :END:
+  [2025-01-01 Wed 19:08]
 ** Android - how to show keyboard
    #+begin_src emacs-lisp
      (defun tk () (interactive) (frame-toggle-on-screen-keyboard (selected-frame) nil))
    #+end_src
-** [[https://shaunlebron.github.io/parinfer/][Parinfer - simpler Lisp editing]]
+** [[https://devdocs.io/ansible/][Ansible documentation — DevDocs]]
  :PROPERTIES:
-  :ID: 5fa409fd-6165-458d-88dc-0e6fbb408da9
+  :ID: f6f93098-79e1-4a9e-a4d6-32260b225e71
   :END:
-  [2025-01-21 Tue 06:36]
-** [[https://github.com/joaotavora/breadcrumb][joaotavora/breadcrumb: Emacs headerline indication of where you are in a large project]]
+  [2024-11-24 Sun 09:15]
+** [[https://github.com/bbatsov/crux][bbatsov/crux: A Collection of Ridiculously Useful eXtensions for Emacs]]
  :PROPERTIES:
-  :ID: 651872cc-df10-497c-bef2-803905a961b4
+  :ID: 7836f90a-e4be-44c2-818a-16834b442dd3
   :END:
-  [2025-01-20 Mon 09:30]
-** [[https://github.com/zbelial/treesitter-context.el][GitHub - zbelial/treesitter-context.el: A package built on top of Emacs built-in treesit to show code context, dim surrouding text, and fold code.]]
- :PROPERTIES:
-  :ID: ffe770c7-bba0-49ff-b0c7-b39d3f0169b0
-  :END:
-  [2025-01-06 Mon 10:01]
-** [[https://github.com/positron-solutions/moc][positron-solutions/moc: Master of Ceremonies. Display & presentation utilities to make presentation packages more effective]]
- :PROPERTIES:
-  :ID: 04a3574b-4f25-42e5-ba23-1b8fb623908e
-  :END:
-  [2025-01-01 Wed 19:15]
+  [2024-11-24 Sun 09:06]
 ** [[https://github.com/Chobbes/org-chef][Chobbes/org-chef: A package for making a cookbook and managing recipes with org-mode.]]
  :PROPERTIES:
   :ID: 273e795d-9589-4743-a852-22c4ccbdf8ff
   :END:
   [2025-01-01 Wed 19:15]
+** [[https://github.com/copilot-emacs/copilot.el][copilot-emacs/copilot.el: An unofficial Copilot plugin for Emacs.]]
+ :PROPERTIES:
+  :ID: 55a41bab-8d93-41a9-8407-c16201d0fcf5
+  :END:
+  [2024-11-24 Sun 09:33]
+** [[https://kapeli.com/dash][Dash for macOS - API Documentation Browser, Snippet Manager - Kapeli]]
+ :PROPERTIES:
+  :ID: 2b1aa146-b08c-45ab-8b35-97eca3844f2f
+  :END:
+  [2024-11-24 Sun 09:15]
+** [[https://github.com/dash-docs-el/helm-dash][dash-docs-el/helm-dash: Browse Dash docsets inside emacs]]
+ :PROPERTIES:
+  :ID: f1614be4-29ae-465a-a3bc-27ccda375d4e
+  :END:
+  [2024-11-26 Tue 13:15]
+
+** Devdocs
+** [[https://github.com/dgutov/diff-hl][dgutov/diff-hl: Emacs package for highlighting uncommitted changes]]
+ :PROPERTIES:
+  :ID: a9057aeb-6c78-4581-b39f-a1867ac1eea2
+  :END:
+  [2024-11-24 Sun 09:36]
+** [[https://www.djcbsoftware.nl/code/mu/mu4e.html][djcbsoftware]]
+ :PROPERTIES:
+  :ID: 7ecc4e7b-b378-4674-9be1-203741a88ec4
+  :END:
+  [2024-11-24 Sun 09:40]
+** [[https://github.com/emacs-eaf/emacs-application-framework?tab=readme-ov-file][emacs-eaf/emacs-application-framework: EAF, an extensible framework that revolutionizes the graphical capabilities of Emacs]]
+ :PROPERTIES:
+  :ID: 29b8cbc7-088c-43b8-b90f-8175797e76dd
+  :END:
+  [2024-11-24 Sun 09:38]
+** [[https://www.jamescherti.com/emacs-buffer-terminator/][Emacs: buffer-terminator.el – Safely Terminate Emacs Buffers Automatically | James Cherti]]
+ :PROPERTIES:
+  :ID: 1a279ff8-fce1-46ad-b86d-69b98dbdf851
+  :END:
+  [2025-01-01 Wed 19:07]
+** [[https://protesilaos.com/codelog/2023-06-03-emacs-spacious-padding/][Emacs: my new ‘spacious-padding’ package | Protesilaos Stavrou]]
+ :PROPERTIES:
+  :ID: b33cde10-ebc7-4a1e-bcd0-ab26753a7d02
+  :END:
+  [2025-01-01 Wed 19:14]
+** [[https://github.com/emacscollective/no-littering][emacscollective/no-littering: Help keeping ~/.config/emacs clean]]
+ :PROPERTIES:
+  :ID: e4ef1511-e2cb-4742-be91-08b1d8e1a6ab
+  :END:
+  [2024-11-24 Sun 09:40]
+** [[https://www.emacswiki.org/emacs/DiredPlus][EmacsWiki: Dired Plus]]
+ :PROPERTIES:
+  :ID: 78cc2e94-a4f1-4e03-9c50-25720e93a767
+  :END:
+  [2024-11-24 Sun 09:19]
+** [[https://www.emacswiki.org/emacs/InferiorEmacsLispMode][EmacsWiki: Inferior Emacs Lisp Mode]]
+ :PROPERTIES:
+  :ID: 8963a122-2510-461e-b05e-863d0caf42aa
+  :END:
+  [2024-11-24 Sun 09:32]
+** [[https://www.emacswiki.org/emacs/MultiTerm][EmacsWiki: Multi Term]]
+ :PROPERTIES:
+  :ID: eca420fe-413f-4a6d-bf70-6c53723322fd
+  :END:
+  [2024-11-24 Sun 09:36]
+** [[https://github.com/fniessen/org-html-themes][fniessen/org-html-themes: Transform your Org mode files into stunning HTML documents in minutes with our Org mode HTML theme. Elevate your productivity and impress your readers! #orgmode #html #theme #productivity #design]]
+ :PROPERTIES:
+  :ID: a9b3ac47-1b7d-4569-a23b-0c3ea3f5a2f4
+  :END:
+  [2024-11-24 Sun 09:35]
+** [[https://github.com/fosskers/transducers.el][fosskers/transducers.el: Ergonomic, efficient data processing for Emacs Lisp.]]
+ :PROPERTIES:
+  :ID: 15af4b7b-2c6f-4274-b4d0-4864705d8204
+  :END:
+  [2025-01-01 Wed 18:45]
+** [[https://github.com/karthink/gptel][GitHub - karthink/gptel: A simple LLM client for Emacs]]
+** [[https://github.com/xenodium/sqlite-mode-extras][GitHub - xenodium/sqlite-mode-extras: Emacs sqlite-mode extras]]
+** [[https://github.com/zbelial/treesitter-context.el][GitHub - zbelial/treesitter-context.el: A package built on top of Emacs built-in treesit to show code context, dim surrouding text, and fold code.]]
+ :PROPERTIES:
+  :ID: ffe770c7-bba0-49ff-b0c7-b39d3f0169b0
+  :END:
+  [2025-01-06 Mon 10:01]
+** [[https://elpa.gnu.org/packages/expreg.html][GNU ELPA - expreg]]
+ :PROPERTIES:
+  :ID: 631aa604-cae0-40ec-bd96-996666abc7ac
+  :END:
+  [2024-11-24 Sun 09:12]
+** [[https://github.com/ichernyshovvv/org-timeblock][ichernyshovvv/org-timeblock: Schedule your day visually, using timeblocking technique inside Emacs]]
+ :PROPERTIES:
+  :ID: 92292876-a82d-44ce-b102-24bbac49dd94
+  :END:
+  [2024-11-24 Sun 09:35]
+** [[https://codeberg.org/ideasman42/emacs-fancy-compilation][ideasman42/emacs-fancy-compilation: Emacs compilation-mode enhancements. - Codeberg.org]]
+ :PROPERTIES:
+  :ID: cc368d71-42cc-45f9-a838-259d97292792
+  :END:
+  [2024-11-24 Sun 09:16]
+** [[https://github.com/joaotavora/breadcrumb][joaotavora/breadcrumb: Emacs headerline indication of where you are in a large project]]
+ :PROPERTIES:
+  :ID: 651872cc-df10-497c-bef2-803905a961b4
+  :END:
+  [2025-01-20 Mon 09:30]
+** [[https://github.com/kai2nenobu/guide-key][kai2nenobu/guide-key: Guide following keys to an input key sequence automatically and dynamically in Emacs.]]
+ :PROPERTIES:
+  :ID: e596408d-fa07-4f8b-a737-73520ec0adde
+  :END:
+  [2024-11-24 Sun 09:34]
+** [[https://github.com/karthink/gptel][karthink/gptel: A simple LLM client for Emacs]]
+ :PROPERTIES:
+  :ID: ed0ba49e-eff9-4478-9e71-098d54132be6
+  :END:
+  [2024-11-24 Sun 09:34]
+** [[https://github.com/leoliu/easy-kill][leoliu/easy-kill: Kill & Mark Things Easily in Emacs]]
+ :PROPERTIES:
+  :ID: 55d130f9-519e-4283-b986-bef6f6fa94ee
+  :END:
+  [2025-01-01 Wed 19:14]
+** [[https://github.com/magit/forge][magit/forge: Work with Git forges from the comfort of Magit]]
+ :PROPERTIES:
+  :ID: 27dc746f-fb0a-48a8-8e06-4d57305b71f0
+  :END:
+  [2024-11-24 Sun 09:36]
+** [[https://github.com/manateelazycat/color-rg][manateelazycat/color-rg: Search and refactoring tool based on ripgrep.]]
+ :PROPERTIES:
+  :ID: 3359adb3-a6e1-4de7-ad95-665cf3a46c57
+  :END:
+  [2024-11-24 Sun 09:39]
+** [[https://github.com/mickeynp/combobulate][mickeynp/combobulate: Structured Editing and Navigation in Emacs with Tree-Sitter]]
+ :PROPERTIES:
+  :ID: e115334f-d952-40ae-a8d9-18d223ff8ca2
+  :END:
+  [2025-01-01 Wed 18:35]
+** [[https://github.com/narendraj9/hledger-mode][narendraj9/hledger-mode: An Emacs major mode for Hledger]]
+ :PROPERTIES:
+  :ID: 414938d9-9e9c-46d4-a215-a2ab9578b656
+  :END:
+  [2024-11-24 Sun 09:40]
+
+** [[https://etown.dev/nice-org-html/README][Nice Org to HTML pipeline]]
+ :PROPERTIES:
+  :ID: 9f4497a2-213a-4099-a668-81d84a6a74ae
+  :END:
+  [2025-01-01 Wed 19:08]
+
+** [[https://www.reddit.com/r/emacs/comments/1h5t31o/omdash_03_improved_github_support_imap_support/?share_id=hUy9ZiftaMN3UVABZOlVY][om-dash 0.3: improved github support, imap support, more : r/emacs]]
+ :PROPERTIES:
+  :ID: 00cdeb5f-3981-4f77-9844-303579a6d487
+  :END:
+  [2025-01-01 Wed 18:58]
+** [[https://ox-hugo.scripter.co/][ox-hugo - Org to Hugo exporter]]
+ :PROPERTIES:
+  :ID: 415f017c-a45d-4967-80a2-e5e5090f94b0
+  :END:
+  [2024-11-24 Sun 09:39]
+** [[https://shaunlebron.github.io/parinfer/][Parinfer - simpler Lisp editing]]
+ :PROPERTIES:
+  :ID: 5fa409fd-6165-458d-88dc-0e6fbb408da9
+  :END:
+  [2025-01-21 Tue 06:36]
+** [[https://github.com/positron-solutions/dslide][positron-solutions/dslide: Present anything Emacs can do with programmable, extensible, configurable slides made from org mode headings]]
+ :PROPERTIES:
+  :ID: a908e7c6-97d9-4dc2-86e8-5c13d11f034f
+  :END:
+  [2024-11-24 Sun 09:35]
+** [[https://github.com/positron-solutions/moc][positron-solutions/moc: Master of Ceremonies. Display & presentation utilities to make presentation packages more effective]]
+ :PROPERTIES:
+  :ID: 04a3574b-4f25-42e5-ba23-1b8fb623908e
+  :END:
+  [2025-01-01 Wed 19:15]
+** [[https://github.com/radian-software/el-patch][radian-software/el-patch: ✨ Future-proof your Emacs Lisp customizations!]]
+ :PROPERTIES:
+  :ID: 9e814763-b384-4e41-9d6d-9d18d7ac82bc
+  :END:
+  [2024-11-24 Sun 09:40]
+** [[https://github.com/ragnard/tabby-mode?tab=readme-ov-file][ragnard/tabby-mode: An Emacs mode for the Tabby AI coding assistant]]
+ :PROPERTIES:
+  :ID: be0ddaf9-0d38-4adb-baa8-39ca0e0c48b8
+  :END:
+  [2024-11-24 Sun 09:33]
+** [[https://github.com/ReanGD/emacs-multi-compile][ReanGD/emacs-multi-compile: emacs package multi-compile]]
+ :PROPERTIES:
+  :ID: e6353313-0eff-4073-924f-f50fbae155c8
+  :END:
+  [2024-11-24 Sun 09:17]
+** [[https://github.com/rksm/org-ai][rksm/org-ai: Emacs as your personal AI assistant. Use LLMs such as ChatGPT or LLaMA for text generation or DALL-E and Stable Diffusion for image generation. Also supports speech input / output.]]
+ :PROPERTIES:
+  :ID: d8f6a7d1-28fb-4b62-a8ed-46a01a12f308
+  :END:
+  [2024-11-24 Sun 09:33]
+** [[https://github.com/sshaw/git-link][sshaw/git-link: Emacs package to get the GitHub/Bitbucket/GitLab/... URL for a buffer location]]
+ :PROPERTIES:
+  :ID: 6a38328f-9bb8-4df7-9824-889bacc2a8be
+  :END:
+  [2024-11-24 Sun 09:36]
+** [[https://github.com/suntsov/efar][suntsov/efar: A FAR-like file manager for Emacs]]
+ :PROPERTIES:
+  :ID: b5008a88-4bc3-42be-854e-8518b2134c0e
+  :END:
+  [2024-11-24 Sun 09:21]
 ** [[https://github.com/svaante/dape][svaante/dape: Debug Adapter Protocol for Emacs]]
  :PROPERTIES:
   :ID: 99d7c1e2-6845-4a47-bb2b-221011c2711b
@@ -1746,237 +1957,21 @@
   :ID: cb11770f-819c-4573-b201-fa964d542569
   :END:
   [2025-01-01 Wed 19:13]
-** [[https://protesilaos.com/codelog/2023-06-03-emacs-spacious-padding/][Emacs: my new ‘spacious-padding’ package | Protesilaos Stavrou]]
- :PROPERTIES:
-  :ID: b33cde10-ebc7-4a1e-bcd0-ab26753a7d02
-  :END:
-  [2025-01-01 Wed 19:14]
-** [[https://github.com/meow-edit/meow][meow-edit/meow: Yet another modal editing on Emacs / 猫态编辑]]
- :PROPERTIES:
-  :ID: b1c6e4de-8a63-418d-98e5-be1f0dd92541
-  :END:
-  [2025-01-01 Wed 19:14]
-** [[https://github.com/leoliu/easy-kill][leoliu/easy-kill: Kill & Mark Things Easily in Emacs]]
- :PROPERTIES:
-  :ID: 55d130f9-519e-4283-b986-bef6f6fa94ee
-  :END:
-  [2025-01-01 Wed 19:14]
-** [[https://lmno.lol/alvaro/an-experimental-e-shell-pager][An experimental (e)shell pager]]
- :PROPERTIES:
-  :ID: b81b7885-7138-4be2-b8e8-5d1ebbad9fa3
-  :END:
-  [2025-01-01 Wed 19:08]
-** [[https://etown.dev/nice-org-html/README][Nice Org to HTML pipeline]]
- :PROPERTIES:
-  :ID: 9f4497a2-213a-4099-a668-81d84a6a74ae
-  :END:
-  [2025-01-01 Wed 19:08]
-
-** [[https://www.jamescherti.com/emacs-buffer-terminator/][Emacs: buffer-terminator.el – Safely Terminate Emacs Buffers Automatically | James Cherti]]
- :PROPERTIES:
-  :ID: 1a279ff8-fce1-46ad-b86d-69b98dbdf851
-  :END:
-  [2025-01-01 Wed 19:07]
-** [[https://www.reddit.com/r/emacs/comments/1h5t31o/omdash_03_improved_github_support_imap_support/?share_id=hUy9ZiftaMN3UVABZOlVY][om-dash 0.3: improved github support, imap support, more : r/emacs]]
- :PROPERTIES:
-  :ID: 00cdeb5f-3981-4f77-9844-303579a6d487
-  :END:
-  [2025-01-01 Wed 18:58]
-** [[https://github.com/fosskers/transducers.el][fosskers/transducers.el: Ergonomic, efficient data processing for Emacs Lisp.]]
- :PROPERTIES:
-  :ID: 15af4b7b-2c6f-4274-b4d0-4864705d8204
-  :END:
-  [2025-01-01 Wed 18:45]
-** [[https://github.com/mickeynp/combobulate][mickeynp/combobulate: Structured Editing and Navigation in Emacs with Tree-Sitter]]
- :PROPERTIES:
-  :ID: e115334f-d952-40ae-a8d9-18d223ff8ca2
-  :END:
-  [2025-01-01 Wed 18:35]
-** [[https://github.com/dash-docs-el/helm-dash][dash-docs-el/helm-dash: Browse Dash docsets inside emacs]]
- :PROPERTIES:
-  :ID: f1614be4-29ae-465a-a3bc-27ccda375d4e
-  :END:
-  [2024-11-26 Tue 13:15]
-
-** [[https://github.com/xenodium/sqlite-mode-extras][GitHub - xenodium/sqlite-mode-extras: Emacs sqlite-mode extras]]
-** [[https://github.com/karthink/gptel][GitHub - karthink/gptel: A simple LLM client for Emacs]]
-** [[https://github.com/bbatsov/crux][bbatsov/crux: A Collection of Ridiculously Useful eXtensions for Emacs]]
- :PROPERTIES:
-  :ID: 7836f90a-e4be-44c2-818a-16834b442dd3
-  :END:
-  [2024-11-24 Sun 09:06]
-** [[https://elpa.gnu.org/packages/expreg.html][GNU ELPA - expreg]]
- :PROPERTIES:
-  :ID: 631aa604-cae0-40ec-bd96-996666abc7ac
-  :END:
-  [2024-11-24 Sun 09:12]
-** Devdocs
-** [[https://devdocs.io/ansible/][Ansible documentation — DevDocs]]
- :PROPERTIES:
-  :ID: f6f93098-79e1-4a9e-a4d6-32260b225e71
-  :END:
-  [2024-11-24 Sun 09:15]
-** [[https://kapeli.com/dash][Dash for macOS - API Documentation Browser, Snippet Manager - Kapeli]]
- :PROPERTIES:
-  :ID: 2b1aa146-b08c-45ab-8b35-97eca3844f2f
-  :END:
-  [2024-11-24 Sun 09:15]
-** [[https://codeberg.org/ideasman42/emacs-fancy-compilation][ideasman42/emacs-fancy-compilation: Emacs compilation-mode enhancements. - Codeberg.org]]
- :PROPERTIES:
-  :ID: cc368d71-42cc-45f9-a838-259d97292792
-  :END:
-  [2024-11-24 Sun 09:16]
-** [[https://github.com/ReanGD/emacs-multi-compile][ReanGD/emacs-multi-compile: emacs package multi-compile]]
- :PROPERTIES:
-  :ID: e6353313-0eff-4073-924f-f50fbae155c8
-  :END:
-  [2024-11-24 Sun 09:17]
-** [[https://github.com/alexluigit/dirvish][alexluigit/dirvish: A polished Dired with batteries included.]]
- :PROPERTIES:
-  :ID: ad454f8f-b89a-4b62-be33-36494d769316
-  :END:
-  [2024-11-24 Sun 09:18]
-** [[https://www.emacswiki.org/emacs/DiredPlus][EmacsWiki: Dired Plus]]
- :PROPERTIES:
-  :ID: 78cc2e94-a4f1-4e03-9c50-25720e93a767
-  :END:
-  [2024-11-24 Sun 09:19]
-** [[https://github.com/suntsov/efar][suntsov/efar: A FAR-like file manager for Emacs]]
- :PROPERTIES:
-  :ID: b5008a88-4bc3-42be-854e-8518b2134c0e
-  :END:
-  [2024-11-24 Sun 09:21]
-** [[https://www.emacswiki.org/emacs/InferiorEmacsLispMode][EmacsWiki: Inferior Emacs Lisp Mode]]
- :PROPERTIES:
-  :ID: 8963a122-2510-461e-b05e-863d0caf42aa
-  :END:
-  [2024-11-24 Sun 09:32]
-** [[https://github.com/ragnard/tabby-mode?tab=readme-ov-file][ragnard/tabby-mode: An Emacs mode for the Tabby AI coding assistant]]
- :PROPERTIES:
-  :ID: be0ddaf9-0d38-4adb-baa8-39ca0e0c48b8
-  :END:
-  [2024-11-24 Sun 09:33]
-** [[https://github.com/copilot-emacs/copilot.el][copilot-emacs/copilot.el: An unofficial Copilot plugin for Emacs.]]
- :PROPERTIES:
-  :ID: 55a41bab-8d93-41a9-8407-c16201d0fcf5
-  :END:
-  [2024-11-24 Sun 09:33]
-** [[https://github.com/rksm/org-ai][rksm/org-ai: Emacs as your personal AI assistant. Use LLMs such as ChatGPT or LLaMA for text generation or DALL-E and Stable Diffusion for image generation. Also supports speech input / output.]]
- :PROPERTIES:
-  :ID: d8f6a7d1-28fb-4b62-a8ed-46a01a12f308
-  :END:
-  [2024-11-24 Sun 09:33]
-** [[https://github.com/karthink/gptel][karthink/gptel: A simple LLM client for Emacs]]
- :PROPERTIES:
-  :ID: ed0ba49e-eff9-4478-9e71-098d54132be6
-  :END:
-  [2024-11-24 Sun 09:34]
-** [[https://github.com/kai2nenobu/guide-key][kai2nenobu/guide-key: Guide following keys to an input key sequence automatically and dynamically in Emacs.]]
- :PROPERTIES:
-  :ID: e596408d-fa07-4f8b-a737-73520ec0adde
-  :END:
-  [2024-11-24 Sun 09:34]
-** [[https://github.com/alphapapa/org-protocol-capture-html][alphapapa/org-protocol-capture-html: Capture HTML from the browser selection into Emacs as org-mode content]]
- :PROPERTIES:
-  :ID: 47a0ce00-e3d1-4eb2-a613-31a1c35f1d4c
-  :END:
-  [2024-11-24 Sun 09:34]
-** [[https://github.com/abo-abo/org-download][abo-abo/org-download: Drag and drop images to Emacs org-mode]]
- :PROPERTIES:
-  :ID: db3ae4d0-2bbf-4e3a-ba21-b0f27e454c5a
-  :END:
-  [2024-11-24 Sun 09:34]
-** [[https://github.com/fniessen/org-html-themes][fniessen/org-html-themes: Transform your Org mode files into stunning HTML documents in minutes with our Org mode HTML theme. Elevate your productivity and impress your readers! #orgmode #html #theme #productivity #design]]
- :PROPERTIES:
-  :ID: a9b3ac47-1b7d-4569-a23b-0c3ea3f5a2f4
-  :END:
-  [2024-11-24 Sun 09:35]
-** [[https://github.com/weirdNox/org-noter][weirdNox/org-noter: Emacs document annotator, using Org-mode]]
- :PROPERTIES:
-  :ID: a08aebe0-c216-4efb-9ab8-35651707f8e7
-  :END:
-  [2024-11-24 Sun 09:35]
-** [[https://github.com/ichernyshovvv/org-timeblock][ichernyshovvv/org-timeblock: Schedule your day visually, using timeblocking technique inside Emacs]]
- :PROPERTIES:
-  :ID: 92292876-a82d-44ce-b102-24bbac49dd94
-  :END:
-  [2024-11-24 Sun 09:35]
-** [[https://github.com/positron-solutions/dslide][positron-solutions/dslide: Present anything Emacs can do with programmable, extensible, configurable slides made from org mode headings]]
- :PROPERTIES:
-  :ID: a908e7c6-97d9-4dc2-86e8-5c13d11f034f
-  :END:
-  [2024-11-24 Sun 09:35]
-** [[https://github.com/magit/forge][magit/forge: Work with Git forges from the comfort of Magit]]
- :PROPERTIES:
-  :ID: 27dc746f-fb0a-48a8-8e06-4d57305b71f0
-  :END:
-  [2024-11-24 Sun 09:36]
-** [[https://github.com/dgutov/diff-hl][dgutov/diff-hl: Emacs package for highlighting uncommitted changes]]
- :PROPERTIES:
-  :ID: a9057aeb-6c78-4581-b39f-a1867ac1eea2
-  :END:
-  [2024-11-24 Sun 09:36]
-** [[https://github.com/sshaw/git-link][sshaw/git-link: Emacs package to get the GitHub/Bitbucket/GitLab/... URL for a buffer location]]
- :PROPERTIES:
-  :ID: 6a38328f-9bb8-4df7-9824-889bacc2a8be
-  :END:
-  [2024-11-24 Sun 09:36]
-** [[https://www.emacswiki.org/emacs/MultiTerm][EmacsWiki: Multi Term]]
- :PROPERTIES:
-  :ID: eca420fe-413f-4a6d-bf70-6c53723322fd
-  :END:
-  [2024-11-24 Sun 09:36]
-** [[https://github.com/akermu/emacs-libvterm][akermu/emacs-libvterm: Emacs libvterm integration]]
- :PROPERTIES:
-  :ID: 59267e8c-3506-46c2-8f87-fb6fc734721c
-  :END:
-  [2024-11-24 Sun 09:36]
-** [[https://github.com/zwild/eshell-prompt-extras][zwild/eshell-prompt-extras: Display extra information and color for your eshell prompt.]]
- :PROPERTIES:
-  :ID: 21d0b3ed-990d-4ca6-b644-90f6517cd5d1
-  :END:
-  [2024-11-24 Sun 09:37]
-** [[https://github.com/emacs-eaf/emacs-application-framework?tab=readme-ov-file][emacs-eaf/emacs-application-framework: EAF, an extensible framework that revolutionizes the graphical capabilities of Emacs]]
- :PROPERTIES:
-  :ID: 29b8cbc7-088c-43b8-b90f-8175797e76dd
-  :END:
-  [2024-11-24 Sun 09:38]
-** [[https://github.com/manateelazycat/color-rg][manateelazycat/color-rg: Search and refactoring tool based on ripgrep.]]
- :PROPERTIES:
-  :ID: 3359adb3-a6e1-4de7-ad95-665cf3a46c57
-  :END:
-  [2024-11-24 Sun 09:39]
-** [[https://ox-hugo.scripter.co/][ox-hugo - Org to Hugo exporter]]
- :PROPERTIES:
-  :ID: 415f017c-a45d-4967-80a2-e5e5090f94b0
-  :END:
-  [2024-11-24 Sun 09:39]
 ** [[https://github.com/vedang/pdf-tools][vedang/pdf-tools: Emacs support library for PDF files.]]
  :PROPERTIES:
   :ID: a01220f2-cd78-4cfd-a332-2ecb09d72bae
   :END:
   [2024-11-24 Sun 09:39]
-** [[https://www.djcbsoftware.nl/code/mu/mu4e.html][djcbsoftware]]
+** [[https://github.com/weirdNox/org-noter][weirdNox/org-noter: Emacs document annotator, using Org-mode]]
  :PROPERTIES:
-  :ID: 7ecc4e7b-b378-4674-9be1-203741a88ec4
+  :ID: a08aebe0-c216-4efb-9ab8-35651707f8e7
   :END:
-  [2024-11-24 Sun 09:40]
-** [[https://github.com/emacscollective/no-littering][emacscollective/no-littering: Help keeping ~/.config/emacs clean]]
+  [2024-11-24 Sun 09:35]
+** [[https://github.com/zwild/eshell-prompt-extras][zwild/eshell-prompt-extras: Display extra information and color for your eshell prompt.]]
  :PROPERTIES:
-  :ID: e4ef1511-e2cb-4742-be91-08b1d8e1a6ab
+  :ID: 21d0b3ed-990d-4ca6-b644-90f6517cd5d1
   :END:
-  [2024-11-24 Sun 09:40]
-** [[https://github.com/radian-software/el-patch][radian-software/el-patch: ✨ Future-proof your Emacs Lisp customizations!]]
- :PROPERTIES:
-  :ID: 9e814763-b384-4e41-9d6d-9d18d7ac82bc
-  :END:
-  [2024-11-24 Sun 09:40]
-** [[https://github.com/narendraj9/hledger-mode][narendraj9/hledger-mode: An Emacs major mode for Hledger]]
- :PROPERTIES:
-  :ID: 414938d9-9e9c-46d4-a215-a2ab9578b656
-  :END:
-  [2024-11-24 Sun 09:40]
-
+  [2024-11-24 Sun 09:37]
 
 
 * Footer
