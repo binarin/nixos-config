@@ -1,0 +1,57 @@
+(defcfg
+  input (iokit-name)
+  output (kext)
+  fallthrough true
+)
+
+(defsrc
+ esc    f1     f2     f3     f4     f5     f6     f7     f8     f9     f10    f11    f12
+ grv    1      2      3      4      5      6      7      8      9      0      -      =      bspc
+ tab    q      w      e      r      t      y      u      i      o      p      [      ]      \
+ caps   a      s      d      f      g      h      j      k      l      ;      '      ret
+ lsft   z      x      c      v      b      n      m      ,      .      /      rsft   up
+ fn     lctl   lalt   lmet             spc               rmet   ralt          left   down   rght
+ )
+
+#|
+(deflayer X
+ _      _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _      _                _                 _      _             _      _      _
+)
+|#
+
+(defalias
+  m_a (tap-hold-next-release 200 a lmet)
+  a_s (tap-hold-next-release 200 s lalt)
+  s_d (tap-hold-next-release 200 d lsft)
+  c_f (tap-hold-next-release 200 f lctl)
+
+  c_j (tap-hold-next-release 200 j rctl)
+  s_k (tap-hold-next-release 200 k rsft)
+  a_l (tap-hold-next-release 200 l lalt)
+  m_; (tap-hold-next-release 200 ; rmet)
+  )
+
+(defalias fn (around (layer-toggle function) fn))
+
+(deflayer default
+ _      _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _      _      _      _      _      _      _      _      _      _      _      _
+ esc    @m_a   @a_s   @s_d   @c_f   _      _      @c_j   @s_k   @a_l   @m_;   _      _
+ _      _      _      _      _      _      _      _      _      _      _      _      _
+ @fn    _      lmet   lalt             _                 ralt   rmet          _      _      _
+ )
+
+(deflayer function
+ _      brdn   brup   lp     mctl   spot   dict   prev   pp     next   mute   vold   volu
+ _      _      _      _      _      _      _      _      _      _      _      _      _      del
+ _      _      _      _      _      _      _      _      ins    _      _      _      _      _
+ _      _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _      _                _                 _      _             _      _      _
+ )
