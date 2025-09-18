@@ -1300,30 +1300,6 @@
      (with-eval-after-load 'org-mouse
        (setf (symbol-function 'org--mouse-open-at-point) #'(lambda (orig-fun &rest args) (apply orig-fun args))))
    #+END_SRC
-** Keyboard navigation tuning
-   #+begin_src emacs-lisp :tangle yes
-     (defun binarin/org-next-line-visual-fix (&optional arg)
-       (interactive "p")
-       (let ((line-move-visual
-              (if (and (bolp) (looking-at org-heading-regexp t))
-                  nil ; when there is an pretty overlay here, it messes up visual move logic
-                line-move-visual)))
-         (line-move arg)))
-
-     (defun binarin/org-previous-line-visual-fix (&optional arg)
-       (interactive "p")
-       (or arg (setq arg 1))
-       (let ((line-move-visual
-              (if (and (bolp) (looking-at org-heading-regexp t))
-                  nil ; when there is an pretty overlay here, it messes up visual move logic
-                line-move-visual)))
-         (line-move (- arg))))
-
-     (with-eval-after-load 'org
-       (general-define-key :keymaps 'org-mode-map
-                           "C-n" 'binarin/org-next-line-visual-fix
-                           "C-p" 'binarin/org-previous-line-visual-fix))
-   #+end_src
 ** Todo keywords
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-todo-keywords
@@ -1393,21 +1369,6 @@
       "◀── now ─────────────────────────────────────────────────")
    #+end_src
 
-   #+BEGIN_SRC emacs-lisp :tangle no
-     (defun binarin/shrink-text ()
-       (when (and
-              (window-system)
-              (or (not (boundp 'text-scale-mode))
-                  (with-suppressed-warnings ((free-vars text-scale-mode))
-                    (not text-scale-mode))))
-         (text-scale-increase 0)
-         (text-scale-increase -1)))
-
-     (eval-after-load "org-agenda"
-       (when (window-system)
-         (add-hook 'org-agenda-mode-hook #'binarin/shrink-text)))
-   #+END_SRC
-
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-agenda-tags-column 0
            org-tags-column 0
@@ -1441,32 +1402,6 @@
    #+END_SRC
 
 ** Appearance
-   #+BEGIN_SRC emacs-lisp :tangle yes
-     (use-package org-modern
-       :ensure t
-       :after (org)
-       :config
-       (global-org-modern-mode))
-
-     (with-eval-after-load 'org-modern
-       (setq org-modern-hide-stars ?\s)
-       (setq org-modern-block-fringe nil)
-       (setq org-modern-fold-stars
-             '(("•" . "◦")))
-       (setq org-modern-todo-faces
-             '(("TODO" :background "pink3" :foreground "black")
-               ("NEXT" :background "cyan3" :foreground "black")
-               ("WAIT" :background "orange3" :foreground "black")
-               ("DONE" :background "green4" :foreground "black")
-               ("CNCL" :background "forest green" :foreground "yellow"))))
-
-     ;; Ellipsis styling
-     (setq org-ellipsis "…")
-     (with-eval-after-load 'org
-       (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil))
-
-   #+END_SRC
-
    #+BEGIN_SRC emacs-lisp :tangle yes
      (defun binarin/org-agenda-mode-hook ()
        ;; Always highlight the current agenda line
@@ -1592,15 +1527,6 @@
      (advice-add 'org-archive-subtree :after #'binarin/update-parent-todo-statistics)
    #+END_SRC
 
-   #+BEGIN_SRC emacs-lisp
-     ;; XXX use consult for refiling and add those as high-prio targets
-     (defconst binarin/common-tasks-for-refiling
-       '(("personal-next" . "ece10822-11d9-4939-b3e2-2d660c0a29ad")
-         ("personal-projects" . "f43d2ba5-e840-4382-85da-ff2bf10ff9de")
-         ("personal-scheduled" . "13d7a494-3f80-4ffe-a7b4-bded42335342")))
-
-   #+END_SRC
-
 ** Babel
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-babel-default-header-args:emacs-lisp '((:lexical . "yes")))
@@ -1681,35 +1607,6 @@
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-return-follows-link t)
      (setq org-id-link-to-org-use-id 'create-if-interactive)
-   #+END_SRC
-** Speed commands
-   #+BEGIN_SRC emacs-lisp :tangle yes
-     (defun binarin/use-speed-commands-for-other-things ()
-       (or (and (bolp) (looking-at org-block-regexp t))
-           (looking-at "^#\\+PROPERTY" t)))
-
-     (setq org-use-speed-commands #'binarin/use-speed-commands-for-other-things)
-
-     (defun binarin/org-previous-visible-heading-no-file-header (arg)
-       (interactive "p")
-       (org-previous-visible-heading arg)
-       (when (and (= (point-min) (point))
-                  (looking-at "^#\\+PROPERTY" t))
-         ;; overshot to #+PROPERTY lines at the beginning of the file
-         (org-next-visible-heading 1)))
-
-     (with-eval-after-load 'org-keys
-       (cl-dolist
-           (elt '(("g" . consult-org-heading)
-                  ("i" . org-clock-in)
-                  ("i" . org-clock-out)
-                  ("a" . org-archive-subtree-default)
-                  ("k" . binarin/org-previous-visible-heading-no-file-header)
-                  ("j" . org-next-visible-heading)
-                  ("w" . org-refile)
-                  ("m" . org-roam-refile)
-                  ("r" . (org-refile 3))))
-         (add-to-list 'org-speed-commands elt nil)))
    #+END_SRC
 ** Roam
    #+begin_src emacs-lisp :tangle yes
