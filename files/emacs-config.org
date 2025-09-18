@@ -1370,12 +1370,12 @@
    #+end_src
 
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (setq org-agenda-tags-column 0
-           org-tags-column 0
-           org-auto-align-tags nil
+     (setq org-agenda-tags-column 'auto
+           org-tags-column -124
+           org-auto-align-tags t
            org-special-ctrl-a/e 'reversed
            org-insert-heading-respect-content t
-           org-hide-emphasis-markers t
+           org-hide-emphasis-markers nil
            org-pretty-entities t)
    #+END_SRC
 ** Templates
