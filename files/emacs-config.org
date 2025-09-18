@@ -1253,6 +1253,14 @@
          (transient-setup 'binarin/ledger-resolve nil nil
                           :scope (make-resolve-scope :trn trn :date date :use-date nil :amount amount :use-amount nil :regex payee :use-regex nil :rules-file nil)))))
  #+end_src
+
+** KMonad .kbd files
+   #+begin_src emacs-lisp :tangle yes
+     (use-package kbd-mode
+       :ensure t
+       :mode ("\\.kbd\\'" . kbd-mode))
+   #+end_src
+
 * Major modes
 ** pdf-tools
    #+begin_src emacs-lisp :tangle yes

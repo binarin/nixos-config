@@ -13,9 +13,18 @@ let
     ${cleanup-unicode-from-emacs-org-babel-config} ${config.lib.self.file cfg.orgBabelConfig} > $out
   '';
 
+  kbd-mode = {trivialBuild}: trivialBuild {
+    pname = "kbd-mode";
+    version = "20250222.01";
+    src = pkgs.fetchurl {
+      hash = "sha256-h2on6BIXUNqWsp1DeI8cIJyyBG5ijuF77ql3b6WXAq8=";
+      url = "https://github.com/kmonad/kbd-mode/raw/a349015860fccd31b0c56147d7fa641b68afa07f/kbd-mode.el";
+    };
+  };
+
   finalEmacsPackage = (pkgs.emacsWithPackagesFromUsePackage {
     override = epkgs: epkgs // {
-      # kdl-ts-mode = kdl-ts-mode {inherit (epkgs) melpaBuild; };
+      kbd-mode = kbd-mode {inherit (epkgs) trivialBuild; };
     };
     extraEmacsPackages = epkgs: with epkgs; [
       treesit-grammars.with-all-grammars
