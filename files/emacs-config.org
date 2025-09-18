@@ -1230,6 +1230,8 @@
 
    (cl-defstruct resolve-scope trn date use-date amount use-amount regex use-regex rules-file)
 
+   (require 'transient)
+
    (defun binarin/resolve-ledger-transaction ()
      (interactive)
      (let ((scope (transient-scope)))
