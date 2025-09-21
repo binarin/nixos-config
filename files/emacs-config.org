@@ -1404,8 +1404,7 @@
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-highest-priority ?A
            org-lowest-priority ?D
-           org-default-priority ?C)
-
+           org-default-priority ?D)
    #+END_SRC
 ** Contacts
    #+BEGIN_SRC emacs-lisp :tangle no
