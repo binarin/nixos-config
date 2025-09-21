@@ -13,7 +13,7 @@ let
     ${cleanup-unicode-from-emacs-org-babel-config} ${config.lib.self.file cfg.orgBabelConfig} > $out
   '';
 
-  kbd-mode = {trivialBuild}: trivialBuild {
+  kbd-mode-builder = {trivialBuild}: trivialBuild {
     pname = "kbd-mode";
     version = "20250222.01";
     src = pkgs.fetchurl {
@@ -24,43 +24,14 @@ let
 
   finalEmacsPackage = (pkgs.emacsWithPackagesFromUsePackage {
     override = epkgs: epkgs // {
-      kbd-mode = kbd-mode {inherit (epkgs) trivialBuild; };
+      kbd-mode = kbd-mode-builder {inherit (epkgs) trivialBuild; };
     };
     extraEmacsPackages = epkgs: with epkgs; [
       treesit-grammars.with-all-grammars
-      # lsp-bridge
-      # emacs-lsp-booster
+      kbd-mode
     ];
     package = cfg.basePackage;
     config = orgBabelConfigWithoutUnicode;
-  }).overrideAttrs (prev: {
-    # Can't get directly to wrapper, it's referenced only as
-    # ${./wrapper.sh}. But I can patch substitued wrapper.sh's
-    # ${lib.getExe pkgs.perl} -ni -E 'print unless /emacsWithPackages_siteLisp/'
-    buildCommand = prev.buildCommand + ''
-      for prog in $out/bin/.*-wrapped; do
-        sed -i -e "1 aexport emacsWithPackages_invocationDirectory=\"$out/bin\"" "$prog"
-        sed -i -e "1 aexport emacsWithPackages_invocationName=\"$(basename "$prog" -wrapped | cut -c2-)\"" "$prog"
-      done
-
-      cat << 'EOF' > env-sourcer
-      if [[ -z "''${__ETC_BASHRC_SOURCED-}" && -f /etc/bashrc ]]; then
-        . /etc/bashrc
-      fi
-
-      if [[ -z "''${__HM_SESS_VARS_SOURCED-}" && -f $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh ]]; then
-        . $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh
-      fi
-      EOF
-
-      if [ -d "$out/Applications/Emacs.app" ]; then
-        for prog in $out/Applications/Emacs.app/Contents/MacOS/.*-wrapped; do
-          sed -i -e "2 e cat env-sourcer" "$prog"
-          sed -i -e "1 aexport emacsWithPackages_invocationDirectory=\"$out/bin\"" "$prog"
-          sed -i -e "1 aexport emacsWithPackages_invocationName=\"$(basename "$prog" -wrapped | cut -c2-)\"" "$prog"
-        done
-      fi
-    '';
   });
 
   tangle-emacs-org-babel-config = pkgs.writeShellApplication {

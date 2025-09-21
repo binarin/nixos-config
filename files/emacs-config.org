@@ -1265,7 +1265,6 @@
 ** KMonad .kbd files
    #+begin_src emacs-lisp :tangle yes
      (use-package kbd-mode
-       :ensure t
        :mode ("\\.kbd\\'" . kbd-mode))
    #+end_src
 
