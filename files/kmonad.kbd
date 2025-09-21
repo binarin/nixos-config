@@ -13,27 +13,32 @@
  fn     lctl   lalt   lmet             spc               rmet   ralt          left   down   rght
  )
 
+(defsrc :name homerow-mods
+ a      s      d      f      g      h      j      k      l      ;
+ )
+
+
 #|
 (deflayer X
- _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _                _                 _      _             _      _      _
+_      _      _      _      _      _      _      _      _      _      _      _      _
+_      _      _      _      _      _      _      _      _      _      _      _      _      _
+_      _      _      _      _      _      _      _      _      _      _      _      _      _
+_      _      _      _      _      _      _      _      _      _      _      _      _
+_      _      _      _      _      _      _      _      _      _      _      _      _
+_      _      _      _                _                 _      _             _      _      _
 )
 |#
 
 (defalias
-  m_a (tap-hold-next-release 200 a (around (layer-toggle no-home-row-mods-on-right) lmet))
-  a_s (tap-hold-next-release 200 s (around (layer-toggle no-home-row-mods-on-right) lalt))
-  s_d (tap-hold-next-release 200 d (around (layer-toggle no-home-row-mods-on-right) lsft))
-  c_f (tap-hold-next-release 200 f (around (layer-toggle no-home-row-mods-on-right) lctl))
+  m_a (tap-hold-next-release 200 a lmet)
+  a_s (tap-hold-next-release 200 s lalt)
+  s_d (tap-hold-next-release 200 d lsft)
+  c_f (tap-hold-next-release 200 f lctl)
 
-  c_j (tap-hold-next-release 200 j (around (layer-toggle no-home-row-mods-on-left) rctl))
-  s_k (tap-hold-next-release 200 k (around (layer-toggle no-home-row-mods-on-left) rsft))
-  a_l (tap-hold-next-release 200 l (around (layer-toggle no-home-row-mods-on-left) lalt))
-  m_; (tap-hold-next-release 200 ; (around (layer-toggle no-home-row-mods-on-left) rmet))
+  c_j (tap-hold-next-release 200 j (around (layer-toggle disable-f-homerow-mod) rctl))
+  s_k (tap-hold-next-release 200 k rsft)
+  a_l (tap-hold-next-release 200 l lalt)
+  m_; (tap-hold-next-release 200 ; rmet)
   )
 
 (defalias fn (around (layer-toggle function) fn))
@@ -56,20 +61,6 @@
  _      _      _      _                _                 _      _             home   pgdn   end
  )
 
-(deflayer no-home-row-mods-on-left
- _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _      _
- _      a      s      d      f      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _                _                 _      _             _      _      _
-)
-
-(deflayer no-home-row-mods-on-right
- _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      j      k      l      ;      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _                _                 _      _             _      _      _
+(deflayer disable-f-homerow-mod :source homerow-mods
+ _      _      _      f      _      _      _      _      _      _
 )
