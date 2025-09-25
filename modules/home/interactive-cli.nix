@@ -146,7 +146,9 @@ in {
         extraConfig = ''
         set -g allow-rename off
         set -g update-environment "DISPLAY KRB5CCNAME SSH_ASKPASS SSH_AGENT_PID SSH_CONNECTION WINDOWID XAUTHORITY"
-        setenv -g SSH_AUTH_SOCK ${config.xdg.stateHome}/ssh/stable_ssh_auth_sock
+        if-shell -b 'test -f "${config.xdg.stateHome}/ssh/stable_ssh_auth_sock"' {
+          setenv -g SSH_AUTH_SOCK ${config.xdg.stateHome}/ssh/stable_ssh_auth_sock
+        }
       '';
       };
 
