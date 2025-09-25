@@ -45,6 +45,7 @@
         emacs-saved = prev.emacs;
       })
       flake.inputs.emacs-overlay.overlays.default
+      flake.inputs.kmonad.overlays.default
     ];
 
     # system.defaults.dock.persistent-apps = [
@@ -90,6 +91,7 @@
         flake.inputs.self.homeModules.wezterm
         flake.inputs.self.homeModules.interactive-cli
         flake.inputs.self.homeModules.impermanence
+        flake.inputs.self.homeModules.kmonad
         flake.inputs.mac-app-util.homeManagerModules.default
       ];
       config = {

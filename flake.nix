@@ -41,6 +41,16 @@
       inputs.pre-commit-hooks.follows = "pre-commit-hooks";
     };
 
+    kmonad = {
+      url = "https://github.com/kmonad/kmonad";
+      # ref = "refs/tags/0.4.4";
+      ref = "a38004ff4df4beda648ec5b1374173d3192d61ae";
+      type = "git";
+      submodules = true;
+      dir = "nix";
+      # inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     # XXX Only to override the one in hyprland, until nested overrides are possible
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs-unstable";
