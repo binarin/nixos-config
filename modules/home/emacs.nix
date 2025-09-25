@@ -32,6 +32,27 @@ let
     ];
     package = cfg.basePackage;
     config = orgBabelConfigWithoutUnicode;
+  }).overrideAttrs (prev: {
+    # Can't get directly to wrapper, it's referenced only as
+    # ${./wrapper.sh}. But I can patch substitued wrapper.sh's
+    # ${lib.getExe pkgs.perl} -ni -E 'print unless /emacsWithPackages_siteLisp/'
+    buildCommand = prev.buildCommand + ''
+      cat << 'EOF' > env-sourcer
+      if [[ -z "''${__ETC_BASHRC_SOURCED-}" && -f /etc/bashrc ]]; then
+        . /etc/bashrc
+      fi
+
+      if [[ -z "''${__HM_SESS_VARS_SOURCED-}" && -f $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh ]]; then
+        . $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh
+      fi
+      EOF
+
+      if [ -d "$out/Applications/Emacs.app" ]; then
+        for prog in $out/Applications/Emacs.app/Contents/MacOS/.*-wrapped; do
+          sed -i -e "2 e cat env-sourcer" "$prog"
+        done
+      fi
+    '';
   });
 
   tangle-emacs-org-babel-config = pkgs.writeShellApplication {
