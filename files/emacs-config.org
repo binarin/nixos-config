@@ -1622,6 +1622,40 @@
      (setq org-return-follows-link t)
      (setq org-id-link-to-org-use-id 'create-if-interactive)
    #+END_SRC
+** Speed commands
+   #+BEGIN_SRC emacs-lisp :tangle yes
+     (defun binarin/use-speed-commands-for-other-things ()
+       (or (and (bolp) (looking-at org-block-regexp t))
+           (looking-at "^#\\+PROPERTY" t)))
+
+     (setq org-use-speed-commands #'binarin/use-speed-commands-for-other-things)
+
+     (defun binarin/org-previous-visible-heading-no-file-header (arg)
+       (interactive "p")
+       (org-previous-visible-heading arg)
+       (when (and (= (point-min) (point))
+                  (looking-at "^#\\+PROPERTY" t))
+         ;; overshot to #+PROPERTY lines at the beginning of the file
+         (org-next-visible-heading 1)))
+
+     (defun binarin/org-roam-refile-strip-id ()
+       (interactive)
+       (awhen (org-roam-node-read nil nil nil 'require-match)
+         (org-delete-property "ID")
+         (org-roam-refile it)))
+
+     (with-eval-after-load 'org-keys
+       (cl-dolist
+           (elt '(("g" . consult-org-heading)
+                  ("i" . org-clock-in)
+                  ("a" . org-archive-subtree-default)
+                  ("k" . binarin/org-previous-visible-heading-no-file-header)
+                  ("j" . org-next-visible-heading)
+                  ("w" . org-refile)
+                  ("m" . binarin/org-roam-refile-strip-id)
+                  ("r" . (org-refile 3))))
+         (add-to-list 'org-speed-commands elt nil)))
+   #+END_SRC
 ** Roam
    #+begin_src emacs-lisp :tangle yes
      ;; XXX consult-org-roam
