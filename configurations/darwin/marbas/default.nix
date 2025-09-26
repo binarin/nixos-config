@@ -83,6 +83,17 @@
     # So for small changes I can run only home-manager activation script, to reduce iteration time
     home-manager.useUserPackages = lib.mkForce false;
 
+    # XXX How to give it permissions? Error: IOHIDDeviceOpen error: (iokit/common) not permitted
+    # launchd.daemons.kmonad = {
+    #   script = ''
+    #     ${lib.getExe pkgs.kmonad} -l debug ${config.lib.self.file "kmonad.kbd"}
+    #   '';
+    #   serviceConfig = {
+    #     StandardOutPath = "/tmp/kmonad.stdout";
+    #     StandardErrorPath = "/tmp/kmonad.stderr";
+    #   };
+    # };
+
     home-manager.users.binarin = {osConfig, ...}: {
       imports = [
         flake.inputs.self.sharedModules.default
