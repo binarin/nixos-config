@@ -1638,6 +1638,7 @@
          ;; overshot to #+PROPERTY lines at the beginning of the file
          (org-next-visible-heading 1)))
 
+     (autoload 'org-roam-node-read "org-roam-node")
      (defun binarin/org-roam-refile-strip-id ()
        (interactive)
        (awhen (org-roam-node-read nil nil nil 'require-match)
