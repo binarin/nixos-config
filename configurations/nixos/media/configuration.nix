@@ -629,6 +629,16 @@ in
     import letsencrypt
   '';
 
+  services.caddy.virtualHosts."unifi.binarin.info".extraConfig = ''
+    reverse_proxy 192.168.2.1:443 {
+      transport http {
+        tls
+        tls_insecure_skip_verify
+      }
+    }
+    import letsencrypt
+  '';
+
   services.atuin.enable = true;
 
   system.stateVersion = "24.05";
