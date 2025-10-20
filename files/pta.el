@@ -38,7 +38,7 @@
 (defun binarin/resolve-ledger-transaction (scope account)
   (with-slots (date use-date regex use-regex amount use-amount severity comment rules-file project use-project) scope
     (let ((date-regex-str (if use-date date "([^,]+)"))
-          (amnt-regex-str "([^,]+)") ;; XXX
+          (amnt-regex-str (if use-amount (hledger-escape-regex amount) "([^,]+)"))
           (desc-regex-str (s-concat ".*" regex ".*"))
           (comment-components '())
           comment-str
@@ -152,6 +152,14 @@
                                 'transient-argument
                               'transient-inactive-argument))))
 
+(defun binarin/ledger-resolve-format-amount-argument ()
+  (format "%s %s"
+          (propertize "Amount:" 'face 'transient-heading)
+          (propertize (resolve-scope-amount (transient-scope))
+                      'face (if (resolve-scope-use-amount (transient-scope))
+                                'transient-argument
+                              'transient-inactive-argument))))
+
 (defun binarin/ledger-resolve-toggle-use-project ()
   (interactive)
   (resolve-scope-slot-flipper 'use-project)
@@ -194,17 +202,32 @@
     (when project-severity
       (setf (resolve-scope-severity (transient-scope)) project-severity))
     (unless project-entry
-      (let ((default-severity (resolve-scope-severity (transient-scope)))
-            (new-entry (format "%s:%s" new-project default-severity)))
+      (let* ((default-severity (resolve-scope-severity (transient-scope)))
+             (severity-options '("mandatory" "essential" "leisure" "luxury" "burden" "undecided" "unknown"))
+             (final-severity (if (string= default-severity "undecided")
+                                 (completing-read "Priority: " severity-options nil t)
+                               default-severity))
+             (new-entry (format "%s:%s" new-project final-severity)))
+        (when (string= default-severity "undecided")
+          (setf (resolve-scope-severity (transient-scope)) final-severity))
         (with-temp-buffer
           (when (file-exists-p projects-file)
             (insert-file-contents projects-file))
           (goto-char (point-max))
           (unless (bobp)
-            (insert "\n"))
+            (unless (looking-back "\n" nil)
+              (insert "\n")))
           (insert new-entry)
           (write-file projects-file))))))
 
+(defun binarin/ledger-resolve-toggle-use-amount ()
+  (interactive)
+  (resolve-scope-slot-flipper 'use-amount))
+
+(defun binarin/ledger-resolve-edit-amount ()
+  (interactive)
+  (setf (resolve-scope-amount (transient-scope)) (read-from-minibuffer "Amount: " (resolve-scope-amount (transient-scope))))
+  (setf (resolve-scope-use-amount (transient-scope)) t))
 
 (defun binarin/ledger-resolve-format-severity-argument ()
   (format "%s %s"
@@ -230,6 +253,11 @@
                 :class transient-row
                 ("p" "Edit project" binarin/ledger-resolve-edit-project :transient t)
                 ("-p" "Toggle use project" binarin/ledger-resolve-toggle-use-project :transient t)]
+
+  [:description binarin/ledger-resolve-format-amount-argument
+                :class transient-row
+                ("a" "Edit amount" binarin/ledger-resolve-edit-amount :transient t)
+                ("-a" "Toggle use amount" binarin/ledger-resolve-toggle-use-amount :transient t)]
 
   [:description binarin/ledger-resolve-format-severity-argument
                 :class transient-row
