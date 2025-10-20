@@ -1,17 +1,3 @@
-(use-package ledger-mode
-  :ensure t
-  :autoload ledger-context-at-point
-  :mode ("\\.hledger\\'" "\\.ledger\\'" "\\.journal\\'"))
-
-(general-setq
- ledger-post-amount-alignment-column 70
- ledger-mode-should-check-version nil
- ledger-report-auto-width nil
- ledger-report-links-in-register nil
- ledger-report-native-highlighting-arguments '("--color=always")
- ledger-default-date-format "%Y-%m-%d"
- ledger-reconcile-default-date-format "%Y-%m-%d")
-
 (defun binarin/csv-dir-for-ledger-account (ledger-account)
   (let ((account (cadr (s-split ":" ledger-account))))
     (file-name-concat (projectile-project-root) "import" account "csv")))
