@@ -38,7 +38,7 @@
 (defun binarin/resolve-ledger-transaction (scope account)
   (with-slots (date use-date regex use-regex amount use-amount severity comment rules-file project use-project) scope
     (let ((date-regex-str (if use-date date "([^,]+)"))
-          (amnt-regex-str (if use-amount (hledger-escape-regex amount) "([^,]+)"))
+          (amnt-regex-str (if use-amount amount "([^,]+)"))
           (desc-regex-str (s-concat ".*" regex ".*"))
           (comment-components '())
           comment-str
@@ -278,7 +278,7 @@
       (transient-setup 'binarin/ledger-resolve nil nil
                        :scope (make-resolve-scope :trn trn
                                                   :date date :use-date nil
-                                                  :amount amount :use-amount nil
+                                                  :amount (hledger-escape-regex amount) :use-amount nil
                                                   :regex (hledger-escape-regex payee) :use-regex nil
                                                   :severity "undecided"
                                                   :comment nil
