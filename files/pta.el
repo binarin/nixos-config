@@ -111,7 +111,8 @@
 
 
 (defun binarin/ledger-resolve-format-date-argument ()
-  (format "Date: %s"
+  (format "%s %s"
+          (propertize "Date:" 'face 'transient-heading)
           (propertize (resolve-scope-date (transient-scope))
                       'face (if (resolve-scope-use-date (transient-scope))
                                 'transient-argument
@@ -127,8 +128,10 @@
   (setf (resolve-scope-use-date (transient-scope)) t))
 
 (defun binarin/ledger-resolve-format-regex-argument ()
-  (format "RE: %s" (propertize (resolve-scope-regex (transient-scope))
-                               'face 'transient-argument)))
+  (format "%s %s"
+          (propertize "RE:" 'face 'transient-heading)
+          (propertize (resolve-scope-regex (transient-scope))
+                      'face 'transient-argument)))
 
 (defun binarin/ledger-resolve-edit-regex ()
   (interactive)
@@ -142,7 +145,8 @@
             (propertize "<NONE>" 'face 'transient-inactive-argument))))
 
 (defun binarin/ledger-resolve-format-project-argument ()
-  (format "Project: %s"
+  (format "%s %s"
+          (propertize "Project:" 'face 'transient-heading)
           (propertize (or (resolve-scope-project (transient-scope)) "<NONE>")
                       'face (if (resolve-scope-use-project (transient-scope))
                                 'transient-argument
