@@ -65,9 +65,15 @@ let
     '';
   };
 
-  compiledConfig = pkgs.runCommand "emacs-config-tangled" { } ''
+  # XXX find a better way to handle org-includes, while still preserving
+  compiledConfig = pkgs.runCommand "emacs-config-tangled" {} ''
+    echo $srcs
     mkdir $out
-    ${lib.getExe tangle-emacs-org-babel-config} "${config.lib.self.file cfg.orgBabelConfig}" "$out"
+    cd $out
+    cp "${config.lib.self.file "pta.el"}" pta.el
+    cp "${config.lib.self.file cfg.orgBabelConfig}" emacs-config.org
+    ${lib.getExe tangle-emacs-org-babel-config} emacs-config.org "$out"
+    rm pta.el emacs-config.org
   '';
 in
 {
