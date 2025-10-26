@@ -43,8 +43,7 @@
 
     kmonad = {
       url = "https://github.com/kmonad/kmonad";
-      # ref = "refs/tags/0.4.4";
-      ref = "7f8a0b38d4777fbacf3629b6ff8805e8eeec2f19";
+      rev = "a38004ff4df4beda648ec5b1374173d3192d61ae";
       type = "git";
       submodules = true;
       dir = "nix";

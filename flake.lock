@@ -898,7 +898,7 @@
         "dir": "nix",
         "lastModified": 1755275124,
         "narHash": "sha256-nZY/3Wx+sILtwpNbWuGkzgwxdTEcLCOCIAiKZ9k55PU=",
-        "ref": "a38004ff4df4beda648ec5b1374173d3192d61ae",
+        "ref": "refs/heads/master",
         "rev": "a38004ff4df4beda648ec5b1374173d3192d61ae",
         "revCount": 991,
         "submodules": true,
@@ -907,7 +907,7 @@
       },
       "original": {
         "dir": "nix",
-        "ref": "a38004ff4df4beda648ec5b1374173d3192d61ae",
+        "rev": "a38004ff4df4beda648ec5b1374173d3192d61ae",
         "submodules": true,
         "type": "git",
         "url": "https://github.com/kmonad/kmonad"
