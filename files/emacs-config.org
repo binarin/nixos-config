@@ -1710,6 +1710,11 @@
   :ID: db3ae4d0-2bbf-4e3a-ba21-b0f27e454c5a
   :END:
   [2024-11-24 Sun 09:34]
+** [[https://github.com/agzam/mx-piper][agzam/mx-piper: Shell script for piping things in&out of Emacs buffers]]
+ :PROPERTIES:
+  :ID: 15b0d6ac-1fe3-462d-bd61-d259e26837eb
+  :END:
+  [2025-10-26 Sun 15:33]
 ** [[https://github.com/akermu/emacs-libvterm][akermu/emacs-libvterm: Emacs libvterm integration]]
  :PROPERTIES:
   :ID: 59267e8c-3506-46c2-8f87-fb6fc734721c
