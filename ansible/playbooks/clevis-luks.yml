@@ -1,0 +1,23 @@
+---
+- hosts: pve
+  become: true
+  handlers:
+    - import_tasks: handlers/update-initramfs.yaml
+  tasks:
+    - name: Install Clevis with necessary pins/integrations
+      package:
+        state: present
+        name:
+          - clevis
+          - clevis-tpm2
+          - clevis-initramfs
+          - clevis-luks
+
+    - name: Copy initramfs curl hook for network access in initrd
+      copy:
+        src: files/initramfs-curl-hook
+        dest: /usr/share/initramfs-tools/hooks/curl
+        mode: '0755'
+        owner: root
+        group: root
+      notify: update-initramfs

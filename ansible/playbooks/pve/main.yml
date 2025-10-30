@@ -1,0 +1,13 @@
+---
+- hosts: pve
+
+  vars_files:
+    - vars/main.yml
+
+  pre_tasks:
+    - name: Load public SSH keys from nix flake
+      ansible.builtin.include_vars:
+        file: ../../ssh-public-keys.yaml
+
+  roles:
+    - sshd

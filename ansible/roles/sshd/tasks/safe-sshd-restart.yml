@@ -1,0 +1,8 @@
+---
+- name: Test sshd_config
+  ansible.builtin.command: sshd -t
+  changed_when: false
+- name: Restart sshd service
+  ansible.builtin.service:
+    name: sshd
+    state: restarted

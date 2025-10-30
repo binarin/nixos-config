@@ -1,0 +1,4 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: restart sshd
+  include_tasks: safe-sshd-restart.yml

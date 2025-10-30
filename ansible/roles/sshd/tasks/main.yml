@@ -1,0 +1,94 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Creates centrally-managed authorized_keys.d directory
+  file:
+    path: "{{ authorized_keys_path }}"
+    state: directory
+
+- name: Creates centrally-managed authorized_principals.d directory
+  file:
+    path: "{{ authorized_principals_path }}"
+    state: directory
+
+- name: Provision authorized_keys for users
+  template:
+    src: authorized_keys.j2
+    dest: "{{ authorized_keys_path }}/{{ username }}"
+  loop: "{{ ['root'] + sshd_users }}"
+  loop_control:
+    loop_var: username
+
+- name: Provision authorized_principals for root
+  template:
+    src: authorized_principals.j2
+    dest: "{{ authorized_principals_path }}/root"
+  vars:
+    ssh_principals: "{{ sshd_root_principals }}"
+
+- name: Ensure that /etc/ssh/sshd_config.d/*.conf is sourced by sshd
+  when: sshd_include_config_d
+  lineinfile:
+    path: "{{ sshd_config_path }}"
+    line: 'Include {{ sshd_config_d_path }}/*.conf'
+    insertbefore: BOF
+  notify: restart sshd
+
+- name: Create /etc/ssh/trusted_user_ca_keys
+  template:
+    src: trusted_user_ca_keys.j2
+    dest: "{{ trusted_user_ca_keys_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create /etc/ssh/sshd_config.d/10-trusted_user_ca_keys.conf
+  copy:
+    content: "TrustedUserCaKeys {{ trusted_user_ca_keys_path }}\n"
+    dest: "{{ sshd_config_d_path }}/10-trusted_user_ca_keys.conf"
+    force: yes
+  notify: restart sshd
+
+- name: Only allow system-defined authorized_keys
+  notify: restart sshd
+  lineinfile:
+    path: "{{ sshd_config_path }}"
+    line: "AuthorizedKeysFile {{ authorized_keys_path }}/%u"
+    regex: '^\s*#*\s*AuthorizedKeysFile'
+
+- name: Only allow system-defined authorized_principals
+  notify: restart sshd
+  lineinfile:
+    path: "{{ sshd_config_path }}"
+    line: "AuthorizedPrincipalsFile {{ authorized_principals_path }}/%u"
+    regex: '^\s*#*\s*AuthorizedPrincipalsFile'
+
+- name: Disable password-based authentication
+  notify: restart sshd
+  block:
+    - name: Set PermitRootLogin
+      lineinfile:
+        path: "{{ sshd_config_path }}"
+        line: "PermitRootLogin {{ sshd_permit_root_login }}"
+        regex: '^\s*#*\s*PermitRootLogin'
+
+    - name: Disable PasswordAuthentication
+      lineinfile:
+        path: "{{ sshd_config_path }}"
+        line: "PasswordAuthentication {{ 'yes' if sshd_password_authentication else 'no' }}"
+        regex: '^\s*#*\s*PasswordAuthentication\s+(yes|no)'
+
+    - name: Disable KbdInteractiveAuthentication
+      lineinfile:
+        path: "{{ sshd_config_path }}"
+        line: "KbdInteractiveAuthentication {{ 'yes' if sshd_kbd_interactive_authentication else 'no' }}"
+        regex: '^\s*#*\s*KbdInteractiveAuthentication\s+(yes|no)'
+
+    - name: Configure UsePAM
+      lineinfile:
+        # Or change /etc/pam.d/sshd not to include 'common-auth'/'pam_unix'
+        # usermod -p '*' username is needed if the user doesn't have a password
+        path: "{{ sshd_config_path }}"
+        line: "UsePAM {{ 'yes' if sshd_use_pam else 'no' }}"
+        regex: '^\s*#*\s*UsePAM'
+
+

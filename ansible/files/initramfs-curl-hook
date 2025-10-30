@@ -1,0 +1,20 @@
+#!/bin/sh -e
+PREREQS=""
+case $1 in
+prereqs) echo "${PREREQS}"; exit 0;;
+esac
+. /usr/share/initramfs-tools/hook-functions
+#copy curl binary
+
+copy_exec /usr/bin/curl /bin
+#fix DNS lib (needed for Debian 11)
+
+cp -a /usr/lib/x86_64-linux-gnu/libnss_dns* $DESTDIR/usr/lib/x86_64-linux-gnu/
+#fix DNS resolver (needed for Debian 11 + 12)
+
+echo "nameserver 1.1.1.1\n" > ${DESTDIR}/etc/resolv.conf
+#copy ca-certs for curl
+
+mkdir -p $DESTDIR/usr/share
+cp -ar /usr/share/ca-certificates $DESTDIR/usr/share/
+cp -ar /etc/ssl $DESTDIR/etc/

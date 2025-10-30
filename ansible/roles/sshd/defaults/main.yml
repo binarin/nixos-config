@@ -1,0 +1,28 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for sshd
+
+# SSH configuration defaults
+sshd_config_path: /etc/ssh/sshd_config
+sshd_config_d_path: /etc/ssh/sshd_config.d
+authorized_keys_path: /etc/ssh/authorized_keys.d
+authorized_principals_path: /etc/ssh/authorized_principals.d
+trusted_user_ca_keys_path: /etc/ssh/trusted_user_ca_keys
+
+# SSH security settings
+sshd_permit_root_login: "prohibit-password"
+sshd_password_authentication: false
+sshd_kbd_interactive_authentication: false
+sshd_use_pam: false
+
+# Include config directory
+sshd_include_config_d: true
+
+# SSH users to provision authorized keys for (in addition to root)
+sshd_users: "{{ ssh_users | default([]) }}"
+
+# SSH keys data structure (should be provided via vars_files or group_vars)
+ssh_keys: {}
+
+sshd_root_principals:
+  - root

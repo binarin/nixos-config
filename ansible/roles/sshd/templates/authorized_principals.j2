@@ -1,0 +1,4 @@
+# {{ ansible_managed }}
+{%+ for principal in ssh_principals %}
+{{ principal }}
+{% endfor %}

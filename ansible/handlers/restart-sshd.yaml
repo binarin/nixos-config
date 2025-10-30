@@ -1,4 +1,0 @@
----
-- name: Restart sshd
-  listen: restart sshd
-  include_tasks: tasks/safe-sshd-restart.yaml

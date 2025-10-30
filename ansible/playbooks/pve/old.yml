@@ -27,14 +27,6 @@
   #   - victoriametrics.cluster.vmagent
   #   - prometheus.prometheus.node_exporter
   #   - aroberts.zfs_exporter
-  handlers:
-    - name: Update initramfs
-      listen:
-        - update initramfs
-        - update initrd
-      ansible.builtin.command:
-        cmd: >
-          update-initramfs -k all -u
   tasks:
     - name: Install some generic linux tools
       package:
@@ -46,20 +38,22 @@
           - net-tools #netstat
           - tmux
           - mosh
+    - name: Install sanoid
+      package:
+        state: present
+        name: sanoid
+    - name: Create sanoid config directory
+      file:
+        path: /etc/sanoid
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
     - name: Copy sanoid config
       copy:
         src: "{{ inventory_hostname }}-sanoid.conf"
         dest: /etc/sanoid/sanoid.conf
         mode: '0644'
-    - name: Install Clevis with necessary pins/integrations
-      notify: update initramfs
-      package:
-        state: present
-        name:
-          - clevis
-          - clevis-tpm2
-          - clevis-initramfs
-          - clevis-luks
 
 - hosts: pve
   become: true

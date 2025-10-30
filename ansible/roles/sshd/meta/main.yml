@@ -1,0 +1,23 @@
+#SPDX-License-Identifier: MIT-0
+galaxy_info:
+  author: nixos-config maintainer
+  description: SSH daemon configuration and security hardening
+  license: MIT-0
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: EL
+      versions:
+        - all
+  galaxy_tags:
+    - ssh
+    - sshd
+    - security
+    - system
+
+dependencies: []
