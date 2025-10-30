@@ -1,31 +1,43 @@
 (defcfg
-  input (iokit-name)
-  output (kext)
+  ;; input (iokit-name)
+  ;; output (kext)
+ ;; For Linux
+  input  (device-file "/dev/input/by-path/platform-i8042-serio-0-event-kbd")
+  output (uinput-sink "My KMonad output"
+    ;; To understand the importance of the following line, see the section on
+    ;; Compose-key sequences at the near-bottom of this file.
+    "sleep 1") ;; && setxkbmap -option compose:ralt
+  cmp-seq ralt    ;; Set the compose key to `RightAlt'
+  cmp-seq-delay 5 ;; 5ms delay between each compose-key sequence press
+  key-seq-delay 5 ;; 5ms delay between each outputted key event
+
   fallthrough true
 )
 
 (defsrc
- esc    f1     f2     f3     f4     f5     f6     f7     f8     f9     f10    f11    f12
+ esc    f1     f2     f3     f4     f5     f6     f7     f8     f9     f10    f11    f12    home   end    ins    del
  grv    1      2      3      4      5      6      7      8      9      0      -      =      bspc
  tab    q      w      e      r      t      y      u      i      o      p      [      ]      \
  caps   a      s      d      f      g      h      j      k      l      ;      '      ret
- lsft   z      x      c      v      b      n      m      ,      .      /      rsft   up
- fn     lctl   lalt   lmet             spc               rmet   ralt          left   down   rght
+ lsft   z      x      c      v      b      n      m      ,      .      /      rsft
+ lctl   lmet   lalt                spc                   ralt   rctl   pgup   up     pgdn
+                                                                              left   down   rght
  )
 
 (defsrc :name homerow-mods
- a      s      d      f      g      h      j      k      l      ;
- )
+        a      s      d      f      g      h      j      k      l      ;
+        )
 
 
 #|
 (deflayer X
-_      _      _      _      _      _      _      _      _      _      _      _      _
+_      _      _      _      _      _      _      _      _      _      _      _      _      _      _      _      _
 _      _      _      _      _      _      _      _      _      _      _      _      _      _
 _      _      _      _      _      _      _      _      _      _      _      _      _      _
 _      _      _      _      _      _      _      _      _      _      _      _      _
-_      _      _      _      _      _      _      _      _      _      _      _      _
-_      _      _      _                _                 _      _             _      _      _
+_      _      _      _      _      _      _      _      _      _      _      _
+_      _      _                   _                     _      _      _      _      _
+                                                                             _      _      _
 )
 |#
 
@@ -41,25 +53,26 @@ _      _      _      _                _                 _      _             _  
   m_; (tap-hold-next-release 200 ; rmet)
   )
 
-(defalias fn (around (layer-toggle function) fn))
+;; (defalias fn (around (layer-toggle function) fn))
 
 (deflayer default
- _      _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _      _      _      _      _      _      _      _      _      _      _      _      _      _      _
  _      _      _      _      _      _      _      _      _      _      _      _      _      _
  _      _      _      _      _      _      _      _      _      _      _      _      _      _
  esc    @m_a   @a_s   @s_d   @c_f   _      _      @c_j   @s_k   @a_l   @m_;   _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _
- @fn    _      lmet   lalt             _                 ralt   rmet          _      _      _
+ _      _      _      _      _      _      _      _      _      _      _      _
+ _      _      _                   _                     _      _      _      _      _
+                                                                              _      _      _
  )
 
-(deflayer function
- _      brdn   brup   lp     mctl   spot   dict   prev   pp     next   mute   vold   volu
- _      _      _      _      _      _      _      _      _      _      _      _      _      del
- _      _      _      _      _      _      _      _      ins    _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      _
- _      _      _      _      _      _      _      _      _      _      _      _      pgup
- _      _      _      _                _                 _      _             home   pgdn   end
- )
+;; (deflayer function
+;;  _      brdn   brup   lp     mctl   spot   dict   prev   pp     next   mute   vold   volu
+;;  _      _      _      _      _      _      _      _      _      _      _      _      _      del
+;;  _      _      _      _      _      _      _      _      ins    _      _      _      _      _
+;;  _      _      _      _      _      _      _      _      _      _      _      _      _
+;;  _      _      _      _      _      _      _      _      _      _      _      _      pgup
+;;  _      _      _      _                _                 _      _             home   pgdn   end
+;;  )
 
 (deflayer disable-f-homerow-mod :source homerow-mods
  _      _      _      f      _      _      _      _      _      _
