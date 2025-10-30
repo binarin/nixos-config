@@ -1,4 +1,4 @@
-{ pkgs, ...}: {
+{ config, pkgs, lib, ...}: {
   config = lib.mkIf false {
 
   environment.systemPackages = with pkgs; [
@@ -12,7 +12,7 @@
     pkcs11.package = pkgs.tpm2-pkcs11.overrideAttrs (f: p: {
       configureFlags = [ "--disable-fapi" ];
       patches = p.patches ++ [
-        ./0002-remove-fapi-message.patch
+        (config.lib.self.file "0002-remove-fapi-message.patch")
       ];
     });
     tctiEnvironment.enable = true;  # TPM2TOOLS_TCTI and TPM2_PKCS11_TCTI env variables
@@ -24,5 +24,5 @@
   home-manager.users.binarin.programs.ssh.extraConfig = ''
     PKCS11Provider /run/current-system/sw/lib/libtpm2_pkcs11.so
   '';
-  }
+  };
 }
