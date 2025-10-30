@@ -22,6 +22,7 @@ home-servers() {
     item "bael-root" mosh-bael-root "$@"
     item "hass" mosh-ts "$@"
     item "barbatos-root" mosh-ts "$@"
+    item "ishamael" et-ts "$@"
 }
 
 switch-or-run-foot() {
@@ -82,6 +83,23 @@ mosh-ts() {
 
     switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh $user_part$host.lynx-lizard.ts.net -- tmux new-session -A -s binarin
 }
+
+et-ts() {
+    local display_name="$1"
+    local prefix="$4"
+
+    local host="$display_name"
+    local user_part=""
+
+    if [[ "$host" =~ ^(.*)-root$ ]]; then
+        user_part="root@"
+        host="${match[1]}"
+    fi
+
+    switch-or-run-foot "$prefix" --override=colors.background=001800 -e et $user_part$host.lynx-lizard.ts.net -c "tmux new-session -A -s binarin"
+}
+
+
 
 mosh-naberius() {
     local prefix="$4"
