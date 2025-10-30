@@ -11,6 +11,9 @@
     "hyprland"
     "nix-builder"
     "move-xdg"
+    "interactive-cli"
+    "emacs"
+    "tailscale"
   ];
 
 }

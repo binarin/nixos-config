@@ -16,7 +16,16 @@ keys:
   - &server_nix-cache age1a4lwvtxlnz8vzhqva8cwvrvkumjdzeau6rmrwg0xu7tseyxe33zs5sw04d
   - &server_docker-on-nixos age1j6rw67wmjz4ngmnl57efxmfyytk7rj6swer6e677pl83s60u7spq5hjt6t
 
+  - &server_ishamael age1qud3t3zq28d0p3z42gj0vr5yamqcgcd4sh0uvfdg2g24qwkknqds4356qd
+  - &user_ishamael_binarin age1qk6g50qsla4mn9qm8zc9nhf0vwz37wyvlhajann8ct9shkxg0g7s5yuqn5
+
 creation_rules:
+  - path_regex: secrets/ishamael/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *user_ishamael_binarin
+          - *server_ishamael
   - path_regex: secrets/valak/user-binarin.yaml
     key_groups:
       - age:
