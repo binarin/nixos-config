@@ -1,0 +1,28 @@
+diff --color -ur source.orig/src/lib/backend.c source/src/lib/backend.c
+--- source.orig/src/lib/backend.c	1970-01-01 01:00:01.000000000 +0100
++++ source/src/lib/backend.c	2025-10-28 18:43:38.657159855 +0100
+@@ -54,7 +54,7 @@
+             return rv;
+         }
+         if (rv != CKR_FUNCTION_NOT_SUPPORTED) {
+-            LOGW(msg);
++            // LOGW(msg);
+         }
+     } else {
+         fapi_init = true;
+diff --color -ur source.orig/src/lib/backend_fapi.c source/src/lib/backend_fapi.c
+--- source.orig/src/lib/backend_fapi.c	1970-01-01 01:00:01.000000000 +0100
++++ source/src/lib/backend_fapi.c	2025-10-28 18:45:00.983488823 +0100
+@@ -34,9 +34,9 @@
+     }
+ 
+     const char *version = is_release  ? VERSION : "master";
+-    LOGW("Listing FAPI token objects failed: \"%s\"\n"
+-            "Please see https://github.com/tpm2-software/tpm2-pkcs11/blob/%s/docs/FAPI.md "
+-            "for more details", Tss2_RC_Decode(rc), version);
++    /* LOGW("Listing FAPI token objects failed: \"%s\"\n" */
++    /*         "Please see https://github.com/tpm2-software/tpm2-pkcs11/blob/%s/docs/FAPI.md " */
++    /*         "for more details", Tss2_RC_Decode(rc), version); */
+ }
+ 
+ static CK_RV get_key(FAPI_CONTEXT *fapictx, tpm_ctx *tctx, const char *path, uint32_t *esysHandle, uint32_t *pid) {
