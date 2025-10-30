@@ -1,5 +1,6 @@
 # -*- nix -*-
 {
+  system,
   flake,
   config,
   pkgs,
@@ -12,7 +13,6 @@ let
 in
 {
   config = lib.mkIf config.hostConfig.feature.hyprland {
-
     nixpkgs.overlays = [
       inputs.hyprland-contrib.overlays.default
       # inputs.hyprland.overlays.default
@@ -48,6 +48,7 @@ in
 
     programs.hyprlock.enable = true;
     programs.hyprland.enable = true;
+    programs.hyprland.package = flake.inputs.hyprland.packages."${pkgs.stdenv.system}".hyprland;
     programs.hyprland.withUWSM = true;
   };
 }

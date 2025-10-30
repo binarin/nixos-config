@@ -34,11 +34,11 @@
 
     hyprland = {
       url = "https://github.com/hyprwm/Hyprland";
-      ref = "refs/tags/v0.49.0";
+      ref = "refs/tags/v0.51.1";
       type = "git";
       submodules = true;
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.pre-commit-hooks.follows = "pre-commit-hooks";
+      # inputs.nixpkgs.follows = "nixpkgs";
+      # inputs.pre-commit-hooks.follows = "pre-commit-hooks";
     };
 
     kmonad = {
