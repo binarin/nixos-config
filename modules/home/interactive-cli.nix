@@ -254,6 +254,7 @@ in {
         age
         ansible
         binutils # 'strings' mostly
+        claude-code
         curl
         curlie
         deploy-rs
