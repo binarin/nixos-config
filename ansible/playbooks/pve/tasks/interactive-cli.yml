@@ -1,0 +1,10 @@
+- name: Install some generic linux tools
+  package:
+    state: present
+    name:
+      - emacs-nox
+      - sysstat
+      - iotop
+      - net-tools #netstat
+      - tmux
+      - mosh

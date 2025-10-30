@@ -1,13 +1,26 @@
 ---
 - hosts: pve
-
   vars_files:
     - vars/main.yml
-
-  pre_tasks:
-    - name: Load public SSH keys from nix flake
-      ansible.builtin.include_vars:
-        file: ../../ssh-public-keys.yaml
+    - ../../ssh-public-keys.yaml
 
   roles:
     - sshd
+    - victoriametrics.cluster.vmagent
+    - prometheus.prometheus.node_exporter
+    - aroberts.zfs_exporter
+
+  tasks:
+    - import_tasks: tasks/sanoid.yml
+    - import_tasks: tasks/tpm2-ssh.yml
+    - import_tasks: tasks/tailscale-docker.yml
+
+- hosts: pve_at_home
+  vars_files:
+    - ../../ip-allocation.yaml
+  tasks:
+    - import_tasks: tasks/tailscale-hosts.yml
+
+- hosts: bael
+  tasks:
+    - import_tasks: tasks/backup-raum-to-bael.yml

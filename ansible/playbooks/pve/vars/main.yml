@@ -1,3 +1,24 @@
 ---
 sshd_root_principals:
   - pve
+
+zfs_exporter_version: '2.3.4'
+# zfs_exporter_options: '--collector.dataset-snapshot'
+vmagent_remote_write_host: http://192.168.2.2:8428
+vmagent_scrape_config:
+  global:
+    external_labels:
+      host: "{{ inventory_hostname }}"
+  scrape_configs:
+    - job_name: "node"
+      scrape_interval: "10s"
+      static_configs:
+        - targets: ["127.0.0.1:9100"]
+    - job_name: "zfs"
+      scrape_interval: "10s"
+      static_configs:
+        - targets: ["127.0.0.1:9134"]
+    - job_name: "vmagent"
+      scrape_interval: "10s"
+      static_configs:
+        - targets: ["127.0.0.1:8429"]

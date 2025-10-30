@@ -1,0 +1,15 @@
+- name: Install packages to use SSH key in tpm 2.0
+  package:
+    state: present
+    name:
+      - libtpm2-pkcs11-tools
+      - libtpm2-pkcs11-1
+
+- name: Use SSH key from tpm 2.0 by default
+  copy:
+    content: |
+      Host *
+        PKCS11Provider /usr/lib/x86_64-linux-gnu/libtpm2_pkcs11.so.1
+    dest: /etc/ssh/ssh_config.d/enable-tpm2-pkcs11.conf
+    mode: '0644'
+    owner: root

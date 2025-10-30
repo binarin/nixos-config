@@ -117,12 +117,18 @@ deploy-boot-all: all
 [group('Ansible')]
 ansible-inventory:
     nix build --impure --expr 'let pkgs = import <nixpkgs> {}; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (import ./inventory/public-keys.nix)' -o ansible/ssh-public-keys.yaml
-    nix build --impure --expr 'let pkgs = import <nixpkgs> {}; fl = builtins.getFlake "'$(pwd)'"; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (fl.helpers.networks-lookup.buildHostLookupTable (fl.helpers.networks-lookup.readRawInventory))' -o ansible/ip-allocation.yaml
+    nix build --impure --expr 'let pkgs = import <nixpkgs> {}; fl = builtins.getFlake "'$(pwd)'"; in (pkgs.formats.yaml {}).generate "public-keys.yaml" { ip_allocation = fl.helpers.networks-lookup.buildHostLookupTable (fl.helpers.networks-lookup.readRawInventory);}' -o ansible/ip-allocation.yaml
 
 [group('Ansible')]
 [working-directory: 'ansible']
 ping-all:
     ansible --one-line all -m ping -u root
+
+[group('Ansible')]
+[working-directory: 'ansible']
+ansible-deps: # ansible-inventory
+    ansible-galaxy collection install -r requirements.yml
+    ansible-galaxy role install -r requirements.yml
 
 [group('CI')]
 render-ci-workflows:
