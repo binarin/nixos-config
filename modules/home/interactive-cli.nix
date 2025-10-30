@@ -142,7 +142,9 @@ in {
         enable = defEnable;
         shortcut = "o";
         terminal = "screen-256color"; # needed, e.g. for emacs -nw
-        # set -g window-status-current-style bg=red
+        mouse = true;
+        focusEvents = true;
+        sensibleOnTop = true;
         extraConfig = ''
         set -g allow-rename off
         set -g update-environment "DISPLAY KRB5CCNAME SSH_ASKPASS SSH_AGENT_PID SSH_CONNECTION WINDOWID XAUTHORITY"
