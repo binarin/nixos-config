@@ -87,7 +87,7 @@ in
   services.openssh.extraConfig = ''
     Match User git
     AuthorizedPrincipalsFile %h/.ssh/authorized_principals
-    AuthorizedKeysFile %h/.ssh/authorized_principals
+    AuthorizedKeysFile %h/.ssh/authorized_keys
   '';
 
   system.stateVersion = "24.05";
