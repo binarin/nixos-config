@@ -91,7 +91,7 @@ in
 
       basePackage = lib.mkOption {
         type = lib.types.package;
-        default = if config.hostConfig.feature.gui then pkgs.emacs else pkgs.emacs-nox;
+        default = if config.hostConfig.feature.gui then pkgs.emacs-pgtk else pkgs.emacs-nox;
       };
 
       compiledConfig = lib.mkOption {
