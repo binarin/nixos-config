@@ -198,7 +198,7 @@
                               (wsl "IosevkaTerm Nerd Font-18")
                               (windows "IosevkaTerm NFM-16")
                               (darwin "IosevkaTerm Nerd Font Mono-20")
-                              (t "IosevkaTerm Nerd Font-20"))))
+                              (t "IosevkaTerm Nerd Font-16"))))
 
      (setf face-ignored-fonts '("Adobe Blank"))
    #+END_SRC
