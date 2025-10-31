@@ -14,6 +14,7 @@
     modules = [
       ../../../configurations/nixos/demandred/configuration.nix
       self.nixosModules.kanata
+      self.nixosModules.niri
     ];
   };
 }
