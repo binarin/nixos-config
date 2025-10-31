@@ -101,7 +101,6 @@ in
           deps = [ "users" "groups" ];
           text = ''
           mkdir -p /local/etc/NetworkManager/system-connections/
-          mkdir -p /local/var/lib/bluetooth/
           mkdir -p /local/var/lib/tailscale/
 
           mkdir -p /persist/sbctl
@@ -135,10 +134,6 @@ in
         source = "/local/etc/NetworkManager/system-connections/";
       };
 
-      systemd.tmpfiles.rules = [
-        "L+ /var/lib/bluetooth - - - - /local/var/lib/bluetooth"
-      ];
-
       environment.persistence."/persist" = {
         enable = true;
         hideMounts = true;
@@ -155,7 +150,9 @@ in
         hideMounts = true;
         directories = [
           "/var/log"
+          "/var/lib/bluetooth"
           "/var/lib/systemd/coredump"
+          "/var/lib/systemd/timers"
         ];
       };
 
