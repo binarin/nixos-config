@@ -7,7 +7,12 @@ in
 {
   imports = [ inputs.home-manager.nixosModules.home-manager ];
 
+  options.home-manager.defaultImports = lib.mkOption {
+    type = lib.types.listOf lib.types.deferredModule;
+  };
+
   config = {
+    home-manager.defaultImports = [ self.homeModules.default ];
     home-manager.extraSpecialArgs = specialArgs;
     home-manager.useGlobalPkgs = true;
     home-manager.backupFileExtension = "backup";
@@ -19,9 +24,7 @@ in
       hmConfigurationFile = self + "/configurations/home/" + user + ".nix";
       homeDirectory = self.helpers.user-dirs.homeDir user;
     in {config, osConfig, ...}: {
-      imports = [
-        self.homeModules.default
-      ] ++ (lib.optional (builtins.pathExists hmConfigurationFile) hmConfigurationFile);
+      imports = osConfig.home-manager.defaultImports ++ lib.optional (builtins.pathExists hmConfigurationFile) hmConfigurationFile;
       config = {
         inherit (osConfig) hostConfig inventoryHostName;
 
