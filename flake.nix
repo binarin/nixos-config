@@ -4,6 +4,8 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
 
+    import-tree.url = "github:vic/import-tree";
+
     mac-app-util.url = "github:hraban/mac-app-util";
     mac-app-util.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -93,12 +95,6 @@
     in
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       inherit systems;
-      imports = [
-        ./modules/flake-parts/autowire.nix
-        ./modules/flake-parts/deploy.nix
-        ./modules/flake-parts/devshell.nix
-        ./modules/flake-parts/formatter.nix
-        ./modules/flake-parts/ci-template.nix
-      ];
+      imports = [ (inputs.import-tree ./modules/flake-parts) ];
     };
 }

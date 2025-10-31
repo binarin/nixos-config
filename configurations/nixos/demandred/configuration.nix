@@ -4,12 +4,30 @@
 { flake, config, lib, pkgs, modulesPath, ... }:
 
 {
-  imports =
-    [
-      (modulesPath + "/installer/scan/not-detected.nix")
-      flake.inputs.disko.nixosModules.default
-      ./disko-config.nix
-    ];
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    flake.inputs.disko.nixosModules.default
+    ./disko-config.nix
+
+    flake.inputs.self.nixosModules.default
+  ];
+
+  inventoryHostName = "demandred";
+
+  hostConfig.managedUsers = [ "root" "binarin" ];
+
+  hostConfig.features = [
+    "hyprland"
+    "interactive-cli"
+    "impermanence"
+    "emacs"
+    "workstation"
+    "tailscale"
+    # "airgapped"
+    "nix-builder"
+  ];
+
+  system.stateVersion = "24.11";
 
   boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "ahci" "usb_storage" "sd_mod" "sr_mod" "sdhci_pci" ];
   boot.initrd.kernelModules = [ "dm-snapshot" ];
