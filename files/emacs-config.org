@@ -1217,6 +1217,14 @@
        :mode ("\\.kbd\\'" . kbd-mode))
    #+end_src
 
+** KDL mode
+   #+begin_src emacs-lisp :tangle yes
+     (use-package kdl-mode
+       :ensure t
+       :no-require t
+       :mode "\\.kdl\\'")
+   #+end_src
+
 * Major modes
 ** pdf-tools
    #+begin_src emacs-lisp :tangle yes
