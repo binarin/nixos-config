@@ -31,8 +31,9 @@ switch-or-run-foot() {
     local titleEscaped
     titleEscaped=$(sed 's/[^^]/[&]/g; s/\^/\\^/g' <<<"$title")
 
-    if hyprctl clients -j | jq -r '.[].title' | grep -q -F "$title"; then
-        hyprctl dispatch focuswindow title:"$titleEscaped"
+    if niri msg --json windows | jq -r '.[].title' | grep -q -F "$title"; then
+        local window_id=$(niri msg --json windows | jq -r ".[] | select(.title == \"$title\") | .id")
+        niri msg action focus-window --id "$window_id"
     else
         exec uwsm app -t service -a "sshmenu-$title" -- foot --title "$title" "$@"
     fi
