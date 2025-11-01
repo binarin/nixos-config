@@ -25,19 +25,57 @@ home-servers() {
     item "ishamael" et-ts "$@"
 }
 
-switch-or-run-foot() {
-    local title="${1:?}"; shift
-
-    local titleEscaped
-    titleEscaped=$(sed 's/[^^]/[&]/g; s/\^/\\^/g' <<<"$title")
+find-and-focus-window-niri() {
+    local title="$1"
 
     if niri msg --json windows | jq -r '.[].title' | grep -q -F "$title"; then
         local window_id=$(niri msg --json windows | jq -r ".[] | select(.title == \"$title\") | .id")
         niri msg action focus-window --id "$window_id"
+        return 0
+    else
+        return 1
+    fi
+}
+
+find-and-focus-window-hyprland() {
+    local title="$1"
+
+    local titleEscaped
+    titleEscaped=$(sed 's/[^^]/[&]/g; s/\^/\\^/g' <<<"$title")
+
+    if hyprctl clients -j | jq -r '.[].title' | grep -q -F "$title"; then
+        hyprctl dispatch focuswindow title:"$titleEscaped"
+        return 0
+    else
+        return 1
+    fi
+}
+
+find-and-focus-window() {
+    local title="$1"
+
+    case "$XDG_SESSION_DESKTOP" in
+        niriSession)
+            find-and-focus-window-niri "$title"
+            ;;
+        hyprland)
+            find-and-focus-window-hyprland "$title"
+            ;;
+        *)
+            echo "Unsupported desktop session: $XDG_SESSION_DESKTOP" >&2
+            return 1
+            ;;
+    esac
+}
+
+switch-or-run-foot() {
+    local title="${1:?}"; shift
+
+    if find-and-focus-window "$title"; then
+        exit 0
     else
         exec uwsm app -t service -a "sshmenu-$title" -- foot --title "$title" "$@"
     fi
-    exit 0
 }
 
 tmux-command() {
