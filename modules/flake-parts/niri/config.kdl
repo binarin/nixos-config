@@ -30,7 +30,7 @@ input {
         // dwtp
         // drag false
         // drag-lock
-        natural-scroll
+        // natural-scroll
         // accel-speed 0.2
         // accel-profile "flat"
         // scroll-method "two-finger"
@@ -519,8 +519,8 @@ binds {
     // These binds are also affected by touchpad's natural-scroll, so these
     // example binds are "inverted", since we have natural-scroll enabled for
     // touchpads by default.
-    // Mod+TouchpadScrollDown { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02+"; }
-    // Mod+TouchpadScrollUp   { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02-"; }
+    Mod+TouchpadScrollDown { focus-column-right; }
+    Mod+TouchpadScrollUp   { focus-column-left; }
 
     // You can refer to workspaces by index. However, keep in mind that
     // niri is a dynamic workspace system, so these commands are kind of
