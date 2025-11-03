@@ -1,12 +1,17 @@
 { flake, config, ... }:
+let
+  inherit (inputs) flake;
+  inherit (self) inputs;
+in
 {
   imports = [
-    flake.inputs.self.nixosModules.default
+    self.nixosModules.default
+    self.nixosModules.user-binarin
     ./configuration.nix
   ];
 
   inventoryHostName = "ishamael";
-  hostConfig.managedUsers = [ "binarin" ];
+
   hostConfig.features = [
     "hyprland"
     "nix-builder"

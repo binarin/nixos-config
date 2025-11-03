@@ -10,7 +10,7 @@
     flake.inputs.nixos-wsl.nixosModules.default
   ];
   config = lib.mkIf config.hostConfig.feature.wsl {
-    wsl.defaultUser = lib.mkDefault (lib.elemAt (config.hostConfig.managedUsers) 0);
+    wsl.defaultUser = "binarin";
 
     # XXX Guard on 'gui'
     environment.variables.LD_LIBRARY_PATH = "/run/opengl-driver/lib/";

@@ -6,13 +6,13 @@ in
 {
   imports = [
     self.nixosModules.default
+    self.nixosModules.user-binarin
     ./configuration.nix
   ];
 
   config = {
     inventoryHostName = "iso";
 
-    hostConfig.managedUsers = [ "root" "nixos" ];
     hostConfig.features = [
       "interactive-cli"
       "nix-builder"

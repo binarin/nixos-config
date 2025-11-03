@@ -8,6 +8,7 @@ in
 
   imports = [
     self.nixosModules.default
+    self.nixosModules.user-binarin
     ./configuration.nix
   ];
 
@@ -18,6 +19,4 @@ in
     "nix-builder"
     "move-xdg"
   ];
-
-  hostConfig.managedUsers = [ "binarin" ];
 }

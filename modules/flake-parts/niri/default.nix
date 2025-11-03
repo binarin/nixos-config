@@ -5,13 +5,14 @@
         ${lib.getExe config.programs.niri.package } --session
       '');
   in {
+    key = "nixos-config.programs.niri";
 
     environment.systemPackages = with pkgs; [
       # Things used by the default config
       alacritty
       fuzzel
 
-      # niri binary itself
+      # niri binary itself, for RPC calls
       niri
 
       # automatically started if installed
@@ -28,10 +29,16 @@
         };
       };
     };
-    home-manager.defaultImports = [ self.homeModules.niri ];
+    home-manager.sharedModules = [ self.homeModules.niri ];
   };
 
   flake.homeModules.niri = {pkgs, lib, config, ...}: {
+    key = "nixos-config.programs.niri";
+
+    imports = [
+      self.homeModules.fuzzel
+    ];
+
     xdg.configFile."niri/config.kdl".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/modules/flake-parts/niri/config.kdl";
   };
 }

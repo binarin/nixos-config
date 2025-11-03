@@ -2,12 +2,11 @@
 {
   imports = [
     flake.inputs.self.nixosModules.default
+    flake.inputs.self.nixosModules.user-binarin
     ./configuration.nix
   ];
 
   inventoryHostName = "valak";
-
-  hostConfig.managedUsers = [ "binarin" ];
 
   hostConfig.features = [
     "vfio"

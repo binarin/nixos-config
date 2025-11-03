@@ -13,9 +13,9 @@ in
 
     environment.etc."ssh/trusted_user_ca_keys".text = lib.concatStringsSep "\n" ( config.lib.publicKeys.secureWithTag "user-ca");
 
-    users.users = lib.genAttrs (["root"] ++ config.hostConfig.managedUsers) (user: {
-      openssh.authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser user;
-      openssh.authorizedPrincipals = if user == "root" then ["root"] else [user] ++ ["root"];
-    });
+    users.users.root.openssh = {
+      authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser "root";
+      authorizedPrincipals = ["root"];
+    };
   };
 }

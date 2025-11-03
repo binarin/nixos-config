@@ -8,13 +8,6 @@ in
     inputs.impermanence.nixosModules.impermanence
   ];
 
-  options.impermanence = {
-    symlinks = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [];
-    };
-  };
-
   config = lib.mkIf config.hostConfig.feature.impermanence (lib.mkMerge [
     {
       boot.initrd.systemd.emergencyAccess = true;
@@ -86,27 +79,12 @@ in
       '';
 
       system.activationScripts = let
-        userFragment = u: let
-          home = config.users.users."${u}".home;
-        in ''
-        mkdir -p /persist/${home} /local/${home}
-        chown ${u}:${u} /persist/${home} /local/${home}
-
-        mkdir -p /persist/${home}/.ssh/{known_hosts.d,keys.d}
-        chown ${u}:${u} /persist/${home}/.ssh/{known_hosts.d,keys.d}
-      '';
-        createPerUserDirs = with lib; concatStringsSep "\n" (map userFragment config.hostConfig.managedUsers);
       in {
         "manual-impermanence-create-dirs" = {
           deps = [ "users" "groups" ];
           text = ''
           mkdir -p /local/etc/NetworkManager/system-connections/
           mkdir -p /local/var/lib/tailscale/
-
-          mkdir -p /persist/sbctl
-          chmod 0700 /persist/sbctl
-
-          ${createPerUserDirs}
         '';
         };
       };
@@ -155,8 +133,6 @@ in
           "/var/lib/systemd/timers"
         ];
       };
-
-      programs.sbctl.pkiBundle = "/persist/sbctl";
     }
 
     (lib.mkIf config.services.homebox.enable {
@@ -181,35 +157,5 @@ in
         ];
       };
     })
-
-    {
-      environment.persistence."/persist" = {
-        users =
-          with lib;
-          genAttrs config.hostConfig.managedUsers (user: let
-            hmCfg = config.home-manager.users."${user}";
-            homeDir = self.helpers.user-dirs.homeDir user;
-            persist-binds = forEach hmCfg.impermanence.persist-bind-directories (removePrefix homeDir);
-            persist-binds-no-root = if user == "root" then [] else forEach hmCfg.impermanence.persist-bind-directories-no-root (removePrefix homeDir);
-          in {
-            home = homeDir;
-            directories = persist-binds ++ persist-binds-no-root;
-          });
-      };
-
-      environment.persistence."/local" = {
-        users =
-          with lib;
-          genAttrs config.hostConfig.managedUsers (user: let
-            hmCfg = config.home-manager.users."${user}";
-            homeDir = self.helpers.user-dirs.homeDir user;
-            local-binds = forEach hmCfg.impermanence.local-bind-directories (removePrefix homeDir);
-            local-binds-no-root = if user == "root" then [] else forEach hmCfg.impermanence.local-bind-directories-no-root (removePrefix homeDir);
-          in {
-            home = homeDir;
-            directories = local-binds ++ local-binds-no-root;
-          });
-      };
-    }
   ]);
 }

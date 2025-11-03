@@ -10,55 +10,26 @@ let
     directory = lib.removePrefix config.home.homeDirectory dir;
     method = "symlink";
   };
-
-  local-link-directories-converted = lib.forEach config.impermanence.local-link-directories symlinkItem;
-  local-link-directories-no-root-converted = if config.home.username == "root"
-                                             then []
-                                             else lib.forEach config.impermanence.local-link-directories-no-root symlinkItem;
-
-
-  persist-link-directories-converted = lib.forEach config.impermanence.persist-link-directories symlinkItem;
-  persist-link-directories-no-root-converted = if config.home.username == "root"
-                                             then []
-                                             else lib.forEach config.impermanence.persist-link-directories-no-root symlinkItem;
-
-
 in {
   imports = [
     flake.inputs.impermanence.homeManagerModules.impermanence
   ];
 
   options.impermanence = {
-    local-bind-directories = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
+    persist-files = lib.mkOption {
+      type = with lib.types; listOf (either str (lazyAttrsOf raw));
       default = [];
     };
-    local-bind-directories-no-root = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
+    persist-directories = lib.mkOption {
+      type = with lib.types; listOf (either str (lazyAttrsOf raw));
       default = [];
     };
-    local-link-directories = lib.mkOption {
-      type = lib.types.listOf lib.types.anything;
+    local-files = lib.mkOption {
+      type = with lib.types; listOf (either str (lazyAttrsOf raw));
       default = [];
     };
-    local-link-directories-no-root = lib.mkOption {
-      type = lib.types.listOf lib.types.anything;
-      default = [];
-    };
-    persist-bind-directories = lib.mkOption {
-      type = lib.types.listOf lib.types.anything;
-      default = [];
-    };
-    persist-bind-directories-no-root = lib.mkOption {
-      type = lib.types.listOf lib.types.anything;
-      default = [];
-    };
-    persist-link-directories = lib.mkOption {
-      type = lib.types.listOf lib.types.anything;
-      default = [];
-    };
-    persist-link-directories-no-root = lib.mkOption {
-      type = lib.types.listOf lib.types.anything;
+    local-directories = lib.mkOption {
+      type = with lib.types; listOf (either str (lazyAttrsOf raw));
       default = [];
     };
   };
@@ -89,14 +60,12 @@ in {
 
         home.persistence."${safeDir}" = {
           enable = true;
-          directories = persist-link-directories-converted ++ persist-link-directories-no-root-converted;
           allowOther = true;
         };
 
 
         home.persistence."${localDir}" = {
           enable = true;
-          directories = local-link-directories-converted ++ local-link-directories-no-root-converted;
           allowOther = true;
         };
       }
@@ -122,7 +91,7 @@ in {
       })
 
       (lib.mkIf osConfig.security.pam.services.login.kwallet.enable {
-        impermanence.local-bind-directories-no-root = [ "${config.xdg.dataHome}/kwallet" ];
+        impermanence.local-directories = [ "${config.xdg.dataHomeRelative}/kwallet" ];
       })
     ]);
 }

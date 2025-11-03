@@ -88,11 +88,6 @@ in
 {
   options = {
     hostConfig = {
-      managedUsers = lib.mkOption {
-        type = with lib.types; listOf nonEmptyStr;
-        default = [ ];
-      };
-
       lib = lib.mkOption {
         type = lib.types.attrsOf lib.types.attrs;
         default = { };

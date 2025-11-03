@@ -6,6 +6,7 @@ in {
 
   imports = [
     flake.inputs.nix-index-database.homeModules.nix-index
+    flake.inputs.self.homeModules.direnv
   ];
 
   options = {
@@ -39,7 +40,6 @@ in {
 
       programs.btop.enable = defEnable;
       programs.darcs.enable = defEnable;
-      programs.direnv.enable = defEnable;
       programs.doggo.enable = defEnable;
 
       programs.fd = {
@@ -383,19 +383,6 @@ in {
       home.packages = with pkgs; [
         gparted
       ];
-    })
-    (lib.mkIf config.programs.direnv.enable {
-      programs.direnv = {
-        enableZshIntegration = defEnable;
-        nix-direnv = {
-          enable = defEnable;
-        };
-        config.global = {
-          # Make direnv messages less verbose
-          hide_env_diff = true;
-        };
-      };
-      impermanence.local-bind-directories = [ "${config.xdg.dataHome}/direnv" ];
     })
     (lib.mkIf pkgs.stdenv.isLinux {
       home.packages = with pkgs; [

@@ -13,6 +13,7 @@ in
 {
   imports = [
     self.nixosModules.default
+    flake.inputs.self.nixosModules.user-binarin
     ./configuration.nix
   ];
 
@@ -23,5 +24,5 @@ in
     "interactive-cli"
   ];
 
-  hostConfig.managedUsers = [ "binarin" ];
+
 }

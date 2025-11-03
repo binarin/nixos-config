@@ -1,5 +1,7 @@
 {...}: {
   flake.nixosModules.kanata = { ... }: {
+    key = "nixos-config.programs.kanata";
+
     services.kanata = {
       enable = true;
       keyboards.all.extraDefCfg = ''

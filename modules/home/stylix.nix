@@ -35,7 +35,6 @@
       stylix.targets = lib.genAttrs [
         "swaync"
         "vscode"
-        "fuzzel"
         "firefox"
         "gtk"
       ] (nm: {

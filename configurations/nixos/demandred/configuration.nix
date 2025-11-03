@@ -2,19 +2,21 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 { flake, config, lib, pkgs, modulesPath, ... }:
-
+let
+  inherit (flake) inputs;
+  inherit (inputs) self;
+in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
     flake.inputs.disko.nixosModules.default
     ./disko-config.nix
 
-    flake.inputs.self.nixosModules.default
+    self.nixosModules.default
+    self.nixosModules.user-binarin
   ];
 
   inventoryHostName = "demandred";
-
-  hostConfig.managedUsers = [ "root" "binarin" ];
 
   hostConfig.features = [
     "hyprland"

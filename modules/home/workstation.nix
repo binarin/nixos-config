@@ -80,11 +80,11 @@ in
     }
     (lib.mkIf config.programs.telegram-desktop.enable {
       home.packages = with pkgs; [ tdesktop ];
-      impermanence.local-link-directories-no-root = [ "${config.xdg.dataHome}/TelegramDesktop" ];
+      impermanence.local-directories = [ "${config.xdg.dataHomeRelative}/TelegramDesktop" ];
     })
     (lib.mkIf config.programs.thunderbird.enable {
       programs.thunderbird.profiles = {};
-      impermanence.local-bind-directories-no-root = [ ".thunderbird" ];
+      impermanence.local-directories = [ ".thunderbird" ];
     })
     ({
       home.packages = [
