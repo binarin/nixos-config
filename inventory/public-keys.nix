@@ -27,16 +27,28 @@
       secure = true;
       force_install_on = {
         raum = [ "root" ];
+        valak = [ "root" ];
       };
     };
 
     "bael.lynx-lizard.ts.net-pkcs11-root" = {
-      description = "root SSH key in pkcs11 at raum - needed for ProxmoxVE operations";
+      description = "root SSH key in pkcs11 at bael - needed for ProxmoxVE operations";
       public_key = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBB2KztRbE1TXYv26vLcezAhNRGw1h2XDzwES0eoARXhtvC2q2JLGNEYyej84wUBi8MkLOmdS1qBxp+24w5dxWDo=";
       secure = true;
       force_install_on = {
         bael = [ "root" ];
         raum = [ "root" ];
+        valak = [ "root" ];
+      };
+    };
+
+    "valak.lynx-lizard.ts.net-pkcs11-root" = {
+      description = "root SSH key in pkcs11 at valak - needed for ProxmoxVE operations";
+      public_key = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBOQGa6V7J3mlk5WFuIUUfjc61ESaCAkmAvzv3vC1qg4A6IJIm083t8MMQFdstFEr6qFrzZZvwyIbWYdN5gUtJ2o=";
+      secure = true;
+      force_install_on = {
+        raum = [ "root" ];
+        valak = [ "root" ];
       };
     };
 

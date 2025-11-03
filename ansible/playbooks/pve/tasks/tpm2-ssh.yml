@@ -9,7 +9,7 @@
   copy:
     content: |
       Host *
-        PKCS11Provider /usr/lib/x86_64-linux-gnu/libtpm2_pkcs11.so.1
+        PKCS11Provider /usr/lib/x86_64-linux-gnu/pkcs11/libtpm2_pkcs11.so.1
     dest: /etc/ssh/ssh_config.d/enable-tpm2-pkcs11.conf
     mode: '0644'
     owner: root

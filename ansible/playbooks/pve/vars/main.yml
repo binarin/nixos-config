@@ -1,7 +1,4 @@
 ---
-sshd_root_principals:
-  - pve
-
 zfs_exporter_version: '2.3.4'
 # zfs_exporter_options: '--collector.dataset-snapshot'
 vmagent_remote_write_host: http://192.168.2.2:8428
