@@ -1438,7 +1438,8 @@
             (setf (symbol-function 'binarin/notifications-notify)
                   (cl-function (lambda (&key title body app-name app-icon timeout urgency)
                                  (ignore app-name app-icon timeout urgency app-icon)
-                                 (call-process "terminal-notifier" nil nil nil "-title" title "-message" body "-activate" "org.gnu.Emacs"))))))
+                                 (call-process "terminal-notifier" nil nil nil "-title" title "-message" body "-activate" "org.gnu.Emacs")))))
+           (t (setf (symbol-function 'binarin/notifications-notify) (symbol-function 'notifications-notify))))
 
      (defun binarin/display-notify-after-capture (&rest args)
        (ignore args)
