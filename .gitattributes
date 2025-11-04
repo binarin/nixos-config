@@ -1,2 +1,3 @@
 priv-*.nix filter=git-crypt diff=git-crypt
 secrets/dnscontrol/* filter=git-crypt diff=git-crypt
+*.jwe filter=git-crypt diff=git-crypt

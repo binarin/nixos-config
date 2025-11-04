@@ -42,11 +42,18 @@ let
 in
 {
   flake = {
-    deploy.nodes = lib.genAttrs deployableSystems deployNixosSystem;
+    options.deploy.nodes = lib.mkOption {
+      type = with lib.types; lazyAttrsOf raw;
+    };
+    config = {
+      lib.deploy-nixos = deployPkgs.deploy-rs.lib.activate.nixos;
 
-    # This is highly advised, and will prevent many possible mistakes
-    checks = builtins.mapAttrs (
-      system: deployLib: deployLib.deployChecks self.deploy
-    ) inputs.deploy-rs.lib;
+      deploy.nodes = lib.genAttrs deployableSystems deployNixosSystem;
+
+      # This is highly advised, and will prevent many possible mistakes
+      checks = builtins.mapAttrs (
+        system: deployLib: deployLib.deployChecks self.deploy
+      ) inputs.deploy-rs.lib;
+    };
   };
 }

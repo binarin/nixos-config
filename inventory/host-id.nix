@@ -11,4 +11,5 @@
   demandred = "e312c428";
   iso = "aaaaaaaa";
   docker-on-nixos = "be23faba";
+  qdevice = "f72453f5";
 }
