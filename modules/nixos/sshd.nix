@@ -13,12 +13,13 @@ in
     services.openssh.authorizedKeysInHomedir = false;
     services.openssh.settings.PermitRootLogin = lib.mkDefault "prohibit-password";
     services.openssh.settings.TrustedUserCaKeys = "/etc/ssh/trusted_user_ca_keys";
+    services.openssh.settings.AuthorizedPrincipalsFile = "/etc/ssh/authorized_principals.d/%u";
 
     environment.etc."ssh/trusted_user_ca_keys".text = lib.concatStringsSep "\n" ( config.lib.publicKeys.secureWithTag "user-ca");
 
     users.users.root.openssh = {
-      authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser "root";
-      authorizedPrincipals = ["root"];
+      authorizedKeys.keys = lib.mkDefault (config.lib.publicKeys.ssh.secureForUser "root");
+      authorizedPrincipals = lib.mkDefault ["root"];
     };
   };
 }

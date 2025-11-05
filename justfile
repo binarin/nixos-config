@@ -5,6 +5,7 @@
 jobs := "auto"
 topCacheDir := cache_directory() / "nixos-config"
 nixOpts := "-v"
+sshOpts := ""
 
 # Default command when 'just' is run without arguments
 default:
@@ -62,13 +63,13 @@ deploy target profile="system":
 
 [group('Deploy')]
 deploy-boot target profile="system":
-    deploy "$(pwd)#{{ target }}.{{ profile }}" --boot -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
+    deploy "$(pwd)#{{ target }}.{{ profile }}" --boot -s -k --ssh-opts="{{ sshOpts }}" -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
     ssh "root@$(nix eval "$(pwd)#nixosConfigurations.{{ target }}.config.hostConfig.deployHostName" --json | jq -r)" systemctl reload dbus-broker.service
     ssh "root@$(nix eval "$(pwd)#nixosConfigurations.{{ target }}.config.hostConfig.deployHostName" --json | jq -r)" systemctl reboot
 
 [group('Deploy')]
 deploy-no-rollback target profile="system":
-    deploy "$(pwd)#{{ target }}.{{ profile }}" --auto-rollback false --magic-rollback false -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
+    deploy "$(pwd)#{{ target }}.{{ profile }}" --auto-rollback false --magic-rollback false -s -k --ssh-opts="{{ sshOpts }}" -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
 
 
 [group('Deploy')]

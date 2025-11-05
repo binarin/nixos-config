@@ -70,6 +70,7 @@
       tags = [
         "default"
         "user-ca"
+        "presence"
       ];
     };
 
