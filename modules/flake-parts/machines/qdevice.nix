@@ -14,21 +14,21 @@ LINUX_VARIANT="debian"
 
 virt-install \
 --connect=qemu:///system \
---name=${NAME} \
+--name=$${NAME} \
 --ram=1024 \
 --vcpus=2 \
---disk size=16,path=/var/lib/libvirt/images/${NAME}.img,bus=virtio,cache=none \
+--disk size=16,path=/var/lib/libvirt/images/$${NAME}.img,bus=virtio,cache=none \
 --initrd-inject=preseed.cfg \
 --initrd-inject=postinst.sh \
 --initrd-inject=postinst.tar.gz \
---location ${DIST_URL} \
---os-variant ${LINUX_VARIANT} \
+--location $${DIST_URL} \
+--os-variant $${LINUX_VARIANT} \
 --virt-type=kvm \
 --controller usb,model=none \
 --graphics none \
 --noautoconsole \
---network bridge=br0,mac=${MAC},model=virtio \
---extra-args="auto=true hostname="${1}" domain="${DOMAIN}" console=tty0 console=ttyS0,115200n8 serial"
+--network bridge=br0,mac=$${MAC},model=virtio \
+--extra-args="auto=true hostname="$${1}" domain="$${DOMAIN}" console=tty0 console=ttyS0,115200n8 serial"
 '';
 in {
   flake.deploy.nodes.qdevice = {
