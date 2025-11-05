@@ -275,6 +275,7 @@ in
               HOST_UID = "1000";
               HOST_GID = "1000";
               TA_HOST = "https://ta.binarin.info";
+              TA_AUTO_UPDATE_YTDLP = "release";
               TZ = "Europe/Amsterdam"; # set your time zone
             };
             env_file = [
