@@ -45,7 +45,6 @@
         emacs-saved = prev.emacs;
       })
       flake.inputs.emacs-overlay.overlays.default
-      flake.inputs.kmonad.overlays.default
     ];
 
     # system.defaults.dock.persistent-apps = [
@@ -83,17 +82,6 @@
     # So for small changes I can run only home-manager activation script, to reduce iteration time
     home-manager.useUserPackages = lib.mkForce false;
 
-    # XXX How to give it permissions? Error: IOHIDDeviceOpen error: (iokit/common) not permitted
-    # launchd.daemons.kmonad = {
-    #   script = ''
-    #     ${lib.getExe pkgs.kmonad} -l debug ${config.lib.self.file "kmonad.kbd"}
-    #   '';
-    #   serviceConfig = {
-    #     StandardOutPath = "/tmp/kmonad.stdout";
-    #     StandardErrorPath = "/tmp/kmonad.stderr";
-    #   };
-    # };
-
     home-manager.users.binarin = {osConfig, ...}: {
       imports = [
         flake.inputs.self.sharedModules.default
@@ -102,7 +90,6 @@
         flake.inputs.self.homeModules.wezterm
         flake.inputs.self.homeModules.interactive-cli
         flake.inputs.self.homeModules.impermanence
-        flake.inputs.self.homeModules.kmonad
         flake.inputs.mac-app-util.homeManagerModules.default
       ];
       config = {

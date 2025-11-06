@@ -54,14 +54,6 @@
 
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
 
-    kmonad = {
-      url = "https://github.com/kmonad/kmonad";
-      rev = "a38004ff4df4beda648ec5b1374173d3192d61ae";
-      type = "git";
-      submodules = true;
-      dir = "nix";
-    };
-
     waybar.url = "github:Alexays/Waybar";
     waybar.inputs.nixpkgs.follows = "nixpkgs-unstable";
 

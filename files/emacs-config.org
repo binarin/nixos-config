@@ -1211,7 +1211,7 @@
 
 #+INCLUDE: "./pta.el" src emacs-lisp :tangle yes
 
-** KMonad .kbd files
+** KMonad/Kanata .kbd files
    #+begin_src emacs-lisp :tangle yes
      (use-package kbd-mode
        :mode ("\\.kbd\\'" . kbd-mode))

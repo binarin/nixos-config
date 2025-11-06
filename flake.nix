@@ -108,13 +108,6 @@
     import-tree = {
       url = "github:vic/import-tree";
     };
-    kmonad = {
-      dir = "nix";
-      rev = "a38004ff4df4beda648ec5b1374173d3192d61ae";
-      submodules = true;
-      type = "git";
-      url = "https://github.com/kmonad/kmonad";
-    };
     lanzaboote = {
       inputs = {
         flake-parts = {
