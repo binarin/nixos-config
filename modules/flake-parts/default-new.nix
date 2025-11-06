@@ -4,6 +4,7 @@
     imports = (with self.nixosModules; [
       sshd
       tpm2-ssh
+      nix
     ]) ++ (with self.sharedModules; [
       public-keys
     ]);
