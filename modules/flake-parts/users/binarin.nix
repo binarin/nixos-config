@@ -19,6 +19,8 @@ in {
       self.nixosModules.home-manager
     ];
 
+    hardware.keyboard.qmk.enable = true; # + "plugdev" below
+
     users.users = {
       binarin = {
         description = "Alexey Lebedeff";
@@ -28,18 +30,19 @@ in {
         home = nixosHome;
         shell = "/run/current-system/sw/bin/zsh";
         extraGroups = [
-          "users"
-          "networkmanager"
-          "docker"
-          "libvirtd"
-          "wheel"
           "dialout"
-          "vboxusers"
-          "wireshark"
-          "transmission"
-          "lxd"
-          "video"
+          "docker"
           "i2c"
+          "libvirtd"
+          "lxd"
+          "networkmanager"
+          "plugdev"
+          "transmission"
+          "users"
+          "vboxusers"
+          "video"
+          "wheel"
+          "wireshark"
         ];
         openssh = {
           authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser "binarin";
