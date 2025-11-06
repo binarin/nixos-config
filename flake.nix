@@ -15,6 +15,14 @@
       };
       url = "github:hercules-ci/arion";
     };
+    bluetui = {
+      inputs = {
+        nixpkgs = {
+          follows = "nixpkgs";
+        };
+      };
+      url = "github:pythops/bluetui";
+    };
     caddy-cloudflare = {
       inputs = {
         nixpkgs = {

@@ -22,6 +22,7 @@
     imports = [
       self.nixosModules.kanata
       self.nixosModules.niri
+      self.nixosModules.bluetooth
     ];
     config = {
       services.kanata.keyboards.all.devices = [

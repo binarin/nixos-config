@@ -6,11 +6,6 @@
       sddm-chili-theme
     ];
 
-    hardware.bluetooth = {
-      enable = true;
-      powerOnBoot = true;
-    };
-
     hardware.graphics = {
       enable = true;
       enable32Bit = true;

@@ -129,7 +129,6 @@ in
         hideMounts = true;
         directories = [
           "/var/log"
-          "/var/lib/bluetooth"
           "/var/lib/systemd/coredump"
           "/var/lib/systemd/timers"
         ];
