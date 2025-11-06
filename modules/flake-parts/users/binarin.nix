@@ -15,7 +15,7 @@ in {
     key = "nixos-config.users.binarin";
 
     imports = [
-      # self.nixosModules.impermanence
+      self.nixosModules.impermanence-new
       self.nixosModules.home-manager
     ];
 
@@ -58,7 +58,20 @@ in {
 
     programs.zsh.enable = true;
 
-    environment.persistence."/persist" = {
+    home-manager.users.binarin = { ... }: {
+      imports = [
+        self.homeModules.user-binarin
+        self.homeModules.impermanence
+      ];
+      config = {
+        inherit (config) hostConfig inventoryHostName;
+        home.homeDirectory = "/home/binarin";
+        home.username = "binarin";
+        home.stateVersion = config.system.stateVersion;
+      };
+    };
+
+    environment.persistence."/persist" = lib.mkIf config.impermanence.enable {
       users.binarin = {
         directories = [
           "personal-workspace"
@@ -71,7 +84,7 @@ in {
       };
     };
 
-    environment.persistence."/local" = {
+    environment.persistence."/local" = lib.mkIf config.impermanence.enable {
       users.binarin = {
         files = [
         ] ++ config.home-manager.users.binarin.impermanence.local-files;
@@ -81,19 +94,6 @@ in {
           ".local/state/home-manager"
           ".local/state/nix"
         ] ++ config.home-manager.users.binarin.impermanence.local-directories;
-      };
-    };
-
-    home-manager.users.binarin = { ... }: {
-      imports = [
-        self.homeModules.user-binarin
-        self.homeModules.impermanence
-      ];
-      config = {
-        inherit (config) hostConfig inventoryHostName;
-        home.homeDirectory = "/home/binarin";
-        home.username = "binarin";
-        home.stateVersion = config.system.stateVersion;
       };
     };
   };

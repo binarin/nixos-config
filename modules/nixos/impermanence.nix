@@ -6,9 +6,10 @@ in
 {
   imports = [
     inputs.impermanence.nixosModules.impermanence
+    self.nixosModules.impermanence-new
   ];
 
-  config = lib.mkIf config.hostConfig.feature.impermanence (lib.mkMerge [
+  config = lib.mkIf config.impermanence.enable (lib.mkMerge [
     {
       boot.initrd.systemd.emergencyAccess = true;
       boot.initrd.systemd.initrdBin = with pkgs; [
