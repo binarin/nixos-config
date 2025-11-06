@@ -984,29 +984,6 @@
         "type": "github"
       }
     },
-    "kmonad": {
-      "inputs": {
-        "nixpkgs": "nixpkgs_2"
-      },
-      "locked": {
-        "dir": "nix",
-        "lastModified": 1755275124,
-        "narHash": "sha256-nZY/3Wx+sILtwpNbWuGkzgwxdTEcLCOCIAiKZ9k55PU=",
-        "ref": "refs/heads/master",
-        "rev": "a38004ff4df4beda648ec5b1374173d3192d61ae",
-        "revCount": 991,
-        "submodules": true,
-        "type": "git",
-        "url": "https://github.com/kmonad/kmonad"
-      },
-      "original": {
-        "dir": "nix",
-        "rev": "a38004ff4df4beda648ec5b1374173d3192d61ae",
-        "submodules": true,
-        "type": "git",
-        "url": "https://github.com/kmonad/kmonad"
-      }
-    },
     "lanzaboote": {
       "inputs": {
         "crane": "crane",
@@ -1241,22 +1218,6 @@
         "type": "github"
       }
     },
-    "nixpkgs_4": {
-      "locked": {
-        "lastModified": 1761173472,
-        "narHash": "sha256-m9W0dYXflzeGgKNravKJvTMR4Qqa2MVD11AwlGMufeE=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "c8aa8cc00a5cb57fada0851a038d35c08a36a2bb",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-25.05",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nur": {
       "inputs": {
         "flake-parts": [
@@ -1333,7 +1294,7 @@
       "inputs": {
         "flake-compat": "flake-compat_6",
         "gitignore": "gitignore_3",
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
         "lastModified": 1760663237,
@@ -1365,7 +1326,6 @@
         "hyprland-contrib": "hyprland-contrib",
         "impermanence": "impermanence",
         "import-tree": "import-tree",
-        "kmonad": "kmonad",
         "lanzaboote": "lanzaboote",
         "mac-app-util": "mac-app-util",
         "nix-auto-follow": "nix-auto-follow",
@@ -1373,7 +1333,7 @@
         "nix-darwin-master": "nix-darwin-master",
         "nix-index-database": "nix-index-database",
         "nixos-wsl": "nixos-wsl",
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": "nixpkgs_2",
         "nixpkgs-darwin": "nixpkgs-darwin",
         "nixpkgs-lib": [
           "nixpkgs"
