@@ -20,6 +20,7 @@
   flake.nixosModules.demandred-configuration = {config, lib, pkgs, ...}: {
     key = "nixos-config.demandred-configuration";
     imports = [
+      self.nixosModules.nix
       self.nixosModules.kanata
       self.nixosModules.niri
       self.nixosModules.bluetooth
@@ -28,6 +29,17 @@
       services.kanata.keyboards.all.devices = [
         "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
       ];
+
+      virtualisation.docker = {
+        enable = true;
+        storageDriver = "btrfs";
+      };
+
+      # environment.persistence."/persist" = lib.mkIf config.impermanence.enable {
+      #   directories = [
+      #     /var/lib/docker
+      #   ];
+      # };
     };
   };
 }

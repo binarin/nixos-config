@@ -61,6 +61,10 @@
                   mountpoint = "/local";
                   mountOptions = [ "compress=zstd" ];
                 };
+                "/var/lib/docker" = {
+                  mountpoint = "/var/lib/docker";
+                  mountOptions = [ "compress=zstd" ];
+                };
               };
             };
           };

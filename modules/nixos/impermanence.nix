@@ -144,11 +144,12 @@ in
     })
 
     (lib.mkIf config.virtualisation.docker.enable {
-      environment.persistence."/persist" = {
-        directories = [
-          "/var/lib/docker"
-        ];
-      };
+      assertions = [
+        {
+          assertion = config.fileSystems ? "/var/lib/docker";
+          message = "Docker's /var/lib/docker should be persisted, either by impermanence or explicitely separately mounted";
+        }
+      ];
     })
   ]);
 }
