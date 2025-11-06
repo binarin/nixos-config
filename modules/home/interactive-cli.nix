@@ -146,12 +146,15 @@ in {
         focusEvents = true;
         sensibleOnTop = true;
         extraConfig = ''
-        set -g allow-rename off
-        set -g update-environment "DISPLAY KRB5CCNAME SSH_ASKPASS SSH_AGENT_PID SSH_CONNECTION WINDOWID XAUTHORITY"
-        if-shell -b 'test -f "${config.xdg.stateHome}/ssh/stable_ssh_auth_sock"' {
-          setenv -g SSH_AUTH_SOCK ${config.xdg.stateHome}/ssh/stable_ssh_auth_sock
-        }
-      '';
+          set -g word-separators ' @"=()[]'
+          set -ag word-separators "'"  # '-a' for append, "'" should be quoted differently
+
+          set -g allow-rename off
+          set -g update-environment "DISPLAY KRB5CCNAME SSH_ASKPASS SSH_AGENT_PID SSH_CONNECTION WINDOWID XAUTHORITY"
+          if-shell -b 'test -f "${config.xdg.stateHome}/ssh/stable_ssh_auth_sock"' {
+            setenv -g SSH_AUTH_SOCK ${config.xdg.stateHome}/ssh/stable_ssh_auth_sock
+          }
+        '';
       };
 
       programs.zellij = {

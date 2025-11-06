@@ -9,7 +9,11 @@ This should be configured on a per-machine basis.
 
 * TODO create debian vm on qdevice (investigate firt: virt-install, terraform, something else?)
 * TODO convert to dendritic (large task)
-* TODO tmux - change word boundaries for mouse selection
+* DONE tmux - change word boundaries for mouse selection
+  CLOSED: [2025-11-06 Thu 15:38]
+  :LOGBOOK:
+  - State "DONE"       from "TODO"       [2025-11-06 Thu 15:38]
+  :END:
 * DONE install bluetui from an external flake
   CLOSED: [2025-11-06 Thu 15:27]
   :LOGBOOK:
