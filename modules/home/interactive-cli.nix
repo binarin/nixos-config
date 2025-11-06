@@ -104,7 +104,6 @@ in {
           };
         };
         controlPath = "~/.ssh/master-%r@%k:%p";
-        userKnownHostsFile = "${config.xdg.stateHome}/ssh/known_hosts";
       };
 
       services.ssh-agent.enable = pkgs.stdenv.isLinux;

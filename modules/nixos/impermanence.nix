@@ -71,14 +71,6 @@ in
       };
       sops.age.sshKeyPaths = lib.mkForce [ "/persist/ssh/ssh_host_ed25519_key" ];
 
-      programs.ssh.extraConfig = ''
-        IdentityFile /persist/%d/.ssh/keys.d/id_rsa
-        IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa
-        IdentityFile /persist/%d/.ssh/keys.d/id_ecdsa_sk
-        IdentityFile /persist/%d/.ssh/keys.d/id_ed25519
-        IdentityFile /persist/%d/.ssh/keys.d/id_ed25519_sk
-      '';
-
       system.activationScripts = let
       in {
         "manual-impermanence-create-dirs" = {
@@ -118,6 +110,7 @@ in
         hideMounts = true;
         directories = [
           "/var/lib/nixos"
+          "/root/.ssh"
         ];
         files = [
           "/etc/machine-id"

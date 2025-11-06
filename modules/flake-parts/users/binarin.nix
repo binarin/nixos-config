@@ -81,6 +81,7 @@ in {
           "org"
           "annex"
           "finance"
+          ".ssh"
         ] ++ config.home-manager.users.binarin.impermanence.persist-directories;
         files = [
         ] ++ config.home-manager.users.binarin.impermanence.persist-files;

@@ -44,7 +44,6 @@ in {
           IMPERMANENCE_LOCAL_CACHE = "${localCache}";
         };
 
-        programs.ssh.userKnownHostsFile = lib.mkForce "${safeDir}/.ssh/known_hosts.d/known_hosts";
         programs.zsh.dotDir = ".config/zsh";
         programs.zsh.history.path = "${localCache}/zsh_history";
 
