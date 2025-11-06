@@ -3,6 +3,7 @@
     key = "nixos-config.default-new";
     imports = (with self.nixosModules; [
       sshd
+      tpm2-ssh
     ]) ++ (with self.sharedModules; [
       public-keys
     ]);
