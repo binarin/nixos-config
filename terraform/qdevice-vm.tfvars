@@ -1,0 +1,9 @@
+vm_name     = "qdevice-vm"
+memory      = 1024
+vcpu        = 1
+disk_size   = 10737418240  # 10GB
+static_ip   = "192.168.2.17"
+gateway     = "192.168.2.1"
+dns_servers = ["192.168.2.1"]
+network_name = "br0"
+libvirt_uri = "qemu+ssh://root@192.168.2.16/system"

@@ -17,6 +17,7 @@
       force_install_on = {
         raum = [ "root" ];
         valak = [ "root" ];
+        qdevice-vm = [ "root" ];
       };
     };
 
@@ -28,6 +29,7 @@
         bael = [ "root" ];
         raum = [ "root" ];
         valak = [ "root" ];
+        qdevice-vm = [ "root" ];
       };
     };
 
@@ -38,6 +40,7 @@
       force_install_on = {
         raum = [ "root" ];
         valak = [ "root" ];
+        qdevice-vm = [ "root" ];
       };
     };
 

@@ -10,6 +10,7 @@
           nixd
           dnscontrol
           (terraform_1.withPlugins (p: with p; [ libvirt ]))
+          cloud-init
         ];
       };
     };

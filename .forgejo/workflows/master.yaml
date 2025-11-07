@@ -30,6 +30,7 @@ jobs:
         - media
         - monitor
         - nix-cache
+        - qdevice
         - valak
         - valak-fast
 'on':

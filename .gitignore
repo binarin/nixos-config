@@ -7,3 +7,8 @@ ansible/ssh-public-keys.yaml
 /.idea/
 /.claude/
 /ansible/ext-roles/
+/terraform/.terraform/
+/terraform/.terraform.lock.hcl
+/terraform/.terraform.tfstate.lock.info
+*.backup
+/ansible/ext-collections/

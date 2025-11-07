@@ -3,7 +3,7 @@
 
 {% set ns = namespace(comment_printed = False, seen_keys = {}) %}
 {% for key, value in ssh_keys.items() %}
-  {% if ('tags' in value and 'default' in value.tags) %}
+  {% if ('tags' in value and 'presence' in value.tags) %}
     {% if not ns.comment_printed -%}
       # Operators
     {% endif %}

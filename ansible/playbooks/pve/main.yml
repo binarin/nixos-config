@@ -1,4 +1,20 @@
 ---
+- hosts: qdevices
+  tags:
+    - sshd
+  vars_files:
+    - ../../ssh-public-keys.yaml
+  vars:
+    sshd_root_principals:
+      - qdevice
+  roles:
+    - sshd
+  tasks:
+    - name: Install corosync-qnetd
+      ansible.builtin.apt:
+        name:
+          - corosync-qnetd
+
 - hosts: pve
   tags:
     - sshd
@@ -24,6 +40,12 @@
   tasks:
     - import_tasks: tasks/sanoid.yml
     - import_tasks: tasks/tailscale-docker.yml
+
+- hosts: pve
+  tasks:
+    - name: Install corosync-qdevice
+      ansible.builtin.apt:
+        name: corosync-qdevice
 
 - hosts: pve_at_home
   vars_files:

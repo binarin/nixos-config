@@ -45,6 +45,9 @@ jobs:
     - name: Build nixosConfiguration.nix-cache
       run: "nix build \"$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/nix-cache\"\n"
+    - name: Build nixosConfiguration.qdevice
+      run: "nix build \"$(pwd)#nixosConfigurations.qdevice.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/qdevice\"\n"
     - name: Build nixosConfiguration.valak
       run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/valak\"\n"
@@ -87,6 +90,9 @@ jobs:
     - name: Add nix-store GC root for nixosConfiguraion.nix-cache
       run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/nix-cache\"\
         \ \\\n  -r \"$(readlink -f \"temp-result/nix-cache\")\"\n"
+    - name: Add nix-store GC root for nixosConfiguraion.qdevice
+      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/qdevice\"\
+        \ \\\n  -r \"$(readlink -f \"temp-result/qdevice\")\"\n"
     - name: Add nix-store GC root for nixosConfiguraion.valak
       run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/valak\"\
         \ \\\n  -r \"$(readlink -f \"temp-result/valak\")\"\n"
