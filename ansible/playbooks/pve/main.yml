@@ -43,6 +43,7 @@
   vars_files:
     - vars/main.yml
   tasks:
+    - import_tasks: tasks/no-nag.yml
     - import_tasks: tasks/empty-systctl-conf.yml
     - import_tasks: tasks/tailscale-docker.yml
     - import_tasks: tasks/sanoid.yml

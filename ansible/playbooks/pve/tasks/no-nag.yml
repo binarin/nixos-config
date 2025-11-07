@@ -1,0 +1,10 @@
+---
+- name: Install no-nag-script
+  register: proxmox_no_nag_script
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/no-nag-script
+    src: no-nag-script
+- name: Re-install proxmox-widget-toolkit to trigger no-nag-script
+  when: proxmox_no_nag_script.changed
+  ansible.builtin.command:
+    apt --reinstall install proxmox-widget-toolkit -y
