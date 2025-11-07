@@ -1,0 +1,6 @@
+---
+- name: Make sure /etc/sysctl.conf is empty
+  ansible.builtin.copy:
+    content: ""
+    dest: /etc/sysctl.conf
+    force: true

@@ -2,8 +2,12 @@
 - name: Set UDP receive buffer size (for tailscale in CTs)
   ansible.posix.sysctl:
     name: net.core.rmem_max
+    sysctl_file: /etc/sysctl.d/50-udp-buffers.conf
     value: '10000000'
+    sysctl_set: true
 - name: Set UDP send buffer size (for tailscale in CTs)
   ansible.posix.sysctl:
     name: net.core.wmem_max
     value: '10000000'
+    sysctl_file: /etc/sysctl.d/50-udp-buffers.conf
+    sysctl_set: true

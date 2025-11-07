@@ -13,3 +13,20 @@
     dest: /etc/ssh/ssh_config.d/enable-tpm2-pkcs11.conf
     mode: '0644'
     owner: root
+
+- name: Inject HOME into pvedaemon.service (needed for libtpm2_pkcs11)
+  register: home_for_pvedaemon
+  ansible.builtin.copy:
+    content: |
+      [Service]
+      Environment="HOME=/root"
+    dest: /etc/systemd/system/pvedaemon.service.d/override.conf
+    mode: '0644'
+    owner: root
+
+- name: Restart pvedaemon.service
+  when: home_for_pvedaemon.changed
+  ansible.builtin.systemd_service:
+    name: pvedaemon
+    daemon_reload: true
+    state: restarted

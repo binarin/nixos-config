@@ -38,14 +38,27 @@
     - aroberts.zfs_exporter
 
   tasks:
-    - import_tasks: tasks/sanoid.yml
+    - import_tasks: tasks/empty-systctl-conf.yml
     - import_tasks: tasks/tailscale-docker.yml
+    - import_tasks: tasks/sanoid.yml
 
 - hosts: pve
   tasks:
     - name: Install corosync-qdevice
       ansible.builtin.apt:
         name: corosync-qdevice
+
+- hosts: pve
+  tags:
+    - packages
+    - hardware
+  tasks:
+    - include_tasks: tasks/debian-non-free-firmware.yml
+    - name: Install amd firmware
+      when: "'AuthenticAMD' in ansible_facts['processor']"
+      ansible.builtin.apt:
+        name: amd64-microcode
+
 
 - hosts: pve_at_home
   vars_files:
