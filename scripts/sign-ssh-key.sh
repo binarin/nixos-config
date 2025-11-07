@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
 usage() {
@@ -9,7 +8,7 @@ Usage: $0 [OPTIONS] [HOSTNAME]
 Options:
     -p, --principal PRINCIPAL   Principal name for certificate (default: binarin,root)
     -k, --key PUBLIC_KEY        Public key file to sign (default: search for id_ed25519.pub)
-    -c, --ca-key CA_KEY         CA private key (default: /persist/$HOME/.ssh/keys.d/id_ed25519_sk_rk)
+    -c, --ca-key CA_KEY         CA private key (default: $HOME/.ssh/id_ed25519_sk_rk)
     -v, --validity PERIOD       Validity period (default: +1w)
     -h, --help                  Show this help message
 
@@ -21,7 +20,7 @@ EOF
 
 # Default values
 principal="binarin,root"
-ca_key="/persist$HOME/.ssh/keys.d/id_ed25519_sk_rk"
+ca_key="$HOME/.ssh/id_ed25519_sk_rk"
 public_key=""
 hostname="localhost"
 validity="+1w"
