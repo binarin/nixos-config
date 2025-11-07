@@ -29,6 +29,8 @@
     - import_tasks: tasks/tpm2-ssh.yml
 
 - hosts: pve
+  tags:
+    - monitoring
   vars_files:
     - vars/main.yml
 
@@ -37,20 +39,19 @@
     - prometheus.prometheus.node_exporter
     - aroberts.zfs_exporter
 
+- hosts: pve
+  vars_files:
+    - vars/main.yml
   tasks:
     - import_tasks: tasks/empty-systctl-conf.yml
     - import_tasks: tasks/tailscale-docker.yml
     - import_tasks: tasks/sanoid.yml
-
-- hosts: pve
-  tasks:
     - name: Install corosync-qdevice
       ansible.builtin.apt:
         name: corosync-qdevice
 
 - hosts: pve
   tags:
-    - packages
     - hardware
   tasks:
     - include_tasks: tasks/debian-non-free-firmware.yml
@@ -58,7 +59,6 @@
       when: "'AuthenticAMD' in ansible_facts['processor']"
       ansible.builtin.apt:
         name: amd64-microcode
-
 
 - hosts: pve_at_home
   vars_files:

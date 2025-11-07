@@ -14,6 +14,12 @@
     mode: '0644'
     owner: root
 
+- name: Ensure directory for pvedaemon.service overrides
+  ansible.builtin.file:
+    path: /etc/systemd/system/pvedaemon.service.d
+    state: directory
+    mode: '0755'
+
 - name: Inject HOME into pvedaemon.service (needed for libtpm2_pkcs11)
   register: home_for_pvedaemon
   ansible.builtin.copy:
