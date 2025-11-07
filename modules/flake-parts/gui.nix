@@ -1,18 +1,20 @@
 {self, ...}: {
   flake.nixosModules.gui = {pkgs, config, lib, ...}: {
     config = {
+
       home-manager.sharedModules = [
         self.homeModules.gui
       ];
+
       environment.systemPackages = with pkgs; [
-        sddm-astronaut
-        sddm-chili-theme
         appimage-run
         brightnessctl
         ddcutil
         kanshi
         wev
         wl-clipboard
+
+        sddm-astronaut # https://github.com/NixOS/nixpkgs/issues/390251
       ];
 
       hardware.graphics = {
@@ -32,6 +34,9 @@
       services.displayManager.sddm = {
         enable = true;
         wayland.enable = true;
+        extraPackages = with pkgs; [
+          sddm-astronaut
+        ];
         theme = "sddm-astronaut-theme";
       };
 
