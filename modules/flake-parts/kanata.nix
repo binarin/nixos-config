@@ -71,21 +71,21 @@
         (defalias
           tap (multi
             (layer-switch nomods)
-            (on-idle-fakekey to-base tap 20)
+            ;; (on-idle-fakekey to-base tap 20)
           )
 
           fn (layer-toggle fn)
 
-          a (tap-hold-release-keys $tap-time $hold-time (multi a @tap) lmet $left-hand-keys)
-          s (tap-hold-release-keys $tap-time $hold-time (multi s @tap) lalt $left-hand-keys)
-          d (tap-hold-release-keys $tap-time $hold-time (multi d @tap) lsft $left-hand-keys)
-          f (tap-hold-release-keys $tap-time $hold-time (multi f @tap) lctl $left-hand-keys)
-          g (tap-hold-release-keys $tap-time $hold-time (multi g @tap) @fn $left-hand-keys)
-          h (tap-hold-release-keys $tap-time $hold-time (multi h @tap) @fn $right-hand-keys)
-          j (tap-hold-release-keys $tap-time $hold-time (multi j @tap) rctl $right-hand-keys)
-          k (tap-hold-release-keys $tap-time $hold-time (multi k @tap) rsft $right-hand-keys)
-          l (tap-hold-release-keys $tap-time $hold-time (multi l @tap) ralt $right-hand-keys)
-          ; (tap-hold-release-keys $tap-time $hold-time (multi ; @tap) rmet $right-hand-keys)
+          a (tap-hold-release $tap-time $hold-time a lmet)
+          s (tap-hold-release $tap-time $hold-time s lalt)
+          d (tap-hold-release $tap-time $hold-time d lsft)
+          f (tap-hold-release $tap-time $hold-time f lctl)
+          g (tap-hold-release $tap-time $hold-time g @fn )
+          h (tap-hold-release $tap-time $hold-time h @fn )
+          j (tap-hold-release $tap-time $hold-time j rctl)
+          k (tap-hold-release $tap-time $hold-time k rsft)
+          l (tap-hold-release $tap-time $hold-time l ralt)
+          ; (tap-hold-release $tap-time $hold-time ; rmet)
         )
       '';
     };
