@@ -1,7 +1,8 @@
 {flake, lib, pkgs, config, osConfig, ...}:
 let
-  safeDir = "/persist${config.home.homeDirectory}";
-  localDir = "/local${config.home.homeDirectory}";
+  homeDir = config.home.homeDirectory;
+  safeDir = "/persist${homeDir}";
+  localDir = "/local${homeDir}";
   localCache = "${localDir}/.cache";
   safeState = "${safeDir}/.state";
   garbageDir = "${config.home.homeDirectory}/.garbage";
@@ -47,14 +48,28 @@ in {
         programs.zsh.dotDir = ".config/zsh";
         programs.zsh.history.path = "${localCache}/zsh_history";
 
+        xdg = {
+          enable = true;
+          stateHome = "${safeDir}/.local/state";
+        };
+
+        impermanence.persist-directories = [
+          "Desktop"
+          "Documents"
+          "Downloads"
+          "Music"
+          "Pictures"
+          "Videos"
+        ];
+
         xdg.userDirs = {
           enable = true;
-          desktop = "${safeDir}/Desktop";
-          documents = "${safeDir}/Documents";
-          download = "${safeDir}/Downloads";
-          music = "${safeDir}/Music";
-          pictures = "${safeDir}/Pictures";
-          videos = "${safeDir}/Videos";
+          desktop = "${homeDir}/Desktop";
+          documents = "${homeDir}/Documents";
+          download = "${homeDir}/Downloads";
+          music = "${homeDir}/Music";
+          pictures = "${homeDir}/Pictures";
+          videos = "${homeDir}/Videos";
         };
 
         home.persistence."${safeDir}" = {

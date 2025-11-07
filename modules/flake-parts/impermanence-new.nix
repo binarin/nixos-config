@@ -1,6 +1,6 @@
 {...}: {
   flake.nixosModules.impermanence-new = {lib, config, ...}: {
-    key = "nixos-config.impermanenc-new";
+    key = "nixos-config.impermanence-new";
     options = {
       impermanence.enable = lib.mkEnableOption "Enable impermanence";
     };
@@ -16,6 +16,13 @@
           }
         ];
       })
+    ];
+  };
+
+  flake.homeModules.impermanence-new = {...}: {
+    key = "nixos-config.impermanence-new";
+    impermanence.local-directories = [
+      ".config/autostart"
     ];
   };
 }
