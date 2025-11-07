@@ -7,6 +7,10 @@
   in {
     key = "nixos-config.programs.niri";
 
+    imports = [
+      self.nixosModules.gui
+    ];
+
     environment.systemPackages = with pkgs; [
       # Things used by the default config
       alacritty
