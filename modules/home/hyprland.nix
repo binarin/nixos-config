@@ -52,16 +52,13 @@ in
     home.packages = with pkgs; [
       pkgs.kdePackages.kwalletmanager
       pkgs.kdePackages.kwallet
-      ddcutil
       fuzzel
       hyprland-per-window-layout
       hyprshot
-      kanshi
       networkmanagerapplet
       shellevents
       sshmenu
       swaynotificationcenter
-      wl-clipboard
     ];
 
     xsession.preferStatusNotifierItems = true;

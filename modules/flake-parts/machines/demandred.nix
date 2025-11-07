@@ -35,11 +35,7 @@
         storageDriver = "btrfs";
       };
 
-      # environment.persistence."/persist" = lib.mkIf config.impermanence.enable {
-      #   directories = [
-      #     /var/lib/docker
-      #   ];
-      # };
+      services.displayManager.defaultSession = lib.mkForce "niri-uwsm";
     };
   };
 }

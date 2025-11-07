@@ -1,12 +1,11 @@
 {self, ...}: {
   flake.nixosModules.default-new = {config, ...}: {
     key = "nixos-config.default-new";
-    imports = (with self.nixosModules; [
-      sshd
-      tpm2-ssh
-      nix
-    ]) ++ (with self.sharedModules; [
-      public-keys
-    ]);
+    imports = [
+      self.nixosModules.sshd
+      self.nixosModules.tpm2-ssh
+      self.nixosModules.nix
+      self.sharedModules.public-keys
+    ];
   };
 }

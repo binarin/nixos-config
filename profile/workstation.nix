@@ -131,13 +131,6 @@ in
 
   security.rtkit.enable = true;
 
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-  };
-
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "yes";
@@ -149,7 +142,6 @@ in
   };
 
   services.trezord.enable = true;
-
   services.cron.enable = true;
 
   # Enable CUPS to print documents.
@@ -161,8 +153,8 @@ in
   ];
 
   programs.gdk-pixbuf.modulePackages = [ pkgs.librsvg ];
-  services.xserver = {
 
+  services.xserver = {
     modules = [ pkgs.xorg.xf86inputlibinput ];
     videoDrivers = [
       "amdgpu"
@@ -375,7 +367,6 @@ in
     };
 
   services.gnome.gnome-keyring.enable = lib.mkForce false;
-  services.flatpak.enable = true;
   services.joycond.enable = true;
 
   programs.adb.enable = true;
