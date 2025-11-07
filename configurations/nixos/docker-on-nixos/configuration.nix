@@ -49,5 +49,9 @@ in {
   virtualisation.docker.autoPrune.enable = true;
   virtualisation.arion.backend = "docker";
 
+  environment.persistence."/persist".directories = [
+    "/var/lib/docker"
+  ];
+
   services.caddy.expose-local-http.enable = true;
 }
