@@ -4,6 +4,7 @@
 
       home-manager.sharedModules = [
         self.homeModules.gui
+        self.homeModules.insync
       ];
 
       environment.systemPackages = with pkgs; [
@@ -71,7 +72,6 @@
         imhex
         libnotify
         mplayer
-        insync
         protonvpn-cli
         steam-run
         texlive-combined
