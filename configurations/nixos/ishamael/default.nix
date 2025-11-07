@@ -1,7 +1,7 @@
 { flake, config, ... }:
 let
-  inherit (inputs) flake;
-  inherit (self) inputs;
+  inherit (flake) inputs;
+  inherit (inputs) self;
 in
 {
   imports = [
