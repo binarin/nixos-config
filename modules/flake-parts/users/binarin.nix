@@ -19,8 +19,6 @@ in {
       self.nixosModules.home-manager
     ];
 
-    hardware.keyboard.qmk.enable = true; # + "plugdev" below
-
     users.users = {
       binarin = {
         description = "Alexey Lebedeff";
@@ -36,7 +34,6 @@ in {
           "libvirtd"
           "lxd"
           "networkmanager"
-          "plugdev"
           "transmission"
           "users"
           "vboxusers"
