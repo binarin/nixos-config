@@ -1,24 +1,14 @@
 {lib, ...}:
 {
-  flake.nixosModules.tpm2-ssh = { config, pkgs, lib, ...}: let
-    userOptions = {
-      options.openssh.tpm2.enable = lib.mkEnableOption "Make it possible to use SSH keys in TPM2";
-    };
-    usersWithTpm = with lib; attrNames (
-      flip filterAttrs config.users.users (
-        n: u: u.openssh.tpm2.enable
-      )
-    );
-  in {
+  flake.nixosModules.tpm2-ssh = { config, pkgs, lib, ...}:
+  {
     key = "nixos-config.tpm2-ssh";
 
     options = {
-      users.users = lib.mkOption {
-        type = with lib.types; attrsOf (submodule userOptions);
-      };
+      programs.openssh.tpm2.enable = lib.mkEnableOption "Configure system to be able to use SSH keys in TPM2 (user should be in 'tss' group)";
     };
 
-    config = lib.mkIf (lib.length usersWithTpm > 0) {
+    config = lib.mkIf config.programs.openssh.tpm2.enable {
       environment.systemPackages = with pkgs; [
         tpm2-tools
       ];
@@ -39,8 +29,6 @@
       };
 
       environment.variables.TSS2_LOG = "fapi+NONE";
-
-      users.users = lib.genAttrs usersWithTpm (_: { extraGroups = [ "tss" ]; });
     };
   };
 }

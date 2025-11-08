@@ -35,6 +35,7 @@ in {
           "lxd"
           "networkmanager"
           "transmission"
+          "tss" # for TPM2
           "users"
           "vboxusers"
           "video"
