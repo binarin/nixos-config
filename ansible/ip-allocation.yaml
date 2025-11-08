@@ -1,0 +1,234 @@
+ip_allocation:
+  bael:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.68
+  bael-kvm:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.69
+  brother-mfc:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.49
+  brother-scanner:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.58
+  demandred:
+    home:
+      eth:
+        _type: leaf
+        address: 192.168.2.10
+      primary:
+        _type: leaf
+        address: 192.168.2.9
+  dnscontrol:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.77
+  docker-on-nixos:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.11
+  elgato-key-left:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.40
+  elgato-key-right:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.41
+  enphase-envoy:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.42
+  forgejo:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.3
+  galayou-g2:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.12
+  hass-vm:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.23
+  ishamael:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.6
+  lanfear:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.4
+  mail:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.7
+  media:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.79
+  monitor:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.2
+  nanokvm:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.8
+  nix-cache:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.5
+  prusa-mk4:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.56
+  prusa-xl:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.57
+  qdevice:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.16
+  qdevice-vm:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.17
+  raum:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.44
+  remarkable:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.43
+  shelly-plus-plug-s-1:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.60
+  shelly-plus-plug-s-10:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.73
+  shelly-plus-plug-s-2:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.61
+  shelly-plus-plug-s-3:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.63
+  shelly-plus-plug-s-4:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.64
+  shelly-plus-plug-s-5:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.65
+  shelly-plus-plug-s-6:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.66
+  shelly-plus-plug-s-7:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.70
+  shelly-plus-plug-s-8:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.71
+  shelly-plus-plug-s-9:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.72
+  slzb-06:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.74
+  tapo-c100:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.13
+  tinypilot:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.50
+  ulanzi-tc001:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.80
+  unifi:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.19
+  usg:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.1
+  valak:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.26
+  valak-kvm:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.15
+  xmg1915:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.78
+  xray:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.14
