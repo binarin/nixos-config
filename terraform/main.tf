@@ -20,9 +20,10 @@ resource "libvirt_pool" "default" {
 }
 
 resource "libvirt_network" "br0" {
-  name   = "br0"
-  mode   = "bridge"
-  bridge = "br0"
+  name      = "br0"
+  mode      = "bridge"
+  bridge    = "br0"
+  autostart = true
 }
 
 resource "libvirt_volume" "debian_base" {
@@ -55,9 +56,10 @@ resource "libvirt_cloudinit_disk" "commoninit" {
 }
 
 resource "libvirt_domain" "debian_vm" {
-  name   = var.vm_name
-  memory = var.memory
-  vcpu   = var.vcpu
+  name      = var.vm_name
+  memory    = var.memory
+  vcpu      = var.vcpu
+  autostart = true
 
   cloudinit = libvirt_cloudinit_disk.commoninit.id
 
