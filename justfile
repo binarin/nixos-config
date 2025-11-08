@@ -50,7 +50,17 @@ hm host=`hostname -s` user="$USER":
 
 [group('Main')]
 build-nixos configuration=`hostname -s`:
-    nix build "$(pwd)#nixosConfigurations.{{ configuration }}.config.system.build.toplevel" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'nixos-configuration' / configuration }}"
+    ./scripts/build-nixos.sh "{{ configuration }}" "{{ topCacheDir / 'nixos-configuration' / configuration }}" -j {{ jobs }} {{ nixOpts }}
+
+# Evaluate a single configuration without building (useful for debugging infinite recursion)
+[group('Main')]
+eval-nixos configuration=`hostname -s`:
+    ./scripts/eval-nixos.sh "{{ configuration }}" {{ nixOpts }}
+
+# Evaluate all configurations individually (useful for debugging infinite recursion and isolating failures)
+[group('Main')]
+eval-all:
+    ./scripts/eval-all-nixos.sh {{ nixOpts }}
 
 [group('Deploy')]
 iso:
