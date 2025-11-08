@@ -1,4 +1,7 @@
 {self, ...}: {
+  flake-file.inputs.nix-ai-tools.url = "github:numtide/nix-ai-tools";
+  flake-file.inputs.nix-ai-tools.inputs.nixpkgs.follows = "nixpkgs";
+
   flake.homeModules.claude-code = { pkgs, lib, config, ... }: {
     key = "nixos-config.programs.claude-code";
 
@@ -6,8 +9,8 @@
       self.homeModules.impermanence
     ];
 
-    home.packages = with pkgs; [
-      claude-code
+    home.packages = [
+      self.inputs.nix-ai-tools.packages.${pkgs.system}.claude-code
     ];
 
     impermanence.persist-files = [

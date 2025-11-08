@@ -119,6 +119,14 @@
       };
       url = "github:hraban/mac-app-util";
     };
+    nix-ai-tools = {
+      inputs = {
+        nixpkgs = {
+          follows = "nixpkgs";
+        };
+      };
+      url = "github:numtide/nix-ai-tools";
+    };
     nix-auto-follow = {
       inputs = {
         nixpkgs = {
