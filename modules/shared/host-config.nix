@@ -126,14 +126,7 @@ in
 
       validDeployTargets = lib.mkOption { type = lib.types.listOf lib.types.nonEmptyStr; };
 
-      ipAllocation =
-        if options.inventory.ipAllocation ? "${config.inventoryHostName}" then
-          options.inventory.ipAllocation."${config.inventoryHostName}"
-        else
-          lib.mkOption {
-            default = { };
-            type = lib.types.attrs;
-          };
+      ipAllocation =  lib.mkOption { type = lib.types.raw; default = config.inventory.ipAllocation."${config.inventoryHostName}"; };
     };
   };
 

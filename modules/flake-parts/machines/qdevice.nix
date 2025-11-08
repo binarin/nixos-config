@@ -1,35 +1,11 @@
 { self, inputs, config, lib, ... }: let
-install = ''
-nix run github:nix-community/nixos-anywhere -- \
- --generate-hardware-config nixos-generate-config machines/qdevice/hardware-configuration.nix \
- --flake "$(pwd)#qdevice" \
- --target-host root@192.168.2.16 \
- --disk-encryption-keys /tmp/password-without-newline /tmp/password-without-newline
-'';
-
-debian = ''
-NAME=qdevice
-DIST_URL="http://ftp.debian.org/debian/dists/trixie/main/installer-amd64/"
-LINUX_VARIANT="debian"
-
-virt-install \
---connect=qemu:///system \
---name=$${NAME} \
---ram=1024 \
---vcpus=2 \
---disk size=16,path=/var/lib/libvirt/images/$${NAME}.img,bus=virtio,cache=none \
---initrd-inject=preseed.cfg \
---initrd-inject=postinst.sh \
---initrd-inject=postinst.tar.gz \
---location $${DIST_URL} \
---os-variant $${LINUX_VARIANT} \
---virt-type=kvm \
---controller usb,model=none \
---graphics none \
---noautoconsole \
---network bridge=br0,mac=$${MAC},model=virtio \
---extra-args="auto=true hostname="$${1}" domain="$${DOMAIN}" console=tty0 console=ttyS0,115200n8 serial"
-'';
+  install = ''
+    nix run github:nix-community/nixos-anywhere -- \
+     --generate-hardware-config nixos-generate-config machines/qdevice/hardware-configuration.nix \
+     --flake "$(pwd)#qdevice" \
+     --target-host root@192.168.2.16 \
+     --disk-encryption-keys /tmp/password-without-newline /tmp/password-without-newline
+  '';
 in {
   flake.deploy.nodes.qdevice = {
     hostname = "192.168.2.16";

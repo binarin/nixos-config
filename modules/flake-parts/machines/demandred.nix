@@ -12,8 +12,8 @@
       };
     };
     modules = [
-      ../../../configurations/nixos/demandred/configuration.nix
       self.nixosModules.demandred-configuration
+      ../../../configurations/nixos/demandred/configuration.nix
     ];
   };
 
@@ -24,6 +24,7 @@
       self.nixosModules.kanata
       self.nixosModules.niri
       self.nixosModules.bluetooth
+      self.nixosModules.inventory-legacy
     ];
     config = {
       services.kanata.keyboards.all.devices = [

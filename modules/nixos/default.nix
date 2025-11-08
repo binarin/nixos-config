@@ -7,5 +7,6 @@ in {
     self.sharedModules.default
     inputs.arion.nixosModules.arion
     self.nixosModules.nix
+    self.nixosModules.inventory-legacy
   ] ++ (with builtins; map (fn: ./${fn}) (filter (fn: fn != "default.nix") (attrNames (readDir ./.))));
 }
