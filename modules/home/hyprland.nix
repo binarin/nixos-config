@@ -19,7 +19,6 @@ let
   rgb = color: "rgb(${lib.removePrefix "#" (config.zenburn.colors."${color}")})";
   hyprlandDefaultOrientation = {
     demandred = "left";
-    valak = "center";
     _default = "left";
   };
 in
@@ -210,12 +209,6 @@ in
         ];
 
         monitor = ({
-          valak = [
-          "desc:${out-u4025qw}, preferred, auto, 2.0"
-          "desc:${out-lg-dualup-right}, preferred, auto, 2.0"
-          "desc:${out-lg-dualup-left}, preferred, auto, 2.0"
-          ", preferred, auto, auto"
-          ];
           ishamael = [
             # "HDMI-A-2, Modeline 950.50 5120 5536 6104 7088 2160 2161 2164 2235 -hsync +vsync, 0x0, 2.0"
             ", preferred, auto, auto"
@@ -342,59 +335,6 @@ in
                 criteria = out-ishamael-edp;
                 status = "enable";
                 mode = "3840x2400";
-              }
-            ];
-          };
-        }
-        # {
-        #   profile = {
-        #     name = "valak";
-        #     outputs = [
-        #       {
-        #         criteria = out-lg-dualup-left;
-        #         status = "enable";
-        #         mode = "2560x2880@60Hz";
-        #         position = "0,0";
-        #       }
-        #       {
-        #         criteria = out-u4025qw;
-        #         status = "enable";
-        #         mode = "5120x2160@120Hz";
-        #         position = "2560,332";
-        #       }
-        #       {
-        #         criteria = out-lg-dualup-right;
-        #         status = "enable";
-        #         mode = "2560x2880@60Hz";
-        #         position = "7680,0";
-        #       }
-        #     ];
-        #   };
-        # }
-        {
-          profile = {
-            name = "valak-hidpi";
-            outputs = [
-              {
-                criteria = out-lg-dualup-left;
-                status = "enable";
-                mode = "2560x2880@60Hz";
-                position = "0,0";
-                scale = 2.0;
-              }
-              {
-                criteria = out-u4025qw;
-                status = "enable";
-                mode = "5120x2160@120Hz";
-                position = "1280,165";
-                scale = 2.0;
-              }
-              {
-                criteria = out-lg-dualup-right;
-                status = "enable";
-                mode = "2560x2880@60Hz";
-                position = "3840,0";
-                scale = 2.0;
               }
             ];
           };

@@ -93,14 +93,6 @@ in {
               HostKeyAlias = "mail.lynx-lizard.ts.net";
             };
           };
-          valak = {
-            match = ''
-              host valak.lynx-lizard.ts.net,valak,${config.inventory.ipAllocation.valak.home.primary.address}
-            '';
-            extraOptions = {
-              ForwardAgent = "yes";
-            };
-          };
         };
         controlPath = "~/.ssh/master-%r@%k:%p";
       };

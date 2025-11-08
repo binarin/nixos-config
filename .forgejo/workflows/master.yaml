@@ -31,8 +31,6 @@ jobs:
         - monitor
         - nix-cache
         - qdevice
-        - valak
-        - valak-fast
 'on':
   pull_request:
     types:

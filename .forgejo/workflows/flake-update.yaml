@@ -48,12 +48,6 @@ jobs:
     - name: Build nixosConfiguration.qdevice
       run: "nix build \"$(pwd)#nixosConfigurations.qdevice.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/qdevice\"\n"
-    - name: Build nixosConfiguration.valak
-      run: "nix build \"$(pwd)#nixosConfigurations.valak.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/valak\"\n"
-    - name: Build nixosConfiguration.valak-fast
-      run: "nix build \"$(pwd)#nixosConfigurations.valak-fast.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/valak-fast\"\n"
     - name: Run flake check
       run: nix flake check
     - name: Clean-up old GC roots
@@ -93,12 +87,6 @@ jobs:
     - name: Add nix-store GC root for nixosConfiguraion.qdevice
       run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/qdevice\"\
         \ \\\n  -r \"$(readlink -f \"temp-result/qdevice\")\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.valak
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/valak\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/valak\")\"\n"
-    - name: Add nix-store GC root for nixosConfiguraion.valak-fast
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/valak-fast\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/valak-fast\")\"\n"
     - name: Push to flake-bump branch
       run: git push --force origin master:flake-bump
     - name: API auth

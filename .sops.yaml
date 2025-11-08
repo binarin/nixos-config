@@ -3,9 +3,6 @@
 keys:
   - &admin_binarin age1ec9gz6f685mn8pdrz48qm4vq7qzpzcz48vgkcty9aa665evra9lq2uz3s2
 
-  - &server_valak age1q6dc2xlcqul6pj3nr5rkpzncatcfdw5xhpw8v0cvp3r2u27xypzsjq885x
-  - &user_valak_binarin age1u8jf4ytu3rf7wgcdkgaud37vnfw0xv6gswrmhtll5v7ce5enle0smydayv
-
   - &server_demandred age1flg86f4c6xd2jss983nml4vvqexxyxavm22rp4ve3h6mywc9kdesnppy7j
   - &user_demandred_binarin age1dvu92xmh3w23ghey4l0epcs27m89f3nswzs5twgnel36xxu42f4sfsv023
   
@@ -26,18 +23,6 @@ creation_rules:
           - *admin_binarin
           - *user_ishamael_binarin
           - *server_ishamael
-  - path_regex: secrets/valak/user-binarin.yaml
-    key_groups:
-      - age:
-          - *admin_binarin
-          - *server_valak
-          - *user_valak_binarin
-  - path_regex: secrets/valak/(secrets.yaml|xray-json.bin)
-    key_groups:
-      - age:
-          - *admin_binarin
-          - *user_demandred_binarin
-          - *server_valak
   - path_regex: secrets/demandred/secrets.yaml
     key_groups:
       - age:
