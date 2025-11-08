@@ -16,16 +16,15 @@ in {
 
   config = lib.mkMerge [
     (lib.mkIf config.hostConfig.feature.interactive-cli {
-
       programs.atuin = {
-        enable = defEnable;
-        enableZshIntegration = defEnable;
-        enableBashIntegration = defEnable;
+        enable = true;
+        enableZshIntegration = true;
+        enableBashIntegration = true;
         settings = {
           search_mode = "fuzzy";
           sync_address = "https://atuin.binarin.info";
         };
-        daemon.enable = defEnable;
+        daemon.enable = true;
       };
 
       programs.bash.enable = defEnable;
