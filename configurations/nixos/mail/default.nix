@@ -19,4 +19,6 @@ in
     "lxc"
     "tailscale"
   ];
+
+  system.stateVersion = "24.05";
 }
