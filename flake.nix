@@ -111,14 +111,6 @@
       };
       url = "github:nix-community/lanzaboote";
     };
-    mac-app-util = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
-      url = "github:hraban/mac-app-util";
-    };
     nix-ai-tools = {
       inputs = {
         nixpkgs = {
@@ -134,22 +126,6 @@
         };
       };
       url = "github:fzakaria/nix-auto-follow";
-    };
-    nix-darwin = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
-      url = "github:LnL7/nix-darwin/nix-darwin-25.05";
-    };
-    nix-darwin-master = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
-      url = "github:LnL7/nix-darwin";
     };
     nix-index-database = {
       inputs = {
@@ -169,9 +145,6 @@
     };
     nixpkgs = {
       url = "github:nixos/nixpkgs/nixos-25.05";
-    };
-    nixpkgs-darwin = {
-      url = "github:NixOS/nixpkgs/nixpkgs-25.05-darwin";
     };
     nixpkgs-lib = {
       follows = "nixpkgs";

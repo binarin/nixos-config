@@ -16,16 +16,6 @@
 
     import-tree.url = "github:vic/import-tree";
 
-    mac-app-util.url = "github:hraban/mac-app-util";
-    mac-app-util.inputs.nixpkgs.follows = "nixpkgs";
-
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.05-darwin";
-    nix-darwin.url = "github:LnL7/nix-darwin/nix-darwin-25.05";
-    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-
-    nix-darwin-master.url = "github:LnL7/nix-darwin";
-    nix-darwin-master.inputs.nixpkgs.follows = "nixpkgs";
-
     # home-manager.url = "path:/home/binarin/personal-workspace/home-manager";
     home-manager.url = "github:nix-community/home-manager/release-25.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";

@@ -54,30 +54,15 @@ let
       };
       modules = [ mod ];
     };
-  mkDarwinSystem =
-    mod:
-    inputs.nix-darwin.lib.darwinSystem {
-      specialArgs = specialArgs // {
-        hostConfig = {
-          isLinux = false;
-          isDarwin = true;
-        };
-      };
-      modules = [ mod ];
-    };
 in
 {
   config = {
     flake = {
       nixosConfigurations = forAllNixFiles "${self}/configurations/nixos" (fn: mkLinuxSystem fn);
 
-      darwinConfigurations = forAllNixFiles "${self}/configurations/darwin" (fn: mkDarwinSystem fn);
-
       nixosModules = forAllNixFiles "${self}/modules/nixos" (fn: fn);
 
       homeModules = forAllNixFiles "${self}/modules/home" (fn: fn);
-
-      darwinModules = forAllNixFiles "${self}/modules/darwin" (fn: fn);
 
       overlays = forAllNixFiles "${self}/overlays" (fn: import fn specialArgs);
 
