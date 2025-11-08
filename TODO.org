@@ -1,3 +1,7 @@
+#+STARTUP: nologdone nologrepeat nolognoteclock-out nologreschedule nologredeadline nologrefile
+#+TODO: TODO(t) | DONE(d)
+#+TODO: PLAN(r) | PROJ(p)
+#+TODO: | CNCL(c)
 * DONE kanata should only be bound to concrete devices, instead of all
   CLOSED: [2025-11-06 Thu 14:43]
   :LOGBOOK:
@@ -7,15 +11,20 @@
 This should be configured on a per-machine basis.
 
 
-* TODO create debian vm on qdevice (investigate firt: virt-install, terraform, something else?)
-* TODO convert to dendritic (large task)
+* DONE create debian vm on qdevice (investigate firt: virt-install, terraform, something else?)
+  CLOSED: [2025-11-08 Sat 09:09]
+  :LOGBOOK:
+  - State "DONE"       from "TODO"       [2025-11-08 Sat 09:09]
+  :END:
+* DONE convert to dendritic (large task)
+  CLOSED: [2025-11-08 Sat 09:09]
+  :LOGBOOK:
+  - State "DONE"       from "TODO"       [2025-11-08 Sat 09:09]
+  :END:
 * DONE tmux - change word boundaries for mouse selection
   CLOSED: [2025-11-06 Thu 15:38]
   :LOGBOOK:
   - State "DONE"       from "TODO"       [2025-11-06 Thu 15:38]
   :END:
 * DONE install bluetui from an external flake
-  CLOSED: [2025-11-06 Thu 15:27]
-  :LOGBOOK:
-  - State "DONE"       from "TODO"       [2025-11-06 Thu 15:27]
-  :END:
+* TODO Introduce ~nixosSharedModules~ flake attribute, with the type ~listOf deferredModule~
