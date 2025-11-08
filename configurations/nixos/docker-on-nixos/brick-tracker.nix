@@ -1,4 +1,4 @@
-{flake, lib, pkgs, config, ...}:
+{ pkgs, config, ... }:
 {
   services.caddy.expose-local-http.virtualHosts."brick-tracker.binarin.info" = "localhost:3333";
 

@@ -1,5 +1,4 @@
 {
-  flake,
   config,
   pkgs,
   lib,
@@ -35,18 +34,24 @@ in
       pkgs.kdePackages.xdg-desktop-portal-kde
     ];
 
-    xdg.configFile = lib.mapAttrs' (name: value: lib.nameValuePair "autostart/${name}.desktop" {
-      text = ''
-        [Desktop Entry]
-        ${value}
-      '';
-    }) {
-      "org.kde.kalendarac" = "NotShowIn=Hyrpland";
-      "org.kde.kunifiedpush-distributor" = "NotShowIn=Hyrpland";
-      "org.kde.xwaylandvideobridge" = "NotShowIn=Hyrpland";
-      "git-annex" = "Hiddent=True";
-      "ProtonMailBridge" = "Hidden=True";
-    };
+    xdg.configFile =
+      lib.mapAttrs'
+        (
+          name: value:
+          lib.nameValuePair "autostart/${name}.desktop" {
+            text = ''
+              [Desktop Entry]
+              ${value}
+            '';
+          }
+        )
+        {
+          "org.kde.kalendarac" = "NotShowIn=Hyrpland";
+          "org.kde.kunifiedpush-distributor" = "NotShowIn=Hyrpland";
+          "org.kde.xwaylandvideobridge" = "NotShowIn=Hyrpland";
+          "git-annex" = "Hiddent=True";
+          "ProtonMailBridge" = "Hidden=True";
+        };
 
     home.packages = with pkgs; [
       pkgs.kdePackages.kwalletmanager
@@ -208,22 +213,25 @@ in
           "9, persistent:true, monitor:desc:${out-lg-dualup-right}"
         ];
 
-        monitor = ({
-          ishamael = [
-            # "HDMI-A-2, Modeline 950.50 5120 5536 6104 7088 2160 2161 2164 2235 -hsync +vsync, 0x0, 2.0"
-            ", preferred, auto, auto"
-          ];
-          demandred = [
-            ", preferred, auto, auto"
-          ];
-        })."${config.inventoryHostName}";
+        monitor =
+          ({
+            ishamael = [
+              # "HDMI-A-2, Modeline 950.50 5120 5536 6104 7088 2160 2161 2164 2235 -hsync +vsync, 0x0, 2.0"
+              ", preferred, auto, auto"
+            ];
+            demandred = [
+              ", preferred, auto, auto"
+            ];
+          })."${config.inventoryHostName}";
 
         master = {
           slave_count_for_center_master = 0;
           new_status = "inherited";
-          orientation = if hyprlandDefaultOrientation ? config.inventoryHostName
-                        then hyprlandDefaultOrientation."${config.inventoryHostName}"
-                        else hyprlandDefaultOrientation._default;
+          orientation =
+            if hyprlandDefaultOrientation ? config.inventoryHostName then
+              hyprlandDefaultOrientation."${config.inventoryHostName}"
+            else
+              hyprlandDefaultOrientation._default;
         };
 
         windowrulev2 = [

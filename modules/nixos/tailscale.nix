@@ -1,15 +1,8 @@
 {
-  flake,
-  pkgs,
   lib,
   config,
   ...
 }:
-let
-  inherit (flake) inputs;
-  inherit (inputs) self;
-  cfg = config.hostConfig;
-in
 {
   config = lib.mkIf config.hostConfig.feature.tailscale {
     sops.secrets.tailscale-auth = { };

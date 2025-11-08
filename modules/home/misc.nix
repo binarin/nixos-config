@@ -1,4 +1,4 @@
-{ flake, lib, ... }:
+{ lib, ... }:
 {
   config = {
     home.keyboard = lib.mkDefault null;

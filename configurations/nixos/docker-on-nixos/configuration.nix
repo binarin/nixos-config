@@ -1,4 +1,9 @@
-{ flake, config, lib, pkgs, ... }:
+{
+  flake,
+  config,
+  lib,
+  ...
+}:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -37,7 +42,8 @@ let
 
     pct start ${lxcId}
   '';
-in {
+in
+{
   imports = [
     ./brick-tracker.nix
     ./homebox.nix

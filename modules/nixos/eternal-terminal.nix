@@ -1,4 +1,4 @@
-{flake, pkgs, config, lib, ...}:
+{ config, lib, ... }:
 {
   config = lib.mkIf config.hostConfig.feature.interactive-cli {
     services.eternal-terminal = {

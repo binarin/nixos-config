@@ -1,15 +1,18 @@
-{...}: {
-  flake.homeModules.insync = {lib, config, pkgs, ...}: {
+{ ... }:
+{
+  flake.homeModules.insync =
+    { pkgs, ... }:
+    {
 
-    home.packages = with pkgs; [
-      insync
-    ];
+      home.packages = with pkgs; [
+        insync
+      ];
 
-    impermanence.local-directories = [
-      "Insync"
-      ".config/Insync"
-      ".local/share/Insync"
-      ".cache/Insync"
-    ];
-  };
+      impermanence.local-directories = [
+        "Insync"
+        ".config/Insync"
+        ".local/share/Insync"
+        ".cache/Insync"
+      ];
+    };
 }

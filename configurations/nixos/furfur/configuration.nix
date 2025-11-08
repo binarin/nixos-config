@@ -5,9 +5,6 @@
 # https://github.com/nix-community/NixOS-WSL
 {
   flake,
-  config,
-  lib,
-  pkgs,
   ...
 }:
 {

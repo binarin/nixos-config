@@ -5,12 +5,6 @@
   pkgs,
   ...
 }:
-let
-  # One of the Windows 95 default colors
-  wallpaper = pkgs.runCommand "image.png" { } ''
-    ${pkgs.imagemagick}/bin/magick -size 1920x1080 "xc:#00807F" $out
-  '';
-in
 {
   imports = [ flake.inputs.stylix.nixosModules.stylix ];
 

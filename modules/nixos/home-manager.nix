@@ -1,8 +1,13 @@
-{flake, pkgs, lib, config, specialArgs, ...}:
+{
+  flake,
+  lib,
+  config,
+  specialArgs,
+  ...
+}:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
-  cfg = config.hostConfig;
 in
 {
   imports = [ inputs.home-manager.nixosModules.home-manager ];

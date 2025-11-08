@@ -1,14 +1,9 @@
 {
-  flake,
   config,
   pkgs,
   lib,
-  bleeding,
-  stdenv,
   ...
 }:
-let
-in
 {
   boot = {
     supportedFilesystems = [

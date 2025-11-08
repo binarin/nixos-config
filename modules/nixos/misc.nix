@@ -1,4 +1,4 @@
-{flake, lib, pkgs, config, ...}:
+{ lib, config, ... }:
 {
   config = {
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

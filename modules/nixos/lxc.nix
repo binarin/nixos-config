@@ -1,8 +1,10 @@
-{ flake, modulesPath, config, lib, pkgs, ... }:
-let
-  inherit (flake) inputs;
-  inherit (inputs) self;
-in
+{
+  modulesPath,
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   # Need to add to /etc/pve/lxc/XXX.conf
   # lxc.cgroup2.devices.allow: c 10:200 rwm

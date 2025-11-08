@@ -49,7 +49,6 @@ let
       specialArgs = specialArgs // {
         hostConfig = {
           isLinux = true;
-          isDarwin = false;
         };
       };
       modules = [ mod ];

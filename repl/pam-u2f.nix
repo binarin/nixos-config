@@ -5,6 +5,7 @@ let
     inherit self;
   };
   t = pam-u2f.u2f_mappings "demandred" "sddm";
-in {
+in
+{
   inherit t;
 }

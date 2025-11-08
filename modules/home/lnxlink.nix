@@ -15,8 +15,6 @@ let
 
   allAddons = cfg.package.meta.addons.allNames;
 
-  moduleNameType = lib.types.enum allAddons;
-
   passwordFileType =
     with lib;
     mkOptionType {
@@ -147,7 +145,8 @@ let
       name = nm;
       value = {
         enable = lib.mkEnableOption "Enable addon ${nm}";
-      } // maybeVariantOption;
+      }
+      // maybeVariantOption;
     };
 
   enabledAddonsNames = builtins.filter (x: cfg.addons."${x}".enable) allAddons;

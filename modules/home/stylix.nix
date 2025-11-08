@@ -27,19 +27,22 @@
             "fzf"
             "zellij"
           ]
-          (nm: {
+          (_nm: {
             enable = true;
           });
     }
     (lib.mkIf config.hostConfig.feature.gui {
-      stylix.targets = lib.genAttrs [
-        "swaync"
-        "vscode"
-        "firefox"
-        "gtk"
-      ] (nm: {
-        enable = true;
-      });
+      stylix.targets =
+        lib.genAttrs
+          [
+            "swaync"
+            "vscode"
+            "firefox"
+            "gtk"
+          ]
+          (_nm: {
+            enable = true;
+          });
     })
   ];
-  }
+}

@@ -1,7 +1,6 @@
 # -*- nix -*-
 {
   flake,
-  hostConfig,
   config,
   lib,
   pkgs,
@@ -169,7 +168,8 @@ in
   };
 
   systemd.services.caddy.serviceConfig.AmbientCapabilities = "CAP_NET_ADMIN CAP_NET_BIND_SERVICE";
-  systemd.services.caddy.serviceConfig.LoadCredential = "cloudflare-api-token:${config.sops.secrets.cloudflare-api-key.path}";
+  systemd.services.caddy.serviceConfig.LoadCredential =
+    "cloudflare-api-token:${config.sops.secrets.cloudflare-api-key.path}";
 
   services.caddy = {
     enable = true;
@@ -365,7 +365,6 @@ in
     };
   };
 
-
   services.caddy.virtualHosts."ta.binarin.info".extraConfig = ''
     reverse_proxy http://127.0.0.1:8001
     tls {
@@ -376,7 +375,6 @@ in
 
   sops.secrets."linkwarden/nextauth-secret" = { };
   sops.secrets."linkwarden/postgres-password" = { };
-
 
   services.caddy.virtualHosts."linkwarden.binarin.info".extraConfig = ''
     reverse_proxy http://127.0.0.1:3000
@@ -395,7 +393,9 @@ in
   '';
 
   sops.templates."linkwarden-database-url-env".content = ''
-    DATABASE_URL="postgresql://postgres:${config.sops.placeholder."linkwarden/postgres-password"}@postgres:5432/postgres"
+    DATABASE_URL="postgresql://postgres:${
+      config.sops.placeholder."linkwarden/postgres-password"
+    }@postgres:5432/postgres"
   '';
 
   virtualisation.arion.projects.linkwarden = {
@@ -441,7 +441,6 @@ in
       };
     };
   };
-
 
   virtualisation.arion.projects.qbittorrent = {
     serviceName = "qbittorrent-docker-compose";
@@ -508,17 +507,17 @@ in
     ];
   };
 
-  users.groups.usenet = {};
+  users.groups.usenet = { };
 
   services.sabnzbd.enable = true;
   users.users.sabnzbd.extraGroups = [ "usenet" ];
 
-  sops.secrets."sabnzbd/username" = {};
-  sops.secrets."sabnzbd/password" = {};
-  sops.secrets."sabnzbd/api_key" = {};
-  sops.secrets."sabnzbd/nzb_key" = {};
-  sops.secrets."sabnzbd/eweka_username" = {};
-  sops.secrets."sabnzbd/eweka_password" = {};
+  sops.secrets."sabnzbd/username" = { };
+  sops.secrets."sabnzbd/password" = { };
+  sops.secrets."sabnzbd/api_key" = { };
+  sops.secrets."sabnzbd/nzb_key" = { };
+  sops.secrets."sabnzbd/eweka_username" = { };
+  sops.secrets."sabnzbd/eweka_password" = { };
 
   sops.templates."sabnzbd.ini" = {
     content = import ./sabnzbd.ini.nix { ph = config.sops.placeholder; };
@@ -529,13 +528,16 @@ in
   services.sabnzbd.configFile = "/var/lib/sabnzbd/sabnzbd.ini";
   systemd.services.sabnzbd.serviceConfig.ExecStartPre = [
     ''
-      ${lib.getExe' pkgs.coreutils "cp"} -f ${config.sops.templates."sabnzbd.ini".path} ${config.services.sabnzbd.configFile}-orig
+      ${lib.getExe' pkgs.coreutils "cp"} -f ${
+        config.sops.templates."sabnzbd.ini".path
+      } ${config.services.sabnzbd.configFile}-orig
     ''
     ''
-      ${lib.getExe' pkgs.coreutils "cp"} -f ${config.sops.templates."sabnzbd.ini".path} ${config.services.sabnzbd.configFile}
+      ${lib.getExe' pkgs.coreutils "cp"} -f ${
+        config.sops.templates."sabnzbd.ini".path
+      } ${config.services.sabnzbd.configFile}
     ''
   ];
-
 
   services.caddy.virtualHosts."sabnzbd.binarin.info".extraConfig = ''
     reverse_proxy http://127.0.0.1:8085
@@ -555,7 +557,10 @@ in
   '';
 
   services.radarr.enable = true;
-  users.users.radarr.extraGroups = [ "usenet" "jellyfin" ];
+  users.users.radarr.extraGroups = [
+    "usenet"
+    "jellyfin"
+  ];
   services.caddy.virtualHosts."radarr.binarin.info".extraConfig = ''
     reverse_proxy http://127.0.0.1:7878
     tls {
@@ -564,66 +569,75 @@ in
     }
   '';
 
-
   # XXX make a better suited machine, with caddy
-  services.homepage-dashboard = let
-    svc = title: href: icon: {
-      "${title}" = {
-        inherit href icon;
+  services.homepage-dashboard =
+    let
+      svc = title: href: icon: {
+        "${title}" = {
+          inherit href icon;
+        };
+      };
+    in
+    {
+      enable = true;
+      listenPort = 8082;
+      allowedHosts = "homepage.binarin.info,localhost:8082,127.0.0.1:8082";
+      services = [
+        {
+          "Services" = [
+            (svc "Jellyfin" "https://jellyfin.binarin.info/" "jellyfin.svg")
+            (svc "paperless-ngx" "https://paperless.lynx-lizard.ts.net/" "paperless-ngx.svg")
+            (svc "tube-archivist" "https://ta.binarin.info/" "/custom-icons/tube-archivist-logo-dark.png")
+            (svc "Home Assistant" "https://hass.lynx-lizard.ts.net/" "home-assistant.svg")
+            (svc "qbittorrent" "https://qbittorrent.binarin.info/" "qbittorrent.svg")
+            (svc "NextCloud" "https://nc.binarin.info/" "nextcloud.svg")
+          ];
+        }
+        {
+          "Servers" = [
+            (svc "Unifi" "https://unifi.binarin.info/" "unifi.svg")
+            (svc "Proxmox Raum" "https://raum.lynx-lizard.ts.net" "proxmox.svg")
+            (svc "Proxmox Bael" "https://bael.lynx-lizard.ts.net" "proxmox.svg")
+            (svc "Proxmox Backup Server - bael" "https://bael.lynx-lizard.ts.net:8007/" "/custom-icons/pbs.png")
+            (svc "Proxmox Backup Server - hetzner" "https://pbs-hetzner.binarin.info:8007/"
+              "/custom-icons/pbs.png"
+            )
+            (svc "tinypilot wired" "https://${config.inventory.ipAllocation.tinypilot.home.primary.address}/"
+              "/custom-icons/tiny-pilot.png"
+            )
+            (svc "nanokvm - home" "http://${config.inventory.ipAllocation.nanokvm.home.primary.address}/"
+              "/custom-icons/sipeed.png"
+            )
+            (svc "nanokvm - ts" "http://nanokvm.lynx-lizard.ts.net/" "/custom-icons/sipeed.png")
+            (svc "NextCloud AIO" "https://nextcloud.lynx-lizard.ts.net:8080/" "nextcloud.svg")
+          ];
+        }
+      ];
+      settings = {
+        target = "_self";
       };
     };
-  in {
-    enable = true;
-    listenPort = 8082;
-    allowedHosts = "homepage.binarin.info,localhost:8082,127.0.0.1:8082";
-    services = [
-      {
-        "Services" = [
-          (svc "Jellyfin" "https://jellyfin.binarin.info/" "jellyfin.svg")
-          (svc "paperless-ngx" "https://paperless.lynx-lizard.ts.net/" "paperless-ngx.svg")
-          (svc "tube-archivist" "https://ta.binarin.info/" "/custom-icons/tube-archivist-logo-dark.png")
-          (svc "Home Assistant" "https://hass.lynx-lizard.ts.net/" "home-assistant.svg")
-          (svc "qbittorrent" "https://qbittorrent.binarin.info/" "qbittorrent.svg")
-          (svc "NextCloud" "https://nc.binarin.info/" "nextcloud.svg")
-        ];
-      }
-      {
-        "Servers" = [
-          (svc "Unifi" "https://unifi.binarin.info/" "unifi.svg")
-          (svc "Proxmox Raum" "https://raum.lynx-lizard.ts.net" "proxmox.svg")
-          (svc "Proxmox Bael" "https://bael.lynx-lizard.ts.net"  "proxmox.svg")
-          (svc "Proxmox Backup Server - bael" "https://bael.lynx-lizard.ts.net:8007/" "/custom-icons/pbs.png")
-          (svc "Proxmox Backup Server - hetzner" "https://pbs-hetzner.binarin.info:8007/" "/custom-icons/pbs.png")
-          (svc "tinypilot wired" "https://${config.inventory.ipAllocation.tinypilot.home.primary.address}/" "/custom-icons/tiny-pilot.png")
-          (svc "nanokvm - home" "http://${config.inventory.ipAllocation.nanokvm.home.primary.address}/" "/custom-icons/sipeed.png")
-          (svc "nanokvm - ts" "http://nanokvm.lynx-lizard.ts.net/" "/custom-icons/sipeed.png")
-          (svc "NextCloud AIO" "https://nextcloud.lynx-lizard.ts.net:8080/" "nextcloud.svg")
-        ];
-      }
-    ];
-    settings = {
-      target = "_self";
-    };
-  };
 
-  services.caddy.virtualHosts."homepage.binarin.info".extraConfig = let
-    customIconsDir = config.lib.self.base64Dir "dashboard-icons";
-  in ''
-    handle_path /custom-icons/* {
-      root * ${customIconsDir}
-      @png {
-        path *.png
+  services.caddy.virtualHosts."homepage.binarin.info".extraConfig =
+    let
+      customIconsDir = config.lib.self.base64Dir "dashboard-icons";
+    in
+    ''
+      handle_path /custom-icons/* {
+        root * ${customIconsDir}
+        @png {
+          path *.png
+        }
+        header @png Content-Type "image/png"
+        file_server browse
       }
-      header @png Content-Type "image/png"
-      file_server browse
-    }
 
-    reverse_proxy http://127.0.0.1:8082
-    tls {
-        dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-        resolvers 1.1.1.1
-    }
-  '';
+      reverse_proxy http://127.0.0.1:8082
+      tls {
+          dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
+          resolvers 1.1.1.1
+      }
+    '';
 
   services.caddy.virtualHosts."atuin.binarin.info".extraConfig = ''
     reverse_proxy http://127.0.0.1:8888

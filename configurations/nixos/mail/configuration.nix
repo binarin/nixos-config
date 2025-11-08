@@ -1,15 +1,8 @@
 # -*- nix -*-
 {
-  flake,
-  config,
-  lib,
   pkgs,
   ...
 }:
-let
-  inherit (flake) inputs;
-  inherit (inputs) self;
-in
 {
   # tailscale serve --bg --tls-terminated-tcp 1143 1143
   # tailscale serve --bg --tls-terminated-tcp 1025 1025

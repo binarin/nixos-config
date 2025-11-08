@@ -1,4 +1,4 @@
-{self, inputs, lib, ...}:
+{ self, lib, ... }:
 
 let
   configurationsToBuild = builtins.attrNames self.nixosConfigurations;
@@ -41,8 +41,16 @@ let
 
   master-yaml-data = {
     on = {
-      push = { branches = [ "master" ]; };
-      pull_request = { types = ["opened" "synchronize" "reopened"]; };
+      push = {
+        branches = [ "master" ];
+      };
+      pull_request = {
+        types = [
+          "opened"
+          "synchronize"
+          "reopened"
+        ];
+      };
     };
     jobs = {
       nixos-configuration = build-all-configurations-job;
@@ -85,15 +93,17 @@ let
             name = "Commit updates";
             run = ''git commit --allow-empty -am "Bump inputs"'';
           }
-        ] ++ (lib.forEach configurationsToBuild (cfg: {
+        ]
+        ++ (lib.forEach configurationsToBuild (cfg: {
           name = "Build nixosConfiguration.${cfg}";
           run = ''
-              nix build "$(pwd)#nixosConfigurations.${cfg}.config.system.build.toplevel" \
-                --keep-going \
-                -j auto \
-                -o "temp-result/${cfg}"
+            nix build "$(pwd)#nixosConfigurations.${cfg}.config.system.build.toplevel" \
+              --keep-going \
+              -j auto \
+              -o "temp-result/${cfg}"
           '';
-        })) ++ [
+        }))
+        ++ [
           {
             name = "Run flake check";
             run = "nix flake check";
@@ -104,14 +114,15 @@ let
               rm -rf "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
             '';
           }
-        ] ++ (lib.forEach configurationsToBuild (cfg: {
+        ]
+        ++ (lib.forEach configurationsToBuild (cfg: {
           name = "Add nix-store GC root for nixosConfiguraion.${cfg}";
           run = ''
             nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/${cfg}" \
               -r "$(readlink -f "temp-result/${cfg}")"
           '';
-        })) ++
-        [
+        }))
+        ++ [
           {
             name = "Push to flake-bump branch";
             run = ''git push --force origin master:flake-bump'';
@@ -129,14 +140,16 @@ let
     };
   };
 
-in {
+in
+{
   perSystem =
     { pkgs, ... }:
     let
       yaml = pkgs.formats.yaml { };
       master-yaml = yaml.generate "master.yaml" master-yaml-data;
       flake-update-yaml = yaml.generate "flake-update.yaml" flake-update-yaml-data;
-    in {
+    in
+    {
       packages.ci-template-generator = pkgs.writeShellApplication {
         name = "ci-template-generator";
         runtimeInputs = with pkgs; [

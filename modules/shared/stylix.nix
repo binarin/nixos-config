@@ -1,7 +1,5 @@
 {
-  flake,
   config,
-  hostConfig,
   lib,
   pkgs,
   ...
@@ -20,7 +18,7 @@ in
 
     stylix.fonts = {
       sizes = {
-        terminal = if hostConfig.isDarwin then 20 else 14;
+        terminal = 14;
         desktop = 10;
         applications = 12;
       };
@@ -95,16 +93,15 @@ in
         jsonData = builtins.toJSON {
           inherit data;
           zenburn = config.zenburn.colors;
-          fonts =
-            {
-              inherit (config.stylix.fonts) sizes;
-            }
-            // lib.genAttrs [
-              "serif"
-              "sansSerif"
-              "monospace"
-              "emoji"
-            ] (nm: config.stylix.fonts."${nm}".name);
+          fonts = {
+            inherit (config.stylix.fonts) sizes;
+          }
+          // lib.genAttrs [
+            "serif"
+            "sansSerif"
+            "monospace"
+            "emoji"
+          ] (nm: config.stylix.fonts."${nm}".name);
         };
 
         # Disable phases which are not needed. In particular the unpackPhase will
@@ -115,12 +112,12 @@ in
         ];
 
         buildPhase = ''
-        ${pkgs.mustache-go}/bin/mustache $jsonDataPath ${template} > rendered_file
-      '';
+          ${pkgs.mustache-go}/bin/mustache $jsonDataPath ${template} > rendered_file
+        '';
 
         installPhase = ''
-        cp rendered_file $out
-      '';
+          cp rendered_file $out
+        '';
       };
   };
 }

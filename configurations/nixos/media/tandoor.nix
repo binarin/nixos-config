@@ -1,4 +1,4 @@
-{ lib, pkgs, config, ... }:
+{ config, ... }:
 {
   config = {
     sops.secrets."tandoor/secret-key" = { };
@@ -43,7 +43,7 @@
 
     virtualisation.arion.projects.tandoor = {
       serviceName = "tandoor-docker-compose";
-      settings.docker-compose.volumes.nginx_config = {};
+      settings.docker-compose.volumes.nginx_config = { };
       settings.services = {
         db_recipes.service = {
           restart = "unless-stopped";

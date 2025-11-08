@@ -8,7 +8,7 @@ let
     inherit system;
     overlays = [
       inputs.deploy-rs.overlays.default
-      (self: super: {
+      (_self: super: {
         deploy-rs = {
           inherit (unmodifiedPkgs) deploy-rs;
           lib = super.deploy-rs.lib;
@@ -51,9 +51,11 @@ in
       deploy.nodes = lib.genAttrs deployableSystems deployNixosSystem;
 
       # This is highly advised, and will prevent many possible mistakes
-      checks = builtins.mapAttrs (
-        system: deployLib: deployLib.deployChecks self.deploy
-      ) inputs.deploy-rs.lib;
+      perSystem =
+        { system, ... }:
+        {
+          checks = (inputs.deploy-rs.lib."${system}").deployChecks self.deploy;
+        };
     };
   };
 }

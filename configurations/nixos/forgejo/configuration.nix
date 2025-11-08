@@ -61,7 +61,7 @@ in
         HTTP_ADDR = "127.0.0.1";
         DOMAIN = "forgejo.lynx-lizard.ts.net";
         ROOT_URL = "https://forgejo.lynx-lizard.ts.net/";
-        SSH_TRUSTED_USER_CA_KEYS = lib.concatStringsSep "," ( config.lib.publicKeys.secureWithTag "user-ca");
+        SSH_TRUSTED_USER_CA_KEYS = lib.concatStringsSep "," (config.lib.publicKeys.secureWithTag "user-ca");
         SSH_AUTHORIZED_PRINCIPALS_ALLOW = "username";
         SSH_CREATE_AUTHORIZED_PRINCIPALS_FILE = true;
       };

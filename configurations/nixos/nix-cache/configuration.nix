@@ -1,14 +1,11 @@
 # -*- nix -*-
 {
-  flake,
   config,
   lib,
   pkgs,
   ...
 }:
 let
-  inherit (flake) inputs;
-  inherit (inputs) self;
   nginx-cache-zone = "nix_cache_cache_zone";
 in
 {
@@ -39,7 +36,10 @@ in
 
   services.nginx.virtualHosts."cache-nixos-org.nix-cache" = {
     listen = [
-      { port = 80; addr  = "0.0.0.0"; }
+      {
+        port = 80;
+        addr = "0.0.0.0";
+      }
     ];
 
     serverAliases = [
@@ -103,9 +103,9 @@ in
   };
 
   sops.secrets."nixos-config-runner-token" = {
-     restartUnits = [
-       ''gitea-runner-nixos\x2dconfig.service''
-     ];
+    restartUnits = [
+      ''gitea-runner-nixos\x2dconfig.service''
+    ];
   };
 
   sops.templates.nixos-config-runner-token-env-file.content = ''

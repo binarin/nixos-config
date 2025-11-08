@@ -1,4 +1,10 @@
-{flake, lib, pkgs, config, osConfig, ...}:
+{
+  flake,
+  lib,
+  config,
+  osConfig,
+  ...
+}:
 let
   homeDir = config.home.homeDirectory;
   safeDir = "/persist${homeDir}";
@@ -6,12 +12,8 @@ let
   localCache = "${localDir}/.cache";
   safeState = "${safeDir}/.state";
   garbageDir = "${config.home.homeDirectory}/.garbage";
-
-  symlinkItem = dir: {
-    directory = lib.removePrefix config.home.homeDirectory dir;
-    method = "symlink";
-  };
-in {
+in
+{
   imports = [
     flake.inputs.impermanence.homeManagerModules.impermanence
   ];
@@ -19,19 +21,19 @@ in {
   options.impermanence = {
     persist-files = lib.mkOption {
       type = with lib.types; listOf (either str (lazyAttrsOf raw));
-      default = [];
+      default = [ ];
     };
     persist-directories = lib.mkOption {
       type = with lib.types; listOf (either str (lazyAttrsOf raw));
-      default = [];
+      default = [ ];
     };
     local-files = lib.mkOption {
       type = with lib.types; listOf (either str (lazyAttrsOf raw));
-      default = [];
+      default = [ ];
     };
     local-directories = lib.mkOption {
       type = with lib.types; listOf (either str (lazyAttrsOf raw));
-      default = [];
+      default = [ ];
     };
   };
 
@@ -77,7 +79,6 @@ in {
           allowOther = true;
         };
 
-
         home.persistence."${localDir}" = {
           enable = true;
           allowOther = true;
@@ -107,5 +108,6 @@ in {
       (lib.mkIf osConfig.security.pam.services.login.kwallet.enable {
         impermanence.local-directories = [ "${config.xdg.dataHomeRelative}/kwallet" ];
       })
-    ]);
+    ]
+  );
 }

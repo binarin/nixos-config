@@ -1,4 +1,11 @@
-{ flake, config, pkgs, lib, hostConfig, ... }:
+{
+  flake,
+  config,
+  pkgs,
+  lib,
+  hostConfig,
+  ...
+}:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -13,47 +20,55 @@ let
     ${cleanup-unicode-from-emacs-org-babel-config} ${config.lib.self.file cfg.orgBabelConfig} > $out
   '';
 
-  kbd-mode-builder = {trivialBuild}: trivialBuild {
-    pname = "kbd-mode";
-    version = "20250222.01";
-    src = pkgs.fetchurl {
-      hash = "sha256-h2on6BIXUNqWsp1DeI8cIJyyBG5ijuF77ql3b6WXAq8=";
-      url = "https://github.com/kmonad/kbd-mode/raw/a349015860fccd31b0c56147d7fa641b68afa07f/kbd-mode.el";
+  kbd-mode-builder =
+    { trivialBuild }:
+    trivialBuild {
+      pname = "kbd-mode";
+      version = "20250222.01";
+      src = pkgs.fetchurl {
+        hash = "sha256-h2on6BIXUNqWsp1DeI8cIJyyBG5ijuF77ql3b6WXAq8=";
+        url = "https://github.com/kmonad/kbd-mode/raw/a349015860fccd31b0c56147d7fa641b68afa07f/kbd-mode.el";
+      };
     };
-  };
 
-  finalEmacsPackage = (pkgs.emacsWithPackagesFromUsePackage {
-    override = epkgs: epkgs // {
-      kbd-mode = kbd-mode-builder {inherit (epkgs) trivialBuild; };
-    };
-    extraEmacsPackages = epkgs: with epkgs; [
-      treesit-grammars.with-all-grammars
-      kbd-mode
-    ];
-    package = cfg.basePackage;
-    config = orgBabelConfigWithoutUnicode;
-  }).overrideAttrs (prev: {
-    # Can't get directly to wrapper, it's referenced only as
-    # ${./wrapper.sh}. But I can patch substitued wrapper.sh's
-    # ${lib.getExe pkgs.perl} -ni -E 'print unless /emacsWithPackages_siteLisp/'
-    buildCommand = prev.buildCommand + ''
-      cat << 'EOF' > env-sourcer
-      if [[ -z "''${__ETC_BASHRC_SOURCED-}" && -f /etc/bashrc ]]; then
-        . /etc/bashrc
-      fi
+  finalEmacsPackage =
+    (pkgs.emacsWithPackagesFromUsePackage {
+      override =
+        epkgs:
+        epkgs
+        // {
+          kbd-mode = kbd-mode-builder { inherit (epkgs) trivialBuild; };
+        };
+      extraEmacsPackages =
+        epkgs: with epkgs; [
+          treesit-grammars.with-all-grammars
+          kbd-mode
+        ];
+      package = cfg.basePackage;
+      config = orgBabelConfigWithoutUnicode;
+    }).overrideAttrs
+      (prev: {
+        # Can't get directly to wrapper, it's referenced only as
+        # ${./wrapper.sh}. But I can patch substitued wrapper.sh's
+        # ${lib.getExe pkgs.perl} -ni -E 'print unless /emacsWithPackages_siteLisp/'
+        buildCommand = prev.buildCommand + ''
+          cat << 'EOF' > env-sourcer
+          if [[ -z "''${__ETC_BASHRC_SOURCED-}" && -f /etc/bashrc ]]; then
+            . /etc/bashrc
+          fi
 
-      if [[ -z "''${__HM_SESS_VARS_SOURCED-}" && -f $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh ]]; then
-        . $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh
-      fi
-      EOF
+          if [[ -z "''${__HM_SESS_VARS_SOURCED-}" && -f $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh ]]; then
+            . $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh
+          fi
+          EOF
 
-      if [ -d "$out/Applications/Emacs.app" ]; then
-        for prog in $out/Applications/Emacs.app/Contents/MacOS/.*-wrapped; do
-          sed -i -e "2 e cat env-sourcer" "$prog"
-        done
-      fi
-    '';
-  });
+          if [ -d "$out/Applications/Emacs.app" ]; then
+            for prog in $out/Applications/Emacs.app/Contents/MacOS/.*-wrapped; do
+              sed -i -e "2 e cat env-sourcer" "$prog"
+            done
+          fi
+        '';
+      });
 
   tangle-emacs-org-babel-config = pkgs.writeShellApplication {
     name = "tangle-emacs-org-babel-config";
@@ -66,7 +81,7 @@ let
   };
 
   # XXX find a better way to handle org-includes, while still preserving
-  compiledConfig = pkgs.runCommand "emacs-config-tangled" {} ''
+  compiledConfig = pkgs.runCommand "emacs-config-tangled" { } ''
     echo $srcs
     mkdir $out
     cd $out
@@ -106,44 +121,38 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable (lib.mkMerge [
-    {
-      home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
+  config = lib.mkIf cfg.enable (
+    lib.mkMerge [
+      {
+        home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
 
-      home.packages = [
-        finalEmacsPackage
-        tangle-emacs-org-babel-config
-      ];
-    }
-    (lib.optionalAttrs hostConfig.isLinux {
-      xdg.configFile."emacs/init.el".source = cfg.compiledConfig + "/init.el";
-      xdg.configFile."emacs/init.elc".source = cfg.compiledConfig + "/init.elc";
-      xdg.configFile."emacs/early-init.el".source = cfg.compiledConfig + "/early-init.el";
-      xdg.configFile."emacs/early-init.elc".source = cfg.compiledConfig + "/early-init.elc";
-    })
+        home.packages = [
+          finalEmacsPackage
+          tangle-emacs-org-babel-config
+        ];
+      }
+      (lib.optionalAttrs hostConfig.isLinux {
+        xdg.configFile."emacs/init.el".source = cfg.compiledConfig + "/init.el";
+        xdg.configFile."emacs/init.elc".source = cfg.compiledConfig + "/init.elc";
+        xdg.configFile."emacs/early-init.el".source = cfg.compiledConfig + "/early-init.el";
+        xdg.configFile."emacs/early-init.elc".source = cfg.compiledConfig + "/early-init.elc";
+      })
 
-    (lib.optionalAttrs hostConfig.isDarwin {
-      home.file.".emacs.d/init.el".source = cfg.compiledConfig + "/init.el";
-      home.file.".emacs.d/init.elc".source = cfg.compiledConfig + "/init.elc";
-      home.file.".emacs.d/early-init.el".source = cfg.compiledConfig + "/early-init.el";
-      home.file."emacs/early-init.elc".source = cfg.compiledConfig + "/early-init.elc";
+      (lib.mkIf config.hostConfig.feature.gui {
+        xdg.dataFile."applications/org-protocol.desktop".source =
+          config.lib.self.file "org-protocol.desktop";
 
-      home.packages = with pkgs; [ terminal-notifier ];
-    })
+        xdg.mimeApps.defaultApplications = lib.mkIf pkgs.stdenv.isLinux {
+          "x-scheme-handler/org-protocol" = "org-protocol.desktop";
+        };
 
-    (lib.mkIf config.hostConfig.feature.gui {
-      xdg.dataFile."applications/org-protocol.desktop".source = config.lib.self.file "org-protocol.desktop";
+        xdg.dataFile."icons/emacs/org.svg".source = config.lib.self.file "org.svg";
 
-      xdg.mimeApps.defaultApplications = lib.mkIf pkgs.stdenv.isLinux {
-        "x-scheme-handler/org-protocol" = "org-protocol.desktop";
-      };
-
-      xdg.dataFile."icons/emacs/org.svg".source = config.lib.self.file "org.svg";
-
-      home.packages = with pkgs; [
-        emacs-all-the-icons-fonts
-        ghostscript
-      ];
-    })
-  ]);
+        home.packages = with pkgs; [
+          emacs-all-the-icons-fonts
+          ghostscript
+        ];
+      })
+    ]
+  );
 }

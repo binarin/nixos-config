@@ -19,7 +19,7 @@ let
   nameToPath = builtins.removeAttrs nameToPathWithSkipped [ "__discard" ];
 
   overlay =
-    final: prev:
+    final: _prev:
     lib.genAttrs (lib.attrNames nameToPath) (
       nm:
       let

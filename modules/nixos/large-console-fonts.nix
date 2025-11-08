@@ -1,4 +1,9 @@
-{ flake, pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 {
   options = {
     console.useLargeFonts = lib.mkEnableOption "Use large console fonts (for HiDPI screens)";

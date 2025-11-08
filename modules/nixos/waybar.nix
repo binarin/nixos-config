@@ -1,4 +1,4 @@
-{flake, lib, pkgs, config, ...}:
+{ lib, config, ... }:
 {
   config = lib.mkIf config.hostConfig.feature.hyprland {
     nixpkgs.overlays = [

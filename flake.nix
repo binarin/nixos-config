@@ -80,6 +80,9 @@
         nixpkgs = {
           follows = "nixpkgs-unstable";
         };
+        pre-commit-hooks = {
+          follows = "pre-commit-hooks";
+        };
       };
       ref = "refs/tags/v0.51.1";
       submodules = true;
@@ -107,6 +110,9 @@
         };
         nixpkgs = {
           follows = "nixpkgs-unstable";
+        };
+        pre-commit-hooks-nix = {
+          follows = "";
         };
       };
       url = "github:nix-community/lanzaboote";

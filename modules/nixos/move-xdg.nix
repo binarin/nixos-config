@@ -1,4 +1,4 @@
-{flake, config, pkgs, lib, ...}:
+{ config, lib, ... }:
 
 {
   config = lib.mkIf config.hostConfig.feature.move-xdg {

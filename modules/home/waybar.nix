@@ -15,9 +15,11 @@ in
 
     systemd.user.services.waybar.Unit.After = [ "graphical-session.target" ];
     systemd.user.services.waybar.Unit.BindsTo = [ "graphical-session.target" ];
-    systemd.user.services.waybar.Service.ExecCondition = [ ''
-      ${pkgs.systemd}/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
-    ''];
+    systemd.user.services.waybar.Service.ExecCondition = [
+      ''
+        ${pkgs.systemd}/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
+      ''
+    ];
 
     programs.waybar = {
       enable = true;

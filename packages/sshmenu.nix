@@ -17,11 +17,10 @@ writeTextFile {
   name = "sshmenu";
   destination = "/bin/sshmenu";
   executable = true;
-  text =
-    ''
-      #!${lib.getExe zsh}
-      export PATH="${lib.makeBinPath runtimeInputs}:$PATH"
+  text = ''
+    #!${lib.getExe zsh}
+    export PATH="${lib.makeBinPath runtimeInputs}:$PATH"
 
-    ''
-    + (builtins.readFile "${flake.inputs.self}/files/sshmenu");
+  ''
+  + (builtins.readFile "${flake.inputs.self}/files/sshmenu");
 }

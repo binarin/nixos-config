@@ -5,22 +5,10 @@
   wrapGAppsHook4,
   addons ? [ ],
   addAddonsRuntimeDeps ? true,
-  # used by a bunch of addons
-  coreutils,
-  gnugrep,
-  gawk,
-  psmisc,
-  gnused,
-  # optional, used only when specified via `addons` argument
-  bluez,
-  xrandr,
-  # ,  gsettings # XXX where?
-  xset,
-  # , zenity # not in 24.05, only in master
-  vlc,
-  pulseaudio,
-  xdotool,
-  wirelesstools,
+# used by a bunch of addons
+# optional, used only when specified via `addons` argument
+# ,  gsettings # XXX where?
+# , zenity # not in 24.05, only in master
 }@inputs:
 let
   minimalPythonDeps = [ "dasbus" ];
@@ -58,7 +46,7 @@ let
     && haveMinimalPythonDeps meta
     && haveMinimalRuntimeDeps meta;
 
-  addonsMeta = builtins.mapAttrs (nm: meta: meta // { default = canEnableByDefault meta; }) {
+  addonsMeta = builtins.mapAttrs (_nm: meta: meta // { default = canEnableByDefault meta; }) {
     "active_window" = {
       pythonDeps = [
         "ewmh"

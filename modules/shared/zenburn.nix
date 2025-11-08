@@ -1,6 +1,5 @@
 # -*- mode: nix; eval: (rainbow-mode 1); -*-
 {
-  flake,
   lib,
   config,
   pkgs,
@@ -59,64 +58,6 @@ let
     "blue_minus_5" = "#366060";
     "magenta" = "#DC8CC3";
   };
-
-  emacsZenburnFaces = {
-    default = {
-      fg = "fg";
-      bg = "bg";
-    };
-    font_lock_builtin_face = {
-      fg = "fg";
-      bold = true;
-    };
-    font_lock_comment_face = {
-      fg = "green";
-    };
-    font_lock_comment_delimiter_face = {
-      fg = "green_minus_2";
-    };
-    font_lock_constant_face = {
-      fg = "green_plus_4";
-    };
-    font_lock_doc_face = {
-      fg = "green_plus_2";
-    };
-    font_lock_function_name_face = {
-      fg = "cyan";
-    };
-    font_lock_keyword_face = {
-      fg = "yellow";
-      bold = true;
-    };
-    font_lock_negation_char_face = {
-      fg = "yellow";
-      bold = true;
-    };
-    font_lock_preprocessor_face = {
-      fg = "blue_plus_1";
-    };
-    font_lock_regexp_grouping_construct = {
-      fg = "yellow";
-      bold = true;
-    };
-    font_lock_regexp_grouping_backslash = {
-      fg = "green";
-      bold = true;
-    };
-    font_lock_string_face = {
-      fg = "red";
-    };
-    font_lock_type_face = {
-      fg = "blue_minus_1";
-    };
-    font_lock_variable_name_face = {
-      fg = "orange";
-    };
-    font_lock_warning_face = {
-      fg = "yellow_minus_2";
-      bold = true;
-    };
-  };
 in
 {
   options = {
@@ -130,7 +71,7 @@ in
         }
       ) emacsZenburnColors;
       faces = lib.mapAttrs (
-        nm: val:
+        _nm: val:
         with lib;
         with types;
         optionalAttrs (val ? "fg") {

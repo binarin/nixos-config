@@ -2,17 +2,15 @@
 {
   flake,
   config,
-  pkgs,
   lib,
   ...
 }:
 let
   inherit (flake) inputs;
-  inherit (inputs) self;
 in
 {
   nixpkgs.overlays = lib.mkIf (config.hostConfig.feature.bleeding) [
-    (final: prev: {
+    (_final: prev: {
       bleeding = import inputs.nixpkgs-unstable {
         inherit (prev) system;
         config = config.nixpkgs.config;

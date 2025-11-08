@@ -1,4 +1,10 @@
-{pkgs, lib, config, flake, ...}:
+{
+  pkgs,
+  lib,
+  config,
+  flake,
+  ...
+}:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -9,147 +15,155 @@ in
     self.nixosModules.impermanence-new
   ];
 
-  config = lib.mkIf config.impermanence.enable (lib.mkMerge [
-    {
-      boot.initrd.systemd.emergencyAccess = true;
-      boot.initrd.systemd.initrdBin = with pkgs; [
-        rsync
-      ];
-      boot.supportedFilesystems = [ "ext4" "vfat" "exfat" ];
-
-      users.mutableUsers = false;
-
-      programs.fuse.userAllowOther = true;
-
-      boot.initrd.systemd.services.impermanence-root-rollback = {
-        description = "Rollback root btrfs subvolume to a pristine state";
-        wantedBy = [
-          "initrd.target"
+  config = lib.mkIf config.impermanence.enable (
+    lib.mkMerge [
+      {
+        boot.initrd.systemd.emergencyAccess = true;
+        boot.initrd.systemd.initrdBin = with pkgs; [
+          rsync
         ];
-        after = [
-          "dev-main-all.device"
+        boot.supportedFilesystems = [
+          "ext4"
+          "vfat"
+          "exfat"
         ];
-        before = [
-          "sysroot.mount"
-        ];
-        path = with pkgs; [
-          btrfs-progs
-          findutils
-          # core-utils / util-linux "mount" are already in /bin
-        ];
-        unitConfig.DefaultDependencies = "no";
-        serviceConfig.Type = "oneshot";
-        script = ''
-          export PATH="$PATH:/bin"
-          mkdir /btrfs_tmp
-          mount /dev/main/all /btrfs_tmp
-          if [[ -e /btrfs_tmp/root ]]; then
-              mkdir -p /btrfs_tmp/old_roots
-              timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
-              mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
-          fi
 
-          delete_subvolume_recursively() {
-              IFS=$'\n'
-              for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
-                  delete_subvolume_recursively "/btrfs_tmp/$i"
-              done
-              btrfs subvolume delete "$1"
-          }
+        users.mutableUsers = false;
 
-          for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
-              delete_subvolume_recursively "$i"
-          done
+        programs.fuse.userAllowOther = true;
 
-          btrfs subvolume create /btrfs_tmp/root
+        boot.initrd.systemd.services.impermanence-root-rollback = {
+          description = "Rollback root btrfs subvolume to a pristine state";
+          wantedBy = [
+            "initrd.target"
+          ];
+          after = [
+            "dev-main-all.device"
+          ];
+          before = [
+            "sysroot.mount"
+          ];
+          path = with pkgs; [
+            btrfs-progs
+            findutils
+            # core-utils / util-linux "mount" are already in /bin
+          ];
+          unitConfig.DefaultDependencies = "no";
+          serviceConfig.Type = "oneshot";
+          script = ''
+            export PATH="$PATH:/bin"
+            mkdir /btrfs_tmp
+            mount /dev/main/all /btrfs_tmp
+            if [[ -e /btrfs_tmp/root ]]; then
+                mkdir -p /btrfs_tmp/old_roots
+                timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
+                mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
+            fi
 
-          # They are created with 'Q' by tmpfiles, let's prevent creating those subvolumes
-          mkdir -p /btrfs_tmp/root/var/lib/{machines,portables}
+            delete_subvolume_recursively() {
+                IFS=$'\n'
+                for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
+                    delete_subvolume_recursively "/btrfs_tmp/$i"
+                done
+                btrfs subvolume delete "$1"
+            }
 
-          umount /btrfs_tmp
-        '';
-      };
-      sops.age.sshKeyPaths = lib.mkForce [ "/persist/ssh/ssh_host_ed25519_key" ];
+            for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
+                delete_subvolume_recursively "$i"
+            done
 
-      system.activationScripts = let
-      in {
-        "manual-impermanence-create-dirs" = {
-          deps = [ "users" "groups" ];
-          text = ''
-          mkdir -p /local/etc/NetworkManager/system-connections/
-          mkdir -p /local/var/lib/tailscale/
-        '';
+            btrfs subvolume create /btrfs_tmp/root
+
+            # They are created with 'Q' by tmpfiles, let's prevent creating those subvolumes
+            mkdir -p /btrfs_tmp/root/var/lib/{machines,portables}
+
+            umount /btrfs_tmp
+          '';
         };
-      };
+        sops.age.sshKeyPaths = lib.mkForce [ "/persist/ssh/ssh_host_ed25519_key" ];
 
-      services.openssh = {
-        enable = true;
-        hostKeys = [
+        system.activationScripts = {
+          "manual-impermanence-create-dirs" = {
+            deps = [
+              "users"
+              "groups"
+            ];
+            text = ''
+              mkdir -p /local/etc/NetworkManager/system-connections/
+              mkdir -p /local/var/lib/tailscale/
+            '';
+          };
+        };
+
+        services.openssh = {
+          enable = true;
+          hostKeys = [
+            {
+              path = "/persist/ssh/ssh_host_ed25519_key";
+              type = "ed25519";
+            }
+            {
+              path = "/persist/ssh/ssh_host_rsa_key";
+              type = "rsa";
+              bits = 4096;
+            }
+          ];
+        };
+
+        systemd.services.tailscaled.serviceConfig.BindPaths = [
+          "/local/var/lib/tailscale:/var/lib/tailscale"
+        ];
+
+        environment.etc."NetworkManager/system-connections" = {
+          source = "/local/etc/NetworkManager/system-connections/";
+        };
+
+        environment.persistence."/persist" = {
+          enable = true;
+          hideMounts = true;
+          directories = [
+            "/var/lib/nixos"
+            "/root/.ssh"
+          ];
+          files = [
+            "/etc/machine-id"
+          ];
+        };
+
+        environment.persistence."/local" = {
+          enable = true;
+          hideMounts = true;
+          directories = [
+            "/var/log"
+            "/var/lib/systemd/coredump"
+            "/var/lib/systemd/timers"
+          ];
+        };
+      }
+
+      (lib.mkIf config.services.homebox.enable {
+        environment.persistence."/persist" = {
+          directories = [
+            "/var/lib/homebox"
+          ];
+        };
+      })
+
+      (lib.mkIf config.services.caddy.enable {
+        services.caddy.dataDir = "/local/var/lib/caddy";
+        systemd.tmpfiles.rules = [
+          "d /local/var/lib/caddy 0700 ${config.services.caddy.user} ${config.services.caddy.group} - -"
+        ];
+      })
+
+      (lib.mkIf config.virtualisation.docker.enable {
+        assertions = [
           {
-            path = "/persist/ssh/ssh_host_ed25519_key";
-            type = "ed25519";
-          }
-          {
-            path = "/persist/ssh/ssh_host_rsa_key";
-            type = "rsa";
-            bits = 4096;
+            assertion = config.fileSystems ? "/var/lib/docker";
+            message = "Docker's /var/lib/docker should be persisted, either by impermanence or explicitely separately mounted";
           }
         ];
-      };
-
-      systemd.services.tailscaled.serviceConfig.BindPaths = [
-        "/local/var/lib/tailscale:/var/lib/tailscale"
-      ];
-
-      environment.etc."NetworkManager/system-connections" = {
-        source = "/local/etc/NetworkManager/system-connections/";
-      };
-
-      environment.persistence."/persist" = {
-        enable = true;
-        hideMounts = true;
-        directories = [
-          "/var/lib/nixos"
-          "/root/.ssh"
-        ];
-        files = [
-          "/etc/machine-id"
-        ];
-      };
-
-      environment.persistence."/local" = {
-        enable = true;
-        hideMounts = true;
-        directories = [
-          "/var/log"
-          "/var/lib/systemd/coredump"
-          "/var/lib/systemd/timers"
-        ];
-      };
-    }
-
-    (lib.mkIf config.services.homebox.enable {
-      environment.persistence."/persist" = {
-        directories = [
-          "/var/lib/homebox"
-        ];
-      };
-    })
-
-    (lib.mkIf config.services.caddy.enable {
-      services.caddy.dataDir = "/local/var/lib/caddy";
-      systemd.tmpfiles.rules = [
-        "d /local/var/lib/caddy 0700 ${config.services.caddy.user} ${config.services.caddy.group} - -"
-      ];
-    })
-
-    (lib.mkIf config.virtualisation.docker.enable {
-      assertions = [
-        {
-          assertion = config.fileSystems ? "/var/lib/docker";
-          message = "Docker's /var/lib/docker should be persisted, either by impermanence or explicitely separately mounted";
-        }
-      ];
-    })
-  ]);
+      })
+    ]
+  );
 }

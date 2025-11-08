@@ -1,8 +1,15 @@
-{flake, lib, pkgs, config, ...}:
+{
+  flake,
+  lib,
+  pkgs,
+  config,
+  ...
+}:
 let
   defEnable = config.hostConfig.lib.defaults.enable;
-  fzf_show_file_or_dir_preview="if [ -d {} ]; then lsd --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi";
-in {
+  fzf_show_file_or_dir_preview = "if [ -d {} ]; then lsd --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi";
+in
+{
 
   imports = [
     flake.inputs.nix-index-database.homeModules.nix-index
@@ -43,15 +50,18 @@ in {
 
       programs.fd = {
         enable = defEnable;
-        ignores = [ ".git/" ".direnv/" ];
+        ignores = [
+          ".git/"
+          ".direnv/"
+        ];
         hidden = true;
       };
 
       programs.fzf = {
         enable = defEnable;
         defaultCommand = "fd";
-        fileWidgetOptions = ["--preview '${fzf_show_file_or_dir_preview}'"];
-        changeDirWidgetOptions = ["--preview 'lsd --tree --color=always {} | head -200'"];
+        fileWidgetOptions = [ "--preview '${fzf_show_file_or_dir_preview}'" ];
+        changeDirWidgetOptions = [ "--preview 'lsd --tree --color=always {} | head -200'" ];
         tmux = {
           enableShellIntegration = true;
           shellIntegrationOptions = [ "-d 40%" ];
@@ -333,7 +343,7 @@ in {
                 ln -sf $SSH_AUTH_SOCK ${config.xdg.stateHome}/ssh/stable_ssh_auth_sock
             fi
           '';
-          home.activation.createSshStateDirs = lib.hm.dag.entryAfter ["linkGeneration"] ''
+          home.activation.createSshStateDirs = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
             mkdir -p ${config.xdg.stateHome}/ssh/
           '';
         }
@@ -353,7 +363,8 @@ in {
             };
           };
         })
-      ]))
+      ]
+    ))
     (lib.mkIf config.programs.starship.enable {
       home.sessionVariables = {
         STARSHIP_CACHE = lib.mkDefault "${config.xdg.cacheHome}/starship";

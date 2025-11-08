@@ -1,48 +1,62 @@
-{self, ...}: {
-  flake.nixosModules.niri = {pkgs, lib, config, ...}: let
-    # wrapper script for `binPath` since the option type is `path`
-    niriSession = lib.getExe (pkgs.writeShellScriptBin "niriSession" ''
-        ${lib.getExe config.programs.niri.package } --session
-      '');
-  in {
-    key = "nixos-config.programs.niri";
+{ self, ... }:
+{
+  flake.nixosModules.niri =
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
+    let
+      # wrapper script for `binPath` since the option type is `path`
+      niriSession = lib.getExe (
+        pkgs.writeShellScriptBin "niriSession" ''
+          ${lib.getExe config.programs.niri.package} --session
+        ''
+      );
+    in
+    {
+      key = "nixos-config.programs.niri";
 
-    imports = [
-      self.nixosModules.gui
-    ];
+      imports = [
+        self.nixosModules.gui
+      ];
 
-    environment.systemPackages = with pkgs; [
-      # Things used by the default config
-      alacritty
-      fuzzel
+      environment.systemPackages = with pkgs; [
+        # Things used by the default config
+        alacritty
+        fuzzel
 
-      # niri binary itself, for RPC calls
-      niri
+        # niri binary itself, for RPC calls
+        niri
 
-      # automatically started if installed
-      xwayland-satellite
-    ];
+        # automatically started if installed
+        xwayland-satellite
+      ];
 
-    programs.uwsm = {
-      enable = true;
-      waylandCompositors = {
-        niri = {
-          prettyName = "niri";
-          comment = "niri compositor managed by UWSM";
-          binPath = niriSession;
+      programs.uwsm = {
+        enable = true;
+        waylandCompositors = {
+          niri = {
+            prettyName = "niri";
+            comment = "niri compositor managed by UWSM";
+            binPath = niriSession;
+          };
         };
       };
+      home-manager.sharedModules = [ self.homeModules.niri ];
     };
-    home-manager.sharedModules = [ self.homeModules.niri ];
-  };
 
-  flake.homeModules.niri = {pkgs, lib, config, ...}: {
-    key = "nixos-config.programs.niri";
+  flake.homeModules.niri =
+    { lib, config, ... }:
+    {
+      key = "nixos-config.programs.niri";
 
-    imports = [
-      self.homeModules.fuzzel
-    ];
+      imports = [
+        self.homeModules.fuzzel
+      ];
 
-    xdg.configFile."niri/config.kdl".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/modules/flake-parts/niri/config.kdl";
-  };
+      xdg.configFile."niri/config.kdl".source =
+        config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/modules/flake-parts/niri/config.kdl";
+    };
 }

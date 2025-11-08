@@ -1,9 +1,4 @@
-{ flake, pkgs, lib, config, ...}:
-let
-  inherit (flake) inputs;
-  inherit (inputs) self;
-  cfg = config.hostConfig;
-in
+{ config, ... }:
 {
   options = {
   };

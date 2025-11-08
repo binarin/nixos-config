@@ -1,13 +1,16 @@
-{self, ...}: {
-  flake.homeModules.fuzzel = {pkgs, config, ...}: {
-    key = "nixos-config.programs.fuzzel";
+{ ... }:
+{
+  flake.homeModules.fuzzel =
+    { pkgs, config, ... }:
+    {
+      key = "nixos-config.programs.fuzzel";
 
-    home.packages = with pkgs; [
-      fuzzel
-    ];
+      home.packages = with pkgs; [
+        fuzzel
+      ];
 
-    impermanence.local-files = [ "${config.xdg.cacheHomeRelative}/fuzzel" ];
+      impermanence.local-files = [ "${config.xdg.cacheHomeRelative}/fuzzel" ];
 
-    stylix.targets.fuzzel.enable = true;
-  };
+      stylix.targets.fuzzel.enable = true;
+    };
 }

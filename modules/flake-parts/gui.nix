@@ -1,61 +1,61 @@
-{self, ...}: {
-  flake.nixosModules.gui = {pkgs, config, lib, ...}: {
-    config = {
+{ self, ... }:
+{
+  flake.nixosModules.gui =
+    { pkgs, config, ... }:
+    {
+      config = {
 
-      home-manager.sharedModules = [
-        self.homeModules.gui
-        self.homeModules.insync
-      ];
-
-      environment.systemPackages = with pkgs; [
-        appimage-run
-        brightnessctl
-        ddcutil
-        kanshi
-        wev
-        wl-clipboard
-
-        sddm-astronaut # https://github.com/NixOS/nixpkgs/issues/390251
-      ];
-
-      hardware.graphics = {
-        enable = true;
-        enable32Bit = true;
-      };
-
-      services.pipewire = {
-        enable = true;
-        alsa.enable = true;
-        alsa.support32Bit = true;
-        pulse.enable = true;
-      };
-
-      services.desktopManager.plasma6.enable = true;
-
-      services.displayManager.sddm = {
-        enable = true;
-        wayland.enable = true;
-        extraPackages = with pkgs; [
-          sddm-astronaut
+        home-manager.sharedModules = [
+          self.homeModules.gui
+          self.homeModules.insync
         ];
-        theme = "sddm-astronaut-theme";
-      };
 
-      services.flatpak.enable = true;
-    };
-  };
+        environment.systemPackages = with pkgs; [
+          appimage-run
+          brightnessctl
+          ddcutil
+          kanshi
+          wev
+          wl-clipboard
 
-  flake.homeModules.gui = { osConfig, flake, config, pkgs, lib, ... }:
-    let
-      ignoringVulns =
-        x:
-        x
-        // {
-          meta = x.meta // {
-            knownVulnerabilities = [ ];
-          };
+          sddm-astronaut # https://github.com/NixOS/nixpkgs/issues/390251
+        ];
+
+        hardware.graphics = {
+          enable = true;
+          enable32Bit = true;
         };
-      qtwebkitIgnoringVulns = pkgs.qt5.qtwebkit.overrideAttrs ignoringVulns;
+
+        services.pipewire = {
+          enable = true;
+          alsa.enable = true;
+          alsa.support32Bit = true;
+          pulse.enable = true;
+        };
+
+        services.desktopManager.plasma6.enable = true;
+
+        services.displayManager.sddm = {
+          enable = true;
+          wayland.enable = true;
+          extraPackages = with pkgs; [
+            sddm-astronaut
+          ];
+          theme = "sddm-astronaut-theme";
+        };
+
+        services.flatpak.enable = true;
+      };
+    };
+
+  flake.homeModules.gui =
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
+    let
 
       texlive-combined = pkgs.texlive.combine { inherit (pkgs.texlive) scheme-full beamer ps2eps; };
 
@@ -90,12 +90,13 @@
       inherit (lib) optionals;
       inherit (config.hostConfig) feature;
     in
-      {
-        options = {
-          programs.telegram-desktop.enable = lib.mkEnableOption "Enable telegram";
-        };
+    {
+      options = {
+        programs.telegram-desktop.enable = lib.mkEnableOption "Enable telegram";
+      };
 
-        config = (lib.mkMerge [
+      config = (
+        lib.mkMerge [
           {
             programs.thunderbird.enable = lib.mkDefault true;
             programs.telegram-desktop.enable = lib.mkDefault true;
@@ -127,7 +128,7 @@
             impermanence.local-directories = [ "${config.xdg.dataHomeRelative}/TelegramDesktop" ];
           })
           (lib.mkIf config.programs.thunderbird.enable {
-            programs.thunderbird.profiles = {};
+            programs.thunderbird.profiles = { };
             impermanence.local-directories = [ ".thunderbird" ];
           })
           ({
@@ -142,6 +143,7 @@
               })
             ];
           })
-        ]);
-      };
+        ]
+      );
+    };
 }

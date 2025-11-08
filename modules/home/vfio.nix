@@ -1,14 +1,9 @@
 {
-  flake,
   pkgs,
   lib,
   config,
   ...
 }:
-let
-  inherit (flake) inputs;
-  inherit (inputs) self;
-in
 {
   config = lib.mkIf config.hostConfig.feature.vfio {
     home.packages = with pkgs; [

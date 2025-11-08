@@ -1,2 +1,2 @@
 { flake, ... }:
-final: prev: { caddy-cloudflare = flake.inputs.caddy-cloudflare.packages.${prev.system}.default; }
+_final: prev: { caddy-cloudflare = flake.inputs.caddy-cloudflare.packages.${prev.system}.default; }

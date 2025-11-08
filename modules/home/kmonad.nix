@@ -1,4 +1,4 @@
-{flake, lib, pkgs, config, ...}:
+{ pkgs, config, ... }:
 {
   config = {
     home.packages = with pkgs; [

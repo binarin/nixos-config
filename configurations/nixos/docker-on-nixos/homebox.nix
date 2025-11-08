@@ -1,4 +1,4 @@
-{flake, pkgs, lib, config, ...}:
+{ ... }:
 {
   services.caddy.expose-local-http.virtualHosts."homebox.binarin.info" = "http://localhost:7745";
   virtualisation.arion.projects.homebox = {

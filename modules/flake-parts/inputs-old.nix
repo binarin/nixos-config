@@ -1,7 +1,10 @@
-{inputs, lib, ... }: {
+{ inputs, lib, ... }:
+{
   imports = [
     inputs.flake-file.flakeModules.dendritic
   ];
+
+  systems = [ "x86_64-linux" ];
 
   flake-file.outputs = lib.mkForce ''
     inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules/flake-parts)
@@ -28,7 +31,7 @@
     lanzaboote.url = "github:nix-community/lanzaboote";
     lanzaboote.inputs.nixpkgs.follows = "nixpkgs-unstable";
     lanzaboote.inputs.flake-parts.follows = "flake-parts";
-    # lanzaboote.inputs.pre-commit-hooks-nix.follows = "";
+    lanzaboote.inputs.pre-commit-hooks-nix.follows = "";
 
     emacs-overlay.url = "emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
@@ -40,6 +43,7 @@
       type = "git";
       submodules = true;
       inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.pre-commit-hooks.follows = "pre-commit-hooks";
     };
 
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";

@@ -2,7 +2,6 @@
   stdenvNoCC,
   fetchurl,
   unzip,
-  lib,
   ...
 }:
 stdenvNoCC.mkDerivation rec {

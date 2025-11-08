@@ -3,7 +3,6 @@
   lib,
   config,
   options,
-  osConfig ? null,
   ...
 }:
 let
@@ -126,7 +125,10 @@ in
 
       validDeployTargets = lib.mkOption { type = lib.types.listOf lib.types.nonEmptyStr; };
 
-      ipAllocation =  lib.mkOption { type = lib.types.raw; default = config.inventory.ipAllocation."${config.inventoryHostName}"; };
+      ipAllocation = lib.mkOption {
+        type = lib.types.raw;
+        default = config.inventory.ipAllocation."${config.inventoryHostName}";
+      };
     };
   };
 

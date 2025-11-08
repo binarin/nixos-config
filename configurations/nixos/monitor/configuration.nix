@@ -1,15 +1,9 @@
 # -*- nix -*-
 {
-  flake,
   config,
-  lib,
   pkgs,
   ...
 }:
-let
-  inherit (flake) inputs;
-  inherit (inputs) self;
-in
 {
   networking.hostName = "monitor";
 

@@ -1,7 +1,12 @@
 # Edit this configuration file to define what should be installed on
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
-{ flake, config, lib, pkgs, modulesPath, ... }:
+{
+  flake,
+  lib,
+  modulesPath,
+  ...
+}:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -31,7 +36,15 @@ in
 
   system.stateVersion = "24.11";
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "ahci" "usb_storage" "sd_mod" "sr_mod" "sdhci_pci" ];
+  boot.initrd.availableKernelModules = [
+    "xhci_pci"
+    "ehci_pci"
+    "ahci"
+    "usb_storage"
+    "sd_mod"
+    "sr_mod"
+    "sdhci_pci"
+  ];
   boot.initrd.kernelModules = [ "dm-snapshot" ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
@@ -41,7 +54,10 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
 
   services.tailscale.authKeyFile = lib.mkForce null;
-  boot.initrd.luks.devices.demandred-lvm.crypttabExtraOpts = [ "fido2-device=auto" "token-timeout=10s" ];
+  boot.initrd.luks.devices.demandred-lvm.crypttabExtraOpts = [
+    "fido2-device=auto"
+    "token-timeout=10s"
+  ];
 
   fileSystems."/persist".neededForBoot = true;
   fileSystems."/local".neededForBoot = true;

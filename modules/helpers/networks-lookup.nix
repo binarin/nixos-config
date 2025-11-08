@@ -14,13 +14,14 @@ let
         lib.nameValuePair netName (import "${self}/inventory/networks/${fn}")
       ) regularNixFiles;
     in
-      lib.listToAttrs val;
+    lib.listToAttrs val;
 
-  buildHostLookupTable = rawInventory:
+  buildHostLookupTable =
+    rawInventory:
     let
       perNetwork = lib.attrValues (lib.mapAttrs mkReverseLookupTable rawInventory);
     in
-    lib.zipAttrsWith (hostName: networkTags: lib.foldr (a: b: a // b) { } networkTags) perNetwork;
+    lib.zipAttrsWith (_hostName: networkTags: lib.foldr (a: b: a // b) { } networkTags) perNetwork;
 
   mkReverseLookupTable =
     netName:
@@ -28,7 +29,7 @@ let
     let
       hostLookup = lib.zipAttrsWith (_: mergeTagAssignments) (allAssignmentsForNetwork ipam);
     in
-    lib.mapAttrs (hostName: tags: { "${netName}" = tags; }) hostLookup;
+    lib.mapAttrs (_hostName: tags: { "${netName}" = tags; }) hostLookup;
 
   mergeTagAssignments = lib.zipAttrsWith (
     name: values:
@@ -59,15 +60,19 @@ let
     else
       hostNameWithTags;
 
-  normalizeIpam = lib.mapAttrs (k: v: expandIpAllocationTarget v);
+  normalizeIpam = lib.mapAttrs (_k: v: expandIpAllocationTarget v);
 
-  taggedHostnames = {domain, ...}: hostnameWithTags:
+  taggedHostnames =
+    { domain, ... }:
+    hostnameWithTags:
     with lib;
     let
       hostname = head hostnameWithTags;
       tags = tail hostnameWithTags;
     in
-      map (tag: if tag == "primary" then "${hostname}.${domain}" else "${hostname}-${tag}.${domain}") tags;
+    map (
+      tag: if tag == "primary" then "${hostname}.${domain}" else "${hostname}-${tag}.${domain}"
+    ) tags;
 
   assignIp =
     ipAllocationTarget: ip:
@@ -76,22 +81,17 @@ let
       tags = lib.tail ipAllocationTarget;
     in
     {
-      "${hostName}" = lib.genAttrs tags (tag: {
+      "${hostName}" = lib.genAttrs tags (_tag: {
         _type = "leaf";
         address = ip;
       });
     };
-
-  onlyKey =
-    attrs:
-    let
-      keys = lib.attrNames attrs;
-      only = lib.head keys;
-    in
-    if lib.length keys == 1 then
-      only
-    else
-      throw "Should be a singleton attrSet, but has ${builtins.toJSON keys}";
-in {
-  inherit readRawInventory buildHostLookupTable normalizeIpam taggedHostnames;
+in
+{
+  inherit
+    readRawInventory
+    buildHostLookupTable
+    normalizeIpam
+    taggedHostnames
+    ;
 }

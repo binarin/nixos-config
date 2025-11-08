@@ -1,17 +1,37 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
 {
+  flake-file.inputs = {
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+  };
+
+  imports = [
+    inputs.treefmt-nix.flakeModule
+  ];
+
   perSystem =
+    { ... }:
     {
-      self',
-      pkgs,
-      lib,
-      ...
-    }:
-    {
-      # For 'nix fmt'
-      formatter = pkgs.writeScriptBin "nixfmt-all" ''
-        #!${lib.getExe pkgs.bash}
-        ${lib.getExe' pkgs.nixfmt-rfc-style "nixfmt"} **/*.nix
-      '';
+      treefmt = {
+        projectRootFile = "flake.nix";
+        programs.nixf-diagnose.enable = lib.mkForce false;
+        settings.global.excludes = [
+          ".gitattributes"
+          "*.org"
+          "*.el"
+          "*.cfg"
+          "*.gpg"
+          "*.kdl"
+          "*.sh"
+          ".terraform"
+          ".direnv"
+          "secrets/**"
+          "terraform/**"
+          "ansible/**"
+          ".forgejo/**"
+          "files/*"
+          "justfile"
+          ".sops.yaml"
+        ];
+      };
     };
 }

@@ -1,7 +1,14 @@
-{flake, lib, pkgs, config, ...}:
+{
+  flake,
+  lib,
+  pkgs,
+  config,
+  ...
+}:
 let
   inherit (flake) inputs;
-in {
+in
+{
   imports = [
     "${flake.inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma6.nix"
     "${flake.inputs.nixpkgs}/nixos/modules/installer/cd-dvd/channel.nix"
@@ -9,7 +16,17 @@ in {
 
   config = {
     boot = {
-      supportedFilesystems = lib.mkForce ["btrfs" "reiserfs" "vfat" "f2fs" "xfs" "ntfs" "cifs" "zfs" "exfat"];
+      supportedFilesystems = lib.mkForce [
+        "btrfs"
+        "reiserfs"
+        "vfat"
+        "f2fs"
+        "xfs"
+        "ntfs"
+        "cifs"
+        "zfs"
+        "exfat"
+      ];
     };
 
     services.openssh.enable = true;

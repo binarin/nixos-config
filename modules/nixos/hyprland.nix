@@ -9,14 +9,13 @@
 }:
 let
   inherit (flake) inputs;
-  inherit (inputs) self;
 in
 {
   config = lib.mkIf config.hostConfig.feature.hyprland {
     nixpkgs.overlays = [
       inputs.hyprland-contrib.overlays.default
       # inputs.hyprland.overlays.default
-      ( final: prev: {
+      (_final: prev: {
         # hypridle = prev.hypridle.override {
         #   stdenv = prev.gcc14Stdenv;
         # };
@@ -36,7 +35,7 @@ in
             hash = "sha256-yjKKDizL0Ibne1oUn18h21XBfpGYdMFyD/wdSPQA/Zs=";
           };
         };
-      } )
+      })
     ];
 
     services.displayManager.sddm.enable = true;
