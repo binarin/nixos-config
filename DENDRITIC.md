@@ -125,7 +125,7 @@ These require merging 2-3 files and represent the core benefit of dendritic patt
 - [x] **wsl** (dropped - removed entirely)
 - [ ] **misc** (nixos + home)
 - [ ] **host-config** (nixos + shared)
-- [ ] **impermanence** (nixos + home) - Complete migration of impermanence-new.nix
+- [x] **impermanence** (nixos + home)
 
 ## Phase 2: NixOS-only modules (Priority: MEDIUM)
 
@@ -186,3 +186,4 @@ Single file conversions.
 - [x] **vfio.nix** (dropped - removed entirely)
 - [x] **wsl.nix** (dropped - removed entirely)
 - [x] **hyprland.nix** (nixos + home)
+- [x] **impermanence.nix** (nixos + home)
