@@ -110,29 +110,69 @@ and do a separate git commit for this.
 
 # Plan
 
-## DONE Convert firefox.nix
+## Phase 1: Multi-directory aspects (Priority: HIGH)
 
-**Complexity: LOW-MEDIUM**
+These require merging 2-3 files and represent the core benefit of dendritic pattern.
 
-**Files to convert:**
+- [ ] **stylix** (nixos + home + shared) - 3-way merge
+- [ ] **emacs** (nixos + home)
+- [ ] **hyprland** (nixos + home)
+- [ ] **sops** (nixos + home)
+- [ ] **vfio** (nixos + home)
+- [ ] **waybar** (nixos + home)
+- [ ] **wsl** (nixos + home)
+- [ ] **misc** (nixos + home)
+- [ ] **move-xdg** (nixos + home)
+- [ ] **host-config** (nixos + shared)
+- [ ] **impermanence** (nixos + home) - Complete migration of impermanence-new.nix
 
-- `modules/nixos/firefox.nix` (30 lines) - Firefox policies and language packs
-- `modules/home/firefox.nix` (75 lines) - User profiles, settings, and CSS customization
-- `modules/shared/firefox.nix` - Does NOT exist (no generic module needed)
+## Phase 2: NixOS-only modules (Priority: MEDIUM)
 
-**Flake inputs:** None
+Single file conversions, simpler but still need proper dendritic structure.
 
-**Target structure:**
+- [ ] bleeding.nix
+- [ ] eternal-terminal.nix
+- [ ] expose-local-http.nix
+- [ ] flake-packages.nix
+- [ ] home-manager.nix
+- [ ] impure-nix-setup.nix
+- [ ] keep-nix-build-sources.nix
+- [ ] large-console-fonts.nix
+- [ ] lxc.nix
+- [ ] pam-u2f.nix
+- [ ] secure-boot.nix
+- [ ] security.nix
+- [ ] server.nix
+- [ ] sshd.nix
+- [ ] standard-linux-tools.nix
+- [ ] tailscale.nix
+- [ ] trezor.nix
+- [ ] use-nix-cache.nix
+- [ ] vscode-remote-workaround.nix
 
-- Create `modules/flake-parts/firefox.nix`
-- Content from `modules/nixos/firefox.nix` → `flake.nixosModules.firefox`
-- Content from `modules/home/firefox.nix` → `flake.homeModules.firefox`
-- Add `self.nixosModules.firefox` to `nixosSharedModules`
-- Add `self.homeModules.firefox` to `home-manager.sharedModules` in nixos module
+## Phase 3: Home-only modules (Priority: MEDIUM)
 
-**Special considerations:**
+Single file conversions.
 
-- Home module uses `config.lib.self.read "firefox-userChrome.css"` (defined in `modules/shared/flake-files.nix`) - should continue working via autowiring
-- External file dependency: `files/firefox-userChrome.css` - no changes needed
-- Both modules conditional on `config.hostConfig.feature.gui`
-- Module is referenced in `modules/home/stylix.nix` and `modules/home/hyprland.nix` (no changes needed there)
+- [ ] cad.nix
+- [ ] fonts.nix
+- [ ] foot.nix
+- [ ] gc.nix
+- [ ] git.nix
+- [ ] interactive-cli.nix
+- [ ] kmonad.nix
+- [ ] lnxlink.nix
+- [ ] wayland.nix
+- [ ] wezterm.nix
+
+## Phase 4: Shared-only modules (Priority: LOW)
+
+- [ ] flake-files.nix
+- [ ] public-keys.nix
+- [ ] zenburn.nix
+
+## Completed Conversions
+
+- [x] **firefox.nix** (nixos + home)
+- [x] **bluetooth.nix** (nixos only)
+- [x] **gui.nix** (nixos + home)
