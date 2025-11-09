@@ -22,10 +22,11 @@ This is the most complete module, where every aspect is configured.
     ];
 
     flake.modules.generic.thingy = {...}: {
+        key = "nixos-config.modules.home.thingy";
     };
 
     flake.nixosModules.thingy = {config, lib, pkgs, ...}: {
-        key = "modules.nixos.thingy";
+        key = "nixos-config.modules.nixos.thingy";
         imports = [
             self.modules.generic.thingy
         ];
@@ -36,6 +37,7 @@ This is the most complete module, where every aspect is configured.
     };
 
     flake.homeModules.thingy = {config, lib, pkgs, ...}: {
+        key = "nixos-config.modules.home.thingy";
         imports = [
             inputs.some-repo.homeModules.default
         ];
@@ -69,14 +71,26 @@ one with only `home-manager.sharedModules`). - `modules/shared/thingy.nix` goes 
 
 Unused parts from the template above should be removed.
 
+Every converted aspect should also include `key`, as shown in the example.
+
+One thing to be careful about is presence of `config` and/or `options`
+attributes in the original, non-converted modules - it changes
+configuration handling a bit. In that case your own additions
+(e.g. `home-manager.sharedModules` assignment should go inside
+`config` attribute of that aspect.
+
 The sources used for conversion should be removed from git (not
 committed yet), to prevent autoload mechanism from finding them. And
 newly created module should also be immediately git-staged (shouldn't
 be up to date, just make filename known to flakes machinery).
 
+Start with doing `just nixOpts= eval-nixos` (non-verbose mode), which will evaluate a single
+configuration for the current machine. Do this in a loop, until fixed.
+
 At this stage, `just eval-all` should run (it runs for quite a long
 time, so if running with a timeout - set it to 30 minutes). Do it in a
-loop, running `eval-all` and fixing errors, until everything is clean.
+loop, running `eval-all` and going back to `just eval-nixos` step for
+the failed configuration (if any).
 
 Now you can create a git commit with this changes. Now we should run
 `just lint` in a loop - it can just re-format changed files, or maybe
