@@ -23,7 +23,12 @@
   };
 
   flake.nixosModules.demandred-configuration =
-    { config, lib, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     {
       key = "nixos-config.demandred-configuration";
       imports = [
@@ -37,6 +42,10 @@
       config = {
         services.kanata.keyboards.all.devices = [
           "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
+        ];
+
+        environment.systemPackages = with pkgs; [
+          distrobox
         ];
 
         virtualisation.docker = {
