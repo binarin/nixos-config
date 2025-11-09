@@ -114,7 +114,7 @@ and do a separate git commit for this.
 
 These require merging 2-3 files and represent the core benefit of dendritic pattern.
 
-- [ ] **stylix** (nixos + home + shared) - 3-way merge
+- [x] **stylix** (nixos + home + shared) - 3-way merge
 - [ ] **emacs** (nixos + home)
 - [ ] **hyprland** (nixos + home)
 - [ ] **sops** (nixos + home)
@@ -173,6 +173,7 @@ Single file conversions.
 
 ## Completed Conversions
 
+- [x] **stylix.nix** (nixos + home + shared)
 - [x] **firefox.nix** (nixos + home)
 - [x] **bluetooth.nix** (nixos only)
 - [x] **gui.nix** (nixos + home)
