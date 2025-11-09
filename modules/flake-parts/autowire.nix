@@ -51,7 +51,7 @@ let
           isLinux = true;
         };
       };
-      modules = [ mod ];
+      modules = [ mod ] ++ config.nixosSharedModules;
     };
 in
 {

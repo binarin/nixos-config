@@ -18,7 +18,7 @@
     modules = [
       self.nixosModules.demandred-configuration
       ../../../configurations/nixos/demandred/configuration.nix
-    ];
+    ] ++ self.nixosSharedModules;
   };
 
   flake.nixosModules.demandred-configuration =
