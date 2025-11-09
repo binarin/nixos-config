@@ -10,6 +10,8 @@ let
   inherit (inputs) self;
 in
 {
+  imports = [ self.homeModules.zenburn ];
+
   config = lib.mkIf config.hostConfig.feature.hyprland {
     home.packages = [ pkgs.noto-fonts ];
 
