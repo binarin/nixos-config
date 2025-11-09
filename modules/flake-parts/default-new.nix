@@ -1,4 +1,4 @@
-{ self, ... }:
+{ self, lib, ... }:
 {
   flake.nixosModules.default-new =
     { ... }:
@@ -10,5 +10,14 @@
         self.nixosModules.nix
         self.sharedModules.public-keys
       ];
+
+      config = {
+        system.switch.enableNg = lib.mkDefault true;
+        system.switch.enable = lib.mkDefault false;
+
+        services.dbus.implementation = lib.mkDefault "broker";
+
+        time.timeZone = lib.mkDefault "Europe/Amsterdam";
+      };
     };
 }
