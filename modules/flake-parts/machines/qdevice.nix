@@ -25,7 +25,8 @@
 
     modules = [
       self.nixosModules.qdevice-configuration
-    ] ++ self.nixosSharedModules;
+    ]
+    ++ self.nixosSharedModules;
   };
 
   flake.nixosModules.qdevice-configuration =

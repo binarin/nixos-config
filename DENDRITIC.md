@@ -10,7 +10,3 @@
 
 homeModules.default
 nixosModules.default
-
-  #+begin_src nix
-
-  #+end_src
