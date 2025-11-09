@@ -19,6 +19,14 @@ update:
 # Lint nix files
 [group('dev')]
 lint:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # Check if there are any unstaged or untracked files
+    if [ -n "$(git status --short)" ]; then
+      echo "Error: You have unstaged or untracked files. Please stage all changes before running 'just lint'."
+      git status --short
+      exit 1
+    fi
     nix fmt
 
 # Check nix flake
