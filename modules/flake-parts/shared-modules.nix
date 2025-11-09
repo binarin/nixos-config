@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, config, ... }:
 {
   options = {
     nixosSharedModules = lib.mkOption {
@@ -6,5 +6,9 @@
       type = with lib.types; listOf deferredModule;
       default = [ ];
     };
+  };
+
+  config = {
+    flake.nixosSharedModules = config.nixosSharedModules;
   };
 }

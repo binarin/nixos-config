@@ -31,6 +31,7 @@
         self.nixosModules.kanata
         self.nixosModules.niri
         self.nixosModules.bluetooth
+        self.nixosModules.firefox
         self.nixosModules.inventory-legacy
       ];
       config = {
