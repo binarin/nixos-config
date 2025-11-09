@@ -149,7 +149,7 @@ Single file conversions, simpler but still need proper dendritic structure.
 - [ ] tailscale.nix
 - [ ] trezor.nix
 - [ ] use-nix-cache.nix
-- [ ] vscode-remote-workaround.nix
+- [x] vscode-remote-workaround.nix (dropped - unused)
 
 ## Phase 3: Home-only modules (Priority: MEDIUM)
 
@@ -161,8 +161,8 @@ Single file conversions.
 - [ ] gc.nix
 - [ ] git.nix
 - [ ] interactive-cli.nix
-- [ ] kmonad.nix
-- [ ] lnxlink.nix
+- [x] kmonad.nix (dropped - trivial)
+- [x] lnxlink.nix (dropped - unused)
 - [ ] wayland.nix
 - [ ] wezterm.nix
 
