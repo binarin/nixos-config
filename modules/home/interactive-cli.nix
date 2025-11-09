@@ -6,7 +6,6 @@
   ...
 }:
 let
-  defEnable = config.hostConfig.lib.defaults.enable;
   fzf_show_file_or_dir_preview = "if [ -d {} ]; then lsd --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi";
 in
 {
@@ -34,22 +33,22 @@ in
         daemon.enable = true;
       };
 
-      programs.bash.enable = defEnable;
+      programs.bash.enable = true;
 
-      programs.bat.enable = defEnable;
+      programs.bat.enable = true;
 
       programs.broot = {
-        enable = defEnable;
-        enableZshIntegration = defEnable;
-        enableBashIntegration = defEnable;
+        enable = true;
+        enableZshIntegration = true;
+        enableBashIntegration = true;
       };
 
-      programs.btop.enable = defEnable;
-      programs.darcs.enable = defEnable;
-      programs.doggo.enable = defEnable;
+      programs.btop.enable = true;
+      programs.darcs.enable = true;
+      programs.doggo.enable = true;
 
       programs.fd = {
-        enable = defEnable;
+        enable = true;
         ignores = [
           ".git/"
           ".direnv/"
@@ -58,7 +57,7 @@ in
       };
 
       programs.fzf = {
-        enable = defEnable;
+        enable = true;
         defaultCommand = "fd";
         fileWidgetOptions = [ "--preview '${fzf_show_file_or_dir_preview}'" ];
         changeDirWidgetOptions = [ "--preview 'lsd --tree --color=always {} | head -200'" ];
@@ -68,13 +67,13 @@ in
         };
       };
 
-      programs.helix.enable = defEnable;
+      programs.helix.enable = true;
 
-      programs.htop.enable = defEnable;
+      programs.htop.enable = true;
 
-      programs.jq.enable = defEnable;
+      programs.jq.enable = true;
 
-      programs.lsd.enable = defEnable;
+      programs.lsd.enable = true;
 
       programs.nix-index = {
         enable = true;
@@ -84,15 +83,15 @@ in
       programs.nix-index-database.comma.enable = true;
 
       programs.rtorrent = {
-        enable = defEnable;
+        enable = true;
         extraConfig = ''
           encoding.add=utf-8
         '';
       };
 
       programs.ssh = {
-        enable = defEnable;
-        stableAgentSocket = defEnable;
+        enable = true;
+        stableAgentSocket = true;
         matchBlocks = {
           mail = {
             match = ''
@@ -110,7 +109,7 @@ in
       services.ssh-agent.enable = pkgs.stdenv.isLinux;
 
       programs.starship = {
-        enable = defEnable;
+        enable = true;
         settings = {
           username = {
             style_user = "blue bold";
@@ -139,7 +138,7 @@ in
       programs.tmux = {
         baseIndex = 1;
         clock24 = true;
-        enable = defEnable;
+        enable = true;
         shortcut = "o";
         terminal = "screen-256color"; # needed, e.g. for emacs -nw
         mouse = true;
@@ -162,10 +161,10 @@ in
       };
 
       programs.zsh = {
-        enable = defEnable;
-        autocd = defEnable;
-        autosuggestion.enable = defEnable;
-        syntaxHighlighting.enable = defEnable;
+        enable = true;
+        autocd = true;
+        autosuggestion.enable = true;
+        syntaxHighlighting.enable = true;
 
         shellAliases = {
           vi = "emacsclient -a 'emacs -nw' -nw";

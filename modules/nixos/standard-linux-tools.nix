@@ -4,19 +4,16 @@
   lib,
   ...
 }:
-let
-  defEnable = config.hostConfig.lib.defaults.enable;
-in
 {
   config = lib.mkIf config.hostConfig.feature.interactive-cli {
 
-    programs.iftop.enable = defEnable;
+    programs.iftop.enable = true;
 
-    programs.iotop.enable = defEnable;
+    programs.iotop.enable = true;
 
-    programs.mosh.enable = defEnable;
+    programs.mosh.enable = true;
 
-    programs.wireshark.enable = defEnable;
+    programs.wireshark.enable = true;
     programs.wireshark.package =
       if config.hostConfig.feature.gui then pkgs.wireshark-qt else pkgs.tshark;
 
