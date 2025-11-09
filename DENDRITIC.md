@@ -155,16 +155,16 @@ Single file conversions, simpler but still need proper dendritic structure.
 
 Single file conversions.
 
-- [ ] cad.nix
-- [ ] fonts.nix
-- [ ] foot.nix
-- [ ] gc.nix
-- [ ] git.nix
-- [ ] interactive-cli.nix
+- [x] cad.nix
+- [x] fonts.nix
+- [x] foot.nix
+- [x] gc.nix
+- [x] git.nix
+- [x] interactive-cli.nix
 - [x] kmonad.nix (dropped - trivial)
 - [x] lnxlink.nix (dropped - unused)
-- [ ] wayland.nix
-- [ ] wezterm.nix
+- [x] wayland.nix
+- [x] wezterm.nix
 
 ## Phase 4: Shared-only modules (Priority: LOW)
 
@@ -189,3 +189,11 @@ Single file conversions.
 - [x] **impermanence.nix** (nixos + home)
 - [x] **waybar.nix** (nixos + home)
 - [x] **misc.nix** (integrated into nix.nix, default-new.nix, home-manager.nix)
+- [x] **cad.nix** (home only)
+- [x] **fonts.nix** (home only)
+- [x] **foot.nix** (home only)
+- [x] **gc.nix** (home only)
+- [x] **git.nix** (home only)
+- [x] **interactive-cli.nix** (home only)
+- [x] **wayland.nix** (home only)
+- [x] **wezterm.nix** (home only)
