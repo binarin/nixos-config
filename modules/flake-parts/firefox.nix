@@ -1,13 +1,10 @@
 {
   self,
-  inputs,
-  lib,
   ...
 }:
 {
   flake.nixosModules.firefox =
     {
-      lib,
       config,
       ...
     }:

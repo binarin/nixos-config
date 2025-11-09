@@ -32,10 +32,4 @@ drv_path=$(nix eval --raw \
     "${repo_root}#nixosConfigurations.${configuration}.config.system.build.toplevel.drvPath" \
     "${nix_options[@]}")
 
-echo "Configuration evaluated successfully!"
-echo "Derivation path: ${drv_path}"
-
-# Also show the derivation to verify it's complete
-echo ""
-echo "Derivation details:"
-nix derivation show "${drv_path}" "${nix_options[@]}"
+echo "${drv_path}"
