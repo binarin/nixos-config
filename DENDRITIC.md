@@ -117,7 +117,7 @@ These require merging 2-3 files and represent the core benefit of dendritic patt
 - [x] **stylix** (nixos + home + shared) - 3-way merge
 - [ ] **emacs** (nixos + home)
 - [ ] **hyprland** (nixos + home)
-- [ ] **sops** (nixos + home)
+- [x] **sops** (nixos + home)
 - [ ] **vfio** (nixos + home)
 - [ ] **waybar** (nixos + home)
 - [ ] **wsl** (nixos + home)
@@ -134,7 +134,7 @@ Single file conversions, simpler but still need proper dendritic structure.
 - [ ] eternal-terminal.nix
 - [ ] expose-local-http.nix
 - [ ] flake-packages.nix
-- [ ] home-manager.nix
+- [x] home-manager.nix
 - [ ] impure-nix-setup.nix
 - [ ] keep-nix-build-sources.nix
 - [ ] large-console-fonts.nix
@@ -169,11 +169,14 @@ Single file conversions.
 
 - [ ] flake-files.nix
 - [ ] public-keys.nix
-- [ ] zenburn.nix
+- [x] zenburn.nix
 
 ## Completed Conversions
 
+- [x] **sops.nix** (nixos + home)
 - [x] **stylix.nix** (nixos + home + shared)
+- [x] **zenburn.nix** (shared only)
+- [x] **home-manager.nix** (nixos only)
 - [x] **firefox.nix** (nixos + home)
 - [x] **bluetooth.nix** (nixos only)
 - [x] **gui.nix** (nixos + home)
