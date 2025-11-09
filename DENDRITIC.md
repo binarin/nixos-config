@@ -121,7 +121,7 @@ These require merging 2-3 files and represent the core benefit of dendritic patt
 - [x] **hyprland** (nixos + home)
 - [x] **sops** (nixos + home)
 - [x] **vfio** (dropped - removed entirely)
-- [ ] **waybar** (nixos + home)
+- [x] **waybar** (nixos + home)
 - [x] **wsl** (dropped - removed entirely)
 - [ ] **misc** (nixos + home)
 - [ ] **host-config** (nixos + shared)
@@ -187,3 +187,4 @@ Single file conversions.
 - [x] **wsl.nix** (dropped - removed entirely)
 - [x] **hyprland.nix** (nixos + home)
 - [x] **impermanence.nix** (nixos + home)
+- [x] **waybar.nix** (nixos + home)
