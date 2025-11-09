@@ -37,6 +37,7 @@
         self.nixosModules.niri
         self.nixosModules.bluetooth
         self.nixosModules.firefox
+        self.nixosModules.hyprland
         self.nixosModules.inventory-legacy
       ];
       config = {
