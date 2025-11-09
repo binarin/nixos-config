@@ -23,7 +23,7 @@ This is the most complete module, where every aspect is configured.
 
     flake.modules.generic.thingy = {...}: {
     };
-    
+
     flake.nixosModules.thingy = {config, lib, pkgs, ...}: {
         key = "modules.nixos.thingy";
         imports = [
@@ -34,14 +34,14 @@ This is the most complete module, where every aspect is configured.
             self.modules.generic.thingy
         ];
     };
-    
+
     flake.homeModules.thingy = {config, lib, pkgs, ...}: {
         imports = [
             inputs.some-repo.homeModules.default
         ];
     };
-    
-    
+
+
 }
 ```
 
@@ -60,15 +60,12 @@ Not yet converted modules can refer to `flake` argument, to get
 and `inputs` can be brought in scope through flake-module (as it
 happens in the example above).
 
-With `thingy` as example:
-    - `modules/nixos/thingy.nix` goes into
-      `flake.nixosModules.thingy`, and should be added to
-      `nixosSharedModules` also.
-    - `modules/home/thingy.nix` goes into `flake.homeModules.thingy`,
-      and should be also added to `home-manager.sharedModules` in
-      nixos module (if `thingy` doesn't have nixos module, introduce
-      one with only `home-manager.sharedModules`).
-    - `modules/shared/thingy.nix` goes into `flake.modules.generic.thingy`.
+With `thingy` as example: - `modules/nixos/thingy.nix` goes into
+`flake.nixosModules.thingy`, and should be added to
+`nixosSharedModules` also. - `modules/home/thingy.nix` goes into `flake.homeModules.thingy`,
+and should be also added to `home-manager.sharedModules` in
+nixos module (if `thingy` doesn't have nixos module, introduce
+one with only `home-manager.sharedModules`). - `modules/shared/thingy.nix` goes into `flake.modules.generic.thingy`.
 
 Unused parts from the template above should be removed.
 
@@ -99,6 +96,7 @@ and do a separate git commit for this.
 **Complexity: LOW-MEDIUM**
 
 **Files to convert:**
+
 - `modules/nixos/firefox.nix` (30 lines) - Firefox policies and language packs
 - `modules/home/firefox.nix` (75 lines) - User profiles, settings, and CSS customization
 - `modules/shared/firefox.nix` - Does NOT exist (no generic module needed)
@@ -106,6 +104,7 @@ and do a separate git commit for this.
 **Flake inputs:** None
 
 **Target structure:**
+
 - Create `modules/flake-parts/firefox.nix`
 - Content from `modules/nixos/firefox.nix` → `flake.nixosModules.firefox`
 - Content from `modules/home/firefox.nix` → `flake.homeModules.firefox`
@@ -113,6 +112,7 @@ and do a separate git commit for this.
 - Add `self.homeModules.firefox` to `home-manager.sharedModules` in nixos module
 
 **Special considerations:**
+
 - Home module uses `config.lib.self.read "firefox-userChrome.css"` (defined in `modules/shared/flake-files.nix`) - should continue working via autowiring
 - External file dependency: `files/firefox-userChrome.css` - no changes needed
 - Both modules conditional on `config.hostConfig.feature.gui`
