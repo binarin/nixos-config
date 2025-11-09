@@ -117,12 +117,12 @@ and do a separate git commit for this.
 These require merging 2-3 files and represent the core benefit of dendritic pattern.
 
 - [x] **stylix** (nixos + home + shared) - 3-way merge
-- [ ] **emacs** (nixos + home)
+- [x] **emacs** (nixos + home)
 - [ ] **hyprland** (nixos + home)
 - [x] **sops** (nixos + home)
-- [ ] **vfio** (nixos + home)
+- [x] **vfio** (dropped - removed entirely)
 - [ ] **waybar** (nixos + home)
-- [ ] **wsl** (nixos + home)
+- [x] **wsl** (dropped - removed entirely)
 - [ ] **misc** (nixos + home)
 - [ ] **host-config** (nixos + shared)
 - [ ] **impermanence** (nixos + home) - Complete migration of impermanence-new.nix
@@ -182,3 +182,6 @@ Single file conversions.
 - [x] **bluetooth.nix** (nixos only)
 - [x] **gui.nix** (nixos + home)
 - [x] **move-xdg.nix** (dropped - inlined into ishamael configuration, furfur configuration removed)
+- [x] **emacs.nix** (nixos + home)
+- [x] **vfio.nix** (dropped - removed entirely)
+- [x] **wsl.nix** (dropped - removed entirely)
