@@ -12,11 +12,12 @@ in
 
   inventoryHostName = "docker-on-nixos";
 
+  impermanence.enable = true;
+
   hostConfig.deployHostName = config.hostConfig.ipAllocation.home.primary.address;
 
   hostConfig.features = [
     "lxc"
-    "impermanence"
     "tailscale"
   ];
 

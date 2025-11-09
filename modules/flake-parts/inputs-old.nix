@@ -26,8 +26,6 @@
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
-    impermanence.url = "github:nix-community/impermanence";
-
     lanzaboote.url = "github:nix-community/lanzaboote";
     lanzaboote.inputs.nixpkgs.follows = "nixpkgs-unstable";
     lanzaboote.inputs.flake-parts.follows = "flake-parts";

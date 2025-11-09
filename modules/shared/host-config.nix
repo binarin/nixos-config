@@ -41,7 +41,6 @@ let
       "emacs"
     ];
     wsl = [ ];
-    impermanence = [ ];
     tailscale = [ ];
     airgapped = [ ];
     secure-boot = [ ];

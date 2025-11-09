@@ -11,7 +11,6 @@ in
       key = "nixos-config.users.binarin";
 
       imports = [
-        self.nixosModules.impermanence-new
         self.nixosModules.home-manager
       ];
 
@@ -63,7 +62,6 @@ in
         {
           imports = [
             self.homeModules.user-binarin
-            self.homeModules.impermanence
           ];
           config = {
             inherit (config) hostConfig inventoryHostName;
@@ -72,37 +70,6 @@ in
             home.stateVersion = config.system.stateVersion;
           };
         };
-
-      environment.persistence."/persist" = lib.mkIf config.impermanence.enable {
-        users.binarin = {
-          directories = [
-            "personal-workspace"
-            "org"
-            "annex"
-            "finance"
-            ".ssh"
-          ]
-          ++ config.home-manager.users.binarin.impermanence.persist-directories;
-          files = [
-          ]
-          ++ config.home-manager.users.binarin.impermanence.persist-files;
-        };
-      };
-
-      environment.persistence."/local" = lib.mkIf config.impermanence.enable {
-        users.binarin = {
-          files = [
-          ]
-          ++ config.home-manager.users.binarin.impermanence.local-files;
-          directories = [
-            ".cache/nixos-config"
-            ".cache/nix"
-            ".local/state/home-manager"
-            ".local/state/nix"
-          ]
-          ++ config.home-manager.users.binarin.impermanence.local-directories;
-        };
-      };
     };
 
   flake.homeModules.user-binarin =
@@ -120,5 +87,26 @@ in
         userName = "Alexey Lebedeff";
         userEmail = "binarin@binarin.info";
       };
+
+      impermanence.local-files = [
+      ];
+
+      impermanence.local-directories = [
+        ".cache/nixos-config"
+        ".cache/nix"
+        ".local/state/home-manager"
+        ".local/state/nix"
+      ];
+
+      impermanence.persist-files = [
+      ];
+
+      impermanence.persist-directories = [
+        "personal-workspace"
+        "org"
+        "annex"
+        "finance"
+        ".ssh"
+      ];
     };
 }

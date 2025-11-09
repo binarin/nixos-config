@@ -23,10 +23,11 @@ in
 
   inventoryHostName = "demandred";
 
+  impermanence.enable = true;
+
   hostConfig.features = [
     "hyprland"
     "interactive-cli"
-    "impermanence"
     "emacs"
     "workstation"
     "tailscale"
