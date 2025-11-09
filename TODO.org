@@ -28,3 +28,4 @@ This should be configured on a per-machine basis.
   :END:
 * DONE install bluetui from an external flake
 * TODO Introduce ~nixosSharedModules~ flake attribute, with the type ~listOf deferredModule~
+* TODO feature.gui -> services.graphical-desktop.enable
