@@ -70,7 +70,10 @@
         programs.hyprland.package = inputs.hyprland.packages."${pkgs.stdenv.system}".hyprland;
         programs.hyprland.withUWSM = true;
 
-        home-manager.sharedModules = [ self.homeModules.hyprland ];
+        home-manager.sharedModules = [
+          self.homeModules.hyprland
+          self.homeModules.waybar
+        ];
       };
     };
 

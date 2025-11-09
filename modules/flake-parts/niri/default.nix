@@ -44,7 +44,10 @@
           };
         };
       };
-      home-manager.sharedModules = [ self.homeModules.niri ];
+      home-manager.sharedModules = [
+        self.homeModules.niri
+        self.homeModules.waybar
+      ];
     };
 
   flake.homeModules.niri =
