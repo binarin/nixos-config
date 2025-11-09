@@ -28,14 +28,16 @@ in
     XDG_STATE_HOME = "$HOME/.xdg/local/state";
   };
 
-  home-manager.users.binarin = {
-    xdg = {
-      enable = true;
-      cacheHome = ".xdg/cache";
-      configHome = ".xdg/config";
-      dataHome = ".xdg/local/share";
-      stateHome = ".xdg/local/state";
+  home-manager.users.binarin =
+    { config, ... }:
+    {
+      xdg = {
+        enable = true;
+        cacheHome = "${config.home.homeDirectory}/.xdg/cache";
+        configHome = "${config.home.homeDirectory}/.xdg/config";
+        dataHome = "${config.home.homeDirectory}/.xdg/local/share";
+        stateHome = "${config.home.homeDirectory}/.xdg/local/state";
+      };
     };
-  };
 
 }

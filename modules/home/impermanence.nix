@@ -106,7 +106,7 @@ in
       })
 
       (lib.mkIf osConfig.security.pam.services.login.kwallet.enable {
-        impermanence.local-directories = [ "${config.xdg.dataHomeRelative}/kwallet" ];
+        impermanence.local-directories = [ ".local/share/kwallet" ];
       })
     ]
   );

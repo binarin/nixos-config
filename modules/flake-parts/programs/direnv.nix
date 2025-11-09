@@ -17,7 +17,7 @@
           };
         };
 
-        impermanence.local-directories = [ "${config.xdg.dataHomeRelative}/direnv" ];
+        impermanence.local-directories = [ ".local/share/direnv" ];
       };
     };
 }

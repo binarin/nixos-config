@@ -125,7 +125,7 @@
           }
           (lib.mkIf config.programs.telegram-desktop.enable {
             home.packages = with pkgs; [ tdesktop ];
-            impermanence.local-directories = [ "${config.xdg.dataHomeRelative}/TelegramDesktop" ];
+            impermanence.local-directories = [ ".local/share/TelegramDesktop" ];
           })
           (lib.mkIf config.programs.thunderbird.enable {
             programs.thunderbird.profiles = { };
