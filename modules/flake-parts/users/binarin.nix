@@ -113,6 +113,7 @@ in
       imports = [
         self.homeModules.claude-code
         self.homeModules.direnv
+        self.homeModules.emacs
       ];
 
       programs.git = {
