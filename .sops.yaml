@@ -16,61 +16,70 @@ keys:
   - &server_ishamael age1qud3t3zq28d0p3z42gj0vr5yamqcgcd4sh0uvfdg2g24qwkknqds4356qd
   - &user_ishamael_binarin age1qk6g50qsla4mn9qm8zc9nhf0vwz37wyvlhajann8ct9shkxg0g7s5yuqn5
 
+  - &server_qdevice age1hsfqzyxhmr5r6ekwmthpzfuser4g7ktt0m554u5zfnnxt8tff98sdmzagt
+
 creation_rules:
+  - path_regex: secrets/demandred/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *user_demandred_binarin
+          - *server_demandred
+  - path_regex: secrets/docker-on-nixos/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *user_demandred_binarin
+          - *server_docker-on-nixos
+  - path_regex: secrets/forgejo/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *user_demandred_binarin
+          - *server_forgejo
   - path_regex: secrets/ishamael/(secrets.yaml|user-binarin.yaml)
     key_groups:
       - age:
           - *admin_binarin
           - *user_ishamael_binarin
           - *server_ishamael
-  - path_regex: secrets/demandred/secrets.yaml
-    key_groups:
-      - age:
-          - *admin_binarin
-          - *user_demandred_binarin
-          - *server_demandred
-  - path_regex: secrets/demandred/user-binarin.yaml
-    key_groups:
-      - age:
-          - *admin_binarin
-          - *server_demandred
-          - *user_demandred_binarin
-  - path_regex: secrets/media/secrets.yaml
-    key_groups:
-      - age:
-          - *admin_binarin
-          - *user_demandred_binarin
-          - *server_media
-  - path_regex: secrets/monitor/secrets.yaml
-    key_groups:
-      - age:
-          - *admin_binarin
-          - *user_demandred_binarin
-          - *server_monitor
-  - path_regex: secrets/forgejo/secrets.yaml
-    key_groups:
-      - age:
-          - *admin_binarin
-          - *user_demandred_binarin
-          - *server_forgejo
-  - path_regex: secrets/nix-cache/secrets.yaml
-    key_groups:
-      - age:
-          - *admin_binarin
-          - *user_demandred_binarin
-          - *server_nix-cache
-  - path_regex: secrets/mail/(secrets.yaml|dovecot-passwd)
+  - path_regex: secrets/mail/(secrets.yaml|user-binarin.yaml|dovecot-passwd)
     key_groups:
       - age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_mail
-  - path_regex: secrets/docker-on-nixos/secrets.yaml
+  - path_regex: secrets/media/(secrets.yaml|user-binarin.yaml)
     key_groups:
       - age:
           - *admin_binarin
           - *user_demandred_binarin
-          - *server_docker-on-nixos
+          - *server_media
+  - path_regex: secrets/monitor/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *user_demandred_binarin
+          - *server_monitor
+  - path_regex: secrets/nix-cache/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *user_demandred_binarin
+          - *server_nix-cache
+  - path_regex: secrets/furfur/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - age:
+          - *admin_binarin
+  - path_regex: secrets/iso/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - age:
+          - *admin_binarin
+  - path_regex: secrets/qdevice/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - age:
+          - *admin_binarin
+          - *server_qdevice
   - path_regex: secrets/webservers.yaml
     key_groups:
       - age:
