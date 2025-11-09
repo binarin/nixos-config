@@ -23,7 +23,6 @@ jobs:
         - demandred
         - docker-on-nixos
         - forgejo
-        - furfur
         - ishamael
         - iso
         - mail

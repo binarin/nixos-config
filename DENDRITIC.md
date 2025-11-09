@@ -122,7 +122,6 @@ These require merging 2-3 files and represent the core benefit of dendritic patt
 - [ ] **waybar** (nixos + home)
 - [ ] **wsl** (nixos + home)
 - [ ] **misc** (nixos + home)
-- [ ] **move-xdg** (nixos + home)
 - [ ] **host-config** (nixos + shared)
 - [ ] **impermanence** (nixos + home) - Complete migration of impermanence-new.nix
 
@@ -180,3 +179,4 @@ Single file conversions.
 - [x] **firefox.nix** (nixos + home)
 - [x] **bluetooth.nix** (nixos only)
 - [x] **gui.nix** (nixos + home)
+- [x] **move-xdg.nix** (dropped - inlined into ishamael configuration, furfur configuration removed)

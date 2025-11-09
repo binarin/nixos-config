@@ -41,7 +41,6 @@ let
       "emacs"
     ];
     wsl = [ ];
-    move-xdg = [ ];
     impermanence = [ ];
     tailscale = [ ];
     airgapped = [ ];

@@ -67,10 +67,6 @@ creation_rules:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_nix-cache
-  - path_regex: secrets/furfur/(secrets.yaml|user-binarin.yaml)
-    key_groups:
-      - age:
-          - *admin_binarin
   - path_regex: secrets/iso/(secrets.yaml|user-binarin.yaml)
     key_groups:
       - age:
