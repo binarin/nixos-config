@@ -73,6 +73,10 @@ Unused parts from the template above should be removed.
 
 Every converted aspect should also include `key`, as shown in the example.
 
+If all modules of the aspect are being gated on one or more `hostConfig.feature`-s: - remove this gating altogether - remove aspect from `nixosSharedModules` - explicitly import it into relevant nixos configuarions - in
+`modules/flake-parts/machines/` if present, and in
+`configurations/nixos/MACHINE/configuration.nix` otherwise.
+
 One thing to be careful about is presence of `config` and/or `options`
 attributes in the original, non-converted modules - it changes
 configuration handling a bit. In that case your own additions
@@ -84,8 +88,9 @@ committed yet), to prevent autoload mechanism from finding them. And
 newly created module should also be immediately git-staged (shouldn't
 be up to date, just make filename known to flakes machinery).
 
-Start with doing `just nixOpts= eval-nixos` (non-verbose mode), which will evaluate a single
-configuration for the current machine. Do this in a loop, until fixed.
+Start with doing `just nixOpts= eval-nixos` (non-verbose mode), which
+will evaluate a single configuration for the current machine. Do this
+in a loop, until fixed.
 
 At this stage, `just eval-all` should run (it runs for quite a long
 time, so if running with a timeout - set it to 30 minutes). Do it in a
