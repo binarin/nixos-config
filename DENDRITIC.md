@@ -105,7 +105,7 @@ and do a separate git commit for this.
 
 # Plan
 
-## TODO Convert firefox.nix
+## DONE Convert firefox.nix
 
 **Complexity: LOW-MEDIUM**
 
