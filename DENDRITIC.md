@@ -118,7 +118,7 @@ These require merging 2-3 files and represent the core benefit of dendritic patt
 
 - [x] **stylix** (nixos + home + shared) - 3-way merge
 - [x] **emacs** (nixos + home)
-- [ ] **hyprland** (nixos + home)
+- [x] **hyprland** (nixos + home)
 - [x] **sops** (nixos + home)
 - [x] **vfio** (dropped - removed entirely)
 - [ ] **waybar** (nixos + home)
@@ -185,3 +185,4 @@ Single file conversions.
 - [x] **emacs.nix** (nixos + home)
 - [x] **vfio.nix** (dropped - removed entirely)
 - [x] **wsl.nix** (dropped - removed entirely)
+- [x] **hyprland.nix** (nixos + home)
