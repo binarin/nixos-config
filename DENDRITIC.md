@@ -69,6 +69,8 @@ and should be also added to `home-manager.sharedModules` in
 nixos module (if `thingy` doesn't have nixos module, introduce
 one with only `home-manager.sharedModules`). - `modules/shared/thingy.nix` goes into `flake.modules.generic.thingy`.
 
+You should also check whether it makes sense to move flake inputs to `flake-file.inputs` here - from `inputs-old`.
+
 Unused parts from the template above should be removed.
 
 Every converted aspect should also include `key`, as shown in the example.
