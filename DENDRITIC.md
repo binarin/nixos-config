@@ -124,31 +124,31 @@ These require merging 2-3 files and represent the core benefit of dendritic patt
 - [x] **waybar** (nixos + home)
 - [x] **wsl** (dropped - removed entirely)
 - [x] **misc** (integrated into nix.nix, default-new.nix, home-manager.nix)
-- [ ] **host-config** (nixos + shared)
+- [x] **host-config** (nixos + shared)
 - [x] **impermanence** (nixos + home)
 
 ## Phase 2: NixOS-only modules (Priority: MEDIUM)
 
 Single file conversions, simpler but still need proper dendritic structure.
 
-- [ ] bleeding.nix
-- [ ] eternal-terminal.nix
-- [ ] expose-local-http.nix
-- [ ] flake-packages.nix
+- [x] bleeding.nix
+- [x] eternal-terminal.nix
+- [x] expose-local-http.nix
+- [x] flake-packages.nix
 - [x] home-manager.nix
-- [ ] impure-nix-setup.nix
-- [ ] keep-nix-build-sources.nix
-- [ ] large-console-fonts.nix
-- [ ] lxc.nix
-- [ ] pam-u2f.nix
-- [ ] secure-boot.nix
-- [ ] security.nix
-- [ ] server.nix
-- [ ] sshd.nix
-- [ ] standard-linux-tools.nix
-- [ ] tailscale.nix
-- [ ] trezor.nix
-- [ ] use-nix-cache.nix
+- [x] impure-nix-setup.nix
+- [x] keep-nix-build-sources.nix
+- [x] large-console-fonts.nix
+- [x] lxc.nix
+- [x] pam-u2f.nix
+- [x] secure-boot.nix
+- [x] security.nix
+- [x] server.nix
+- [x] sshd.nix
+- [x] standard-linux-tools.nix
+- [x] tailscale.nix
+- [x] trezor.nix
+- [x] use-nix-cache.nix
 - [x] vscode-remote-workaround.nix (dropped - unused)
 
 ## Phase 3: Home-only modules (Priority: MEDIUM)
@@ -168,8 +168,8 @@ Single file conversions.
 
 ## Phase 4: Shared-only modules (Priority: LOW)
 
-- [ ] flake-files.nix
-- [ ] public-keys.nix
+- [x] flake-files.nix
+- [x] public-keys.nix
 - [x] zenburn.nix
 
 ## Completed Conversions
@@ -197,3 +197,7 @@ Single file conversions.
 - [x] **interactive-cli.nix** (home only)
 - [x] **wayland.nix** (home only)
 - [x] **wezterm.nix** (home only)
+- [x] **host-config.nix** (nixos + shared)
+- [x] **flake-files.nix** (shared only)
+- [x] **public-keys.nix** (shared only)
+- [x] All Phase 2 NixOS-only modules (bleeding, eternal-terminal, expose-local-http, flake-packages, impure-nix-setup, keep-nix-build-sources, large-console-fonts, lxc, pam-u2f, secure-boot, security, server, sshd, standard-linux-tools, tailscale, trezor, use-nix-cache)
