@@ -5,7 +5,7 @@
   ...
 }:
 let
-  helper = import ../helpers/networks-lookup.nix { inherit self lib; };
+  helper = import "${self}/lib/networks-lookup.nix" { inherit self lib; };
   networks = helper.readRawInventory;
   networksLookup = helper.buildHostLookupTable networks;
   getNetworkInfo =

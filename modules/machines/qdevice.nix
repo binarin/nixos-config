@@ -5,6 +5,7 @@
   lib,
   ...
 }:
+
 {
   flake.deploy.nodes.qdevice = {
     hostname = "192.168.2.16";
@@ -20,10 +21,11 @@
       flake = {
         inherit self inputs config;
       };
-      inventoryHostname = "qdevice";
+      inventoryHostName = "qdevice";
     };
 
     modules = [
+      self.nixosModules.default
       self.nixosModules.qdevice-configuration
     ]
     ++ self.nixosSharedModules;
@@ -34,22 +36,21 @@
       lib,
       config,
       pkgs,
-      inventoryHostname,
       ...
     }:
     {
       key = "nixos-config.qdevice-configuration";
+
       imports = [
-        self.nixosModules.default
-        self.nixosModules.disko
         self.nixosModules.systemd-boot
+        self.nixosModules.disko
         inputs.arion.nixosModules.arion
         "${self}/machines/qdevice/hardware-configuration.nix"
       ];
 
       config = {
+        networking.hostName = "qdevice";
         system.stateVersion = "25.05";
-        networking.hostId = (import "${self}/inventory/host-id.nix").qdevice;
 
         boot.initrd.clevis.enable = true;
         boot.initrd.clevis.useTang = true;
@@ -64,7 +65,6 @@
         users.users.root.openssh.authorizedKeys.keys = config.lib.publicKeys.secureWithTag "presence";
 
         networking.useDHCP = false;
-        networking.hostName = inventoryHostname;
 
         systemd.network = {
           enable = true;

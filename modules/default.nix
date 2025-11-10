@@ -15,6 +15,7 @@ in
 
       imports = [
         self.nixosModules.sshd
+        self.nixosModules.zenburn
         self.nixosModules.tpm2-ssh
         self.nixosModules.nix
         self.nixosModules.inventory-legacy

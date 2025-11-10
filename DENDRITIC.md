@@ -47,6 +47,48 @@ This is the most complete module, where every aspect is configured.
 }
 ```
 
+# How dendritic nixos configuraion should look like
+
+```nix
+{ self, inputs, config, ... }:
+let
+    inventoryHostName = "some-machine";
+    system = "x86_64-linux";
+in
+{
+  flake.deploy.nodes.some-machine = {
+    hostname = config.inventory.ipAllocation."${inventoryHostName}".home.primary.address;
+    profiles.system = {
+      sshUser = "root";
+      path = self.lib.deploy-nixos self.nixosConfigurations.some-machine;
+    };
+  };
+
+  flake.nixosConfigurations.some-machine = inputs.nixpkgs.lib.nixosSystem {
+    inherit system;
+    specialArgs = {
+      flake = {
+        inherit self inputs config;
+      };
+      inherit inventoryHostName; # Can be used to include per-machine modules dynamically
+    };
+
+    modules = [
+      self.nixosModules.some-machine-configuration
+    ]
+    ++ self.nixosSharedModules;
+  };
+
+  flake.nixosModules.some-machine-configuration = {config, lib, pkgs, ...}: {
+    key = "nixos-config.nixos.some-machine-configuration";
+    imports = [
+        self.nixosModules.default
+        ...
+    ];
+  };
+}
+```
+
 # Conversion process for a single aspect
 
 Make sure that all existing changes are committed to git, run `just

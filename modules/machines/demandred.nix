@@ -17,7 +17,7 @@
     };
     modules = [
       self.nixosModules.demandred-configuration
-      ../../../configurations/nixos/demandred/configuration.nix
+      "${self}/configurations/nixos/demandred/configuration.nix"
     ]
     ++ self.nixosSharedModules;
   };

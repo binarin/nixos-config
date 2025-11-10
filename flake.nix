@@ -2,9 +2,7 @@
 # Use `nix run .#write-flake` to regenerate it.
 {
 
-  outputs =
-    inputs:
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules/flake-parts);
+  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 
   inputs = {
     arion = {
@@ -111,11 +109,8 @@
         nixpkgs = {
           follows = "nixpkgs-unstable";
         };
-        pre-commit-hooks-nix = {
-          follows = "";
-        };
       };
-      url = "github:nix-community/lanzaboote";
+      url = "github:nix-community/lanzaboote/v0.4.1";
     };
     nix-ai-tools = {
       inputs = {

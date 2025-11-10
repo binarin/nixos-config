@@ -1,12 +1,12 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.disko =
-    { inventoryHostname, ... }:
+    { inventoryHostName, ... }:
     {
       key = "nixos-config.disko";
       imports = [
         inputs.disko.nixosModules.disko
-        "${self}/machines/${inventoryHostname}/disko.nix"
+        "${self}/machines/${inventoryHostName}/disko.nix"
       ];
     };
 }

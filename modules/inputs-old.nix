@@ -7,7 +7,7 @@
   systems = [ "x86_64-linux" ];
 
   flake-file.outputs = lib.mkForce ''
-    inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules/flake-parts)
+    inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules)
   '';
 
   flake-file.inputs = {
@@ -25,11 +25,6 @@
 
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    lanzaboote.url = "github:nix-community/lanzaboote";
-    lanzaboote.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    lanzaboote.inputs.flake-parts.follows = "flake-parts";
-    lanzaboote.inputs.pre-commit-hooks-nix.follows = "";
 
     emacs-overlay.url = "emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";

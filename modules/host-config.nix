@@ -1,6 +1,5 @@
 {
   self,
-  inputs,
   ...
 }:
 {
@@ -8,7 +7,6 @@
 
   flake.modules.generic.host-config =
     {
-      flake,
       lib,
       config,
       options,

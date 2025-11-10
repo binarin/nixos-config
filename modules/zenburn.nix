@@ -132,8 +132,6 @@ let
     };
 in
 {
-  nixosSharedModules = [ self.nixosModules.zenburn ];
-
   flake.nixosModules.zenburn =
     { config, ... }:
     {

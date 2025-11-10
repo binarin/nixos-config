@@ -33,3 +33,7 @@ This should be configured on a per-machine basis.
 * TODO Drop hostConfig.features
 * TODO Patched git-crypt with worktree support
 * TODO Closure size tracking (with git notes?)
+* TODO nix-all-follow
+* TODO eval-all - sort according to evaluation time
+* TODO `just lint` - remove check, convert to pre-commit hook, ???
+* TODO Explain why explicit key is needed
