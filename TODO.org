@@ -27,5 +27,8 @@ This should be configured on a per-machine basis.
   - State "DONE"       from "TODO"       [2025-11-06 Thu 15:38]
   :END:
 * DONE install bluetui from an external flake
-* TODO Introduce ~nixosSharedModules~ flake attribute, with the type ~listOf deferredModule~
-* TODO feature.gui -> services.graphical-desktop.enable
+* TODO Convert nixos configurations
+* TODO Remove nixosSharedModules
+* TODO pre-commit hooks / treefmt
+* TODO Drop hostConfig.features
+* TODO Patched git-crypt with worktree support

@@ -1,8 +1,5 @@
-{ flake, lib, ... }:
+{ self, lib, ... }:
 let
-  inherit (flake) inputs;
-  inherit (inputs) self;
-
   dir = "${self}/packages";
   allFiles = builtins.readDir dir;
 
@@ -24,11 +21,30 @@ let
       nm:
       let
         fn = import nameToPath."${nm}";
-        packageFn = if (builtins.functionArgs fn) ? "flake" then fn { inherit flake; } else fn;
+        # Provide self as flake argument for compatibility with old packages
+        packageFn =
+          if (builtins.functionArgs fn) ? "flake" then
+            fn {
+              flake = {
+                inputs = { inherit self; };
+              };
+            }
+          else
+            fn;
       in
       final.callPackage packageFn { }
     );
 in
 {
-  nixpkgs.overlays = [ overlay ];
+  nixosSharedModules = [ self.nixosModules.flake-packages ];
+
+  flake.nixosModules.flake-packages =
+    { ... }:
+    {
+      key = "nixos-config.modules.nixos.flake-packages";
+
+      config = {
+        nixpkgs.overlays = [ overlay ];
+      };
+    };
 }
