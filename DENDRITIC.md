@@ -3,7 +3,7 @@
 This is the most complete module, where every aspect is configured.
 
 ```nix
-# Lives in a file `thingy.nix`
+# Lives in a file `modules/thingy.nix`
 {self, inputs, lib, ...}: {
     # additional flake inputs, should be materialized with `nix run '.#write-flake'`.
     # Important: if `imports` below is used, this should be done in two stages:
@@ -50,6 +50,7 @@ This is the most complete module, where every aspect is configured.
 # How dendritic nixos configuraion should look like
 
 ```nix
+# Lives in a file `modules/machines/some-machine.nix`
 { self, inputs, config, ... }:
 let
     inventoryHostName = "some-machine";
@@ -73,10 +74,9 @@ in
       inherit inventoryHostName; # Can be used to include per-machine modules dynamically
     };
 
-    modules = [
+  modules = [
       self.nixosModules.some-machine-configuration
     ]
-    ++ self.nixosSharedModules;
   };
 
   flake.nixosModules.some-machine-configuration = {config, lib, pkgs, ...}: {
@@ -84,7 +84,10 @@ in
     imports = [
         self.nixosModules.default
         ...
-    ];
+    ]
+    ++ self.nixosSharedModules;
+    
+    ...
   };
 }
 ```
