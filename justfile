@@ -141,7 +141,7 @@ ansible-inventory:
     outpath=$(nix build --impure --print-out-paths --no-link --expr 'let pkgs = import <nixpkgs> {}; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (import ./inventory/public-keys.nix)')
     cp -f "$outpath" ansible/ssh-public-keys.yaml
     # Build ip-allocation.yaml
-    outpath=$(nix build --impure --print-out-paths --no-link --expr 'let pkgs = import <nixpkgs> {}; fl = builtins.getFlake "'$(pwd)'"; in (pkgs.formats.yaml {}).generate "public-keys.yaml" { ip_allocation = fl.helpers.networks-lookup.buildHostLookupTable (fl.helpers.networks-lookup.readRawInventory);}')
+    outpath=$(nix build --impure --print-out-paths --no-link --expr 'let pkgs = import <nixpkgs> {}; fl = builtins.getFlake "'$(pwd)'"; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (let networks-lookup = import ./lib/networks-lookup.nix { self = fl; lib = pkgs.lib; }; in { ip_allocation = networks-lookup.buildHostLookupTable (networks-lookup.readRawInventory);})')
     cp -f "$outpath" ansible/ip-allocation.yaml
 
 [group('Ansible')]
