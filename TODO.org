@@ -40,3 +40,4 @@ This should be configured on a per-machine basis.
 * TODO Why was I not able to use pkgs.stdenv.hostPlatform.isLinux without inifinite recursion in home-manager?
 * TODO tpm2-pkcs11-esapi FTW
 * TODO pin caddy version?
+* TODO sort out zenburn

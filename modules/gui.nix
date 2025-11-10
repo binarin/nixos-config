@@ -60,6 +60,9 @@
       texlive-combined = pkgs.texlive.combine { inherit (pkgs.texlive) scheme-full beamer ps2eps; };
 
       guiPackages = with pkgs; [
+        prusa-slicer
+        openscad-unstable
+        freecad
         protonmail-bridge
         chromium
         evince
@@ -82,13 +85,6 @@
         xdotool
         xorg.xhost
       ];
-
-      slowRebuildGuiPackages = with pkgs; [
-        # (goldendict.override { qtwebkit = qtwebkitIgnoringVulns; })
-      ];
-
-      inherit (lib) optionals;
-      inherit (config.hostConfig) feature;
     in
     {
       options = {
@@ -121,7 +117,7 @@
                 ''file://${config.home.homeDirectory}/org''
               ];
             };
-            home.packages = guiPackages ++ (optionals (!feature.fast-rebuild) slowRebuildGuiPackages);
+            home.packages = guiPackages;
           }
           (lib.mkIf config.programs.telegram-desktop.enable {
             home.packages = with pkgs; [ tdesktop ];

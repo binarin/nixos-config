@@ -42,7 +42,6 @@
             # hyprlock = prev.hyprlock.override {
             #   stdenv = prev.gcc14Stdenv;
             # };
-            # hyprpicker = final.bleeding.hyprpicker;
             # xdg-desktop-portal-hyprland = prev.xdg-desktop-portal-hyprland.override {
             #   stdenv = prev.gcc14Stdenv;
             # };
@@ -104,6 +103,12 @@
     {
       key = "nixos-config.modules.home.hyprland";
 
+      imports = [
+        self.homeModules.waybar
+        self.homeModules.wayland
+        self.modules.generic.zenburn
+      ];
+
       config = {
         home.sessionVariables = {
           # Fix for some Java AWT applications (e.g. Android Studio),
@@ -143,7 +148,7 @@
           hyprshot
           networkmanagerapplet
           shellevents
-          sshmenu
+          self.packages."${pkgs.stdenv.system}".sshmenu
           swaynotificationcenter
         ];
 
@@ -179,12 +184,10 @@
               "[workspace 1 silent] uwsm app -t scope -u hyprland-exec-once-wezterm.scope -- wezterm"
               "[workspace 2 silent] uwsm app -t scope -u hyprland-exec-once-emacs.scope -- emacs"
               "[workspace 4 silent] uwsm app -t scope -u hyprland-exec-once-firefox.scope -- firefox"
-            ]
-            ++ (lib.optionals (!config.hostConfig.feature.airgapped) [
               "[workspace 5 silent] sleep 2; exec uwsm app -t scope -u hyprland-exec-once-thunderbird.scope -- thunderbird"
               "[workspace 5 silent; group new] sleep 1; uwsm app -t scope -u hyprland-exec-once-telegram-desktop.scope -- telegram-desktop"
-            ])
-            ++ [ ''sleep 3; hyprctl --batch "dispatch workspace 1"'' ];
+              ''sleep 3; hyprctl --batch "dispatch workspace 1''
+            ];
 
             # debug.disable_logs = false;
 

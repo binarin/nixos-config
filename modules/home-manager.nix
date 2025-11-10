@@ -9,8 +9,6 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  nixosSharedModules = [ self.nixosModules.home-manager ];
-
   flake.nixosModules.home-manager =
     {
       config,
@@ -30,9 +28,6 @@
         home-manager.extraSpecialArgs = specialArgs;
         home-manager.useGlobalPkgs = true;
         home-manager.backupFileExtension = "backup";
-
-        # So for small changes I can run only home-manager activation script, to reduce iteration time
-        home-manager.useUserPackages = lib.mkForce false;
       };
     };
 

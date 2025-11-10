@@ -8,8 +8,6 @@
     impermanence.url = "github:nix-community/impermanence";
   };
 
-  nixosSharedModules = [ self.nixosModules.impermanence ];
-
   flake.nixosModules.impermanence =
     {
       pkgs,
@@ -21,6 +19,7 @@
       key = "nixos-config.modules.nixos.impermanence";
       imports = [
         inputs.impermanence.nixosModules.impermanence
+        self.nixosModules.home-manager
       ];
 
       # impermanence is too eager to apply checks, even to `evironment.persistence.XXX` which are not enabled.
@@ -57,190 +56,186 @@
         };
       };
 
-      config = lib.mkMerge [
-        {
-          home-manager.sharedModules = [
-            self.homeModules.impermanence
-          ];
-        }
+      config = lib.mkIf config.impermanence.enable (
+        lib.mkMerge [
+          {
+            home-manager.sharedModules = [
+              self.homeModules.impermanence
+            ];
 
-        (lib.mkIf config.impermanence.enable (
-          lib.mkMerge [
-            {
-              boot.initrd.systemd.emergencyAccess = true;
-              boot.initrd.systemd.initrdBin = with pkgs; [
-                rsync
+            boot.initrd.systemd.emergencyAccess = true;
+            boot.initrd.systemd.initrdBin = with pkgs; [
+              rsync
+            ];
+            boot.supportedFilesystems = [
+              "ext4"
+              "vfat"
+              "exfat"
+            ];
+
+            users.mutableUsers = false;
+
+            programs.fuse.userAllowOther = true;
+
+            boot.initrd.systemd.services.impermanence-root-rollback = {
+              description = "Rollback root btrfs subvolume to a pristine state";
+              wantedBy = [
+                "initrd.target"
               ];
-              boot.supportedFilesystems = [
-                "ext4"
-                "vfat"
-                "exfat"
+              after = [
+                "dev-main-all.device"
               ];
+              before = [
+                "sysroot.mount"
+              ];
+              path = with pkgs; [
+                btrfs-progs
+                findutils
+                # core-utils / util-linux "mount" are already in /bin
+              ];
+              unitConfig.DefaultDependencies = "no";
+              serviceConfig.Type = "oneshot";
+              script = ''
+                export PATH="$PATH:/bin"
+                mkdir /btrfs_tmp
+                mount /dev/main/all /btrfs_tmp
+                if [[ -e /btrfs_tmp/root ]]; then
+                    mkdir -p /btrfs_tmp/old_roots
+                    timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
+                    mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
+                fi
 
-              users.mutableUsers = false;
+                delete_subvolume_recursively() {
+                    IFS=$'\n'
+                    for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
+                        delete_subvolume_recursively "/btrfs_tmp/$i"
+                    done
+                    btrfs subvolume delete "$1"
+                }
 
-              programs.fuse.userAllowOther = true;
+                for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
+                    delete_subvolume_recursively "$i"
+                done
 
-              boot.initrd.systemd.services.impermanence-root-rollback = {
-                description = "Rollback root btrfs subvolume to a pristine state";
-                wantedBy = [
-                  "initrd.target"
+                btrfs subvolume create /btrfs_tmp/root
+
+                # They are created with 'Q' by tmpfiles, let's prevent creating those subvolumes
+                mkdir -p /btrfs_tmp/root/var/lib/{machines,portables}
+
+                umount /btrfs_tmp
+              '';
+            };
+            sops.age.sshKeyPaths = lib.mkForce [ "/persist/ssh/ssh_host_ed25519_key" ];
+
+            system.activationScripts = {
+              "manual-impermanence-create-dirs" = {
+                deps = [
+                  "users"
+                  "groups"
                 ];
-                after = [
-                  "dev-main-all.device"
-                ];
-                before = [
-                  "sysroot.mount"
-                ];
-                path = with pkgs; [
-                  btrfs-progs
-                  findutils
-                  # core-utils / util-linux "mount" are already in /bin
-                ];
-                unitConfig.DefaultDependencies = "no";
-                serviceConfig.Type = "oneshot";
-                script = ''
-                  export PATH="$PATH:/bin"
-                  mkdir /btrfs_tmp
-                  mount /dev/main/all /btrfs_tmp
-                  if [[ -e /btrfs_tmp/root ]]; then
-                      mkdir -p /btrfs_tmp/old_roots
-                      timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
-                      mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
-                  fi
-
-                  delete_subvolume_recursively() {
-                      IFS=$'\n'
-                      for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
-                          delete_subvolume_recursively "/btrfs_tmp/$i"
-                      done
-                      btrfs subvolume delete "$1"
-                  }
-
-                  for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
-                      delete_subvolume_recursively "$i"
-                  done
-
-                  btrfs subvolume create /btrfs_tmp/root
-
-                  # They are created with 'Q' by tmpfiles, let's prevent creating those subvolumes
-                  mkdir -p /btrfs_tmp/root/var/lib/{machines,portables}
-
-                  umount /btrfs_tmp
+                text = ''
+                  mkdir -p /local/etc/NetworkManager/system-connections/
+                  mkdir -p /local/var/lib/tailscale/
                 '';
               };
-              sops.age.sshKeyPaths = lib.mkForce [ "/persist/ssh/ssh_host_ed25519_key" ];
+            };
 
-              system.activationScripts = {
-                "manual-impermanence-create-dirs" = {
-                  deps = [
-                    "users"
-                    "groups"
-                  ];
-                  text = ''
-                    mkdir -p /local/etc/NetworkManager/system-connections/
-                    mkdir -p /local/var/lib/tailscale/
-                  '';
-                };
-              };
-
-              services.openssh = {
-                enable = true;
-                hostKeys = [
-                  {
-                    path = "/persist/ssh/ssh_host_ed25519_key";
-                    type = "ed25519";
-                  }
-                  {
-                    path = "/persist/ssh/ssh_host_rsa_key";
-                    type = "rsa";
-                    bits = 4096;
-                  }
-                ];
-              };
-
-              systemd.services.tailscaled.serviceConfig.BindPaths = [
-                "/local/var/lib/tailscale:/var/lib/tailscale"
-              ];
-
-              environment.etc."NetworkManager/system-connections" = {
-                source = "/local/etc/NetworkManager/system-connections/";
-              };
-
-              environment.persistence."/persist" = {
-                enable = true;
-                hideMounts = true;
-                directories = [
-                  "/var/lib/nixos"
-                  "/root/.ssh"
-                ];
-                files = [
-                  "/etc/machine-id"
-                ];
-                users =
-                  with lib;
-                  flip mapAttrs config.home-manager.users (
-                    _u: h: {
-                      files = h.impermanence.persist-files;
-                      directories = h.impermanence.persist-directories;
-                    }
-                  );
-              };
-
-              environment.persistence."/local" = {
-                enable = true;
-                hideMounts = true;
-                directories = [
-                  "/var/log"
-                  "/var/lib/systemd/coredump"
-                  "/var/lib/systemd/timers"
-                ];
-                users =
-                  with lib;
-                  flip mapAttrs config.home-manager.users (
-                    _u: h: {
-                      files = h.impermanence.local-files;
-                      directories = h.impermanence.local-directories;
-                    }
-                  );
-              };
-            }
-
-            (lib.mkIf config.services.homebox.enable {
-              environment.persistence."/persist" = {
-                directories = [
-                  "/var/lib/homebox"
-                ];
-              };
-            })
-
-            (lib.mkIf config.services.caddy.enable {
-              services.caddy.dataDir = "/local/var/lib/caddy";
-              systemd.tmpfiles.rules = [
-                "d /local/var/lib/caddy 0700 ${config.services.caddy.user} ${config.services.caddy.group} - -"
-              ];
-            })
-
-            (lib.mkIf config.virtualisation.docker.enable {
-              assertions = [
+            services.openssh = {
+              enable = true;
+              hostKeys = [
                 {
-                  assertion = config.fileSystems ? "/var/lib/docker";
-                  message = "Docker's /var/lib/docker should be persisted, either by impermanence or explicitely separately mounted";
+                  path = "/persist/ssh/ssh_host_ed25519_key";
+                  type = "ed25519";
+                }
+                {
+                  path = "/persist/ssh/ssh_host_rsa_key";
+                  type = "rsa";
+                  bits = 4096;
                 }
               ];
-            })
+            };
 
-            (lib.mkIf config.virtualisation.libvirtd.enable {
-              assertions = [
-                {
-                  assertion = config.fileSystems ? "/var/lib/libvirt";
-                  message = "/var/lib/libvirt should be persisted, either by impermanence or explicitely separately mounted";
-                }
+            systemd.services.tailscaled.serviceConfig.BindPaths = [
+              "/local/var/lib/tailscale:/var/lib/tailscale"
+            ];
+
+            environment.etc."NetworkManager/system-connections" = {
+              source = "/local/etc/NetworkManager/system-connections/";
+            };
+
+            environment.persistence."/persist" = {
+              enable = true;
+              hideMounts = true;
+              directories = [
+                "/var/lib/nixos"
+                "/root/.ssh"
               ];
-            })
-          ]
-        ))
-      ];
+              files = [
+                "/etc/machine-id"
+              ];
+              users =
+                with lib;
+                flip mapAttrs config.home-manager.users (
+                  _u: h: {
+                    files = h.impermanence.persist-files;
+                    directories = h.impermanence.persist-directories;
+                  }
+                );
+            };
+
+            environment.persistence."/local" = {
+              enable = true;
+              hideMounts = true;
+              directories = [
+                "/var/log"
+                "/var/lib/systemd/coredump"
+                "/var/lib/systemd/timers"
+              ];
+              users =
+                with lib;
+                flip mapAttrs config.home-manager.users (
+                  _u: h: {
+                    files = h.impermanence.local-files;
+                    directories = h.impermanence.local-directories;
+                  }
+                );
+            };
+          }
+
+          (lib.mkIf config.services.homebox.enable {
+            environment.persistence."/persist" = {
+              directories = [
+                "/var/lib/homebox"
+              ];
+            };
+          })
+
+          (lib.mkIf config.services.caddy.enable {
+            services.caddy.dataDir = "/local/var/lib/caddy";
+            systemd.tmpfiles.rules = [
+              "d /local/var/lib/caddy 0700 ${config.services.caddy.user} ${config.services.caddy.group} - -"
+            ];
+          })
+
+          (lib.mkIf config.virtualisation.docker.enable {
+            assertions = [
+              {
+                assertion = config.fileSystems ? "/var/lib/docker";
+                message = "Docker's /var/lib/docker should be persisted, either by impermanence or explicitely separately mounted";
+              }
+            ];
+          })
+
+          (lib.mkIf config.virtualisation.libvirtd.enable {
+            assertions = [
+              {
+                assertion = config.fileSystems ? "/var/lib/libvirt";
+                message = "/var/lib/libvirt should be persisted, either by impermanence or explicitely separately mounted";
+              }
+            ];
+          })
+        ]
+      );
     };
 
   flake.homeModules.impermanence =
@@ -286,78 +281,72 @@
         };
       };
 
-      config = lib.mkIf false (
-        lib.mkMerge [
-          {
-            programs.atuin.settings.db_path = "${safeState}/atuin/history.db";
+      config = lib.mkMerge [
+        {
+          programs.atuin.settings.db_path = "${safeState}/atuin/history.db";
 
-            home.sessionVariables = {
-              GPGHOME = "${safeState}/gnupg";
-              IMPERMANENCE_LOCAL_CACHE = "${localCache}";
-            };
+          home.sessionVariables = {
+            GPGHOME = "${safeState}/gnupg";
+            IMPERMANENCE_LOCAL_CACHE = "${localCache}";
+          };
 
-            programs.zsh.dotDir = ".config/zsh";
-            programs.zsh.history.path = "${localCache}/zsh_history";
+          programs.zsh.dotDir = ".config/zsh";
+          programs.zsh.history.path = "${localCache}/zsh_history";
 
-            xdg = {
-              enable = true;
-              stateHome = "${safeDir}/.local/state";
-            };
+          xdg = {
+            enable = true;
+            stateHome = "${safeDir}/.local/state";
+          };
 
-            impermanence.persist-directories = [
-              "Desktop"
-              "Documents"
-              "Downloads"
-              "Music"
-              "Pictures"
-              "Videos"
-            ];
+          impermanence.persist-directories = [
+            "Desktop"
+            "Documents"
+            "Downloads"
+            "Music"
+            "Pictures"
+            "Videos"
+          ];
 
-            xdg.userDirs = {
-              enable = true;
-              desktop = "${homeDir}/Desktop";
-              documents = "${homeDir}/Documents";
-              download = "${homeDir}/Downloads";
-              music = "${homeDir}/Music";
-              pictures = "${homeDir}/Pictures";
-              videos = "${homeDir}/Videos";
-            };
+          xdg.userDirs = {
+            enable = true;
+            desktop = "${homeDir}/Desktop";
+            documents = "${homeDir}/Documents";
+            download = "${homeDir}/Downloads";
+            music = "${homeDir}/Music";
+            pictures = "${homeDir}/Pictures";
+            videos = "${homeDir}/Videos";
+          };
 
-            home.persistence."${safeDir}" = {
-              enable = true;
-              allowOther = true;
-            };
+          home.persistence."${safeDir}" = {
+            enable = true;
+            allowOther = true;
+          };
 
-            home.persistence."${localDir}" = {
-              enable = true;
-              allowOther = true;
-            };
-          }
+          home.persistence."${localDir}" = {
+            enable = true;
+            allowOther = true;
+          };
 
-          (lib.mkIf config.hostConfig.feature.interactive-cli {
-            home.persistence."${safeDir}" = {
-              files = [
-                ".config/sops/age/keys.txt"
-              ];
-            };
-          })
+          impermanence.persist-files = [
+            ".config/sops/age/keys.txt"
+          ];
+        }
 
-          (lib.mkIf config.programs.starship.enable {
-            home.sessionVariables = {
-              STARSHIP_CACHE = "${garbageDir}/starship";
-            };
-          })
+        (lib.mkIf config.programs.starship.enable {
+          home.sessionVariables = {
+            STARSHIP_CACHE = "${garbageDir}/starship";
+          };
+        })
 
-          (lib.mkIf config.programs.zoxide.enable {
-            home.sessionVariables = {
-              _ZO_DATA_DIR = "${localCache}/zoxide";
-            };
-          })
+        (lib.mkIf config.programs.zoxide.enable {
+          home.sessionVariables = {
+            _ZO_DATA_DIR = "${localCache}/zoxide";
+          };
+        })
 
-          (lib.mkIf osConfig.security.pam.services.login.kwallet.enable {
-            impermanence.local-directories = [ ".local/share/kwallet" ];
-          })
-        ]
-      );
+        (lib.mkIf osConfig.security.pam.services.login.kwallet.enable {
+          impermanence.local-directories = [ ".local/share/kwallet" ];
+        })
+      ];
     };
 }

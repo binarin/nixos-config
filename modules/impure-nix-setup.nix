@@ -1,13 +1,20 @@
 { self, inputs, ... }:
 {
-  nixosSharedModules = [ self.nixosModules.impure-nix-setup ];
-
   flake.nixosModules.impure-nix-setup =
     { config, lib, ... }:
     {
       key = "nixos-config.modules.nixos.impure-nix-setup";
 
-      config = lib.mkIf config.hostConfig.feature.nix-builder or false {
+      imports = [
+        self.modules.generic.flake-files
+      ];
+
+      config = {
+        nix.extraOptions = ''
+          gc-keep-outputs = true
+          gc-keep-derivations = true
+        '';
+
         environment.etc."nix/inputs/nixpkgs".source = "${inputs.nixpkgs}";
         environment.etc."nix/inputs/self-absolute-path".text = "${self}";
         environment.etc."nix/overlays/self-overlays.nix".source =

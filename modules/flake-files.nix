@@ -96,16 +96,10 @@
     };
 
   flake.nixosModules.flake-files =
-    { config, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.nixos.flake-files";
 
       imports = [ self.modules.generic.flake-files ];
-
-      config = {
-        home-manager.sharedModules = [ self.modules.generic.flake-files ];
-      };
     };
-
-  nixosSharedModules = [ self.nixosModules.flake-files ];
 }

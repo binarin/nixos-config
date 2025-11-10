@@ -71,6 +71,4 @@
         home-manager.sharedModules = [ self.modules.generic.public-keys ];
       };
     };
-
-  nixosSharedModules = [ self.nixosModules.public-keys ];
 }

@@ -1,6 +1,5 @@
 { self, ... }:
 {
-  nixosSharedModules = [ self.nixosModules.expose-local-http ];
 
   flake.nixosModules.expose-local-http =
     {

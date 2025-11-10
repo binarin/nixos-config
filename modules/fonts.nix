@@ -46,5 +46,4 @@
       config.home-manager.sharedModules = [ self.homeModules.fonts ];
     };
 
-  nixosSharedModules = [ self.nixosModules.fonts ];
 }

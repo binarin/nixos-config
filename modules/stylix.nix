@@ -12,6 +12,10 @@ let
       ...
     }:
     {
+      imports = [
+        self.modules.generic.zenburn
+      ];
+
       stylix.enable = true;
       stylix.autoEnable = false;
 
@@ -134,8 +138,6 @@ in
     stylix.url = "github:danth/stylix/release-25.05";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
   };
-
-  nixosSharedModules = [ self.nixosModules.stylix ];
 
   flake.nixosModules.stylix =
     {

@@ -1,13 +1,12 @@
-{ self, ... }:
+{ ... }:
 {
-  nixosSharedModules = [ self.nixosModules.eternal-terminal ];
 
   flake.nixosModules.eternal-terminal =
-    { config, lib, ... }:
+    { config, ... }:
     {
       key = "nixos-config.modules.nixos.eternal-terminal";
 
-      config = lib.mkIf config.hostConfig.feature.interactive-cli or false {
+      config = {
         services.eternal-terminal = {
           enable = true;
         };

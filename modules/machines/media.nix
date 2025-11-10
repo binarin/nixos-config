@@ -9,8 +9,8 @@
     modules = [
       self.nixosModules.media-configuration
       self.nixosModules.expose-local-http
-    ]
-    ++ self.nixosSharedModules;
+    ];
+
   };
 
   flake.nixosModules.media-configuration =
@@ -38,16 +38,13 @@
       key = "nixos-config.media-configuration";
       imports = [
         self.nixosModules.default
+        self.nixosModules.lxc
         self.nixosModules.user-binarin
         inputs.arion.nixosModules.arion
       ];
 
       config = {
         networking.hostName = "media";
-        hostConfig.features = [
-          "lxc"
-          "interactive-cli"
-        ];
 
         home-manager.users.binarin.home.packages = with pkgs; [
           beets-unstable

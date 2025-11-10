@@ -1,11 +1,13 @@
 { self, ... }:
 {
-  nixosSharedModules = [ self.nixosModules.sshd ];
-
   flake.nixosModules.sshd =
     { lib, config, ... }:
     {
       key = "nixos-config.modules.nixos.sshd";
+
+      imports = [
+        self.nixosModules.public-keys
+      ];
 
       config = {
         networking.firewall.allowedTCPPorts = [ 22 ];

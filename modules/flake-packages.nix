@@ -1,3 +1,4 @@
+# XXX get rid of it
 { self, lib, ... }:
 let
   dir = "${self}/packages";
@@ -36,7 +37,6 @@ let
     );
 in
 {
-  nixosSharedModules = [ self.nixosModules.flake-packages ];
 
   flake.nixosModules.flake-packages =
     { ... }:

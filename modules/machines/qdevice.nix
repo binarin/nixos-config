@@ -16,15 +16,9 @@
 
   flake.nixosConfigurations.qdevice = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = {
-      inventoryHostName = "qdevice";
-    };
-
     modules = [
-      self.nixosModules.default
       self.nixosModules.qdevice-configuration
-    ]
-    ++ self.nixosSharedModules;
+    ];
   };
 
   flake.nixosModules.qdevice-configuration =
@@ -38,6 +32,7 @@
       key = "nixos-config.qdevice-configuration";
 
       imports = [
+        self.nixosModules.default
         self.nixosModules.systemd-boot
         self.nixosModules.disko
         inputs.arion.nixosModules.arion

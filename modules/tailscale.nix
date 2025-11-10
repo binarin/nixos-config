@@ -1,18 +1,13 @@
-{ self, ... }:
+{ ... }:
 {
-  nixosSharedModules = [ self.nixosModules.tailscale ];
-
   flake.nixosModules.tailscale =
     { lib, config, ... }:
     {
       key = "nixos-config.modules.nixos.tailscale";
 
-      config = lib.mkIf config.hostConfig.feature.tailscale or false {
-        sops.secrets.tailscale-auth = { };
-
+      config = {
         services.tailscale = {
           enable = true;
-          authKeyFile = "${config.sops.secrets.tailscale-auth.path}";
           extraUpFlags = [
             "--hostname"
             "${config.networking.hostName}"

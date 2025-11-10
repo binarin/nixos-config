@@ -6,15 +6,10 @@
 {
   flake.nixosConfigurations.forgejo = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = {
-      hostConfig = {
-        isLinux = true;
-      };
-    };
     modules = [
       self.nixosModules.forgejo-configuration
-    ]
-    ++ self.nixosSharedModules;
+    ];
+
   };
 
   flake.nixosModules.forgejo-configuration =
@@ -28,12 +23,12 @@
       key = "nixos-config.forgejo-configuration";
       imports = [
         self.nixosModules.default
+        self.nixosModules.lxc
         self.nixosModules.server
       ];
 
       config = {
         networking.hostName = "forgejo";
-        hostConfig.features = [ "lxc" ];
 
         sops.secrets.tailscale-auth = { };
         services.tailscale = {

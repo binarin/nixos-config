@@ -8,19 +8,20 @@
       pkgs,
       config,
       lib,
+      osConfig,
       ...
     }:
     {
       key = "nixos-config.modules.home.git";
 
-      config = lib.mkIf config.hostConfig.feature.interactive-cli {
+      config = {
         home.shellAliases = {
           g = "git";
         };
 
         programs.git = {
           enable = true;
-          package = pkgs.gitAndTools.gitFull;
+          package = if osConfig.services.graphical-desktop.enable then pkgs.gitAndTools.gitFull else pkgs.git;
           delta.enable = true;
           extraConfig = {
             column.ui = "auto";
@@ -67,12 +68,10 @@
     };
 
   flake.nixosModules.git =
-    { config, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.nixos.git";
-
-      config.home-manager.sharedModules = [ self.homeModules.git ];
+      programs.git.enable = true;
     };
 
-  nixosSharedModules = [ self.nixosModules.git ];
 }

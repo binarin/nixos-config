@@ -62,5 +62,4 @@
       config.home-manager.sharedModules = [ self.homeModules.foot ];
     };
 
-  nixosSharedModules = [ self.nixosModules.foot ];
 }

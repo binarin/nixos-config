@@ -6,15 +6,9 @@
 {
   flake.nixosConfigurations.docker-on-nixos = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = {
-      hostConfig = {
-        isLinux = true;
-      };
-    };
     modules = [
       self.nixosModules.docker-on-nixos-configuration
-    ]
-    ++ self.nixosSharedModules;
+    ];
   };
 
   flake.nixosModules.docker-on-nixos-configuration =
@@ -65,6 +59,9 @@
       key = "nixos-config.docker-on-nixos-configuration";
       imports = [
         self.nixosModules.default
+        self.nixosModules.lxc
+        self.nixosModules.impermanence
+        self.nixosModules.expose-local-http
         "${inputs.nixpkgs}/nixos/modules/profiles/minimal.nix"
         inputs.arion.nixosModules.arion
       ];
@@ -73,12 +70,6 @@
         networking.hostName = "docker-on-nixos";
 
         impermanence.enable = true;
-
-        hostConfig.features = [
-          "lxc"
-          "tailscale"
-        ];
-
         system.stateVersion = "24.11";
 
         lib.lxc.createCommand = create;

@@ -6,15 +6,9 @@
 {
   flake.nixosConfigurations.monitor = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = {
-      hostConfig = {
-        isLinux = true;
-      };
-    };
     modules = [
       self.nixosModules.monitor-configuration
-    ]
-    ++ self.nixosSharedModules;
+    ];
   };
 
   flake.nixosModules.monitor-configuration =
@@ -27,11 +21,11 @@
       key = "nixos-config.monitor-configuration";
       imports = [
         self.nixosModules.default
+        self.nixosModules.lxc
       ];
 
       config = {
         networking.hostName = "monitor";
-        hostConfig.features = [ "lxc" ];
 
         services.openssh.enable = true;
         services.openssh.settings.PermitRootLogin = "yes";
@@ -80,10 +74,10 @@
 
         services.grafana = {
           enable = true;
-          declarativePlugins = [ pkgs.grafana-victoriametrics-datasource ];
+          declarativePlugins = with pkgs.grafanaPlugins; [ victoriametrics-metrics-datasource ];
           settings = {
             plugins = {
-              allow_loading_unsigned_plugins = "victoriametrics-datasource";
+              # allow_loading_unsigned_plugins = "victoriametrics-datasource";
             };
             security = {
               admin_user = "$__file{${config.sops.secrets."grafana/admin-username".path}}";

@@ -1,6 +1,5 @@
-{ self, ... }:
+{ ... }:
 {
-  nixosSharedModules = [ self.nixosModules.use-nix-cache ];
 
   flake.nixosModules.use-nix-cache =
     { config, lib, ... }:

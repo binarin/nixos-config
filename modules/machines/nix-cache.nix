@@ -1,20 +1,19 @@
 {
   self,
   inputs,
+  config,
   ...
 }:
+let
+  flakeConfig = config;
+in
 {
   flake.nixosConfigurations.nix-cache = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = {
-      hostConfig = {
-        isLinux = true;
-      };
-    };
     modules = [
       self.nixosModules.nix-cache-configuration
-    ]
-    ++ self.nixosSharedModules;
+    ];
+
   };
 
   flake.nixosModules.nix-cache-configuration =
@@ -31,16 +30,12 @@
       key = "nixos-config.nix-cache-configuration";
       imports = [
         self.nixosModules.default
+        self.nixosModules.lxc
+        self.nixosModules.impure-nix-setup
       ];
 
       config = {
         networking.hostName = "nix-cache";
-
-        hostConfig.features = [
-          "lxc"
-          "nix-builder"
-          "interactive-cli"
-        ];
 
         system.stateVersion = "24.11";
 
@@ -78,7 +73,7 @@
           ];
 
           serverAliases = [
-            # XXX config.hostConfig.ipAllocation.home.primary.address
+            flakeConfig.inventory.ipAllocation."${config.networking.hostName}".home.primary.address
           ];
 
           locations."/" = {

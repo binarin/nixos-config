@@ -1,7 +1,5 @@
-{ self, ... }:
+{ ... }:
 {
-  nixosSharedModules = [ self.nixosModules.security ];
-
   flake.nixosModules.security =
     { config, ... }:
     {

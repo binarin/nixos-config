@@ -14,12 +14,17 @@ in
       key = "nixos-config.default";
 
       imports = [
-        self.nixosModules.sshd
-        self.nixosModules.zenburn
-        self.nixosModules.tpm2-ssh
-        self.nixosModules.nix
+        self.nixosModules.emacs
+        self.nixosModules.eternal-terminal
+        self.nixosModules.git
+        self.nixosModules.interactive-cli
         self.nixosModules.inventory-legacy
-        self.modules.generic.public-keys
+        self.nixosModules.nix
+        self.nixosModules.security
+        self.nixosModules.sops
+        self.nixosModules.sshd
+        self.nixosModules.tailscale
+        self.nixosModules.use-nix-cache
       ];
 
       options = {

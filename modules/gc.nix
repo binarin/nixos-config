@@ -21,6 +21,4 @@
 
       config.home-manager.sharedModules = [ self.homeModules.gc ];
     };
-
-  nixosSharedModules = [ self.nixosModules.gc ];
 }

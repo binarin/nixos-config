@@ -12,6 +12,8 @@ in
 
       imports = [
         self.nixosModules.home-manager
+        self.nixosModules.impermanence
+        self.nixosModules.stylix
       ];
 
       users.users = {
@@ -72,15 +74,24 @@ in
     };
 
   flake.homeModules.user-binarin =
-    { ... }:
+    { lib, osConfig, ... }:
     {
       key = "nixos-config.users.binarin";
 
       imports = [
+        self.homeModules.impermanence
+        self.homeModules.git
+        self.homeModules.emacs
         self.homeModules.claude-code
         self.homeModules.direnv
-        self.homeModules.emacs
-      ];
+        self.homeModules.interactive-cli
+        self.homeModules.sops
+      ]
+      ++ (lib.optionals osConfig.services.graphical-desktop.enable [
+        self.homeModules.niri
+        self.homeModules.hyprland
+        self.homeModules.wezterm
+      ]);
 
       programs.git = {
         userName = "Alexey Lebedeff";

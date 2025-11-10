@@ -44,19 +44,26 @@
           };
         };
       };
-      home-manager.sharedModules = [
-        self.homeModules.niri
-        self.homeModules.waybar
-      ];
     };
 
   flake.homeModules.niri =
-    { lib, config, ... }:
     {
-      key = "nixos-config.programs.niri";
+      lib,
+      config,
+      pkgs,
+      ...
+    }:
+    {
+      key = "nixos-config.home.niri";
 
       imports = [
+        self.homeModules.wayland
         self.homeModules.fuzzel
+        self.homeModules.waybar
+      ];
+
+      home.packages = [
+        self.packages."${pkgs.stdenv.system}".sshmenu
       ];
 
       xdg.configFile."niri/config.kdl".source =

@@ -8,6 +8,33 @@
     nix-index-database.url = "github:nix-community/nix-index-database";
   };
 
+  flake.nixosModules.interactive-cli =
+    { pkgs, config, ... }:
+    {
+      key = "nixos-config.modules.nixos.interactive-cli";
+
+      environment.enableAllTerminfo = true;
+
+      programs.iftop.enable = true;
+      programs.iotop.enable = true;
+      programs.mosh.enable = true;
+
+      programs.wireshark.enable = true;
+      programs.wireshark.package =
+        if config.services.graphical-desktop.enable then pkgs.wireshark-qt else pkgs.tshark;
+
+      environment.systemPackages = with pkgs; [
+        bridge-utils
+        cryptsetup
+        inotify-tools
+        iptables
+        nftables
+        pciutils
+        usbutils
+      ];
+
+    };
+
   flake.homeModules.interactive-cli =
     {
       lib,
@@ -33,7 +60,8 @@
       };
 
       config = lib.mkMerge [
-        (lib.mkIf config.hostConfig.feature.interactive-cli {
+        {
+
           programs.atuin = {
             enable = true;
             enableZshIntegration = true;
@@ -323,7 +351,7 @@
             yubikey-manager
             zip
           ];
-        })
+        }
         (lib.mkIf config.programs.atuin.enable {
           home.sessionVariables.ATUIN_NOBIND = "1"; # XXX why I did it?
         })
@@ -412,13 +440,4 @@
       ];
     };
 
-  flake.nixosModules.interactive-cli =
-    { config, ... }:
-    {
-      key = "nixos-config.modules.nixos.interactive-cli";
-
-      config.home-manager.sharedModules = [ self.homeModules.interactive-cli ];
-    };
-
-  nixosSharedModules = [ self.nixosModules.interactive-cli ];
 }

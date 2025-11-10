@@ -9,22 +9,21 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  nixosSharedModules = [ self.nixosModules.sops ];
-
   flake.nixosModules.sops =
     { config, ... }:
     {
       key = "nixos-config.modules.nixos.sops";
 
-      imports = [ inputs.sops-nix.nixosModules.sops ];
+      imports = [
+        inputs.sops-nix.nixosModules.sops
+        self.modules.generic.flake-files
+      ];
 
       config = {
         # should be stringified path
         sops.defaultSopsFile = "${config.lib.self.file' "secrets/${config.networking.hostName}/secrets.yaml"}";
 
         sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-
-        home-manager.sharedModules = [ self.homeModules.sops ];
       };
     };
 
@@ -33,7 +32,10 @@
     {
       key = "nixos-config.modules.home.sops";
 
-      imports = [ inputs.sops-nix.homeManagerModules.sops ];
+      imports = [
+        inputs.sops-nix.homeManagerModules.sops
+        self.modules.generic.flake-files
+      ];
 
       config = {
         sops = {

@@ -24,7 +24,10 @@
     }:
     {
       key = "nixos-config.modules.home.waybar";
-      imports = [ self.homeModules.zenburn ];
+      imports = [
+        self.modules.generic.zenburn
+        self.modules.generic.flake-files
+      ];
 
       config = {
         home.packages = [ pkgs.noto-fonts ];

@@ -6,15 +6,10 @@
 {
   flake.nixosConfigurations.ishamael = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = {
-      hostConfig = {
-        isLinux = true;
-      };
-    };
     modules = [
       self.nixosModules.ishamael-configuration
-    ]
-    ++ self.nixosSharedModules;
+    ];
+
   };
 
   flake.nixosModules.ishamael-configuration =
@@ -30,18 +25,12 @@
         (modulesPath + "/profiles/qemu-guest.nix")
         self.nixosModules.default
         self.nixosModules.user-binarin
+        self.nixosModules.hyprland
+        self.nixosModules.impure-nix-setup
       ];
 
       config = {
         networking.hostName = "ishamael";
-
-        hostConfig.features = [
-          "hyprland"
-          "nix-builder"
-          "interactive-cli"
-          "emacs"
-          "tailscale"
-        ];
 
         # Move XDG directories to .xdg subdirectory
         environment.sessionVariables = {

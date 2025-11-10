@@ -6,15 +6,9 @@
 {
   flake.nixosConfigurations.demandred = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = {
-      hostConfig = {
-        isLinux = true;
-      };
-    };
     modules = [
       self.nixosModules.demandred-configuration
-    ]
-    ++ self.nixosSharedModules;
+    ];
   };
 
   flake.nixosModules.demandred-configuration =
@@ -41,21 +35,13 @@
         self.nixosModules.firefox
         self.nixosModules.hyprland
         self.nixosModules.inventory-legacy
+        self.nixosModules.impure-nix-setup
+        self.nixosModules.large-console-fonts
       ];
       config = {
         networking.hostName = "demandred";
 
         impermanence.enable = true;
-
-        hostConfig.features = [
-          "hyprland"
-          "interactive-cli"
-          "emacs"
-          "workstation"
-          "tailscale"
-          # "airgapped"
-          "nix-builder"
-        ];
 
         system.stateVersion = "24.11";
 
@@ -92,8 +78,6 @@
 
         users.users.root.initialHashedPassword = "$7$CU..../....2tYl/rrPqgcDE/0wbfkSR/$BDDtkNKdAi/yfv3P7ETmpoCKBxfHdiRIM8B4K8nFuB3";
         users.users.binarin.initialHashedPassword = "$7$CU..../....w.WruOOmFL2KKwVMMMysm1$OxbByS3HBVRsOdmYlqBtpivURr1QWVBVf87M1gXAEQC";
-
-        console.useLargeFonts = true;
 
         services.kanata.keyboards.all.devices = [
           "/dev/input/by-path/platform-i8042-serio-0-event-kbd"

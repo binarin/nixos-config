@@ -50,14 +50,4 @@
           '';
       };
     };
-
-  flake.nixosModules.wezterm =
-    { config, ... }:
-    {
-      key = "nixos-config.modules.nixos.wezterm";
-
-      config.home-manager.sharedModules = [ self.homeModules.wezterm ];
-    };
-
-  nixosSharedModules = [ self.nixosModules.wezterm ];
 }

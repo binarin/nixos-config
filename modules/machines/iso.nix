@@ -6,15 +6,9 @@
 {
   flake.nixosConfigurations.iso = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = {
-      hostConfig = {
-        isLinux = true;
-      };
-    };
     modules = [
       self.nixosModules.iso-configuration
-    ]
-    ++ self.nixosSharedModules;
+    ];
   };
 
   flake.nixosModules.iso-configuration =
@@ -30,16 +24,13 @@
         "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma6.nix"
         "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/channel.nix"
         self.nixosModules.default
+        self.nixosModules.impure-nix-setup
         self.nixosModules.user-binarin
+        self.nixosModules.large-console-fonts
       ];
 
       config = {
         networking.hostName = "iso";
-
-        hostConfig.features = [
-          "interactive-cli"
-          "nix-builder"
-        ];
 
         nixpkgs.hostPlatform = "x86_64-linux";
 
@@ -71,8 +62,6 @@
 
         users.users.nixos.password = "nixos";
         users.users.nixos.initialHashedPassword = lib.mkForce null;
-
-        console.useLargeFonts = true;
 
         systemd = {
           targets = {

@@ -1,6 +1,5 @@
 # -*- mode: nix; eval: (rainbow-mode 1); -*-
 {
-  self,
   ...
 }:
 let
@@ -56,8 +55,9 @@ let
     "blue_minus_5" = "#366060";
     "magenta" = "#DC8CC3";
   };
-
-  sharedModule =
+in
+{
+  flake.modules.generic.zenburn =
     {
       config,
       lib,
@@ -65,6 +65,7 @@ let
       ...
     }:
     {
+      key = "nixos-config.generic.zenburn";
       options = {
         zenburn = {
           colors = lib.mapAttrs (
@@ -128,30 +129,5 @@ let
           };
         };
       };
-      config = { };
-    };
-in
-{
-  flake.nixosModules.zenburn =
-    { config, ... }:
-    {
-      key = "nixos-config.modules.nixos.zenburn";
-
-      imports = [ sharedModule ];
-
-      config = {
-        home-manager.sharedModules = [
-          self.homeModules.zenburn
-          sharedModule
-        ];
-      };
-    };
-
-  flake.homeModules.zenburn =
-    { config, ... }:
-    {
-      key = "nixos-config.modules.home.zenburn";
-
-      config = { };
     };
 }

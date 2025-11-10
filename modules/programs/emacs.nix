@@ -10,10 +10,9 @@
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
   };
 
-  nixosSharedModules = [ self.nixosModules.emacs ];
-
   flake.nixosModules.emacs =
     {
+      pkgs,
       ...
     }:
     {
@@ -21,11 +20,10 @@
 
       nixpkgs.overlays = [
         inputs.emacs-overlay.overlays.default
-        (_final: prev: {
-          emacs-pgtk-saved = prev.emacs-pgtk;
-          emacs-saved = prev.emacs;
-          # tree-sitter = final.bleeding.tree-sitter;
-        })
+      ];
+
+      environment.systemPackages = with pkgs; [
+        emacs-nox # XXX add some zero-conf modes?
       ];
     };
 
@@ -34,7 +32,7 @@
       config,
       pkgs,
       lib,
-      hostConfig,
+      osConfig,
       ...
     }:
     let
@@ -121,10 +119,11 @@
       key = "nixos-config.modules.home.emacs";
 
       options = {
+        # XXX not needed, rename to to homeModules.emacs-binarin
         programs.custom-emacs = {
           enable = lib.mkOption {
             type = lib.types.bool;
-            default = config.hostConfig.feature.emacs;
+            default = true;
           };
 
           orgBabelConfig = lib.mkOption {
@@ -134,7 +133,7 @@
 
           basePackage = lib.mkOption {
             type = lib.types.package;
-            default = if config.hostConfig.feature.gui then pkgs.emacs-pgtk else pkgs.emacs-nox;
+            default = if osConfig.services.graphical-desktop.enable then pkgs.emacs-pgtk else pkgs.emacs-nox;
           };
 
           compiledConfig = lib.mkOption {
@@ -164,7 +163,7 @@
             xdg.configFile."emacs/early-init.elc".source = cfg.compiledConfig + "/early-init.elc";
           }
 
-          (lib.mkIf config.hostConfig.feature.gui {
+          (lib.mkIf osConfig.services.graphical-desktop.enable {
             xdg.dataFile."applications/org-protocol.desktop".source =
               config.lib.self.file "org-protocol.desktop";
 

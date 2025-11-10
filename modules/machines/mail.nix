@@ -6,15 +6,10 @@
 {
   flake.nixosConfigurations.mail = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = {
-      hostConfig = {
-        isLinux = true;
-      };
-    };
     modules = [
       self.nixosModules.mail-configuration
-    ]
-    ++ self.nixosSharedModules;
+    ];
+
   };
 
   flake.nixosModules.mail-configuration =
@@ -27,15 +22,11 @@
       key = "nixos-config.mail-configuration";
       imports = [
         self.nixosModules.default
+        self.nixosModules.lxc
       ];
 
       config = {
         networking.hostName = "mail";
-        hostConfig.features = [
-          "lxc"
-          "tailscale"
-        ];
-
         system.stateVersion = "24.05";
 
         # tailscale serve --bg --tls-terminated-tcp 1143 1143
