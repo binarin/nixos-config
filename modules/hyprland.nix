@@ -85,6 +85,7 @@
       ...
     }:
     let
+      shellevents = inputs.hyprland-contrib.packages."${pkgs.system}".shellevents;
       out-u4025qw = "Dell Inc. DELL U4025QW J7Q6FP3";
       out-lg-dualup-left = "LG Electronics LG SDQHD 311NTQDAC572";
       out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
@@ -92,7 +93,7 @@
       out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
       my-shellevents = pkgs.writeScript "my-shellevents" ''
         #!${lib.getExe pkgs.bash}
-        ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe pkgs.shellevents} ${config.lib.self.file "hyprland-shellevents.sh"}",nofork
+        ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe shellevents} ${config.lib.self.file "hyprland-shellevents.sh"}",nofork
       '';
       rgb = color: "rgb(${lib.removePrefix "#" (config.zenburn.colors."${color}")})";
       hyprlandDefaultOrientation = {
@@ -147,7 +148,6 @@
           hyprland-per-window-layout
           hyprshot
           networkmanagerapplet
-          shellevents
           self.packages."${pkgs.stdenv.system}".sshmenu
           swaynotificationcenter
         ];
@@ -303,7 +303,7 @@
                   ", preferred, auto, auto"
                 ];
                 demandred = [ ", preferred, auto, auto" ];
-              })."${osConfig.networking.hostName}";
+              })."${osConfig.networking.hostName}" or [ ", preferred, auto, auto" ];
 
             master = {
               slave_count_for_center_master = 0;

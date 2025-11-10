@@ -24,8 +24,6 @@
         "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma6.nix"
         "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/channel.nix"
         self.nixosModules.default
-        self.nixosModules.impure-nix-setup
-        self.nixosModules.user-binarin
         self.nixosModules.large-console-fonts
       ];
 

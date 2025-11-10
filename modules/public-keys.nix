@@ -61,14 +61,10 @@
     };
 
   flake.nixosModules.public-keys =
-    { config, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.nixos.public-keys";
 
       imports = [ self.modules.generic.public-keys ];
-
-      config = {
-        home-manager.sharedModules = [ self.modules.generic.public-keys ];
-      };
     };
 }

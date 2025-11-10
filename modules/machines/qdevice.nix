@@ -16,6 +16,9 @@
 
   flake.nixosConfigurations.qdevice = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
+    specialArgs = {
+      inventoryHostName = "qdevice";
+    };
     modules = [
       self.nixosModules.qdevice-configuration
     ];

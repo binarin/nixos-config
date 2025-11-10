@@ -24,7 +24,6 @@
       imports = [
         self.nixosModules.default
         self.nixosModules.lxc
-        self.nixosModules.server
       ];
 
       config = {

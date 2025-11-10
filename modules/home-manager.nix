@@ -12,7 +12,6 @@
   flake.nixosModules.home-manager =
     {
       config,
-      lib,
       specialArgs,
       ...
     }:

@@ -52,6 +52,7 @@
       imports = [
         inputs.nix-index-database.homeModules.nix-index
         self.homeModules.direnv
+        self.modules.generic.inventory-legacy
       ];
 
       options = {

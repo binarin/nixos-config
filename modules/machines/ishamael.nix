@@ -41,14 +41,14 @@
         };
 
         home-manager.users.binarin =
-          { config, ... }:
+          { config, lib, ... }:
           {
             xdg = {
               enable = true;
-              cacheHome = "${config.home.homeDirectory}/.xdg/cache";
-              configHome = "${config.home.homeDirectory}/.xdg/config";
-              dataHome = "${config.home.homeDirectory}/.xdg/local/share";
-              stateHome = "${config.home.homeDirectory}/.xdg/local/state";
+              cacheHome = lib.mkForce "${config.home.homeDirectory}/.xdg/cache";
+              configHome = lib.mkForce "${config.home.homeDirectory}/.xdg/config";
+              dataHome = lib.mkForce "${config.home.homeDirectory}/.xdg/local/share";
+              stateHome = lib.mkForce "${config.home.homeDirectory}/.xdg/local/state";
             };
           };
 

@@ -83,17 +83,12 @@ in
       };
 
     flake.nixosModules.inventory-legacy =
-      { config, ... }:
+      { ... }:
       {
         key = "nixos-config.inventory-legacy";
         imports = [
           self.modules.generic.inventory-legacy
         ];
-        config = {
-          home-manager.sharedModules = [
-            self.modules.generic.inventory-legacy
-          ];
-        };
       };
   };
 }
