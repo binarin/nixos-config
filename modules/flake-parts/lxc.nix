@@ -1,4 +1,7 @@
-{ self, ... }:
+{ self, config, ... }:
+let
+  flakeConfig = config;
+in
 {
   # Add to nixosSharedModules since it's properly gated with mkIf and `or false` fallback
   nixosSharedModules = [ self.nixosModules.lxc ];
@@ -32,9 +35,11 @@
 
           systemd.network.networks."40-lxc" = {
             matchConfig.Name = "eth0";
-            dns = config.inventory.networks.home.dns;
-            address = [ config.hostConfig.ipAllocation.home.primary.addressWithPrefix ];
-            routes = [ { Gateway = config.inventory.networks.home.gateway; } ];
+            dns = flakeConfig.inventory.networks.home.dns;
+            address = [
+              flakeConfig.inventory.ipAllocation."${config.networking.hostName}".home.primary.addressWithPrefix
+            ];
+            routes = [ { Gateway = flakeConfig.inventory.networks.home.gateway; } ];
           };
 
           services.getty.autologinUser = "root";

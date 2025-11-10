@@ -25,7 +25,6 @@
 
       config = {
         home-manager.sharedModules = [
-          self.homeModules.default
           self.homeModules.home-misc
         ];
         home-manager.extraSpecialArgs = specialArgs;

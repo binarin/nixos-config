@@ -43,7 +43,7 @@ in
     ];
 
     serverAliases = [
-      config.hostConfig.ipAllocation.home.primary.address
+      # XXX config.hostConfig.ipAllocation.home.primary.address
     ];
 
     locations."/" = {

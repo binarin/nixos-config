@@ -1,6 +1,5 @@
 {
   flake,
-  config,
   ...
 }:
 let
@@ -13,8 +12,7 @@ in
     ./configuration.nix
   ];
 
-  inventoryHostName = "mail";
-  hostConfig.deployHostName = config.hostConfig.ipAllocation.home.primary.address;
+  networking.hostName = "mail";
   hostConfig.features = [
     "lxc"
     "tailscale"

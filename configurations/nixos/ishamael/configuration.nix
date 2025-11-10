@@ -62,7 +62,7 @@
     networks = {
       "40-enp6s18" =
         let
-          inherit (config.hostConfig.ipAllocation.home.primary) addressWithPrefix;
+          inherit (config.inventory.hostIpAllocation.home.primary) addressWithPrefix;
           inherit (config.inventory.networks.home) gateway dns;
         in
         {

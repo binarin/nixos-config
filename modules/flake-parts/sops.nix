@@ -20,7 +20,7 @@
 
       config = {
         # should be stringified path
-        sops.defaultSopsFile = "${config.lib.self.file' "secrets/${config.inventoryHostName}/secrets.yaml"}";
+        sops.defaultSopsFile = "${config.lib.self.file' "secrets/${config.networking.hostName}/secrets.yaml"}";
 
         sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
@@ -38,7 +38,7 @@
       config = {
         sops = {
           age.keyFile = "${config.home.homeDirectory}/.config/age/nixos-config-keys.txt";
-          defaultSopsFile = config.lib.self.optionalFile' "secrets/${config.inventoryHostName}/user-${config.home.username}.yaml";
+          defaultSopsFile = config.lib.self.optionalFile' "secrets/${config.networking.hostName}/user-${config.home.username}.yaml";
         };
       };
     };

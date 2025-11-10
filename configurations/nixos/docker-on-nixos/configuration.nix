@@ -2,6 +2,7 @@
   flake,
   config,
   lib,
+  inputs,
   ...
 }:
 let
@@ -45,6 +46,7 @@ let
 in
 {
   imports = [
+    inputs.arion.nixosModules.arion
     ./brick-tracker.nix
     ./homebox.nix
   ];

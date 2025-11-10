@@ -15,8 +15,6 @@
       ...
     }:
     let
-      inherit (flake) inputs;
-      inherit (inputs) self;
       cfg = config.hostConfig;
 
       featureDeps = {
@@ -83,8 +81,6 @@
         || (hasAttr feature defaultEnabled && getAttr feature defaultEnabled);
 
       allFeatures = builtins.attrNames featureDeps;
-
-      host-ids = import "${self}/inventory/host-id.nix";
     in
     {
       options = {
@@ -103,20 +99,6 @@
               '';
             }
           );
-
-          hostId = lib.mkOption {
-            type = lib.types.nonEmptyStr;
-            readOnly = true;
-          };
-
-          deployHostName = lib.mkOption { type = lib.types.nullOr lib.types.nonEmptyStr; };
-
-          validDeployTargets = lib.mkOption { type = lib.types.listOf lib.types.nonEmptyStr; };
-
-          ipAllocation = lib.mkOption {
-            type = lib.types.raw;
-            default = config.inventory.ipAllocation."${config.inventoryHostName}";
-          };
         };
       };
 
@@ -124,10 +106,6 @@
         {
           hostConfig.feature = lib.genAttrs allFeatures (feat: lib.mkDefault (featureEnabled feat));
         }
-        (lib.mkIf (config ? inventoryHostName) {
-          hostConfig.hostId = host-ids."${config.inventoryHostName}";
-          hostConfig.validDeployTargets = [ config.hostConfig.deployHostName ];
-        })
       ];
     };
 
@@ -142,11 +120,6 @@
         {
           home-manager.sharedModules = [ self.modules.generic.host-config ];
         }
-        (lib.mkIf (config ? inventoryHostName) {
-          networking.hostName = config.inventoryHostName;
-          networking.hostId = config.hostConfig.hostId;
-          networking.hosts = config.inventory.networks.home.hosts;
-        })
       ];
     };
 }

@@ -30,7 +30,7 @@ let
   deployNixosSystem =
     hostName:
     let
-      deployHostName = self.nixosConfigurations."${hostName}".config.hostConfig.deployHostName;
+      deployHostName = self.nixosConfigurations."${hostName}".config.networking.hostName;
     in
     {
       hostname = deployHostName;

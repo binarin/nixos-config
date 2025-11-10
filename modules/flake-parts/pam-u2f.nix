@@ -41,14 +41,14 @@
             name = "u2f_mappings.d/${service}";
             value = {
               source = pkgs.writeText "${service}-pam_u2f_mappings" (
-                helpers.u2f_mappings config.inventoryHostName service
+                helpers.u2f_mappings config.networking.hostName service
               );
             };
           }) enabledSvcs;
 
           security.pam.services = lib.genAttrs (lib.attrNames enabledSvcs) (service: {
             text = lib.mkBefore ''
-              auth sufficient ${pkgs.pam_u2f}/lib/security/pam_u2f.so authfile=/etc/u2f_mappings.d/${service} cue pinverification=1 origin=pam://${config.inventoryHostName} appid=pam://${service}
+              auth sufficient ${pkgs.pam_u2f}/lib/security/pam_u2f.so authfile=/etc/u2f_mappings.d/${service} cue pinverification=1 origin=pam://${config.networking.hostName} appid=pam://${service}
             '';
           });
         };

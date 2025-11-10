@@ -1,4 +1,4 @@
-{ flake, config, ... }:
+{ flake, ... }:
 let
   inherit (flake) inputs;
   inherit (inputs) self;
@@ -10,11 +10,9 @@ in
     ./configuration.nix
   ];
 
-  inventoryHostName = "docker-on-nixos";
+  networking.hostName = "docker-on-nixos";
 
   impermanence.enable = true;
-
-  hostConfig.deployHostName = config.hostConfig.ipAllocation.home.primary.address;
 
   hostConfig.features = [
     "lxc"

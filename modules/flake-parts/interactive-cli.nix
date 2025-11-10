@@ -1,6 +1,7 @@
 {
   self,
   inputs,
+  config,
   ...
 }:
 {

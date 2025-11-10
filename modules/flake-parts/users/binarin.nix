@@ -64,7 +64,7 @@ in
             self.homeModules.user-binarin
           ];
           config = {
-            inherit (config) hostConfig inventoryHostName;
+            inherit (config) hostConfig;
             home.homeDirectory = "/home/binarin";
             home.username = "binarin";
             home.stateVersion = config.system.stateVersion;

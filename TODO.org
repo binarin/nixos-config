@@ -32,3 +32,4 @@ This should be configured on a per-machine basis.
 * TODO pre-commit hooks / treefmt
 * TODO Drop hostConfig.features
 * TODO Patched git-crypt with worktree support
+* TODO Closure size tracking (with git notes?)

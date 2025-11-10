@@ -21,7 +21,7 @@ in
     self.nixosModules.user-binarin
   ];
 
-  inventoryHostName = "demandred";
+  networking.hostName = "demandred";
 
   impermanence.enable = true;
 

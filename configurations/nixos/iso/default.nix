@@ -11,7 +11,7 @@ in
   ];
 
   config = {
-    inventoryHostName = "iso";
+    networking.hostName = "iso";
 
     hostConfig.features = [
       "interactive-cli"

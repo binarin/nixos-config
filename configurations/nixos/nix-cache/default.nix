@@ -1,6 +1,5 @@
 {
   flake,
-  config,
   ...
 }:
 let
@@ -13,9 +12,7 @@ in
     ./configuration.nix
   ];
 
-  inventoryHostName = "nix-cache";
-
-  hostConfig.deployHostName = config.hostConfig.ipAllocation.home.primary.address;
+  networking.hostName = "nix-cache";
 
   hostConfig.features = [
     "lxc"

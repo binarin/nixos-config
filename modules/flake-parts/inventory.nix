@@ -71,7 +71,6 @@ in
       {
         key = "nixos-config.generic.inventory-legacy";
         options = {
-          inventoryHostName = lib.mkOption { type = lib.types.str; };
           inventory.ipAllocation = lib.mkOption {
             type = lib.types.raw;
             default = ipAllocation;

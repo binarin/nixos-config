@@ -300,14 +300,14 @@
                   ", preferred, auto, auto"
                 ];
                 demandred = [ ", preferred, auto, auto" ];
-              })."${config.inventoryHostName}";
+              })."${osConfig.networking.hostName}";
 
             master = {
               slave_count_for_center_master = 0;
               new_status = "inherited";
               orientation =
-                if hyprlandDefaultOrientation ? config.inventoryHostName then
-                  hyprlandDefaultOrientation."${config.inventoryHostName}"
+                if hyprlandDefaultOrientation ? osConfig.networking.hostName then
+                  hyprlandDefaultOrientation."${osConfig.networking.hostName}"
                 else
                   hyprlandDefaultOrientation._default;
             };

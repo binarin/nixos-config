@@ -10,7 +10,7 @@ in
     ./configuration.nix
   ];
 
-  inventoryHostName = "ishamael";
+  networking.hostName = "ishamael";
 
   hostConfig.features = [
     "hyprland"

@@ -2,7 +2,6 @@
 # This file is just *top-level* configuration.
 {
   flake,
-  config,
   ...
 }:
 let
@@ -15,7 +14,6 @@ in
     ./configuration.nix
   ];
 
-  inventoryHostName = "forgejo";
-  hostConfig.deployHostName = config.hostConfig.ipAllocation.home.primary.address;
+  networking.hostName = "forgejo";
   hostConfig.features = [ "lxc" ];
 }
