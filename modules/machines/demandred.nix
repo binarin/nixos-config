@@ -34,7 +34,7 @@
       imports = [
         (modulesPath + "/installer/scan/not-detected.nix")
         inputs.disko.nixosModules.default
-        "${self}/configurations/nixos/demandred/disko-config.nix"
+        "${self}/machines/demandred/disko.nix"
 
         self.nixosModules.default
         self.nixosModules.user-binarin
