@@ -13,14 +13,6 @@
       };
       url = "github:hercules-ci/arion";
     };
-    caddy-cloudflare = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
-      url = "github:binarin/caddy-with-plugins";
-    };
     den = {
       url = "github:vic/den";
     };
@@ -100,17 +92,6 @@
     };
     import-tree = {
       url = "github:vic/import-tree";
-    };
-    lanzaboote = {
-      inputs = {
-        flake-parts = {
-          follows = "flake-parts";
-        };
-        nixpkgs = {
-          follows = "nixpkgs-unstable";
-        };
-      };
-      url = "github:nix-community/lanzaboote/v0.4.1";
     };
     nix-ai-tools = {
       inputs = {

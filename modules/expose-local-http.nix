@@ -24,8 +24,6 @@
       };
 
       config = lib.mkIf cfg.enable {
-        nixpkgs.overlays = [ self.overlays.caddy-cloudflare ];
-
         sops.secrets.cloudflare-api-key = {
           sopsFile = "${config.lib.self.file' "secrets/webservers.yaml"}";
           restartUnits = [ "caddy.service" ];
@@ -34,10 +32,16 @@
         systemd.services.caddy.serviceConfig.AmbientCapabilities = "CAP_NET_ADMIN CAP_NET_BIND_SERVICE";
         systemd.services.caddy.serviceConfig.LoadCredential =
           "cloudflare-api-token:${config.sops.secrets.cloudflare-api-key.path}";
+
         services.caddy = {
           enable = true;
           enableReload = false; # fails to reload when new hosts are added
-          package = pkgs.caddy-cloudflare;
+          package = pkgs.caddy.withPlugins {
+            plugins = [
+              "github.com/caddy-dns/cloudflare@v0.0.0-20251022184029-2fc25ee62f40"
+            ];
+            hash = "sha256-8eyfR+0TY5GEyFmYaW/NXEK2n8iVQYATP9Ma2UzhQCQ";
+          };
           virtualHosts =
             with lib;
             flip mapAttrs cfg.virtualHosts (

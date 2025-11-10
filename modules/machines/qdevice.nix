@@ -17,7 +17,6 @@
   flake.nixosConfigurations.qdevice = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = {
-      inherit self inputs;
       inventoryHostName = "qdevice";
     };
 

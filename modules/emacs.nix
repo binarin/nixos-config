@@ -158,13 +158,11 @@
               finalEmacsPackage
               tangle-emacs-org-babel-config
             ];
-          }
-          (lib.optionalAttrs hostConfig.isLinux {
             xdg.configFile."emacs/init.el".source = cfg.compiledConfig + "/init.el";
             xdg.configFile."emacs/init.elc".source = cfg.compiledConfig + "/init.elc";
             xdg.configFile."emacs/early-init.el".source = cfg.compiledConfig + "/early-init.el";
             xdg.configFile."emacs/early-init.elc".source = cfg.compiledConfig + "/early-init.elc";
-          })
+          }
 
           (lib.mkIf config.hostConfig.feature.gui {
             xdg.dataFile."applications/org-protocol.desktop".source =

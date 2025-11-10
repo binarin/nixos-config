@@ -6,14 +6,9 @@
 {
   flake.nixosConfigurations.media = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = {
-      inherit self inputs;
-      hostConfig = {
-        isLinux = true;
-      };
-    };
     modules = [
       self.nixosModules.media-configuration
+      self.nixosModules.expose-local-http
     ]
     ++ self.nixosSharedModules;
   };
@@ -81,8 +76,6 @@
             '';
           };
         };
-
-        nixpkgs.overlays = [ self.overlays.caddy-cloudflare ];
 
         systemd.network.networks."40-lxc".networkConfig.MulticastDNS = lib.mkForce false;
 
@@ -193,15 +186,7 @@
           restartUnits = [ "caddy.service" ];
         };
 
-        systemd.services.caddy.serviceConfig.AmbientCapabilities = "CAP_NET_ADMIN CAP_NET_BIND_SERVICE";
-        systemd.services.caddy.serviceConfig.LoadCredential =
-          "cloudflare-api-token:${config.sops.secrets.cloudflare-api-key.path}";
-
         services.caddy = {
-          enable = true;
-          enableReload = false; # fails to reload when new hosts are added
-          package = pkgs.caddy-cloudflare;
-
           extraConfig = ''
             (letsencrypt) {
               tls {
@@ -215,10 +200,7 @@
             "navidrome.binarin.info" = {
               extraConfig = ''
                 reverse_proxy http://127.0.0.1:4533
-                tls {
-                    dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-                    resolvers 1.1.1.1
-                }
+                import letsencrypt
               '';
             };
           };
@@ -261,10 +243,7 @@
 
         services.caddy.virtualHosts."jellyfin.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:8096
-          tls {
-              dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-              resolvers 1.1.1.1
-          }
+          import letsencrypt
         '';
 
         virtualisation.arion.backend = "docker";
@@ -393,10 +372,7 @@
 
         services.caddy.virtualHosts."ta.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:8001
-          tls {
-              dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-              resolvers 1.1.1.1
-          }
+          import letsencrypt
         '';
 
         sops.secrets."linkwarden/nextauth-secret" = { };
@@ -404,10 +380,6 @@
 
         services.caddy.virtualHosts."linkwarden.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:3000
-          tls {
-              dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-              resolvers 1.1.1.1
-          }
         '';
 
         sops.templates."linkwarden-env".content = ''
@@ -507,10 +479,7 @@
 
         services.caddy.virtualHosts."qbittorrent.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:8080
-          tls {
-              dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-              resolvers 1.1.1.1
-          }
+          import letsencrypt
         '';
 
         services.samba.settings.Torrents = smbShareStandartOptions // {
@@ -571,19 +540,13 @@
 
         services.caddy.virtualHosts."sabnzbd.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:8085
-          tls {
-              dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-              resolvers 1.1.1.1
-          }
+          import letsencrypt
         '';
 
         services.prowlarr.enable = true;
         services.caddy.virtualHosts."prowlarr.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:9696
-          tls {
-              dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-              resolvers 1.1.1.1
-          }
+          import letsencrypt
         '';
 
         services.radarr.enable = true;
@@ -593,10 +556,7 @@
         ];
         services.caddy.virtualHosts."radarr.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:7878
-          tls {
-              dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-              resolvers 1.1.1.1
-          }
+          import letsencrypt
         '';
 
         # grocy configuration
@@ -620,7 +580,6 @@
 
         services.caddy.virtualHosts."grocy.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:64084
-
           import letsencrypt
         '';
 
@@ -656,7 +615,6 @@
           }
 
           reverse_proxy http://127.0.0.1:8081
-
           import letsencrypt
         '';
 
@@ -751,20 +709,17 @@
             customIconsDir = config.lib.self.base64Dir "dashboard-icons";
           in
           ''
-            handle_path /custom-icons/* {
-              root * ${customIconsDir}
-              @png {
-                path *.png
+              handle_path /custom-icons/* {
+                root * ${customIconsDir}
+                @png {
+                  path *.png
+                }
+                header @png Content-Type "image/png"
+                file_server browse
               }
-              header @png Content-Type "image/png"
-              file_server browse
-            }
 
-            reverse_proxy http://127.0.0.1:8082
-            tls {
-                dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-                resolvers 1.1.1.1
-            }
+              reverse_proxy http://127.0.0.1:8082
+            import letsencrypt
           '';
 
         services.caddy.virtualHosts."atuin.binarin.info".extraConfig = ''

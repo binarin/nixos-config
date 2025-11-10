@@ -37,3 +37,6 @@ This should be configured on a per-machine basis.
 * TODO eval-all - sort according to evaluation time
 * TODO `just lint` - remove check, convert to pre-commit hook, ???
 * TODO Explain why explicit key is needed
+* TODO Why was I not able to use pkgs.stdenv.hostPlatform.isLinux without inifinite recursion in home-manager?
+* TODO tpm2-pkcs11-esapi FTW
+* TODO pin caddy version?

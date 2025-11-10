@@ -7,7 +7,6 @@
   flake.nixosConfigurations.monitor = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = {
-      inherit self inputs;
       hostConfig = {
         isLinux = true;
       };
