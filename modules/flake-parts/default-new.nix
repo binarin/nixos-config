@@ -8,7 +8,7 @@
         self.nixosModules.sshd
         self.nixosModules.tpm2-ssh
         self.nixosModules.nix
-        self.sharedModules.public-keys
+        self.modules.generic.public-keys
       ];
 
       config = {
