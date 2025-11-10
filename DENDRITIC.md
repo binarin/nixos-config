@@ -86,7 +86,7 @@ in
         ...
     ]
     ++ self.nixosSharedModules;
-    
+
     ...
   };
 }
