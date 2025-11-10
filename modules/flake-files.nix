@@ -1,20 +1,14 @@
 {
   self,
-  inputs,
   ...
 }:
 {
   flake.modules.generic.flake-files =
     {
-      flake,
       pkgs,
       lib,
       ...
     }:
-    let
-      inherit (flake) inputs;
-      inherit (inputs) self;
-    in
     {
       key = "nixos-config.modules.generic.flake-files";
 

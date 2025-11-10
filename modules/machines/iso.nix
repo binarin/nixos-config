@@ -1,16 +1,13 @@
 {
   self,
   inputs,
-  config,
   ...
 }:
 {
   flake.nixosConfigurations.iso = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = {
-      flake = {
-        inherit self inputs config;
-      };
+      inherit self inputs;
       hostConfig = {
         isLinux = true;
       };

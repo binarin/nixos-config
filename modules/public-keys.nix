@@ -1,19 +1,15 @@
 {
   self,
-  inputs,
   ...
 }:
 {
   flake.modules.generic.public-keys =
     {
-      flake,
       lib,
       config,
       ...
     }:
     let
-      inherit (flake) inputs;
-      inherit (inputs) self;
       allPublicKeys = import "${self}/inventory/public-keys.nix";
     in
     {

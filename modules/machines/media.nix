@@ -1,16 +1,13 @@
 {
   self,
   inputs,
-  config,
   ...
 }:
 {
   flake.nixosConfigurations.media = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = {
-      flake = {
-        inherit self inputs config;
-      };
+      inherit self inputs;
       hostConfig = {
         isLinux = true;
       };
@@ -26,7 +23,6 @@
       config,
       lib,
       pkgs,
-      flake,
       ...
     }:
     let
@@ -86,7 +82,7 @@
           };
         };
 
-        nixpkgs.overlays = [ flake.inputs.self.overlays.caddy-cloudflare ];
+        nixpkgs.overlays = [ self.overlays.caddy-cloudflare ];
 
         systemd.network.networks."40-lxc".networkConfig.MulticastDNS = lib.mkForce false;
 
