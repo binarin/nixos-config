@@ -749,27 +749,46 @@
         (direnv-show-paths-in-summary nil)))
 
      (defvar binarin/direnv-boring-items
-       '("AR" "AS" "CC" "CONFIG_SHELL" "CXX" "DEVENV_DOTFILE" "DEVENV_STATE" "HOST_PATH" "IN_NIX_SHELL" "LD"
-         "NIX_BINTOOLS" "NIX_BINTOOLS_WRAPPER_TARGET_HOST_x86_64_unknown_linux_gnu"
-         "NIX_BUILD_CORES" "NIX_CC" "NIX_CC_WRAPPER_TARGET_HOST_x86_64_unknown_linux_gnu"
-         "NIX_CFLAGS_COMPILE" "NIX_ENFORCE_NO_NATIVE" "NIX_HARDENING_ENABLE" "NIX_INDENT_MAKE"
-         "NIX_LDFLAGS" "NIX_STORE" "NM" "OBJCOPY" "OBJDUMP" "RANLIB" "READELF" "SIZE"
-         "SOURCE_DATE_EPOCH" "STRINGS" "STRIP" "XML_CATALOG_FILES"
-         "buildInputs" "buildPhase" "builder" "cmakeFlags" "configureFlags" "depsBuildBuild"
-         "depsBuildBuildPropagated" "depsBuildTarget" "depsBuildTargetPropagated"
-         "depsHostHost" "depsHostHostPropagated" "depsTargetTarget" "depsTargetTargetPropagated"
-         "doCheck" "doInstallCheck" "dontAddDisableDepTrack" "mesonFlags" "name" "nativeBuildInputs"
-         "out" "outputs" "patches" "phases" "propagatedBuildInputs" "propagatedNativeBuildInputs"
-         "shell" "shellHook" "stdenv" "strictDeps" "system" "XDG_DATA_DIRS" "__structuredAttrs" "preferLocalBuild"
-         "DEVELOPER_DIR" "LD_DYLD_PATH" "MACOSX_DEPLOYMENT_TARGET" "NIX_APPLE_SDK_VERSION"
-         "NIX_BINTOOLS_WRAPPER_TARGET_HOST_arm64_apple_darwin" "NIX_CC_WRAPPER_TARGET_HOST_arm64_apple_darwin" "NIX_DONT_SET_RPATH"
-         "NIX_DONT_SET_RPATH_FOR_BUILD" "NIX_IGNORE_LD_THROUGH_GCC" "NIX_NO_SELF_RPATH" "PATH_LOCALE" "SDKROOT" "ZERO_AR_DATE"
-         "__darwinAllowLocalNetworking" "__impureHostDeps" "__propagatedImpureHostDeps" "__propagatedSandboxProfile"
-         "__sandboxProfile" "XPC_SERVICE_NAME"
+       '(
+         "AR"
+         "AS"
+         "CC"
+         "CONFIG_SHELL"
+         "CXX"
+         "DETERMINISTIC_BUILD"
+         "DEVELOPER_DIR"
+         "DEVENV_DOTFILE"
+         "DEVENV_STATE"
+         "HOST_PATH"
+         "IN_NIX_SHELL"
+         "LD"
+         "LD_DYLD_PATH"
+         "MACOSX_DEPLOYMENT_TARGET"
+         "NM"
+         "OBJCOPY"
+         "OBJDUMP"
+         "PATH_LOCALE"
+         "RANLIB"
+         "READELF"
+         "SDKROOT"
+         "SIZE"
+         "SOURCE_DATE_EPOCH"
+         "STRINGS"
+         "STRIP"
+         "XDG_DATA_DIRS"
+         "XML_CATALOG_FILES"
+         "XPC_SERVICE_NAME"
+         "ZERO_AR_DATE"
          ))
 
      (defun binarin/cleanup_direnv--summarise-changes (orig-fun items)
-       (funcall orig-fun (-remove (lambda (elt) (-elem-index (car elt) binarin/direnv-boring-items)) items)))
+       (funcall orig-fun (-remove (lambda (elt)
+                                    (or
+                                     (let ((case-fold-search nil))
+                                       (s-matches? (rx bol (or lower "_" "PYTHON" "NIX_"))
+                                                   (car elt)))
+                                     (-elem-index (car elt) binarin/direnv-boring-items)))
+                                  items)))
 
    #+end_src
 ** Local variables
