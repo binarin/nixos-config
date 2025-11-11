@@ -1718,9 +1718,19 @@
          (org-save-all-org-buffers))
        (let ((default-directory "~/org/"))
          (shell-command "./push.sh")))
+   #+end_src
 
-     (general-define-key
-      "C-c o p" 'binarin/org-sync)
+** Org global dispatcher
+   #+begin_src emacs-lisp :tangle yes
+     (transient-define-prefix binarin/org-dispatch ()
+       "Global dispatcher for org-mode commands."
+       [:description "Go to"
+                     ("l" "Last capture" org-capture-goto-last-stored)]
+       [:description "Actions"
+                     ("p" "Sync" binarin/org-sync)])
+
+     (general-define-key "C-c o" 'binarin/org-dispatch)
+
    #+end_src
 ** org-download
    #+begin_src emacs-lisp :tangle yes
