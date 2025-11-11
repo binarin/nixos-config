@@ -92,6 +92,7 @@ in
         self.homeModules.hyprland
         self.homeModules.wezterm
         self.homeModules.foot
+        self.homeModules.fonts
       ]);
 
       programs.git = {

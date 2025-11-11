@@ -37,13 +37,4 @@
         ];
       };
     };
-
-  flake.nixosModules.fonts =
-    { config, ... }:
-    {
-      key = "nixos-config.modules.nixos.fonts";
-
-      config.home-manager.sharedModules = [ self.homeModules.fonts ];
-    };
-
 }
