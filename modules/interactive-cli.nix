@@ -24,6 +24,9 @@
         if config.services.graphical-desktop.enable then pkgs.wireshark-qt else pkgs.tshark;
 
       environment.systemPackages = with pkgs; [
+        ripgrep
+
+        # XXX review things below
         bridge-utils
         cryptsetup
         inotify-tools
