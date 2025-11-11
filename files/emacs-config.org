@@ -1256,6 +1256,9 @@
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
      ;; XXX Use consult for clock-in
+
+     (run-with-idle-timer 10 nil (lambda () (load-library "org")))
+
      (use-package org
        :ensure t
        :commands (org-save-all-org-buffers)
