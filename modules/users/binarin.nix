@@ -91,6 +91,7 @@ in
         self.homeModules.niri
         self.homeModules.hyprland
         self.homeModules.wezterm
+        self.homeModules.foot
       ]);
 
       programs.git = {

@@ -53,13 +53,4 @@
         };
       };
     };
-
-  flake.nixosModules.foot =
-    { config, ... }:
-    {
-      key = "nixos-config.modules.nixos.foot";
-
-      config.home-manager.sharedModules = [ self.homeModules.foot ];
-    };
-
 }
