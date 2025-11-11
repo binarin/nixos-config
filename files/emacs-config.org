@@ -1728,9 +1728,11 @@
      (transient-define-prefix binarin/org-dispatch ()
        "Global dispatcher for org-mode commands."
        [:description "Go to"
-                     ("l" "Last capture" org-capture-goto-last-stored)]
+                     ("l" "Last capture" org-capture-goto-last-stored)
+                     ("c" "Clocked" org-clock-goto)]
        [:description "Actions"
-                     ("p" "Sync" binarin/org-sync)])
+                     ("p" "Sync" binarin/org-sync)
+                     ("o" "Clock out" org-clock-out)])
 
      (general-define-key "C-c o" 'binarin/org-dispatch)
 
