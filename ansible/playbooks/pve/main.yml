@@ -60,6 +60,10 @@
       when: "'AuthenticAMD' in ansible_facts['processor']"
       ansible.builtin.apt:
         name: amd64-microcode
+    - name: Install intel firmware
+      when: "'GenuineIntel' in ansible_facts['processor']"
+      ansible.builtin.apt:
+        name: intel-microcode
 
 - hosts: pve_at_home
   vars_files:
