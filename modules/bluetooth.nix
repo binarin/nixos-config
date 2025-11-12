@@ -8,6 +8,7 @@
       ...
     }:
     {
+      key = "nixos-config.modules.nixos.bluetooth";
       config = {
         environment.systemPackages = with pkgs; [
           bluetui

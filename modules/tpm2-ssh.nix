@@ -8,7 +8,7 @@
       ...
     }:
     {
-      key = "nixos-config.tpm2-ssh";
+      key = "nixos-config.modules.nixos.tpm2-ssh";
 
       options = {
         programs.openssh.tpm2.enable = lib.mkEnableOption "Configure system to be able to use SSH keys in TPM2 (user should be in 'tss' group)";

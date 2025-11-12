@@ -3,7 +3,7 @@
   flake.homeModules.direnv =
     { config, ... }:
     {
-      key = "nixos-config.programs.direnv";
+      key = "nixos-config.modules.home.direnv";
       config = {
         programs.direnv = {
           enable = true;

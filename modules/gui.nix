@@ -3,6 +3,7 @@
   flake.nixosModules.gui =
     { pkgs, config, ... }:
     {
+      key = "nixos-config.modules.nixos.gui";
       config = {
 
         home-manager.sharedModules = [
@@ -87,6 +88,7 @@
       ];
     in
     {
+      key = "nixos-config.modules.home.gui";
       options = {
         programs.telegram-desktop.enable = lib.mkEnableOption "Enable telegram";
       };

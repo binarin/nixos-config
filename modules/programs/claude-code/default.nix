@@ -6,7 +6,7 @@
   flake.homeModules.claude-code =
     { pkgs, ... }:
     {
-      key = "nixos-config.programs.claude-code";
+      key = "nixos-config.modules.home.claude-code";
 
       home.packages = [
         self.inputs.nix-ai-tools.packages.${pkgs.system}.claude-code

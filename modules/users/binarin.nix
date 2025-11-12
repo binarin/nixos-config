@@ -8,7 +8,7 @@ in
   flake.nixosModules.user-binarin =
     { config, lib, ... }:
     {
-      key = "nixos-config.users.binarin";
+      key = "nixos-config.modules.nixos.user-binarin";
 
       imports = [
         self.nixosModules.home-manager
@@ -76,7 +76,7 @@ in
   flake.homeModules.user-binarin =
     { lib, osConfig, ... }:
     {
-      key = "nixos-config.users.binarin";
+      key = "nixos-config.modules.home.user-binarin";
 
       imports = [
         self.homeModules.impermanence
@@ -93,6 +93,7 @@ in
         self.homeModules.wezterm
         self.homeModules.foot
         self.homeModules.fonts
+        self.homeModules.syncthing
       ]);
 
       programs.git = {

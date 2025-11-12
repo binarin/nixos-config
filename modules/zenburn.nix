@@ -65,7 +65,7 @@ in
       ...
     }:
     {
-      key = "nixos-config.generic.zenburn";
+      key = "nixos-config.modules.generic.zenburn";
       options = {
         zenburn = {
           colors = lib.mapAttrs (

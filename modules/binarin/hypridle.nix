@@ -3,12 +3,14 @@
   flake.nixosModules.hypridle =
     { ... }:
     {
+      key = "nixos-config.modules.nixos.hypridle";
       programs.hyprlock.enable = true;
     };
 
   flake.homeModules.hypridle =
     { config, ... }:
     {
+      key = "nixos-config.modules.home.hypridle";
       services.hypridle = {
         enable = true;
         settings = {

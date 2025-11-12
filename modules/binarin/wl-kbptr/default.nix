@@ -3,6 +3,7 @@
   flake.homeModules.wl-kbptr =
     { pkgs, config, ... }:
     {
+      key = "nixos-config.modules.home.wl-kbptr";
       home.packages = [
         inputs.nixpkgs-unstable.legacyPackages."${pkgs.system}".wl-kbptr
       ];

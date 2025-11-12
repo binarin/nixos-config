@@ -3,6 +3,7 @@
   flake.homeModules.insync =
     { pkgs, ... }:
     {
+      key = "nixos-config.modules.home.insync";
 
       home.packages = with pkgs; [
         insync

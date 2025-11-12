@@ -3,7 +3,7 @@
   flake.homeModules.fuzzel =
     { pkgs, ... }:
     {
-      key = "nixos-config.programs.fuzzel";
+      key = "nixos-config.modules.home.fuzzel";
 
       home.packages = with pkgs; [
         fuzzel

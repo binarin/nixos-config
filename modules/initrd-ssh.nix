@@ -3,6 +3,7 @@
   flake.nixosModules.initrd-ssh =
     { config, lib, ... }:
     {
+      key = "nixos-config.modules.nixos.initrd-ssh";
       boot.initrd.systemd.contents."/etc/ssh/ssh_host_ed25519_key.jwe".source =
         "${self}/secrets/qdevice/ssh_host_ed25519_key.jwe";
       boot.initrd.systemd.contents."/etc/ssh/ssh_host_rsa_key.jwe".source =

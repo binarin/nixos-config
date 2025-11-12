@@ -69,7 +69,7 @@ in
     flake.modules.generic.inventory-legacy =
       { lib, ... }:
       {
-        key = "nixos-config.generic.inventory-legacy";
+        key = "nixos-config.modules.generic.inventory-legacy";
         options = {
           inventory.ipAllocation = lib.mkOption {
             type = lib.types.raw;
@@ -85,7 +85,7 @@ in
     flake.nixosModules.inventory-legacy =
       { ... }:
       {
-        key = "nixos-config.inventory-legacy";
+        key = "nixos-config.modules.nixos.inventory-legacy";
         imports = [
           self.modules.generic.inventory-legacy
         ];

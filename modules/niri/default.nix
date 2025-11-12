@@ -16,7 +16,7 @@
       );
     in
     {
-      key = "nixos-config.programs.niri";
+      key = "nixos-config.modules.nixos.niri";
 
       imports = [
         self.nixosModules.gui
@@ -55,7 +55,7 @@
       ...
     }:
     {
-      key = "nixos-config.home.niri";
+      key = "nixos-config.modules.home.niri";
 
       imports = [
         self.homeModules.wayland

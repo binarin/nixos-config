@@ -3,7 +3,7 @@
   flake.nixosModules.kanata =
     { ... }:
     {
-      key = "nixos-config.programs.kanata";
+      key = "nixos-config.modules.nixos.kanata";
 
       services.kanata = {
         enable = true;
