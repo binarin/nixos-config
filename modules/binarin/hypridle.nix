@@ -9,9 +9,6 @@
   flake.homeModules.hypridle =
     { config, ... }:
     {
-      systemd.user.services.hypridle.Unit.After = [ "graphical-session.target" ];
-      systemd.user.services.hypridle.Unit.BindsTo = [ "graphical-session.target" ];
-
       services.hypridle = {
         enable = true;
         settings = {
