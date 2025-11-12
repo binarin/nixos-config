@@ -19,10 +19,6 @@
 
     import-tree.url = "github:vic/import-tree";
 
-    # home-manager.url = "path:/home/binarin/personal-workspace/home-manager";
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs-unstable";
 

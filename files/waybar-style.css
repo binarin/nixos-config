@@ -26,14 +26,15 @@ window#waybar {
 }
 
 #workspaces button {
+    min-width: 6em;
     font-weight: normal;
     background: {{ zenburn.bg }};
     color: {{ zenburn.fg }};
-    border-radius: 0px;
+    border-radius: 5px;
     padding: 0px 0px;
 }
 
-#workspaces button.visible {
+#workspaces button.active {
     background: {{ zenburn.bg_plus_3 }};
     color: {{ zenburn.fg_plus_2 }};
 }

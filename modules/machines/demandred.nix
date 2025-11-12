@@ -22,6 +22,8 @@
     {
       key = "nixos-config.demandred-configuration";
       imports = [
+        self.nixosModules.baseline
+
         (modulesPath + "/installer/scan/not-detected.nix")
         inputs.disko.nixosModules.default
         "${self}/machines/demandred/disko.nix"
@@ -33,7 +35,6 @@
         self.nixosModules.niri
         self.nixosModules.bluetooth
         self.nixosModules.firefox
-        self.nixosModules.hyprland
         self.nixosModules.inventory-legacy
         self.nixosModules.impure-nix-setup
         self.nixosModules.large-console-fonts

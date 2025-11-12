@@ -89,7 +89,7 @@ in
       ]
       ++ (lib.optionals osConfig.services.graphical-desktop.enable [
         self.homeModules.niri
-        self.homeModules.hyprland
+        # self.homeModules.hyprland
         self.homeModules.wezterm
         self.homeModules.foot
         self.homeModules.fonts

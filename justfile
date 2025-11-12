@@ -161,3 +161,8 @@ render-ci-workflows:
 
 [group('dev')]
 render-templates: ansible-inventory render-ci-workflows
+
+[group('dev')]
+wb:
+    nix build '.#nixosConfigurations.demandred.config.home-manager.users.binarin.xdg.configFile."waybar/config".source' -o ~/.config/waybar/config
+    nix build '.#nixosConfigurations.demandred.config.home-manager.users.binarin.programs.waybar.style' -o ~/.config/waybar/style.css

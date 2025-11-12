@@ -3,18 +3,6 @@
   ...
 }:
 {
-  flake.nixosModules.waybar =
-    {
-      ...
-    }:
-    {
-      key = "nixos-config.modules.nixos.waybar";
-      nixpkgs.overlays = [
-        # flake.inputs.waybar.overlays.default
-      ];
-      home-manager.sharedModules = [ self.homeModules.waybar ];
-    };
-
   flake.homeModules.waybar =
     {
       config,
@@ -36,41 +24,45 @@
         systemd.user.services.waybar.Unit.BindsTo = [ "graphical-session.target" ];
         systemd.user.services.waybar.Service.ExecCondition = [
           ''
-            ${pkgs.systemd}/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
+            ${pkgs.systemd}/lib/systemd/systemd-xdg-autostart-condition "wlroots:niri:sway:Wayfire:labwc:Hyprland" ""
           ''
         ];
+
+        services.network-manager-applet.enable = true;
 
         programs.waybar = {
           enable = true;
           systemd.enable = true;
           settings = {
             mainBar = {
+              reload_style_on_change = true;
               position = "bottom";
               layer = "top";
-              height = 16;
+              height = 21;
 
               modules-left = [
-                "hyprland/workspaces"
+                "niri/workspaces"
                 "wlr/taskbar"
               ];
-              modules-center = [ "hyprland/window" ];
+              modules-center = [ "niri/window" ];
               modules-right = [
                 "tray"
                 "idle_inhibitor"
                 "pulseaudio"
                 "clock"
-                "hyprland/submap"
-                "hyprland/language"
+                "niri/language"
                 "custom/notification"
               ];
 
-              "hyprland/workspaces" = { };
+              "niri/workspaces" = {
+                current-only = true;
+              };
 
               "wlr/taskbar" = {
                 on-click = "activate";
               };
 
-              "hyprland/window" = {
+              "niri/window" = {
                 separate-outputs = true;
                 icon = true;
                 icon-size = 16;
@@ -85,7 +77,7 @@
                 format = "{icon}";
                 format-icons = {
                   activated = "🛑";
-                  deactivated = "";
+                  deactivated = "";
                 };
               };
 
@@ -127,14 +119,12 @@
                 };
               };
 
-              "hyprland/language" = {
+              "niri/language" = {
                 format-ru = "🇷🇺";
                 format-en = "🇺🇸";
                 format-nl = "🇳🇱";
                 format-es = "🇪🇸";
               };
-
-              "hyprland/submap" = { };
 
               "custom/notification" = {
                 tooltip = false;

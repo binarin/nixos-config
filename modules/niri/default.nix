@@ -20,6 +20,7 @@
 
       imports = [
         self.nixosModules.gui
+        self.nixosModules.hypridle
       ];
 
       environment.systemPackages = with pkgs; [
@@ -60,13 +61,35 @@
         self.homeModules.wayland
         self.homeModules.fuzzel
         self.homeModules.waybar
+        self.homeModules.swaync
       ];
 
-      home.packages = [
-        self.packages."${pkgs.stdenv.system}".sshmenu
-      ];
+      config = {
+        home.packages = [
+          self.packages."${pkgs.stdenv.system}".sshmenu
+        ];
 
-      xdg.configFile."niri/config.kdl".source =
-        config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/modules/niri/config.kdl";
+        # xdg.configFile =
+        #   lib.mapAttrs'
+        #     (
+        #       name: value:
+        #       lib.nameValuePair "autostart/${name}.desktop" {
+        #         text = ''
+        #           [Desktop Entry]
+        #           ${value}
+        #         '';
+        #       }
+        #     )
+        #     {
+        #       "org.kde.kalendarac" = "NotShowIn=Hyrpland";
+        #       "org.kde.kunifiedpush-distributor" = "NotShowIn=Hyrpland";
+        #       "org.kde.xwaylandvideobridge" = "NotShowIn=Hyrpland";
+        #       "git-annex" = "Hiddent=True";
+        #       "ProtonMailBridge" = "Hidden=True";
+        #     };
+
+        xdg.configFile."niri/config.kdl".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/modules/niri/config.kdl";
+      };
     };
 }

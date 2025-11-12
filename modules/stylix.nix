@@ -31,7 +31,7 @@ let
       stylix.fonts = {
         sizes = {
           terminal = 14;
-          desktop = 10;
+          desktop = 12;
           applications = 12;
         };
 
