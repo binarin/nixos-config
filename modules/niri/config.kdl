@@ -369,7 +369,9 @@ window-rule {
 }
 
 binds {
-     Mod+N { spawn "swaync-client -t"; }
+        Mod+N { spawn-sh "swaync-client -t"; }
+        Mod+A { spawn "wl-kbptr"; }
+        Mod+E { spawn-sh "wl-kbptr -o modes=floating,click -o mode_floating.source=detect"; }
 
     // Keys consist of modifiers separated by + signs, followed by an XKB key name
     // in the end. To find an XKB name for a particular key, you may use a program
@@ -632,7 +634,6 @@ binds {
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
 
     // The quit action will show a confirmation dialog to avoid accidental exits.
-    Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
 
     // Powers off the monitors. To turn them back on, do any input like

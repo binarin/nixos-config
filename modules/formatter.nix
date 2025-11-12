@@ -31,6 +31,7 @@
           "files/*"
           "justfile"
           ".sops.yaml"
+          "**/config"
         ];
       };
     };

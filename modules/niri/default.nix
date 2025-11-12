@@ -62,6 +62,7 @@
         self.homeModules.fuzzel
         self.homeModules.waybar
         self.homeModules.swaync
+        self.homeModules.wl-kbptr
       ];
 
       config = {
