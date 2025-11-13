@@ -151,7 +151,11 @@
       config = lib.mkIf cfg.enable (
         lib.mkMerge [
           {
-            home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
+            programs.emacs = {
+              enable = lib.mkForce false; # finalEmacsPackage is configured and installed in this file
+            };
+
+            services.emacs.package = finalEmacsPackage;
 
             home.packages = with pkgs; [
               finalEmacsPackage

@@ -156,17 +156,33 @@
 
 ** No toolbars/scrollbars
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (declare-function toggle-scroll-bar "scroll-bar")
-     (when (window-system)
-       (toggle-scroll-bar -1)
-       (tool-bar-mode -1))
+     ;; https://emacs.stackexchange.com/questions/39359/tool-bar-in-emacsclient
 
-     (unless (and (eq binarin/system-type 'darwin)
-                (window-system))
-         (menu-bar-mode -1))
+     (defun binarin/frame-tweaks (&optional frame)
+       "My personal frame tweaks."
+       (unless frame
+         (setq frame (selected-frame)))
+       (when frame
+         (with-selected-frame frame
+           (when (display-graphic-p)
+             (tool-bar-mode -1)))))
+
+     ;; For the case that the init file runs after the frame has been created.
+     ;; Call of emacs without --daemon option.
+     (binarin/frame-tweaks)
+
+     ;; For the case that the init file runs before the frame is created.
+     ;; Call of emacs with --daemon option.
+     (add-hook 'after-make-frame-functions 'binarin/frame-tweaks t)
+
+     (toggle-scroll-bar -1)
+     (menu-bar-mode -1)
 
      (setf (alist-get 'vertical-scroll-bars default-frame-alist) nil)
    #+END_SRC
+
+
+
 
 ** Tab bar
    Only show tab bar when there is more than one tab

@@ -14,6 +14,7 @@ in
       key = "nixos-config.default";
 
       imports = [
+        self.nixosModules.baseline
         self.nixosModules.emacs
         self.nixosModules.eternal-terminal
         self.nixosModules.git

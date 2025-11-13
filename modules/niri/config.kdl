@@ -262,7 +262,7 @@ layout {
 // which may be more convenient to use.
 // See the binds section below for more spawn examples.
 
-spawn-at-startup "emacs"
+spawn-at-startup "emacsclient"
 spawn-at-startup "firefox"
 spawn-sh-at-startup "foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
 

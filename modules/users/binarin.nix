@@ -1,77 +1,35 @@
 { self, ... }:
-let
-
-  nixosHome = "/home/binarin";
-
-in
 {
   flake.nixosModules.user-binarin =
-    { config, lib, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.nixos.user-binarin";
 
       imports = [
+        self.nixosModules.binarin-baseline
         self.nixosModules.home-manager
         self.nixosModules.impermanence
         self.nixosModules.stylix
         self.nixosModules.gnupg
       ];
 
-      users.users = {
-        binarin = {
-          description = "Alexey Lebedeff";
-          uid = 1000;
-          isNormalUser = true;
-          group = "binarin";
-          home = nixosHome;
-          shell = "/run/current-system/sw/bin/zsh";
-          extraGroups = [
-            "dialout"
-            "docker"
-            "i2c"
-            "libvirtd"
-            "lxd"
-            "networkmanager"
-            "transmission"
-            "tss" # for TPM2
-            "users"
-            "vboxusers"
-            "video"
-            "wheel"
-            "wireshark"
-          ];
-          openssh = {
-            authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser "binarin";
-            authorizedPrincipals = [
-              "root"
-              "binarin"
-            ];
-          };
-        };
-      };
+      users.users.binarin.extraGroups = [
+        "dialout"
+        "docker"
+        "i2c"
+        "libvirtd"
+        "lxd"
+        "networkmanager"
+        "transmission"
+        "tss" # for TPM2
+        "users"
+        "vboxusers"
+        "video"
+        "wheel"
+        "wireshark"
+      ];
 
-      users.groups = {
-        binarin = {
-          gid = 1000;
-        };
-      };
-
-      nix.settings.trusted-users = [ "binarin" ];
-
-      programs.zsh.enable = true;
-
-      home-manager.users.binarin =
-        { ... }:
-        {
-          imports = [
-            self.homeModules.user-binarin
-          ];
-          config = {
-            home.homeDirectory = "/home/binarin";
-            home.username = "binarin";
-            home.stateVersion = config.system.stateVersion;
-          };
-        };
+      home-manager.users.binarin = self.homeModules.user-binarin;
     };
 
   flake.homeModules.user-binarin =

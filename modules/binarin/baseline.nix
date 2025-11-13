@@ -1,0 +1,236 @@
+{ self, ... }:
+{
+
+  flake.nixosModules.binarin-baseline =
+    { config, ... }:
+    {
+      programs.zsh.enable = true;
+
+      users.users = {
+        binarin = {
+          linger = true;
+          description = "Alexey Lebedeff";
+          uid = 1000;
+          isNormalUser = true;
+          group = "binarin";
+          home = "/home/binarin";
+          shell = "/run/current-system/sw/bin/zsh";
+          # hashedPasswordFile = ""; XXX
+          extraGroups = [
+            "users"
+            "wheel"
+            "pcap"
+          ];
+          openssh = {
+            authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser "binarin";
+            authorizedPrincipals = [
+              "root"
+              "binarin"
+            ];
+          };
+        };
+      };
+
+      users.groups = {
+        binarin = {
+          gid = 1000;
+        };
+      };
+
+      nix.settings.trusted-users = [ "binarin" ];
+
+      home-manager.users.binarin =
+        { osConfig, lib, ... }:
+        {
+          imports = [
+            self.homeModules.binarin-baseline
+          ];
+          config = {
+            home.homeDirectory = "/home/binarin";
+            home.username = "binarin";
+            home.stateVersion = lib.mkDefault osConfig.system.stateVersion;
+          };
+        };
+
+    };
+
+  flake.homeModules.binarin-baseline =
+    { lib, pkgs, ... }:
+    {
+      programs.fzf = {
+        enable = true;
+        tmux = {
+          enableShellIntegration = true;
+          shellIntegrationOptions = [ "-d 40%" ];
+        };
+      };
+
+      programs.tmux = {
+        baseIndex = 1;
+        clock24 = true;
+        enable = true;
+        shortcut = "o";
+        terminal = "screen-256color"; # needed, e.g. for emacs -nw
+        mouse = true;
+        focusEvents = true;
+        sensibleOnTop = true;
+        extraConfig = ''
+          set -g word-separators ' "=()[]'
+          set -ag word-separators "'"  # '-a' for append, "'" should be quoted differently
+
+          set -g allow-rename off
+          set -g update-environment "DISPLAY KRB5CCNAME SSH_ASKPASS SSH_AGENT_PID SSH_CONNECTION WINDOWID XAUTHORITY"
+        '';
+      };
+
+      programs.zoxide.enable = true;
+      programs.bash.enable = true;
+      programs.bat.enable = true;
+
+      programs.broot = {
+        enable = true;
+        enableZshIntegration = true;
+        enableBashIntegration = true;
+      };
+
+      programs.fd = {
+        enable = true;
+        ignores = [
+          ".git/"
+          ".direnv/"
+        ];
+        hidden = true;
+      };
+
+      programs.atuin = {
+        enable = true;
+        enableZshIntegration = true;
+        enableBashIntegration = true;
+        settings = {
+          search_mode = "fuzzy";
+          sync_address = "https://atuin.binarin.info";
+        };
+        daemon.enable = true;
+      };
+
+      home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
+
+      programs.emacs = {
+        enable = true;
+        extraPackages =
+          epkgs: with epkgs; [
+            magit
+            zenburn-theme
+          ];
+      };
+
+      services.emacs = {
+        enable = true;
+        socketActivation.enable = false;
+        startWithUserSession = true;
+      };
+      programs.starship = {
+        enable = true;
+        settings = {
+          username = {
+            style_user = "blue bold";
+            style_root = "red bold";
+            format = "[$user]($style) ";
+            disabled = false;
+            show_always = true;
+          };
+          hostname = {
+            ssh_only = false;
+            ssh_symbol = "🌐 ";
+            format = "on [$hostname](bold red) ";
+            trim_at = ".local";
+            disabled = false;
+          };
+          shlvl = {
+            disabled = false;
+            symbol = "↕️";
+            repeat = true;
+            repeat_offset = 3;
+            format = "[$symbol](bold yellow) ";
+          };
+        };
+      };
+
+      programs.zsh = {
+        enable = true;
+        autocd = true;
+        autosuggestion.enable = true;
+        syntaxHighlighting.enable = true;
+
+        shellAliases = {
+          vi = "emacsclient -a 'emacs -nw' -nw";
+          vim = "emacsclient -a 'emacs -nw' -nw";
+          o = ''xdg-open'';
+        };
+
+        initContent = ''
+          # Dir=/some/path
+          # cd ~Dir
+          setopt cdablevars
+
+          rr() {
+            readlink -f $(type -p $1 | awk '{print $3}')
+          }
+
+          rrb() {
+            local f="$(rr $1)"
+            if [[ -r "$f" ]]; then
+              bat "$f"
+            fi
+          }
+
+          rre() {
+            local f="$(rr $1)"
+            if [[ -r "$f" ]]; then
+              $EDITOR "$f"
+            fi
+          }
+
+          # let a terminal/tmux to keep track of a current directory to open new window in the same place
+          function osc7 {
+              local LC_ALL=C
+              export LC_ALL
+
+              setopt localoptions extendedglob
+              input=( ''${(s::)PWD} )
+              uri=''${(j::)input/(#b)([^A-Za-z0-9_.\!~*\'\(\)-\/])/%''${(l:2::0:)$(([##16]#match))}}
+              print -n "\e]7;file://''${HOSTNAME}''${uri}\e\\"
+          }
+          add-zsh-hook -Uz chpwd osc7
+
+          # OSC 133 (shell integration / semantic prompt) support, delimits the shell prompt from a command output
+          precmd() {
+              print -Pn "\e]133;A\e\\"
+          }
+          export LS_COLORS="$(${lib.getExe pkgs.vivid} generate zenburn)"
+        '';
+
+        history = {
+          size = 20000;
+          save = 20000;
+          share = true;
+          ignoreSpace = true;
+        };
+
+        oh-my-zsh = {
+          enable = true;
+          plugins = [
+            "aliases"
+            "ansible"
+            "colored-man-pages"
+            "copyfile"
+            "copypath"
+            "dirpersist"
+            "extract"
+            "git"
+            "systemd"
+          ];
+        };
+      };
+    };
+}
