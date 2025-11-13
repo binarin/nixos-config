@@ -1242,6 +1242,11 @@
        :ensure t
        :no-require t
        :mode "\\.kdl\\'")
+
+     (defun binarin/kdl-mode-hook ()
+       (setf tab-width 2))
+
+     (add-hook 'kdl-mode-hook 'binarin/kdl-mode-hook)
    #+end_src
 
 * Major modes
