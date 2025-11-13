@@ -1793,12 +1793,12 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
                    collect (cond
                             ;; Last line without final newline
                             ((and (= i last-idx) (not has-final-newline))
-                             (format "wtype -s 350 \"%s\""
-                                     (replace-regexp-in-string "\"" "\\\\\"" line)))
+                             (format "wtype -s 350 %s"
+                                     (shell-quote-argument line)))
                             ;; Any other line
                             (t
-                             (format "wtype -s 350 \"%s\" && wtype -k Return"
-                                     (replace-regexp-in-string "\"" "\\\\\"" line)))))
+                             (format "wtype -s 350 %s && wtype -k Return"
+                                     (shell-quote-argument line)))))
           " && ")))
 
      (defun thanos/type ()
