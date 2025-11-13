@@ -1,0 +1,30 @@
+---
+- name: Install etckeeper
+  ansible.builtin.apt:
+    name: etckeeper
+
+- command: git config get --global user.name
+  register: git_user_name_cmd
+  ignore_errors: true
+  changed_when: False
+
+- name: Set git user.name for root
+  when: git_user_name_cmd.rc != 0
+  ansible.builtin.command: "git config set --global user.name 'Root at {{ inventory_hostname }}'"
+
+- command: git config get --global user.email
+  register: git_user_email_cmd
+  ignore_errors: true
+  changed_when: False
+
+- name: Set git user.name for root
+  when: git_user_email_cmd.rc != 0
+  ansible.builtin.command: "git config set --global user.email 'root@{{ inventory_hostname }}.binarin.info'"
+
+- name: Ignore pve dir
+  ansible.builtin.lineinfile:
+    create: true
+    insertafter: EOF
+    line: pve
+    path: /etc/.gitignore
+

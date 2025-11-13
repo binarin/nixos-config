@@ -1,4 +1,12 @@
 ---
+- hosts:
+    - pbs
+    - pve
+  tags:
+    - etckeeper
+  tasks:
+    - import_tasks: tasks/etckeeper.yml
+
 - hosts: qdevices
   tags:
     - sshd
