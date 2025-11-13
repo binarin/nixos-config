@@ -1814,6 +1814,7 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
          (switch-to-buffer buf)
          (erase-buffer)
          (org-mode)
+         (visual-line-mode t)
          (setq-local header-line-format
                      (format " %s to insert text or %s to cancel."
                              (propertize "C-c C-c" 'face 'help-key-binding)
