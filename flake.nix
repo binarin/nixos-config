@@ -65,6 +65,14 @@
       };
       url = "github:nix-community/home-manager/release-25.05";
     };
+    home-manager-master = {
+      inputs = {
+        nixpkgs = {
+          follows = "nixpkgs";
+        };
+      };
+      url = "github:nix-community/home-manager";
+    };
     hyprland = {
       inputs = {
         nixpkgs = {

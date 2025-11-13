@@ -28,19 +28,26 @@
     };
 
   flake.homeModules.sops =
-    { config, ... }:
+    { config, osConfig, ... }:
     {
       key = "nixos-config.modules.home.sops";
 
       imports = [
         inputs.sops-nix.homeManagerModules.sops
         self.modules.generic.flake-files
+        self.homeModules.impermanence
       ];
 
       config = {
+        impermanence.local-files = [
+          {
+            file = ".config/age/nixos-config-keys.txt";
+          }
+        ];
+
         sops = {
           age.keyFile = "${config.home.homeDirectory}/.config/age/nixos-config-keys.txt";
-          defaultSopsFile = config.lib.self.optionalFile' "secrets/${config.networking.hostName}/user-${config.home.username}.yaml";
+          defaultSopsFile = config.lib.self.optionalFile' "secrets/${osConfig.networking.hostName}/user-${config.home.username}.yaml";
         };
       };
     };
