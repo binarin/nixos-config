@@ -10,6 +10,7 @@
 
       home.packages = [
         self.inputs.nix-ai-tools.packages.${pkgs.system}.claude-code
+        self.inputs.nix-ai-tools.packages.${pkgs.system}.claudebox
       ];
 
       impermanence.persist-files = [
