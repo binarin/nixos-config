@@ -14,6 +14,7 @@ in
         self.nixosModules.home-manager
         self.nixosModules.impermanence
         self.nixosModules.stylix
+        self.nixosModules.gnupg
       ];
 
       users.users = {
@@ -74,7 +75,7 @@ in
     };
 
   flake.homeModules.user-binarin =
-    { lib, osConfig, ... }:
+    { lib, osConfig, pkgs, ... }:
     {
       key = "nixos-config.modules.home.user-binarin";
 
@@ -86,6 +87,7 @@ in
         self.homeModules.direnv
         self.homeModules.interactive-cli
         self.homeModules.sops
+        self.homeModules.gnupg
       ]
       ++ (lib.optionals osConfig.services.graphical-desktop.enable [
         self.homeModules.niri
@@ -100,6 +102,10 @@ in
         userName = "Alexey Lebedeff";
         userEmail = "binarin@binarin.info";
       };
+
+      home.packages = with pkgs; [
+        gopass
+      ];
 
       impermanence.local-files = [
       ];
@@ -120,6 +126,8 @@ in
         "annex"
         "finance"
         ".ssh"
+        ".local/share/gopass"
+        ".config/gopass"
       ];
     };
 }

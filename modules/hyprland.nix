@@ -152,16 +152,6 @@
 
         xsession.preferStatusNotifierItems = true;
 
-        services.gpg-agent = {
-          enable = true;
-          defaultCacheTtl = 3600;
-          maxCacheTtl = 14400;
-          extraConfig = ''
-            allow-preset-passphrase
-          '';
-          pinentry.package = pkgs.pinentry-gtk2;
-        };
-
         wayland.windowManager.hyprland = {
           systemd.enable = false;
           enable = true;

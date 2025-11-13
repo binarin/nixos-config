@@ -286,7 +286,6 @@
           programs.atuin.settings.db_path = "${safeState}/atuin/history.db";
 
           home.sessionVariables = {
-            GPGHOME = "${safeState}/gnupg";
             IMPERMANENCE_LOCAL_CACHE = "${localCache}";
           };
 

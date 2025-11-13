@@ -316,7 +316,6 @@
             gnum4
             gnumake
             gnupg
-            gopass
             gron
             httpie
             inetutils
