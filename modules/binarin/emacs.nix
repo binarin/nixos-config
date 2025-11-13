@@ -153,9 +153,10 @@
           {
             home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
 
-            home.packages = [
+            home.packages = with pkgs; [
               finalEmacsPackage
               tangle-emacs-org-babel-config
+              wtype
             ];
             xdg.configFile."emacs/init.el".source = cfg.compiledConfig + "/init.el";
             xdg.configFile."emacs/init.elc".source = cfg.compiledConfig + "/init.elc";
