@@ -1031,6 +1031,13 @@
      (use-package markdown-mode
        :ensure t
        :mode "\\.md\\'$")
+
+     (use-package edit-indirect
+       :ensure t
+       :defer t)
+
+     (with-eval-after-load 'markdown-mode
+       (load-library "edit-indirect"))
    #+end_src
 ** Javascript
    #+begin_src emacs-lisp :tangle yes
