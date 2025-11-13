@@ -98,7 +98,6 @@
           pkgs.kdePackages.xdg-desktop-portal-kde
         ];
 
-
       };
     };
 }

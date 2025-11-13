@@ -58,7 +58,6 @@
 
       options = {
         programs.doggo.enable = lib.mkEnableOption "Install `doggo` (`dig` replacement)";
-        programs.ssh.stableAgentSocket = lib.mkEnableOption "Use stable path for ssh-agent socket, so it can be easily replaced inside long running processes like tmux/emacs/...";
       };
 
       config = lib.mkMerge [
@@ -99,7 +98,6 @@
 
           programs.ssh = {
             enable = true;
-            stableAgentSocket = true;
             matchBlocks = {
               mail = {
                 match = ''
@@ -219,37 +217,6 @@
             }
           '';
         })
-        (lib.mkIf (config.programs.ssh.enable && config.programs.ssh.stableAgentSocket) (
-          lib.mkMerge [
-            {
-              home.file.".ssh/rc".text = ''
-                # Fix SSH auth socket location so agent forwarding works with tmux
-                if test "$SSH_AUTH_SOCK" ; then
-                    ln -sf $SSH_AUTH_SOCK ${config.xdg.stateHome}/ssh/stable_ssh_auth_sock
-                fi
-              '';
-              home.activation.createSshStateDirs = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-                mkdir -p ${config.xdg.stateHome}/ssh/
-              '';
-            }
-            (lib.mkIf osConfig.services.graphical-desktop.enable {
-              systemd.user.services.stable-ssh-agent-socket-use-local = {
-                Unit = {
-                  After = [ "graphical-session.target" ];
-                };
-                Service = {
-                  Type = "oneshot";
-                  ExecStart = ''
-                    ${lib.getExe' pkgs.coreutils "ln"} -sf "%t/ssh-agent" ${config.xdg.stateHome}/ssh/stable_ssh_auth_sock
-                  '';
-                };
-                Install = {
-                  WantedBy = [ "graphical-session.target" ];
-                };
-              };
-            })
-          ]
-        ))
         (lib.mkIf config.programs.starship.enable {
           home.sessionVariables = {
             STARSHIP_CACHE = lib.mkDefault "${config.xdg.cacheHome}/starship";

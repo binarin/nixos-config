@@ -251,11 +251,6 @@
        :commands (rainbow-mode))
    #+end_src
 * Behaviour
-** SSH agent
-   #+begin_src emacs-lisp :tangle yes
-     (when (file-exists-p "~/.xdg/local/state/ssh/stable_ssh_auth_sock")
-       (setenv "SSH_AUTH_SOCK" (expand-file-name "~/.xdg/local/state/ssh/stable_ssh_auth_sock")))
-   #+end_src
 ** Windows Quirks
    #+begin_src emacs-lisp :tangle yes
      (when (eq system-type 'windows-nt)

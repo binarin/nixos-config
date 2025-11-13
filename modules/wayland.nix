@@ -2,10 +2,11 @@
   ...
 }:
 {
-  flake.nixosModules.wayland = { ... }: {
-    programs.dconf.enable = true;
-  };
-
+  flake.nixosModules.wayland =
+    { ... }:
+    {
+      programs.dconf.enable = true;
+    };
 
   flake.homeModules.wayland =
     {
