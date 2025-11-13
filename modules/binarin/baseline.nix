@@ -4,6 +4,11 @@
   flake.nixosModules.binarin-baseline =
     { config, ... }:
     {
+      imports = [
+        self.nixosModules.home-manager
+        self.modules.generic.public-keys
+      ];
+
       programs.zsh.enable = true;
 
       users.users = {
