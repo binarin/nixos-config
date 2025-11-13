@@ -75,7 +75,12 @@ in
     };
 
   flake.homeModules.user-binarin =
-    { lib, osConfig, pkgs, ... }:
+    {
+      lib,
+      osConfig,
+      pkgs,
+      ...
+    }:
     {
       key = "nixos-config.modules.home.user-binarin";
 
