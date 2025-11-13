@@ -40,6 +40,12 @@ let
       (lib.optionalAttrs (info ? "gateway") {
         inherit (info) gateway;
       })
+      (lib.optionalAttrs (info ? "network") {
+        inherit (info) network;
+      })
+      (lib.optionalAttrs (info ? "prefix") {
+        inherit (info) prefix;
+      })
       (lib.optionalAttrs (ipam != null) {
         hosts =
           with lib;

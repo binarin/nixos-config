@@ -725,7 +725,7 @@
         '';
 
         services.caddy.virtualHosts."unifi.binarin.info".extraConfig = ''
-          reverse_proxy 192.168.2.1:443 {
+          reverse_proxy ${config.inventory.ipAllocation."usg".home.primary.address}:443 {
             transport http {
               tls
               tls_insecure_skip_verify

@@ -18,8 +18,8 @@
       # boot.initrd.systemd.initrdBin = with pkgs; [ iproute2 gnugrep procps gnutar ];
 
       # boot.kernelParams = [
-      #   "ip=192.168.2.16::192.168.2.1:255.255.255.0::enp2s0:off"
-      #   "nameserver=192.168.2.1"
+      #   "ip=${config.inventory.ipAllocation."${config.networking.hostName}".home.primary.address}::${config.inventory.networks.home.gateway}:255.255.255.0::enp2s0:off"
+      #   "nameserver=${lib.head config.inventory.networks.home.dns}"
       # ];
 
       boot.initrd.systemd.services.initrd-decrypt-ssh-host-keys = {

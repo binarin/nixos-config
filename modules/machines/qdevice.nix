@@ -2,12 +2,13 @@
   self,
   inputs,
   lib,
+  config,
   ...
 }:
 
 {
   flake.deploy.nodes.qdevice = {
-    hostname = "192.168.2.16";
+    hostname = config.inventory.ipAllocation."qdevice".home.primary.address;
     profiles.system = {
       sshUser = "root";
       path = self.lib.deploy-nixos self.nixosConfigurations.qdevice;
@@ -80,9 +81,11 @@
 
             "40-br0" = {
               matchConfig.Name = "br0";
-              dns = [ "192.168.2.1" ];
-              address = [ "192.168.2.16/24" ];
-              routes = [ { Gateway = "192.168.2.1"; } ];
+              dns = config.inventory.networks.home.dns;
+              address = [
+                config.inventory.ipAllocation."${config.networking.hostName}".home.primary.addressWithPrefix
+              ];
+              routes = [ { Gateway = config.inventory.networks.home.gateway; } ];
               bridgeConfig = { };
               linkConfig = {
                 RequiredForOnline = "routable";
@@ -93,9 +96,11 @@
 
         boot.initrd.systemd.network.networks."40-enp2s0" = {
           matchConfig.Name = "enp2s0";
-          dns = [ "192.168.2.1" ];
-          address = [ "192.168.2.16/24" ];
-          routes = [ { Gateway = "192.168.2.1"; } ];
+          dns = config.inventory.networks.home.dns;
+          address = [
+            config.inventory.ipAllocation."${config.networking.hostName}".home.primary.addressWithPrefix
+          ];
+          routes = [ { Gateway = config.inventory.networks.home.gateway; } ];
         };
 
         networking.firewall.enable = true;
@@ -120,8 +125,12 @@
 
         services.tang = {
           enable = true;
-          listenStream = [ "192.168.2.16:7654" ];
-          ipAddressAllow = [ "192.168.2.0/24" ];
+          listenStream = [
+            "${config.inventory.ipAllocation."${config.networking.hostName}".home.primary.address}:7654"
+          ];
+          ipAddressAllow = [
+            "${config.inventory.networks.home.network}/${toString config.inventory.networks.home.prefix}"
+          ];
         };
       };
     };
