@@ -41,3 +41,4 @@ This should be configured on a per-machine basis.
 * TODO tpm2-pkcs11-esapi FTW
 * TODO pin caddy version?
 * TODO sort out zenburn
+* TODO configure treefmt / pre-commit hooks - for nix, ansible, terraform
