@@ -104,7 +104,14 @@ input {
 // Settings that influence how windows are positioned and sized.
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Layout
+overview {
+  backdrop-color "#00807F"
+}
+
 layout {
+  background-color "#00807F"
+
+
   // Set gaps around windows in logical pixels.
   gaps 16
 

@@ -21,6 +21,7 @@
       imports = [
         self.nixosModules.gui
         self.nixosModules.hypridle
+        self.nixosModules.wayland
       ];
 
       environment.systemPackages = with pkgs; [
@@ -91,6 +92,13 @@
 
         xdg.configFile."niri/config.kdl".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/modules/niri/config.kdl";
+
+        xdg.portal.extraPortals = [
+          pkgs.kdePackages.kwallet
+          pkgs.kdePackages.xdg-desktop-portal-kde
+        ];
+
+
       };
     };
 }

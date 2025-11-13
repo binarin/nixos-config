@@ -48,6 +48,7 @@
       key = "nixos-config.modules.home.firefox";
 
       config = {
+        stylix.targets.firefox.enable = true;
         stylix.targets.firefox.profileNames = [ "default" ];
 
         impermanence.local-directories = [ ".mozilla/firefox" ];
@@ -89,6 +90,7 @@
               "devtools.debugger.prompt-connection" = false;
               "devtools.debugger.remote-enabled" = true;
               "extensions.activeThemeID" = "default-theme@mozilla.org";
+              "ui.systemUsesDarkTheme" = true;
               "font.minimum-size.x-western" = 16;
               "font.size.monospace.x-western" = 16;
               "gfx.webrender.all" = true;
