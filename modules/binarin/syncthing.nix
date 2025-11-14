@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ self, inputs, ... }:
 {
   flake.homeModules.syncthing =
     { config, ... }:
@@ -10,9 +10,18 @@
       ];
       imports = [
         "${inputs.home-manager-master}/modules/services/syncthing.nix"
+        self.homeModules.impermanence
       ];
 
       sops.secrets."syncthing-ui-password" = { };
+
+      impermanence.persist-directories = [
+        ".local/state/syncthing"
+      ];
+
+      impermanence.persist-files = [
+        ".config/syncthingtray.ini"
+      ];
 
       services.syncthing = {
         enable = true;
