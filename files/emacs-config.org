@@ -158,6 +158,7 @@
    #+BEGIN_SRC emacs-lisp :tangle yes
      ;; https://emacs.stackexchange.com/questions/39359/tool-bar-in-emacsclient
 
+     (autoload 'toggle-scroll-bar "scroll-bar")
      (defun binarin/frame-tweaks (&optional frame)
        "My personal frame tweaks."
        (unless frame
@@ -165,6 +166,8 @@
        (when frame
          (with-selected-frame frame
            (when (display-graphic-p)
+             (toggle-scroll-bar -1)
+             (menu-bar-mode -1)
              (tool-bar-mode -1)))))
 
      ;; For the case that the init file runs after the frame has been created.
@@ -174,9 +177,6 @@
      ;; For the case that the init file runs before the frame is created.
      ;; Call of emacs with --daemon option.
      (add-hook 'after-make-frame-functions 'binarin/frame-tweaks t)
-
-     (toggle-scroll-bar -1)
-     (menu-bar-mode -1)
 
      (setf (alist-get 'vertical-scroll-bars default-frame-alist) nil)
    #+END_SRC
