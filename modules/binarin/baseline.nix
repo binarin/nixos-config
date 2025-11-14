@@ -13,7 +13,6 @@
 
       users.users = {
         binarin = {
-          linger = true;
           description = "Alexey Lebedeff";
           uid = 1000;
           isNormalUser = true;
@@ -131,9 +130,9 @@
 
       services.emacs = {
         enable = true;
-        socketActivation.enable = false;
-        startWithUserSession = true;
+        socketActivation.enable = true;
       };
+
       programs.starship = {
         enable = true;
         settings = {

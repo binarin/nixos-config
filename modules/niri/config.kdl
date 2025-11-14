@@ -269,7 +269,7 @@ layout {
 // which may be more convenient to use.
 // See the binds section below for more spawn examples.
 
-spawn-at-startup "emacsclient"
+spawn-sh-at-startup "sleep 2; emacsclient" // XXX Don't know why socket activation is not working at this point
 spawn-sh-at-startup "foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
