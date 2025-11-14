@@ -20,8 +20,8 @@
 
       imports = [
         self.nixosModules.gui
-        self.nixosModules.hypridle
         self.nixosModules.wayland
+        self.nixosModules.swayidle
       ];
 
       environment.systemPackages = with pkgs; [
@@ -64,6 +64,7 @@
         self.homeModules.waybar
         self.homeModules.swaync
         self.homeModules.wl-kbptr
+        self.homeModules.swayidle
       ];
 
       config = {
