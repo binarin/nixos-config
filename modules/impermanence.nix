@@ -297,7 +297,6 @@
 
             xdg = {
               enable = true;
-              stateHome = "${safeDir}/.local/state";
             };
 
             impermanence.persist-directories = [
@@ -317,16 +316,6 @@
               music = "${homeDir}/Music";
               pictures = "${homeDir}/Pictures";
               videos = "${homeDir}/Videos";
-            };
-
-            home.persistence."${safeDir}" = {
-              enable = true;
-              allowOther = true;
-            };
-
-            home.persistence."${localDir}" = {
-              enable = true;
-              allowOther = true;
             };
 
             impermanence.persist-files = [
