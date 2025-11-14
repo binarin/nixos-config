@@ -818,20 +818,27 @@
    #+begin_src emacs-lisp :tangle yes
      ;; Yo dawg! I heard you like advices so I added an advice around your advice
 
-     (defun binarin/augment-buffer-name (basename projectile-root)
-       (s-concat basename "(" (projectile-project-name projectile-root) ")"))
+     (defun binarin/augment-buffer-name (filename basename)
+       (when (and filename
+                  (s-matches? (rx bol (or "default.nix" "package.nix") eol) (file-name-nondirectory filename)))
+         (setf basename (format "%s{%s}"
+                                basename
+                                (file-name-nondirectory (s-chop-suffix "/" (file-name-parent-directory filename))))))
+
+       (awhen (and filename
+                   (projectile-project-root (file-name-directory filename)))
+         (setf basename (s-concat basename "(" (projectile-project-name it) ")")))
+
+       basename)
 
      (defun binarin/uniquify--create-file-buffer-advice-advice (orig-fun buf filename basename)
-       (awhen (projectile-project-root (file-name-directory filename))
-         (setf basename (binarin/augment-buffer-name basename it)))
-       (funcall orig-fun buf filename basename))
+       (funcall orig-fun buf filename (binarin/augment-buffer-name filename basename)))
 
      (advice-add 'uniquify--create-file-buffer-advice :around 'binarin/uniquify--create-file-buffer-advice-advice)
 
      (defun binarin/uniquify--rename-buffer-advice-advice (orig-fun newname &optional unique)
-       (awhen (projectile-project-root)
-         (setf newname (binarin/augment-buffer-name newname it)))
-       (funcall orig-fun newname unique))
+       (funcall orig-fun newname;; (binarin/augment-buffer-name (buffer-file-name) newname)
+                unique))
 
      (advice-add 'uniquify--rename-buffer-advice :around 'binarin/uniquify--rename-buffer-advice-advice)
    #+end_src
