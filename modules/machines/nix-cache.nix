@@ -80,7 +80,7 @@ in
             recommendedProxySettings = false;
             proxyPass = "https://cache.nixos.org";
             extraConfig = ''
-              proxy_set_header Host $proxy_host;
+              proxy_set_header Host cache.nixos.org;
 
               # Tell Nginx to actually use the response cache to cache requests.
               # See: https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache
