@@ -270,7 +270,6 @@ layout {
 // See the binds section below for more spawn examples.
 
 spawn-at-startup "emacsclient"
-spawn-at-startup "firefox"
 spawn-sh-at-startup "foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
@@ -329,31 +328,31 @@ window-rule {
   open-floating true
 }
 
-// Open the Firefox picture-in-picture player as floating by default.
-window-rule {
-  // This app-id regular expression will work for both:
-  // - host Firefox (app-id is "firefox")
-  // - Flatpak Firefox (app-id is "org.mozilla.firefox")
-  match app-id=r#"firefox$"# title="^Picture-in-Picture$"
-  open-floating true
-}
+
+spawn-at-startup "firefox"
 
 window-rule {
-  match app-id="foot" at-startup=true
-  open-on-workspace "terminal"
-  open-maximized true
+  match app-id="firefox" title="^Picture-in-Picture$"
+  open-floating true
 }
 
 window-rule {
   match app-id="firefox" at-startup=true
   open-on-workspace "browser"
-  open-maximized true
 }
+
+
+
+
+window-rule {
+  match app-id="foot" at-startup=true
+  open-on-workspace "terminal"
+}
+
 
 window-rule {
   match app-id="emacs" at-startup=true
   open-on-workspace "emacs"
-  open-maximized true
 }
 
 window-rule {
