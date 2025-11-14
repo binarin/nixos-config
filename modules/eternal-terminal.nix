@@ -8,7 +8,7 @@
 
       config = {
         services.eternal-terminal = {
-          enable = true;
+          enable = config.services.openssh.enable;
         };
         networking.firewall.allowedTCPPorts = [ config.services.eternal-terminal.port ];
       };

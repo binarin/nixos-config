@@ -19,6 +19,7 @@
       key = "nixos-config.modules.nixos.impermanence";
       imports = [
         inputs.impermanence.nixosModules.impermanence
+        self.nixosModules.sops
         self.nixosModules.home-manager
       ];
 
@@ -258,6 +259,7 @@
 
       imports = [
         inputs.impermanence.homeManagerModules.impermanence
+        self.homeModules.sops
       ];
 
       options.impermanence = {
@@ -281,71 +283,73 @@
         };
       };
 
-      config = lib.mkMerge [
-        {
-          programs.atuin.settings.db_path = "${safeState}/atuin/history.db";
+      config = lib.mkIf osConfig.impermanence.enable (
+        lib.mkMerge [
+          {
+            programs.atuin.settings.db_path = "${safeState}/atuin/history.db";
 
-          home.sessionVariables = {
-            IMPERMANENCE_LOCAL_CACHE = "${localCache}";
-          };
+            home.sessionVariables = {
+              IMPERMANENCE_LOCAL_CACHE = "${localCache}";
+            };
 
-          programs.zsh.dotDir = ".config/zsh";
-          programs.zsh.history.path = "${localCache}/zsh_history";
+            programs.zsh.dotDir = ".config/zsh";
+            programs.zsh.history.path = "${localCache}/zsh_history";
 
-          xdg = {
-            enable = true;
-            stateHome = "${safeDir}/.local/state";
-          };
+            xdg = {
+              enable = true;
+              stateHome = "${safeDir}/.local/state";
+            };
 
-          impermanence.persist-directories = [
-            "Desktop"
-            "Documents"
-            "Downloads"
-            "Music"
-            "Pictures"
-            "Videos"
-          ];
+            impermanence.persist-directories = [
+              "Desktop"
+              "Documents"
+              "Downloads"
+              "Music"
+              "Pictures"
+              "Videos"
+            ];
 
-          xdg.userDirs = {
-            enable = true;
-            desktop = "${homeDir}/Desktop";
-            documents = "${homeDir}/Documents";
-            download = "${homeDir}/Downloads";
-            music = "${homeDir}/Music";
-            pictures = "${homeDir}/Pictures";
-            videos = "${homeDir}/Videos";
-          };
+            xdg.userDirs = {
+              enable = true;
+              desktop = "${homeDir}/Desktop";
+              documents = "${homeDir}/Documents";
+              download = "${homeDir}/Downloads";
+              music = "${homeDir}/Music";
+              pictures = "${homeDir}/Pictures";
+              videos = "${homeDir}/Videos";
+            };
 
-          home.persistence."${safeDir}" = {
-            enable = true;
-            allowOther = true;
-          };
+            home.persistence."${safeDir}" = {
+              enable = true;
+              allowOther = true;
+            };
 
-          home.persistence."${localDir}" = {
-            enable = true;
-            allowOther = true;
-          };
+            home.persistence."${localDir}" = {
+              enable = true;
+              allowOther = true;
+            };
 
-          impermanence.persist-files = [
-            ".config/sops/age/keys.txt"
-          ];
-        }
+            impermanence.persist-files = [
+              ".config/sops/age/keys.txt"
+            ];
+          }
 
-        (lib.mkIf config.programs.starship.enable {
-          home.sessionVariables = {
-            STARSHIP_CACHE = "${garbageDir}/starship";
-          };
-        })
+          (lib.mkIf config.programs.starship.enable {
+            home.sessionVariables = {
+              STARSHIP_CACHE = "${garbageDir}/starship";
+            };
+          })
 
-        (lib.mkIf config.programs.zoxide.enable {
-          home.sessionVariables = {
-            _ZO_DATA_DIR = "${localCache}/zoxide";
-          };
-        })
+          (lib.mkIf config.programs.zoxide.enable {
+            home.sessionVariables = {
+              _ZO_DATA_DIR = "${localCache}/zoxide";
+            };
+          })
 
-        (lib.mkIf osConfig.security.pam.services.login.kwallet.enable {
-          impermanence.local-directories = [ ".local/share/kwallet" ];
-        })
-      ];
+          (lib.mkIf osConfig.security.pam.services.login.kwallet.enable {
+            impermanence.local-directories = [ ".local/share/kwallet" ];
+          })
+        ]
+      );
     };
 }

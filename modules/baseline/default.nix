@@ -1,7 +1,7 @@
 { self, ... }:
 {
   flake.nixosModules.baseline =
-    { ... }:
+    { pkgs, ... }:
     {
       imports = [
         self.nixosModules.binarin-baseline
@@ -12,6 +12,10 @@
 
       i18n.defaultLocale = "nl_NL.UTF-8";
       i18n.extraLocales = [ "all" ];
+
+      environment.systemPackages = with pkgs; [
+        psmisc # pstree
+      ];
 
       programs.bat.enable = true;
       programs.direnv.enable = true;

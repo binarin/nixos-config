@@ -32,41 +32,42 @@
           };
         };
     in
-      {
-        key = "nixos-config.modules.home.xdg-autostart";
-        options = {
-          xdg.autostart.override = lib.mkOption {
-            type = with lib.types; attrsOf optsModule;
-            default = { };
-          };
+    {
+      key = "nixos-config.modules.home.xdg-autostart";
+      options = {
+        xdg.autostart.override = lib.mkOption {
+          type = with lib.types; attrsOf optsModule;
+          default = { };
         };
-        config = lib.mkMerge [
-          {
-            assertions = lib.mapAttrsToList (
-              name: options: {
-                assertion = !(options.notShownIn != null && options.onlyShownIn != null);
-                message = "xdg.autostart.override.${name}: Cannot specify both notShownIn and onlyShownIn for the same desktop entry";
-              }
-            ) cfg;
-
-            xdg.configFile =
-              with lib;
-              flip mapAttrs' cfg (
-                name: options:
-                nameValuePair "autostart/${name}.desktop" {
-                  text =
-                    ''
-                      [Desktop Entry]
-                    ''
-                    + optionalString (options.hidden != null) "Hidden=${if options.hidden then "true" else "false"}\n"
-                    + optionalString (options.x-systemd-skip != null) "X-systemd-skip=${
-                      if options.x-systemd-skip then "true" else "false"
-                    }\n"
-                    + optionalString (options.notShownIn != null) "NotShowIn=${concatStringsSep ";" options.notShownIn}\n"
-                    + optionalString (options.onlyShownIn != null) "OnlyShowIn=${concatStringsSep ";" options.onlyShownIn}\n";
-                }
-              );
-          }
-        ];
       };
+      config = lib.mkMerge [
+        {
+          assertions = lib.mapAttrsToList (name: options: {
+            assertion = !(options.notShownIn != null && options.onlyShownIn != null);
+            message = "xdg.autostart.override.${name}: Cannot specify both notShownIn and onlyShownIn for the same desktop entry";
+          }) cfg;
+
+          xdg.configFile =
+            with lib;
+            flip mapAttrs' cfg (
+              name: options:
+              nameValuePair "autostart/${name}.desktop" {
+                text = ''
+                  [Desktop Entry]
+                ''
+                + optionalString (options.hidden != null) "Hidden=${if options.hidden then "true" else "false"}\n"
+                +
+                  optionalString (options.x-systemd-skip != null)
+                    "X-systemd-skip=${if options.x-systemd-skip then "true" else "false"}\n"
+                + optionalString (
+                  options.notShownIn != null
+                ) "NotShowIn=${concatStringsSep ";" options.notShownIn}\n"
+                + optionalString (
+                  options.onlyShownIn != null
+                ) "OnlyShowIn=${concatStringsSep ";" options.onlyShownIn}\n";
+              }
+            );
+        }
+      ];
+    };
 }

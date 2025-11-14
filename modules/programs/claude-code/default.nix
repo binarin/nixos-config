@@ -7,6 +7,9 @@
     { pkgs, ... }:
     {
       key = "nixos-config.modules.home.claude-code";
+      imports = [
+        self.homeModules.impermanence
+      ];
 
       home.packages = [
         self.inputs.nix-ai-tools.packages.${pkgs.system}.claude-code

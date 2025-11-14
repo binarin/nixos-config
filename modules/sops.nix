@@ -35,7 +35,6 @@
       imports = [
         inputs.sops-nix.homeManagerModules.sops
         self.modules.generic.flake-files
-        self.homeModules.impermanence
       ];
 
       config = {
