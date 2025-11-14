@@ -35,7 +35,6 @@
         };
 
         services.desktopManager.plasma6.enable = true;
-
         services.displayManager.sddm = {
           enable = true;
           wayland.enable = true;
@@ -89,6 +88,10 @@
     in
     {
       key = "nixos-config.modules.home.gui";
+      imports = [
+        self.homeModules.xdg-autostart
+      ];
+
       options = {
         programs.telegram-desktop.enable = lib.mkEnableOption "Enable telegram";
       };
@@ -96,6 +99,12 @@
       config = (
         lib.mkMerge [
           {
+
+            xdg.autostart.override."org.kde.xwaylandvideobridge".notShownIn = [
+              "Hyprland"
+              "niri"
+            ];
+
             programs.thunderbird.enable = lib.mkDefault true;
             programs.telegram-desktop.enable = lib.mkDefault true;
 
