@@ -4,6 +4,11 @@ This is my personal infra:
 - Ansible for non-NixOS machines (but some data is being consumed from NixOS configurations)
 - Terraform for creating non-NixOS machines
 
+Most of the time you don't need to concern yourself with all of this
+parts simulatneously - e.g. if you started to work on nixos
+configurations, there is no reason to look into `ansible/` or
+`terraform/` directories at all.
+
 # Git
 
 Before starting doing any changes, check that everything is
@@ -12,7 +17,8 @@ more commits, trying to group logically related changes.
 
 When commiting changes, check whether there are any commits not pushed
 to upstream yet, and if the current change is actually should be a
-part of one of these commits - in that case create a fixup commit.
+part of one of these commits - in that case create a fixup commit
+(i.e. give `--fixup COMMIT_SHA` argument to `git commit`).
 
 # NixOS
 
