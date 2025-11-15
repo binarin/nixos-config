@@ -1,7 +1,7 @@
 { self, ... }:
 {
   flake.nixosModules.user-binarin =
-    { ... }:
+    { config, lib, ... }:
     {
       key = "nixos-config.modules.nixos.user-binarin";
 
@@ -20,6 +20,7 @@
         "libvirtd"
         "lxd"
         "networkmanager"
+        "plugdev" # QMK
         "transmission"
         "tss" # for TPM2
         "users"
@@ -28,6 +29,8 @@
         "wheel"
         "wireshark"
       ];
+
+      hardware.keyboard.qmk.enable = true;
 
       home-manager.users.binarin = self.homeModules.user-binarin;
     };

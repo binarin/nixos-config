@@ -53,9 +53,9 @@
             _    _    _    _    _    _    _    _    _    _    _    _    _          _    _    _
             _    _    _    _    _    _    _    _    _    _    _    _    _    _     _    _    _     _    _    _    _
             _    _    _    _    _    _    _    _    _    _    _    _    _    _     _    _    _     _    _    _    _
-            _    @a   @s   @d   @f   @g   @h   @j   @k   @l   @;   _    _                          _    _    _
+            @cps @a   @s   @d   @f   _    _    @j   @k   @l   @;   _    _                          _    _    _
             _    _    _    _    _    _    _    _    _    _    _    _                    _          _    _    _    _
-            _    _    _              _              _    _    _    _               _    _    _     _    _
+            _    _    _             @spc            _    _    _    _               _    _    _     _    _
           )
 
           (deflayermap (nomods)
@@ -64,7 +64,27 @@
 
           (deflayermap (fn)
             m menu
+            i up
+            k down
+            j left
+            l right
+            x del
+            v ins
+            e ret
             _ XX
+          )
+
+
+          (deflayermap (fn2)
+            u mlft
+            i @ma↑
+            o mrgt
+            p mmid
+            h mbck
+            j @ma←
+            k @ma↓
+            l @ma→
+            ; mfwd
           )
 
           (deffakekeys
@@ -72,12 +92,20 @@
           )
 
           (defalias
+            ma↑ (movemouse-accel-up 10 1000 1 5)
+            ma← (movemouse-accel-left 10 1000 1 5)
+            ma↓ (movemouse-accel-down 10 1000 1 5)
+            ma→ (movemouse-accel-right 10 1000 1 5)
+
             tap (multi
               (layer-switch nomods)
               ;; (on-idle-fakekey to-base tap 20)
             )
 
             fn (layer-toggle fn)
+            fn2 (layer-toggle fn2)
+            spc  (tap-hold-release $tap-time $hold-time spc @fn)
+            cps (tap-hold-release $tap-time $hold-time esc @fn2)
 
             a (tap-hold-release $tap-time $hold-time a lmet)
             s (tap-hold-release $tap-time $hold-time s lalt)
