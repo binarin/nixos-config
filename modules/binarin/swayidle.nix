@@ -19,8 +19,8 @@
         { event = "lock"; command = "${lib.getExe pkgs.swaylock} -fF"; }
       ];
       timeouts = [
-        { timeout = 300; command = "${lib.getExe' pkgs.systemd "loginctl"} lock-session"; }
-        { timeout = 330; command = "niri msg action power-off-monitors"; }
+        { timeout = 300; command = "${lib.getExe pkgs.niri} msg action power-off-monitors"; }
+        { timeout = 310; command = "${lib.getExe' pkgs.systemd "loginctl"} lock-session"; }
       ];
     };
 
