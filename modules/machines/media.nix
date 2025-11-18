@@ -747,6 +747,10 @@
 
         services.atuin.enable = true;
 
+        services.samba.settings.Workspace = smbShareStandartOptions // {
+          path = "/media/workspace";
+        };
+
         system.stateVersion = "24.05";
       };
     };
