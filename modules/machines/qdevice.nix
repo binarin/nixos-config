@@ -107,6 +107,7 @@
 
         networking.firewall.allowedTCPPorts = [
           7654
+          1688
         ];
 
         virtualisation.libvirtd = {
@@ -131,6 +132,24 @@
           ipAddressAllow = [
             "${config.inventory.networks.home.network}/${toString config.inventory.networks.home.prefix}"
           ];
+        };
+
+        virtualisation.docker.enable = true;
+        virtualisation.docker.autoPrune.enable = true;
+        virtualisation.arion.backend = "docker";
+
+        virtualisation.arion.projects.vlmcsd = {
+          serviceName = "vlmcsd-docker-compose";
+          settings.services.vlmcsd = {
+            service = {
+              image = "mikolatero/vlmcsd";
+              container_name = "vlmcsd";
+              ports = [
+                "1688:1688"
+              ];
+              restart = "unless-stopped";
+            };
+          };
         };
       };
     };
