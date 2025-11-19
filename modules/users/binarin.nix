@@ -1,7 +1,7 @@
 { self, ... }:
 {
   flake.nixosModules.user-binarin =
-    { config, lib, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.nixos.user-binarin";
 
