@@ -1857,6 +1857,12 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
    #+end_src
 
 * Test space
+** [[https://github.com/minad/cape][minad/cape: 🦸cape.el - Completion At Point Extensions]]
+ :PROPERTIES:
+  :ID: 1117a737-2067-4c03-874b-72e8735f3894
+  :END:
+  [2025-11-18 Tue 17:35]
+** ~(setq load-path-filter-function #'load-path-filter-cache-directory-files)~ - after emacs 31 release
 ** [[https://github.com/abo-abo/org-download][abo-abo/org-download: Drag and drop images to Emacs org-mode]]
  :PROPERTIES:
   :ID: db3ae4d0-2bbf-4e3a-ba21-b0f27e454c5a
