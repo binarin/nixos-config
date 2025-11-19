@@ -25,7 +25,7 @@
 
       services.syncthing = {
         enable = true;
-        tray.enable = true;
+        # tray.enable = true;
         passwordFile = config.sops.secrets."syncthing-ui-password".path;
         settings = {
           devices = {
