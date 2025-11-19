@@ -172,6 +172,9 @@
             xdg.dataFile."applications/org-protocol.desktop".source =
               config.lib.self.file "org-protocol.desktop";
 
+            xdg.configFile."autostart/emacs.desktop".source =
+              "${finalEmacsPackage}/share/applications/emacs.desktop";
+
             xdg.mimeApps.defaultApplications = lib.mkIf pkgs.stdenv.isLinux {
               "x-scheme-handler/org-protocol" = "org-protocol.desktop";
             };

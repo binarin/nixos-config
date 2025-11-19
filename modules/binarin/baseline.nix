@@ -13,6 +13,15 @@
 
       users.users = {
         binarin = {
+          # Only makes sense for hosts used over SSH, as the
+          # connection is intermittent, but everything can keep
+          # functioning. But services lifetime can be frequently tied
+          # to wayland session lifetime (i.e. emacs daemon), and then
+          # `linger` can produce strange combinations of running
+          # services - so for graphical desktop the graphical user
+          # session is a more natural.
+          linger = !config.services.graphical-desktop.enable;
+
           description = "Alexey Lebedeff";
           uid = 1000;
           isNormalUser = true;
@@ -59,7 +68,12 @@
     };
 
   flake.homeModules.binarin-baseline =
-    { lib, pkgs, ... }:
+    {
+      lib,
+      pkgs,
+      osConfig,
+      ...
+    }:
     {
       programs.fzf = {
         enable = true;
@@ -129,8 +143,10 @@
       };
 
       services.emacs = {
-        enable = true;
-        socketActivation.enable = true;
+        # - In graphical session, emacs daemon lifetime is tied to wayland server anyway
+        # - I suspect that non-daemon graphical emacs works better, i.e. with `xdg-activation-v1`
+        enable = !osConfig.services.graphical-desktop.enable;
+        socketActivation.enable = !osConfig.services.graphical-desktop.enable;
       };
 
       programs.starship = {
