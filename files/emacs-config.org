@@ -820,7 +820,7 @@
 
      (defun binarin/augment-buffer-name (filename basename)
        (when (and filename
-                  (s-matches? (rx bol (or "default.nix" "package.nix" "baseline.nix") eol) (file-name-nondirectory filename)))
+                  (s-matches? (rx bol (or "default.nix" "package.nix" "baseline.nix" "config.kdl") eol) (file-name-nondirectory filename)))
          (setf basename (format "%s{%s}"
                                 basename
                                 (file-name-nondirectory (s-chop-suffix "/" (file-name-parent-directory filename))))))
@@ -1441,6 +1441,9 @@
    #+end_src
 ** Capture
    #+BEGIN_SRC emacs-lisp :tangle yes
+     (defun binarin/clipboard-first-line ()
+       (s-trim (or (car (s-lines (or (gui-get-selection nil 'UTF8_STRING) ""))) "")))
+
      (setq org-capture-templates
            '(("t" "todo" entry
               (file "~/org/refile.org")
@@ -1449,6 +1452,9 @@
              ("n" "comment on clocked" plain
               (clock)
               "%?")
+             ("c" "Clipboard contents" entry
+              (file "~/org/refile.org")
+              "* %(binarin/clipboard-first-line)\n :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %(gui-get-selection nil 'UTF8_STRING)" :immediate-finish t)
              ("l" "Link" entry
               (file "~/org/refile.org")
               "* %a\n :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %i" :immediate-finish t)))

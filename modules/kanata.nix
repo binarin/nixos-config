@@ -53,7 +53,7 @@
             _    _    _    _    _    _    _    _    _    _    _    _    _          _    _    _
             _    _    _    _    _    _    _    _    _    _    _    _    _    _     _    _    _     _    _    _    _
             _    _    _    _    _    _    _    _    _    _    _    _    _    _     _    _    _     _    _    _    _
-            @cps @a   @s   @d   @f   _    _    @j   @k   @l   @;   _    _                          _    _    _
+            @cps @a   @s   @d   @f   @g   @h   @j   @k   @l   @;   _    _                          _    _    _
             _    _    _    _    _    _    _    _    _    _    _    _                    _          _    _    _    _
             _    _    _             @spc            _    _    _    _               _    _    _     _    _
           )
@@ -106,13 +106,14 @@
             fn2 (layer-toggle fn2)
             spc  (tap-hold-release $tap-time $hold-time spc @fn)
             cps (tap-hold-release $tap-time $hold-time esc @fn2)
+            hpr (multi lsft lctl lalt lmet)
 
             a (tap-hold-release $tap-time $hold-time a lmet)
             s (tap-hold-release $tap-time $hold-time s lalt)
             d (tap-hold-release $tap-time $hold-time d lsft)
             f (tap-hold-release $tap-time $hold-time f lctl)
-            g (tap-hold-release $tap-time $hold-time g @fn )
-            h (tap-hold-release $tap-time $hold-time h @fn )
+            g (tap-hold-press   $tap-time $hold-time g @hpr)
+            h (tap-hold-press   $tap-time $hold-time h @hpr)
             j (tap-hold-release $tap-time $hold-time j rctl)
             k (tap-hold-release $tap-time $hold-time k rsft)
             l (tap-hold-release $tap-time $hold-time l ralt)

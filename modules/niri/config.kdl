@@ -379,10 +379,13 @@ window-rule {
 }
 
 binds {
+  Ctrl+Shift+Alt+Super+C { spawn-sh "~/personal-workspace/nixos-config/scripts/emacs-launcher.sh '(progn (select-frame-set-input-focus (selected-frame)) (org-capture))'"; }
+  Ctrl+Shift+Alt+Super+P { spawn-sh "emacsclient -n 'org-protocol://capture?template=c'"; }
+  Ctrl+Shift+Alt+Super+E { spawn-sh "emacsclient --eval '(thanos/type)'"; }
+
   Mod+N { spawn-sh "swaync-client -t"; }
   Mod+A { spawn "wl-kbptr"; }
-  // Mod+E { spawn-sh "wl-kbptr -o modes=floating,click -o mode_floating.source=detect"; }
-  Mod+E { spawn-sh "emacsclient --eval '(thanos/type)'"; }
+  Mod+E { spawn-sh "wl-kbptr -o modes=floating,click -o mode_floating.source=detect"; }
 
   // Keys consist of modifiers separated by + signs, followed by an XKB key name
   // in the end. To find an XKB name for a particular key, you may use a program
