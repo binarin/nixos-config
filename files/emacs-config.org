@@ -1884,7 +1884,10 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
          `(let ((,name-var ,name))
             (let ((display-buffer-overriding-action '((display-buffer-full-frame)))
                   (frame (or (binarin/find-frame-by-name ,name-var)
-                             (make-frame (list (cons 'name ,name-var))))))
+                             (make-frame (list (cons 'name ,name-var)
+                                               (cons 'no-other-frame t)
+                                               (cons 'sticky t)
+                                               (cons 'undecorated t))))))
               (select-frame-set-input-focus frame t)
               ,@forms))))
 
