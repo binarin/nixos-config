@@ -856,6 +856,17 @@
        :no-require t
        :custom
        ((vterm-shell "zsh")))
+
+     (defvar binarin/vterm-frame-counter 0)
+
+     (defun binarin/new-vterm-frame ()
+       (let ((frame (make-frame)))
+         (with-selected-frame frame
+           (let ((vterm-buffer (vterm (format "*vterm-%s*" (format "vterm-frame-%d" (cl-incf binarin/vterm-frame-counter))))))
+             (switch-to-buffer vterm-buffer)
+             (delete-other-windows)))))
+
+
    #+end_src
 ** Auth
    #+begin_src emacs-lisp :tangle yes
@@ -1862,6 +1873,35 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
      		     (delete-frame)))))
    #+end_src
 
+** Org Capture
+   #+begin_src emacs-lisp :tangle yes
+     (defun binarin/find-frame-by-name (name)
+       (car (filtered-frame-list (lambda (frame) (string-equal name (frame-parameter frame 'name))))))
+
+     (defmacro binarin/with-full-named-frame (name &rest forms)
+       (declare (indent 1))
+       (let ((name-var (gensym)))
+         `(let ((,name-var ,name))
+            (let ((display-buffer-overriding-action '((display-buffer-full-frame)))
+                  (frame (or (binarin/find-frame-by-name ,name-var)
+                             (make-frame (list (cons 'name ,name-var))))))
+              (select-frame-set-input-focus frame t)
+              ,@forms))))
+
+     (defun binarin/full-frame-org-capture (&optional keys)
+       (binarin/with-full-named-frame "emacs-org-capture"
+         (org-capture nil keys)))
+
+     (defun binarin/full-frame-org-roam-dailies-capture-today (&optional keys)
+       (binarin/with-full-named-frame "emacs-org-capture"
+         (org-roam-dailies-capture-today nil keys)))
+
+     (defun binarin/full-frame-cleanup ()
+       (when (string-equal (frame-parameter nil 'name) "emacs-org-capture")
+         (delete-frame)))
+
+     (add-hook 'org-capture-after-finalize-hook 'binarin/full-frame-cleanup)
+   #+end_src
 * Test space
 ** [[https://github.com/minad/cape][minad/cape: 🦸cape.el - Completion At Point Extensions]]
  :PROPERTIES:
