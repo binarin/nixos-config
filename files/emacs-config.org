@@ -820,7 +820,7 @@
 
      (defun binarin/augment-buffer-name (filename basename)
        (when (and filename
-                  (s-matches? (rx bol (or "default.nix" "package.nix") eol) (file-name-nondirectory filename)))
+                  (s-matches? (rx bol (or "default.nix" "package.nix" "baseline.nix") eol) (file-name-nondirectory filename)))
          (setf basename (format "%s{%s}"
                                 basename
                                 (file-name-nondirectory (s-chop-suffix "/" (file-name-parent-directory filename))))))
