@@ -1768,7 +1768,7 @@
        (org-caldav-inbox "~/org/caldav.org")
        (org-caldav-save-directory org-directory)
        ;; Additional Org files to check for calendar events
-       (org-caldav-files (-difference org-agenda-files org-contacts-files))
+       (org-caldav-files org-agenda-files)
        (org-icalendar-timezone "Europe/Amsterdam"))
    #+end_src
 ** Git sync
