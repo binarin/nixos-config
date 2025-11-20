@@ -50,6 +50,7 @@
       config = {
         stylix.targets.firefox.enable = true;
         stylix.targets.firefox.profileNames = [ "default" ];
+        stylix.targets.firefox.firefoxGnomeTheme.enable = true;
 
         impermanence.local-directories = [ ".mozilla/firefox" ];
 
