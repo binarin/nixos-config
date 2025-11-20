@@ -65,9 +65,15 @@
           (deflayermap (fn)
             m menu
             i up
+
+            a pgup
+            f pgdn
+            h home
             k down
             j left
             l right
+            ; end
+
             x del
             v ins
             e ret
