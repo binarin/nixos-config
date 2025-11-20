@@ -184,6 +184,7 @@
             home.packages = with pkgs; [
               emacs-all-the-icons-fonts
               ghostscript
+              inputs.nix-ai-tools.packages.${pkgs.system}.claude-code-acp
             ];
           })
         ]

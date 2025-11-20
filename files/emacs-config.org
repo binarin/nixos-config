@@ -1285,6 +1285,18 @@
      (add-hook 'kdl-mode-hook 'binarin/kdl-mode-hook)
    #+end_src
 
+** AI coding
+   #+begin_src emacs-lisp :tangle yes
+     (use-package agent-shell
+       :commands (agent-shell-make-environment-variables agent-shell-anthropic-make-authentication)
+       :ensure t)
+
+     (setq agent-shell-anthropic-claude-environment
+           (agent-shell-make-environment-variables :inherit-env t))
+
+     (setq agent-shell-anthropic-authentication
+           (agent-shell-anthropic-make-authentication :login t))
+   #+end_src
 * Major modes
 ** pdf-tools
    #+begin_src emacs-lisp :tangle yes
