@@ -1,10 +1,24 @@
 { self, ... }:
 {
   flake.nixosModules.gui =
-    { pkgs, config, ... }:
+    { pkgs, config, lib, ... }:
     {
       key = "nixos-config.modules.nixos.gui";
       config = {
+
+        services.avahi = lib.mkIf (!config.networking.useNetworkd) {
+          enable = true;
+          nssmdns4 = true;
+          openFirewall = true;
+        };
+
+        services.printing = {
+          enable = true;
+          drivers = with pkgs; [
+            cups-filters
+            cups-browsed
+          ];
+        };
 
         home-manager.sharedModules = [
           self.homeModules.gui
