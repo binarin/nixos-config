@@ -1377,6 +1377,7 @@
      (setq org-tag-alist `((:startgroup . nil)
                            ("@home" . ?h)
                            ("@errand" . ?e)
+                           ("@zolder" . ?z)
                            (:endgroup . nil)
                            (:startgroup . nil)
                            ("PROJ" . ?p)
