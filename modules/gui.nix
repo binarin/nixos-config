@@ -1,7 +1,12 @@
 { self, ... }:
 {
   flake.nixosModules.gui =
-    { pkgs, config, lib, ... }:
+    {
+      pkgs,
+      config,
+      lib,
+      ...
+    }:
     {
       key = "nixos-config.modules.nixos.gui";
       config = {
