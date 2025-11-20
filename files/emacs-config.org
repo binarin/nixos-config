@@ -1639,7 +1639,7 @@
 
 *** Stuck projects
     #+BEGIN_SRC emacs-lisp :tangle yes
-      (setq org-stuck-projects '("+PROJ-agenda_hide/!TODO" ("NEXT" "WAIT") nil ""))
+      (setq org-stuck-projects '("+PROJ-agenda_hide/TODO" ("NEXT" "WAIT") nil ""))
     #+END_SRC
 
 *** Adding subtask to a TODO/NEXT task should make it into project
