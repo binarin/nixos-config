@@ -1903,7 +1903,15 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
        (when (string-equal (frame-parameter nil 'name) "emacs-org-capture")
          (delete-frame)))
 
+     (autoload 'org-capture-kill "org-capture")
+     (defun binarin/org-capture-kill-on-delete-frame (frame)
+       (let ((buffer (window-buffer (frame-first-window frame))))
+         (with-current-buffer buffer
+           (pcase (buffer-name)
+             ((rx "CAPTURE-") (org-capture-kill))))))
+
      (add-hook 'org-capture-after-finalize-hook 'binarin/full-frame-cleanup)
+     (add-hook 'delete-frame-functions 'binarin/org-capture-kill-on-delete-frame)
    #+end_src
 * Test space
 ** [[https://github.com/minad/cape][minad/cape: 🦸cape.el - Completion At Point Extensions]]
