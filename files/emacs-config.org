@@ -251,13 +251,6 @@
        :commands (rainbow-mode))
    #+end_src
 * Behaviour
-** Windows Quirks
-   #+begin_src emacs-lisp :tangle yes
-     (when (eq system-type 'windows-nt)
-       (general-setq explicit-shell-file-name "c:/tools/msys64/usr/bin/bash.exe")
-       (general-setq shell-file-name "c:/tools/msys64/usr/bin/bash.exe")
-       (add-to-list 'exec-path "c:/tools/msys64/usr/bin"))
-   #+end_src
 ** Startup profiling
    #+begin_src emacs-lisp :tangle yes
      (use-package esup
@@ -282,29 +275,6 @@
    #+begin_src emacs-lisp :tangle yes
      (fset 'yes-or-no-p 'y-or-n-p)
    #+end_src
-** Start maximized by default
-   #+begin_src emacs-lisp :tangle yes
-     (add-to-list 'default-frame-alist '(fullscreen . maximized))
-   #+end_src
-
-** Windows-specific
-   #+BEGIN_SRC emacs-lisp :tangle yes
-     (when (eq binarin/system-type 'wsl)
-       (setq browse-url-browser-function 'browse-url-generic
-     	browse-url-generic-program "wslview")
-       (setq select-active-regions nil)
-       (setq select-enable-clipboard 't)
-       (setq select-enable-primary nil)
-       (setq interprogram-cut-function #'gui-select-text))
-   #+END_SRC
-
-** MacOS specific
-   #+begin_src emacs-lisp :tangle yes
-     (when (eq system-type 'darwin)
-       (global-set-key [help] #'overwrite-mode))
-
-   #+end_src
-
 ** Prevent accidental exit
    Prompt on C-x C-c - no more accidential exits
    #+begin_src emacs-lisp :tangle yes
