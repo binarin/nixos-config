@@ -640,6 +640,9 @@
 ** Clipboard
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq save-interprogram-paste-before-kill t)
+     (use-package clipetty
+       :ensure t
+       :hook (after-init . global-clipetty-mode))
    #+END_SRC
 ** Bookmarks
    Save bookmarks every time bookmark is modified
