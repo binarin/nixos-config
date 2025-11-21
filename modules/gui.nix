@@ -97,6 +97,7 @@
         protonvpn-cli
         steam-run
         texlive-combined
+        pdftk
         usbutils.python
         vlc
         vscode
