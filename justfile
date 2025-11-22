@@ -158,3 +158,13 @@ render-templates: ansible-inventory render-ci-workflows
 wb:
     nix build '.#nixosConfigurations.demandred.config.home-manager.users.binarin.xdg.configFile."waybar/config".source' -o ~/.config/waybar/config
     nix build '.#nixosConfigurations.demandred.config.home-manager.users.binarin.programs.waybar.style' -o ~/.config/waybar/style.css
+
+[group('dev')]
+em:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -x
+    cfg=$(nix build '.#nixosConfigurations.demandred.config.home-manager.users.binarin.programs.custom-emacs.compiledConfig' --no-link --print-out-paths)
+    for file in {early-,}init.el{,c} ; do
+      ln -sf $cfg/$file ~/.config/emacs/$file
+    done
