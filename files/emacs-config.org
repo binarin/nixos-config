@@ -1376,7 +1376,7 @@
 
      (setq org-startup-folded t)
 
-     ;; (setq org-cycle-separator-lines 0) XXX?
+     (setq org-cycle-separator-lines 0)
 
      (setq org-fold-catch-invisible-edits 'show-and-error)
 
