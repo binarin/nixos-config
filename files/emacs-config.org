@@ -510,6 +510,8 @@
        :ensure t
        :config
        (global-undo-tree-mode 1))
+
+     (general-define-key "C-M-s-?" 'winner-undo)
    #+end_src
 ** Saving and backups
    Save backups to one place and don't clutter filesystem with files ending in ~\~~ or ~#~.
