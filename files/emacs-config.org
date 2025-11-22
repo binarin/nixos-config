@@ -1307,6 +1307,7 @@
 
      (general-setq org-attach-id-dir (file-name-as-directory (expand-file-name "~/org/data")))
 
+
      (use-package org-super-agenda
        :ensure t
        :config
@@ -1324,21 +1325,27 @@
    #+END_SRC
 ** Todo keywords
    #+BEGIN_SRC emacs-lisp :tangle yes
+     ;; ! - log timestamp
+     ;; @ - log timestamp and note
+     ;; !/! - also log when leaving state
      (setq org-todo-keywords
            '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
              (type "|" "CNCL(c!)")
-             (type "WAIT(w!)" "|")))
+             (type "WAIT(w!/!)" "|")))
 
-     (setq org-todo-keyword-faces
-           '(("TODO" :foreground "red" :weight bold)
-             ("NEXT" :foreground "cyan3" :weight bold)
-             ("DONE" :foreground "green4" :weight bold)
-             ("WAIT" :foreground "orange3" :weight bold)
-             ("CNCL" :foreground "forest green" :weight bold)))
+     (with-no-warnings
+       (zenburn-with-color-variables
+         (setq org-todo-keyword-faces
+               `(("TODO" :foreground ,zenburn-red :weight bold)
+                 ("NEXT" :foreground ,zenburn-cyan :weight bold)
+                 ("DONE" :foreground ,zenburn-green-3 :weight bold)
+                 ("WAIT" :foreground ,zenburn-orange :weight bold)
+                 ("CNCL" :foreground ,zenburn-green-3 :weight bold)))))
 
      (setq org-enforce-todo-dependencies t)
-     (setq org-log-done 'time)
+     (setq org-enforce-todo-checkbox-dependencies t)
 
+     (setq org-log-done 'time)
      (setq org-log-into-drawer t)
    #+END_SRC
 
@@ -1361,20 +1368,40 @@
 
 ** Outline
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (setq org-cycle-separator-lines 0)
-     (setq org-fold-catch-invisible-edits 'show-and-error)
+     ;; First C-a/C-e goes to line end/start, second time - to heading text start/end
+     (setq org-special-ctrl-a/e 'reversed)
+
+     ;; C-k becomes aware of heading structure, i.e. it can kill heading text up to tags
+     (setq org-special-ctrl-k 't)
+
      (setq org-startup-folded t)
-     (setq org-adapt-indentation t)
+
+     ;; (setq org-cycle-separator-lines 0) XXX?
+
+     (setq org-fold-catch-invisible-edits 'show-and-error)
+
      (general-setq org-goto-interface 'outline-path-completion)
+
+     (setq org-adapt-indentation t)
+
+     (setq org-yank-adjusted-subtrees t)
+     (setq org-yank-folded-subtrees t)
+
+     ;; org-fold-show-context-detail XXX
+     (setq org-columns-default-format "%TODO %80ITEM %CLOCKSUM %CLOCKSUM_T %TAGS")
    #+END_SRC
 
-** Agenda
+*** Agenda
    #+begin_src emacs-lisp :tangle yes
+     (setq org-agenda-dim-blocked-tasks nil)
+     (setq org-deadline-warning-days 15)
+
+
+
      (general-setq org-agenda-include-diary nil)
      (general-setq org-agenda-span 'day)
      (general-setq org-agenda-start-on-weekday 1)
      (general-setq org-agenda-window-setup 'other-tab)
-     (general-setq org-agenda-dim-blocked-tasks nil)
      (general-setq org-agenda-compact-blocks t)
      (general-setq org-agenda-block-separator nil)
      (general-setq org-agenda-skip-scheduled-if-done t)
@@ -1396,7 +1423,6 @@
      (setq org-agenda-tags-column 'auto
            org-tags-column -124
            org-auto-align-tags t
-           org-special-ctrl-a/e 'reversed
            org-insert-heading-respect-content t
            org-hide-emphasis-markers nil
            org-pretty-entities t)
@@ -1531,6 +1557,8 @@
    #+END_SRC
 ** Refile
    #+BEGIN_SRC emacs-lisp :tangle yes
+     (setf org-archive-subtree-save-file-p t)
+
      ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
      (setq org-refile-targets '((org-agenda-files :maxlevel . 9)
                                 (nil :maxlevel . 9)))
@@ -1564,6 +1592,10 @@
 
 ** Clocking
    #+BEGIN_SRC emacs-lisp :tangle yes
+     (setq org-clock-idle-time 15)
+     (setq org-clock-auto-clockout-timer 1800)
+
+
      (general-setq org-clock-into-drawer "CLOCK")
      (general-setq org-clock-history-length 35)
      (general-setq org-clock-out-remove-zero-time-clocks t)
@@ -1577,9 +1609,11 @@
 
      (autoload 'org-clock-persistence-insinuate "org-clock")
      (autoload 'org-clock-load "org-clock")
+     (autoload 'org-clock-auto-clockout-insinuate)
      (with-eval-after-load 'org
        (org-clock-persistence-insinuate)
-       (org-clock-load))
+       (org-clock-load)
+       (org-clock-auto-clockout-insinuate))
    #+END_SRC
 
 *** Move to NEXT on clock-in
@@ -1670,6 +1704,7 @@
                   ("j" . org-next-visible-heading)
                   ("w" . org-refile)
                   ("m" . binarin/org-roam-refile-strip-id)
+                  ("q" . org-set-tags-command)
                   ("r" . (org-refile 3))))
          (add-to-list 'org-speed-commands elt nil)))
    #+END_SRC
@@ -2178,7 +2213,6 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
   :ID: 21d0b3ed-990d-4ca6-b644-90f6517cd5d1
   :END:
   [2024-11-24 Sun 09:37]
-
 
 * Footer
 
