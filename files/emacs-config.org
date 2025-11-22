@@ -1401,7 +1401,7 @@
      (general-setq org-agenda-include-diary nil)
      (general-setq org-agenda-span 'day)
      (general-setq org-agenda-start-on-weekday 1)
-     (general-setq org-agenda-window-setup 'other-tab)
+     (general-setq org-agenda-window-setup 'only-window)
      (general-setq org-agenda-compact-blocks t)
      (general-setq org-agenda-block-separator nil)
      (general-setq org-agenda-skip-scheduled-if-done t)
