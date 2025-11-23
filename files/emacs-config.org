@@ -1290,7 +1290,10 @@
      (use-package org
        :ensure t
        :commands (org-save-all-org-buffers)
-       :defines (org-capture-templates)
+       :defines (org-capture-templates
+                org-archive-subtree-save-file-p
+                org-clock-idle-time
+                org-clock-auto-clockout-timer)
        :mode ("\\.org\\'" . org-mode)
        :bind
        (("C-c a" . org-agenda)
@@ -1639,7 +1642,7 @@
 
      (autoload 'org-clock-persistence-insinuate "org-clock")
      (autoload 'org-clock-load "org-clock")
-     (autoload 'org-clock-auto-clockout-insinuate)
+     (autoload 'org-clock-auto-clockout-insinuate "org-clock")
      (with-eval-after-load 'org
        (org-clock-persistence-insinuate)
        (org-clock-load)
