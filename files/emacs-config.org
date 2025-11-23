@@ -1419,8 +1419,22 @@
 
      (advice-add 'org-agenda-finalize-entries :filter-return 'binarin/org-agenda-finalize-prepend-parent)
 
+     (defun binarin/org-agenda-after-show-reveal ()
+       (org-reveal)
+       (cl-case (org-current-level)
+         (2 nil)
+         (3 (let ((old-point (point)))
+              (org-up-heading-safe)
+              (recenter-top-bottom 0)
+              (org-fold-hide-subtree)
+              (org-fold-show-children)
+              (goto-char old-point)
+              (org-fold-show-entry)))))
+
+     (add-hook 'org-agenda-after-show-hook 'binarin/org-agenda-after-show-reveal)
+
      (with-eval-after-load "org-agenda"
-       (setf- (alist-get 'agenda org-fold-show-context-detail) 'lineage))
+       (setf (alist-get 'agenda org-fold-show-context-detail) 'local))
 
      (setq org-agenda-custom-commands '(("a" "Agenda and NEXTs" ((agenda "")
                                                                  (todo "NEXT" ((org-agenda-overriding-header ""))))
