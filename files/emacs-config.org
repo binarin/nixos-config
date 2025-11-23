@@ -1308,13 +1308,8 @@
      (general-setq org-attach-id-dir (file-name-as-directory (expand-file-name "~/org/data")))
 
 
-     (use-package org-super-agenda
-       :ensure t
-       :config
-       (setq org-super-agenda-header-separator ""
-             org-super-agenda-header-prefix "")
-       (org-super-agenda-mode 1)
-       :after (org))
+
+
 
      (use-package org-contrib
        :ensure t
@@ -1391,12 +1386,45 @@
      (setq org-columns-default-format "%TODO %80ITEM %CLOCKSUM %CLOCKSUM_T %TAGS")
    #+END_SRC
 
-*** Agenda
+** Agenda
    #+begin_src emacs-lisp :tangle yes
      (setq org-agenda-dim-blocked-tasks nil)
      (setq org-deadline-warning-days 15)
+     (setq org-agenda-hide-tags-regexp (rx "PROJ"))
 
+     (defvar binarin/agenda-prepend-parent nil)
 
+     (setf (alist-get 'agenda org-fold-show-context-detail) 'lineage)
+
+     (defun binarin/agenda-item-prepend-parent (item)
+       (let ((marker (org-find-text-property-in-string 'org-marker item)))
+         (when (markerp marker)
+           (org-with-point-at marker
+             (awhen (and (= 3 (org-current-level)) (org-up-heading-safe)
+                         (org-entry-get nil "ITEM"))
+               (set-text-properties 0 (length it) nil it)
+               (setf item (replace-regexp-in-string (rx (or "NEXT" "WAIT") (group any) (* any) eos)
+                                                    (propertize (s-concat " [" it "] ")
+                                                                'face 'org-agenda-dimmed-todo-face)
+                                                    item nil nil 1)))))
+         item))
+
+     (defun binarin/org-agenda-finalize-prepend-parent (string)
+       (if (not binarin/agenda-prepend-parent)
+           string
+         (--> string
+              (split-string it "\n" 'omit-nulls)
+              (-map 'binarin/agenda-item-prepend-parent it)
+              (s-join "\n" it))))
+
+     (advice-add 'org-agenda-finalize-entries :filter-return 'binarin/org-agenda-finalize-prepend-parent)
+
+     (setq org-agenda-custom-commands '(("a" "Agenda and NEXTs" ((agenda "")
+                                                                 (todo "NEXT" ((org-agenda-overriding-header ""))))
+                                         ((binarin/agenda-prepend-parent t)
+                                          (org-agenda-compact-blocks t)))
+                                        ("w" "WAIT" todo "WAIT" ((binarin/agenda-prepend-parent t)))
+                                        ("r" "REFILE" tags "REFILE")))
 
      (general-setq org-agenda-include-diary nil)
      (general-setq org-agenda-span 'day)
@@ -1407,7 +1435,9 @@
      (general-setq org-agenda-skip-scheduled-if-done t)
      (general-setq org-agenda-skip-deadline-if-done t)
      (general-setq org-agenda-skip-timestamp-if-done t)
+
      (setq org-agenda-hide-tags-regexp "agenda_hide")
+
      (setq
       ;; Agenda styling
       org-agenda-block-separator ?─
