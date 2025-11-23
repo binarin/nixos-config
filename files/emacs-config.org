@@ -1518,17 +1518,17 @@
      (setq org-capture-templates
            '(("t" "todo" entry
               (file "~/org/refile.org")
-              "* %?\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %u"
+              "* %?\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :CREATED: %U\n  :END:\n"
               :clock-in t :clock-resume t)
              ("n" "comment on clocked" plain
               (clock)
               "%?")
              ("c" "Clipboard contents" entry
               (file "~/org/refile.org")
-              "* %(binarin/clipboard-first-line)\n :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %(gui-get-selection nil 'UTF8_STRING)" :immediate-finish t)
+              "* %(binarin/clipboard-first-line)\n :PROPERTIES:\n  :ID: %(org-id-new)\n  :CREATED: %U\n  :END:\n\n  %(gui-get-selection nil 'UTF8_STRING)" :immediate-finish t)
              ("l" "Link" entry
               (file "~/org/refile.org")
-              "* %a\n :PROPERTIES:\n  :ID: %(org-id-new)\n  :END:\n  %U\n\n  %i" :immediate-finish t)))
+              "* %a\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :CREATED: %U\n  :END:\n\n  %i" :immediate-finish t)))
 
      (setq org-default-notes-file "~/org/refile.org")
 
