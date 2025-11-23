@@ -169,6 +169,7 @@
           "Z- /var/lib/tubearchivist/redis 0775 999 100 -"
           "Z- /media/tubearchivist 2775 1000 1000 -"
           "Z- /media/usenet 02775 root usenet -"
+          "d /var/lib/org.binarin.info 02750 binarin caddy -"
         ];
 
         nix.gc = {
@@ -742,6 +743,12 @@
               tls_insecure_skip_verify
             }
           }
+          import letsencrypt
+        '';
+
+        services.caddy.virtualHosts."org.binarin.info".extraConfig = ''
+          root * /var/lib/org.binarin.info
+          file_server browse
           import letsencrypt
         '';
 
