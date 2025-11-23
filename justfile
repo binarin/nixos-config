@@ -163,7 +163,6 @@ wb:
 em:
     #!/usr/bin/env bash
     set -euo pipefail
-    set -x
     cfg=$(nix build '.#nixosConfigurations.demandred.config.home-manager.users.binarin.programs.custom-emacs.compiledConfig' --no-link --print-out-paths)
     for file in {early-,}init.el{,c} ; do
       ln -sf $cfg/$file ~/.config/emacs/$file
