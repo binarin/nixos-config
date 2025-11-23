@@ -1638,6 +1638,8 @@
 ** Babel
    #+BEGIN_SRC emacs-lisp :tangle yes
      (setq org-babel-default-header-args:emacs-lisp '((:lexical . "yes")))
+
+     (setf org-src-window-setup 'current-window)
    #+END_SRC
 
 ** Clocking
