@@ -1142,7 +1142,6 @@
            (let ((project (with-current-buffer comp-buffer (projectile-project-root))))
              (when project
                (let ((command (gethash project binarin/after-compilation-commands)))
-                 (message "PROJ '%s' CMD '%s'" project command)
                  (when command
                    (binarin/run-project-command project command))))))))
 
@@ -1385,7 +1384,6 @@
      (setq org-yank-adjusted-subtrees t)
      (setq org-yank-folded-subtrees t)
 
-     ;; org-fold-show-context-detail XXX
      (setq org-columns-default-format "%TODO %80ITEM %CLOCKSUM %CLOCKSUM_T %TAGS")
    #+END_SRC
 
@@ -1393,11 +1391,9 @@
    #+begin_src emacs-lisp :tangle yes
      (setq org-agenda-dim-blocked-tasks nil)
      (setq org-deadline-warning-days 15)
-     (setq org-agenda-hide-tags-regexp (rx "PROJ"))
+     (setq org-agenda-hide-tags-regexp (rx (or "PROJ" "agenda_hide")))
 
      (defvar binarin/agenda-prepend-parent nil)
-
-     (setf (alist-get 'agenda org-fold-show-context-detail) 'lineage)
 
      (defun binarin/agenda-item-prepend-parent (item)
        (let ((marker (org-find-text-property-in-string 'org-marker item)))
@@ -1420,12 +1416,17 @@
               (-map 'binarin/agenda-item-prepend-parent it)
               (s-join "\n" it))))
 
+
      (advice-add 'org-agenda-finalize-entries :filter-return 'binarin/org-agenda-finalize-prepend-parent)
+
+     (with-eval-after-load "org-agenda"
+       (setf- (alist-get 'agenda org-fold-show-context-detail) 'lineage))
 
      (setq org-agenda-custom-commands '(("a" "Agenda and NEXTs" ((agenda "")
                                                                  (todo "NEXT" ((org-agenda-overriding-header ""))))
                                          ((binarin/agenda-prepend-parent t)
-                                          (org-agenda-compact-blocks t)))
+                                          (org-agenda-compact-blocks t)
+                                          (org-fold-show-context-detail '((agenda . local)))))
                                         ("w" "WAIT" todo "WAIT" ((binarin/agenda-prepend-parent t)))
                                         ("r" "REFILE" tags "REFILE")))
 
@@ -1438,8 +1439,6 @@
      (general-setq org-agenda-skip-scheduled-if-done t)
      (general-setq org-agenda-skip-deadline-if-done t)
      (general-setq org-agenda-skip-timestamp-if-done t)
-
-     (setq org-agenda-hide-tags-regexp "agenda_hide")
 
      (setq
       ;; Agenda styling
@@ -1873,6 +1872,11 @@
 
      (with-eval-after-load 'org
        (add-hook 'org-mode-hook 'org-download-enable))
+   #+end_src
+** Habits
+   #+begin_src emacs-lisp :tangle yes
+     (with-eval-after-load "org"
+       (load-library "org-habit"))
    #+end_src
 * OS integration
 ** Type everywhere
