@@ -493,7 +493,7 @@
              ("/" . casual-dired-search-replace-tmenu)))
 
      (autoload 'org-attach-dired-to-subtree "org-attach")
-     (with-eval-after-load
+     (with-eval-after-load "dired"
          (define-key dired-mode-map
                      (kbd "C-c C-x a")
                      #'org-attach-dired-to-subtree))
@@ -1393,6 +1393,10 @@
 
 ** Agenda
    #+begin_src emacs-lisp :tangle yes
+     (use-package htmlize
+       :defer t
+       :ensure t)
+
      (setq org-agenda-dim-blocked-tasks nil)
      (setq org-deadline-warning-days 15)
      (setq org-agenda-hide-tags-regexp (rx (or "PROJ" "agenda_hide")))
@@ -1444,7 +1448,8 @@
                                                                  (todo "NEXT" ((org-agenda-overriding-header ""))))
                                          ((binarin/agenda-prepend-parent t)
                                           (org-agenda-compact-blocks t)
-                                          (org-fold-show-context-detail '((agenda . local)))))
+                                          (org-fold-show-context-detail '((agenda . local))))
+                                         ("~/org/agenda.html"))
                                         ("w" "WAIT" todo "WAIT" ((binarin/agenda-prepend-parent t)))
                                         ("r" "REFILE" tags "REFILE")))
 
