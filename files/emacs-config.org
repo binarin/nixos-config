@@ -1668,6 +1668,8 @@
         (ignore kw)
         (when (not (and (boundp 'org-capture-mode) org-capture-mode))
           (cond
+           ((and (member "REFILE" (org-get-tags)))
+            "NEXT")
            ((and (member (org-get-todo-state) (list "TODO"))
                  (binarin/is-task-p))
             "NEXT")
