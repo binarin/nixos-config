@@ -199,7 +199,10 @@
             (letsencrypt) {
               tls {
                   dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-                  resolvers 1.1.1.1
+                  propagation_delay 300s
+                  propagation_timeout 1800s
+                  dns_ttl 60s
+                  resolvers sri.ns.cloudflare.com vera.ns.cloudflare.com
               }
             }
           '';
