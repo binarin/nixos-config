@@ -1775,7 +1775,8 @@
                   ("w" . org-refile)
                   ("m" . binarin/org-roam-refile-strip-id)
                   ("q" . org-set-tags-command)
-                  ("r" . (org-refile 3))))
+                  ("r" . (org-refile 3))
+                  ("d" . (org-todo "DONE"))))
          (add-to-list 'org-speed-commands elt nil)))
    #+END_SRC
 ** Roam
