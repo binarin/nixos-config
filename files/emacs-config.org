@@ -1585,12 +1585,14 @@
            (t (setf (symbol-function 'binarin/notifications-notify) (lambda (&rest args)
                                                                       (apply 'notifications-notify args)))))
 
+     (defvar org-capture-last-stored-marker)  ; From org-capture
+
      (defun binarin/display-notify-after-capture (&rest args)
        (ignore args)
        (binarin/notifications-notify
         :title "Captured"
         :body (org-with-point-at org-capture-last-stored-marker
-                (org-get-title))
+                (org-get-heading))
         :app-name "emacs"
         :app-icon (substitute-in-file-name "$XDG_DATA_HOME/icons/emacs/org.svg")
         :timeout 3000
