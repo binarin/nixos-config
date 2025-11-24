@@ -1401,6 +1401,11 @@
      (setq org-deadline-warning-days 15)
      (setq org-agenda-hide-tags-regexp (rx (or "PROJ" "agenda_hide")))
 
+     (setq org-agenda-sorting-strategy '((agenda habit-down time-up urgency-down tag-up category-up)
+                                         (todo urgency-down tag-up category-up)
+                                         (tags urgency-down tag-up category-up)
+                                         (search category-keep)))
+
      (defvar binarin/agenda-prepend-parent nil)
 
      (defun binarin/agenda-item-prepend-parent (item)
