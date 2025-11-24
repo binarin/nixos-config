@@ -1762,6 +1762,9 @@
          (org-delete-property "ID")
          (org-roam-refile it)))
 
+     (with-eval-after-load 'org-agenda
+       (keymap-set org-agenda-mode-map (kbd "a") 'org-agenda-archive-default))
+
      (with-eval-after-load 'org-keys
        (cl-dolist
            (elt '(("g" . consult-org-heading)
