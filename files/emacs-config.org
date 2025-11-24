@@ -1530,7 +1530,7 @@
 ** Capture
    #+BEGIN_SRC emacs-lisp :tangle yes
      (defun binarin/clipboard-first-line ()
-       (s-trim (or (car (s-lines (or (gui-get-selection nil 'UTF8_STRING) ""))) "")))
+       (s-trim (car (s-lines (gui-get-primary-selection)))))
 
      (setq org-capture-templates
            '(("t" "todo" entry
@@ -1540,9 +1540,6 @@
              ("n" "comment on clocked" plain
               (clock)
               "%?")
-             ("c" "Clipboard contents" entry
-              (file "~/org/refile.org")
-              "* %(binarin/clipboard-first-line)\n :PROPERTIES:\n  :ID: %(org-id-new)\n  :CREATED: %U\n  :END:\n\n  %(gui-get-selection nil 'UTF8_STRING)" :immediate-finish t)
              ("l" "Link" entry
               (file "~/org/refile.org")
               "* %a\n  :PROPERTIES:\n  :ID: %(org-id-new)\n  :CREATED: %U\n  :END:\n\n  %i" :immediate-finish t)))
@@ -1591,8 +1588,9 @@
      (defun binarin/display-notify-after-capture (&rest args)
        (ignore args)
        (binarin/notifications-notify
-        :title "Link captured"
-        :body (cadar org-stored-links)
+        :title "Captured"
+        :body (org-with-point-at org-capture-last-stored-marker
+                (org-get-title))
         :app-name "emacs"
         :app-icon (substitute-in-file-name "$XDG_DATA_HOME/icons/emacs/org.svg")
         :timeout 3000

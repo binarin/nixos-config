@@ -383,7 +383,7 @@ binds {
   Ctrl+Shift+Alt+Super+D { spawn-sh "emacsclient --eval '(binarin/full-frame-org-roam-dailies-capture-today)'"; }
   Ctrl+Shift+Alt+Super+E { spawn-sh "emacsclient --eval '(thanos/type)'"; }
   Ctrl+Shift+Alt+Super+L { spawn-sh "emacsclient --eval '(when (org-clocking-p) (binarin/full-frame-org-capture \"n\"))'"; }
-  Ctrl+Shift+Alt+Super+P { spawn-sh "emacsclient -n 'org-protocol://capture?template=c'"; }
+  Ctrl+Shift+Alt+Super+P { spawn-sh "~/personal-workspace/nixos-config/scripts/org-capture-clipboard.sh"; }
   Ctrl+Shift+Alt+Super+T { spawn-sh "emacsclient --eval '(binarin/new-vterm-frame)'"; }
 
   Mod+N { spawn-sh "swaync-client -t"; }
