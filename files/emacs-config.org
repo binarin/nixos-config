@@ -667,6 +667,14 @@
      (winner-mode)
    #+END_SRC
 ** I18n
+*** Extra keybinding for niri integration
+
+    Didn't found a way to bind ~Ctrl+\\~ in niri, an still be able to send
+    the same combination to emacs.
+    #+begin_src emacs-lisp :tangle yes
+      (global-set-key (kbd "C-M-s-|") 'toggle-input-method)
+    #+end_src
+
 *** Prefer Russian and UTF-8
     #+begin_src emacs-lisp :tangle yes
       (set-language-environment "Russian")

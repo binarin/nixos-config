@@ -379,6 +379,8 @@ window-rule {
 }
 
 binds {
+  Ctrl+Backslash { spawn "~/personal-workspace/nixos-config/scripts/niri-layout-toggle.sh"; }
+
   Ctrl+Shift+Alt+Super+C { spawn-sh "emacsclient --eval '(binarin/full-frame-org-capture \"t\")'"; }
   Ctrl+Shift+Alt+Super+D { spawn-sh "emacsclient --eval '(binarin/full-frame-org-roam-dailies-capture-today)'"; }
   Ctrl+Shift+Alt+Super+E { spawn-sh "emacsclient --eval '(thanos/type)'"; }
