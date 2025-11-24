@@ -1450,7 +1450,8 @@
      (add-hook 'org-agenda-after-show-hook 'binarin/org-agenda-after-show-reveal)
 
      (setq org-agenda-custom-commands '(("a" "Agenda and NEXTs" ((agenda "")
-                                                                 (todo "NEXT" ((org-agenda-overriding-header ""))))
+                                                                 (todo "NEXT" ())
+                                                                 (stuck "" ()))
                                          ((binarin/agenda-prepend-parent t)
                                           (org-agenda-compact-blocks t)
                                           (org-fold-show-context-detail '((agenda . local))))
