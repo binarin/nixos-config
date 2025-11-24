@@ -1468,6 +1468,16 @@
                                          todo "WAIT"
                                          ((binarin/agenda-prepend-parent t))
                                          ("~/org/export/wait.html"))
+                                        ("z" "@zolder"
+                                         tags-todo "+@zolder+TODO=\"NEXT\""
+                                         ((binarin/agenda-prepend-parent t)
+                                          (org-agenda-hide-tags-regexp "@zolder"))
+                                         ("~/org/export/zolder.html"))
+                                        ("e" "@errand"
+                                         tags-todo "+@errand+TODO=\"NEXT\""
+                                         ((binarin/agenda-prepend-parent t)
+                                          (org-agenda-hide-tags-regexp "@errand"))
+                                         ("~/org/export/errand.html"))
                                         ("r" "REFILE" tags "REFILE")))
 
      (general-setq org-agenda-include-diary nil)
