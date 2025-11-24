@@ -1449,8 +1449,11 @@
                                          ((binarin/agenda-prepend-parent t)
                                           (org-agenda-compact-blocks t)
                                           (org-fold-show-context-detail '((agenda . local))))
-                                         ("~/org/agenda.html"))
-                                        ("w" "WAIT" todo "WAIT" ((binarin/agenda-prepend-parent t)))
+                                         ("~/org/export/agenda.html"))
+                                        ("w" "WAIT"
+                                         todo "WAIT"
+                                         ((binarin/agenda-prepend-parent t))
+                                         ("~/org/export/wait.html"))
                                         ("r" "REFILE" tags "REFILE")))
 
      (general-setq org-agenda-include-diary nil)
@@ -1847,7 +1850,8 @@
        (interactive)
        (when (featurep 'org) ;; org is already loaded
          (org-clock-out nil t)
-         (org-save-all-org-buffers))
+         (org-save-all-org-buffers)
+         (org-store-agenda-views))
        (let ((default-directory "~/org/"))
          (shell-command "./push.sh")))
    #+end_src
