@@ -1885,6 +1885,9 @@
    #+end_src
 
 ** Org global dispatcher
+   :PROPERTIES:
+   :ORDERED:  t
+   :END:
    #+begin_src emacs-lisp :tangle yes
      (autoload 'org-clocking-p "org-clock")
 
@@ -1902,8 +1905,14 @@
      (defun binarin/org-last-capture-headline ()
        (binarin/org-get-heading-at-marker org-capture-last-stored-marker))
 
+     (defvar org-clock-history)
      (defun binarin/org-current-clock-headline ()
-       (binarin/org-get-heading-at-marker (and (org-clocking-p) org-clock-marker)))
+       (let* ((clocking (org-clocking-p))
+              (marker (if clocking org-clock-marker (car org-clock-history)))
+              (prefix (if clocking "Clocked:" "Last clocked:")))
+         (if marker
+             (format "%s %s" prefix (binarin/org-get-heading-at-marker marker))
+           "Clocked: <NONE>")))
 
      (transient-define-prefix binarin/org-dispatch ()
        "Global dispatcher for org-mode commands."
@@ -1913,7 +1922,7 @@
                                      (format "Last capture: %s" (binarin/org-last-capture-headline))))
                      ("c" org-clock-goto
                       :description (lambda ()
-                                     (format "Clocked: %s" (binarin/org-current-clock-headline))))]
+                                     (binarin/org-current-clock-headline)))]
        [:description "Actions"
                      ("p" "Sync" binarin/org-sync)
                      ("o" "Clock out" org-clock-out)])
