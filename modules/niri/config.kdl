@@ -387,6 +387,7 @@ binds {
   Ctrl+Shift+Alt+Super+L { spawn-sh "emacsclient --eval '(when (org-clocking-p) (binarin/full-frame-org-capture \"n\"))'"; }
   Ctrl+Shift+Alt+Super+P { spawn-sh "~/personal-workspace/nixos-config/scripts/org-capture-clipboard.sh"; }
   Ctrl+Shift+Alt+Super+T { spawn-sh "emacsclient --eval '(binarin/new-vterm-frame)'"; }
+  Ctrl+Shift+Alt+Super+A { spawn-sh "~/personal-workspace/nixos-config/scripts/emacs-launcher.sh '(org-agenda nil \"a\")'"; }
 
   Mod+N { spawn-sh "swaync-client -t"; }
   Mod+A { spawn "wl-kbptr"; }
