@@ -1936,6 +1936,11 @@
    #+begin_src emacs-lisp :tangle yes
      (with-eval-after-load "org"
        (load-library "org-habit"))
+
+     (use-package org-habit
+       :defer t
+       :config
+       (setq org-habit-show-all-today t))
    #+end_src
 * OS integration
 ** Type everywhere
