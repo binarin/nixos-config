@@ -79,7 +79,6 @@
       texlive-combined = pkgs.texlive.combine { inherit (pkgs.texlive) scheme-full beamer ps2eps; };
 
       guiPackages = with pkgs; [
-        anki
         prusa-slicer
         openscad-unstable
         freecad
@@ -171,6 +170,15 @@
               })
             ];
           })
+          {
+            home.packages = [ pkgs.anki ];
+            impermanence.persist-directories = [
+              ".local/share/Anki2"
+            ];
+            impermanence.local-directories = [
+              ".cache/Anki"
+            ];
+          }
         ]
       );
     };
