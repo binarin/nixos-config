@@ -1548,9 +1548,6 @@
    #+end_src
 ** Capture
    #+BEGIN_SRC emacs-lisp :tangle yes
-     (defun binarin/clipboard-first-line ()
-       (s-trim (car (s-lines (gui-get-primary-selection)))))
-
      (setq org-capture-templates
            '(("t" "todo" entry
               (file "~/org/refile.org")
