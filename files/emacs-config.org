@@ -1572,6 +1572,25 @@
 
      (add-hook 'org-capture-mode-hook #'binarin/hide-drawers-hook)
      (add-hook 'org-capture-mode-hook #'auto-fill-mode)
+
+     (defun binarin/org-capture-finalize-fix-properties ()
+       "Fix capture buffer so that :PROPERTIES: are always first - the rest of
+     the text between the heading line and :PROPERTIES: drawer gets moved to
+     the end."
+       (let (start extra)
+         (save-excursion
+           (goto-char (point-min))
+           (forward-line)
+           (setf start (point))
+           (when (search-forward ":PROPERTIES:" nil t)
+             (beginning-of-line)
+             (when (> (point) start)
+               (setf extra (buffer-substring start (point)))
+               (delete-region start (point))
+               (goto-char (point-max))
+               (insert extra))))))
+
+     (add-hook 'org-capture-prepare-finalize-hook 'binarin/org-capture-finalize-fix-properties)
    #+END_SRC
 
    #+BEGIN_SRC emacs-lisp :tangle yes
