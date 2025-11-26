@@ -75,6 +75,11 @@
         xdg.configFile."niri/config.kdl".source =
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/modules/niri/config.kdl";
 
+        # XXX
+        # home.activation.niri-layout-binds = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        #   run touch ~/.config/niri/layout-binds.kdl
+        # '';
+
         xdg.portal.extraPortals = [
           pkgs.kdePackages.kwallet
           pkgs.kdePackages.xdg-desktop-portal-kde
