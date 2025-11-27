@@ -559,22 +559,22 @@ binds {
   // will all refer to the 3rd workspace.
   Mod+1 { focus-workspace "terminal"; }
   Mod+2 { focus-workspace "emacs"; }
-  Mod+3 { focus-workspace 3; }
+  Mod+3 { focus-workspace "misc"; }
   Mod+4 { focus-workspace "browser"; }
   Mod+5 { focus-workspace "comms"; }
-  Mod+6 { focus-workspace 6; }
-  Mod+7 { focus-workspace 7; }
-  Mod+8 { focus-workspace 8; }
-  Mod+9 { focus-workspace 9; }
+  Mod+6 { focus-workspace "aux-6"; }
+  Mod+7 { focus-workspace "aux-7"; }
+  Mod+8 { focus-workspace "aux-8"; }
+  Mod+9 { focus-workspace "aux-9"; }
   Mod+Ctrl+1 { move-column-to-workspace "terminal"; }
   Mod+Ctrl+2 { move-column-to-workspace "emacs"; }
-  Mod+Ctrl+3 { move-column-to-workspace 3; }
+  Mod+Ctrl+3 { move-column-to-workspace "misc"; }
   Mod+Ctrl+4 { move-column-to-workspace "browser"; }
   Mod+Ctrl+5 { move-column-to-workspace "comms"; }
-  Mod+Ctrl+6 { move-column-to-workspace 6; }
-  Mod+Ctrl+7 { move-column-to-workspace 7; }
-  Mod+Ctrl+8 { move-column-to-workspace 8; }
-  Mod+Ctrl+9 { move-column-to-workspace 9; }
+  Mod+Ctrl+6 { move-column-to-workspace "aux-6"; }
+  Mod+Ctrl+7 { move-column-to-workspace "aux-7"; }
+  Mod+Ctrl+8 { move-column-to-workspace "aux-8"; }
+  Mod+Ctrl+9 { move-column-to-workspace "aux-9"; }
 
   // Alternatively, there are commands to move just a single window:
   // Mod+Ctrl+1 { move-window-to-workspace 1; }
@@ -666,5 +666,11 @@ binds {
 
 workspace "terminal"
 workspace "emacs"
+workspace "misc"
 workspace "browser"
 workspace "comms"
+workspace "aux-6"
+workspace "aux-7"
+workspace "aux-8"
+workspace "aux-9"
+workspace "aux-0"
