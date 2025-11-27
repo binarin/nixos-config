@@ -179,6 +179,15 @@
               ".cache/Anki"
             ];
           }
+          {
+            home.packages = [ pkgs.moonlight-qt ];
+            impermanence.persist-directories = [
+              ".config/Moonlight Game Streaming Project"
+            ];
+            impermanence.local-directories = [
+              ".cache/Moonlight Game Streaming Project"
+            ];
+          }
         ]
       );
     };
