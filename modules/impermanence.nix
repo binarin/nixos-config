@@ -292,7 +292,7 @@
               IMPERMANENCE_LOCAL_CACHE = "${localCache}";
             };
 
-            programs.zsh.dotDir = ".config/zsh";
+            programs.zsh.dotDir = "${config.xdg.configHome}/zsh";
             programs.zsh.history.path = "${localCache}/zsh_history";
 
             xdg = {

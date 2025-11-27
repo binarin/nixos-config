@@ -40,8 +40,7 @@ in
         networking.hosts = flakeConfig.inventory.networks.home.hosts;
         inventory.hostIpAllocation = flakeConfig.inventory.ipAllocation."${config.networking.hostName}";
 
-        system.switch.enableNg = lib.mkDefault true;
-        system.switch.enable = lib.mkDefault false;
+        system.switch.enable = true;
 
         services.dbus.implementation = lib.mkDefault "broker";
 

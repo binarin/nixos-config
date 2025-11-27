@@ -19,7 +19,7 @@
         home.packages = with pkgs; [
           corefonts
           font-awesome
-          vistafonts
+          vista-fonts
           nerd-fonts.fira-code
           nerd-fonts.fira-mono
           nerd-fonts.inconsolata

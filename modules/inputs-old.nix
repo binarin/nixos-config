@@ -14,7 +14,7 @@
     flake-file.url = lib.mkForce "github:binarin/flake-file";
 
     # nixpkgs.url = "path:/home/binarin/personal-workspace/nixpkgs";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
 
     import-tree.url = "github:vic/import-tree";
@@ -42,10 +42,6 @@
 
     hyprland-contrib.url = "github:hyprwm/contrib";
     hyprland-contrib.inputs.nixpkgs.follows = "nixpkgs";
-
-    # Software inputs
-    stylix.url = "github:danth/stylix/release-25.05";
-    stylix.inputs.nixpkgs.follows = "nixpkgs";
 
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";

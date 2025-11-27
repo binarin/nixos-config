@@ -89,12 +89,11 @@
         geeqie
         gimp
         gitg
-        glxinfo
+        mesa-demos
         imagemagickBig
         imhex
         libnotify
         mplayer
-        protonvpn-cli
         steam-run
         texlive-combined
         pdftk
@@ -151,7 +150,7 @@
             home.packages = guiPackages;
           }
           (lib.mkIf config.programs.telegram-desktop.enable {
-            home.packages = with pkgs; [ tdesktop ];
+            home.packages = with pkgs; [ telegram-desktop ];
             impermanence.local-directories = [ ".local/share/TelegramDesktop" ];
           })
           (lib.mkIf config.programs.thunderbird.enable {

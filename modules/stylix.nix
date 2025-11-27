@@ -135,7 +135,7 @@ let
 in
 {
   flake-file.inputs = {
-    stylix.url = "github:danth/stylix/release-25.05";
+    stylix.url = "github:danth/stylix/release-25.11";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
   };
 

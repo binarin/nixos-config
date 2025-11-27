@@ -9,7 +9,7 @@
           just
           nixd
           dnscontrol
-          (terraform_1.withPlugins (p: with p; [ libvirt ]))
+          (terraform_1.withPlugins (p: with p; [ dmacvicar_libvirt ]))
           cloud-init
         ];
       };

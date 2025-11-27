@@ -92,8 +92,8 @@
               "devtools.debugger.remote-enabled" = true;
               "extensions.activeThemeID" = "default-theme@mozilla.org";
               "ui.systemUsesDarkTheme" = true;
-              "font.minimum-size.x-western" = 16;
-              "font.size.monospace.x-western" = 16;
+              "font.minimum-size.x-western" = lib.mkForce 16;
+              "font.size.monospace.x-western" = lib.mkForce 16;
               "gfx.webrender.all" = true;
               "intl.accept_languages" = "en,nl,ru";
               "layers.acceleration.force-enabled" = true;

@@ -63,7 +63,7 @@
           follows = "nixpkgs";
         };
       };
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
     };
     home-manager-master = {
       inputs = {
@@ -134,7 +134,7 @@
       url = "github:nix-community/NixOS-WSL/main";
     };
     nixpkgs = {
-      url = "github:nixos/nixpkgs/nixos-25.05";
+      url = "github:nixos/nixpkgs/nixos-25.11";
     };
     nixpkgs-lib = {
       follows = "nixpkgs";
@@ -159,7 +159,7 @@
           follows = "nixpkgs";
         };
       };
-      url = "github:danth/stylix/release-25.05";
+      url = "github:danth/stylix/release-25.11";
     };
     systems = {
       url = "github:nix-systems/default";

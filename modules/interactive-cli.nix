@@ -98,6 +98,7 @@
 
           programs.ssh = {
             enable = true;
+            enableDefaultConfig = false;
             matchBlocks = {
               mail = {
                 match = ''
@@ -108,8 +109,21 @@
                   HostKeyAlias = "mail.lynx-lizard.ts.net";
                 };
               };
+              "*" = {
+                extraOptions = {
+                  ForwardAgent = "no";
+                  AddKeysToAgent = "no";
+                  Compression = "no";
+                  ServerAliveInterval = "0";
+                  ServerAliveCountMax = "3";
+                  HashKnownHosts = "no";
+                  UserKnownHostsFile = "~/.ssh/known_hosts";
+                  ControlMaster = "no";
+                  ControlPath = "~/.ssh/master-%r@%k:%p";
+                  ControlPersist = "no";
+                };
+              };
             };
-            controlPath = "~/.ssh/master-%r@%k:%p";
           };
 
           services.ssh-agent.enable = pkgs.stdenv.isLinux;
@@ -185,7 +199,7 @@
             ssh-to-age
             sshfs
             tcpdump
-            trezor-agent
+            # trezor-agent
             unrar
             unzip
             viddy

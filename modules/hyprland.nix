@@ -64,7 +64,7 @@
 
         programs.hyprlock.enable = true;
         programs.hyprland.enable = true;
-        programs.hyprland.package = inputs.hyprland.packages."${pkgs.stdenv.system}".hyprland;
+        programs.hyprland.package = inputs.hyprland.packages."${pkgs.stdenv.hostPlatform.system}".hyprland;
         programs.hyprland.withUWSM = true;
 
         home-manager.sharedModules = [
@@ -83,7 +83,7 @@
       ...
     }:
     let
-      shellevents = inputs.hyprland-contrib.packages."${pkgs.system}".shellevents;
+      shellevents = inputs.hyprland-contrib.packages."${pkgs.stdenv.hostPlatform.system}".shellevents;
       out-u4025qw = "Dell Inc. DELL U4025QW J7Q6FP3";
       out-lg-dualup-left = "LG Electronics LG SDQHD 311NTQDAC572";
       out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
@@ -146,7 +146,7 @@
           hyprland-per-window-layout
           hyprshot
           networkmanagerapplet
-          self.packages."${pkgs.stdenv.system}".sshmenu
+          self.packages."${pkgs.stdenv.hostPlatform.system}".sshmenu
           swaynotificationcenter
         ];
 

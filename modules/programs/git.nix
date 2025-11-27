@@ -19,11 +19,13 @@
           g = "git";
         };
 
+        programs.delta.enable = true;
+        programs.delta.enableGitIntegration = true;
+
         programs.git = {
           enable = true;
-          package = if osConfig.services.graphical-desktop.enable then pkgs.gitAndTools.gitFull else pkgs.git;
-          delta.enable = true;
-          extraConfig = {
+          package = if osConfig.services.graphical-desktop.enable then pkgs.gitFull else pkgs.git;
+          settings = {
             column.ui = "auto";
             branch.sort = "-committerdate";
             tag.sort = "version:refname";

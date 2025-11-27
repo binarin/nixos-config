@@ -65,8 +65,10 @@
       ]);
 
       programs.git = {
-        userName = "Alexey Lebedeff";
-        userEmail = "binarin@binarin.info";
+        settings.user = {
+          name = "Alexey Lebedeff";
+          email = "binarin@binarin.info";
+        };
       };
 
       home.packages = with pkgs; [

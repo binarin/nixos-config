@@ -7,6 +7,12 @@ let
   nixpkgsConfig = {
     allowUnfree = true;
     oraclejdk.accept_license = true;
+    permittedInsecurePackages = [
+      # used by trezor-agent, but vulnerability is about leaking
+      # generated keys - so doesn't matter, as keys do not leave
+      # trezor
+      "python3.13-ecdsa-0.19.1"
+    ];
   };
 in
 {

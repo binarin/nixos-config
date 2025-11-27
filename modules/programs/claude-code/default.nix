@@ -12,8 +12,8 @@
       ];
 
       home.packages = [
-        self.inputs.nix-ai-tools.packages.${pkgs.system}.claude-code
-        self.inputs.nix-ai-tools.packages.${pkgs.system}.claudebox
+        self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}.claude-code
+        self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}.claudebox
       ];
 
       impermanence.persist-files = [

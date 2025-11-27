@@ -69,7 +69,7 @@
 
       config = {
         home.packages = [
-          self.packages."${pkgs.stdenv.system}".sshmenu
+          self.packages."${pkgs.stdenv.hostPlatform.system}".sshmenu
         ];
 
         xdg.configFile."niri/config.kdl".source =
