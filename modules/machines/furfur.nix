@@ -72,6 +72,8 @@
       AGARES_PSK=${config.sops.placeholder.agares_password}
     '';
 
+    time.hardwareClockInLocalTime = true;
+
     services.displayManager = {
       defaultSession = lib.mkForce "niri-uwsm";
       autoLogin.enable = true;

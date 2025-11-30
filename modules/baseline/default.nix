@@ -1,7 +1,7 @@
 { self, ... }:
 {
   flake.nixosModules.baseline =
-    { pkgs, ... }:
+    { lib, pkgs, ... }:
     {
       imports = [
         self.nixosModules.inventory
@@ -15,6 +15,8 @@
       ];
 
       environment.enableAllTerminfo = true;
+
+      time.timeZone = lib.mkDefault "Europe/Amsterdam";
 
       i18n.defaultLocale = "nl_NL.UTF-8";
       i18n.extraLocales = [ "all" ];
