@@ -156,57 +156,77 @@
             };
           }
 
+          (lib.mkIf (config.fileSystems ? "/" && config.fileSystems."/".fsType == "zfs" && config.fileSystems."/".enable) {
+            boot.initrd.systemd.enable = true;
+            boot.initrd.systemd.services.impermanence-reset = {
+              description = "reset root filesystem";
 
+              wantedBy = [ "sysroot.mount" ];
 
-            # boot.initrd.systemd.services.impermanence-root-rollback = {
-            #   description = "Rollback root btrfs subvolume to a pristine state";
-            #   wantedBy = [
-            #     "initrd.target"
-            #   ];
-            #   after = [
-            #     "dev-main-all.device"
-            #   ];
-            #   before = [
-            #     "sysroot.mount"
-            #   ];
-            #   path = with pkgs; [
-            #     btrfs-progs
-            #     findutils
-            #     # core-utils / util-linux "mount" are already in /bin
-            #   ];
-            #   unitConfig.DefaultDependencies = "no";
-            #   serviceConfig.Type = "oneshot";
-            #   script = ''
-            #     export PATH="$PATH:/bin"
-            #     mkdir /btrfs_tmp
-            #     mount /dev/main/all /btrfs_tmp
-            #     if [[ -e /btrfs_tmp/root ]]; then
-            #         mkdir -p /btrfs_tmp/old_roots
-            #         timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
-            #         mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
-            #     fi
+              after = [ "zfs-import-rpool.service" ];
+              requires = [ "zfs-import-rpool.service" ];
 
-            #     delete_subvolume_recursively() {
-            #         IFS=$'\n'
-            #         for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
-            #             delete_subvolume_recursively "/btrfs_tmp/$i"
-            #         done
-            #         btrfs subvolume delete "$1"
-            #     }
+              path = with pkgs; [ zfs ];
+              unitConfig.DefaultDependencies = "no";
+              serviceConfig.Type = "oneshot";
+              script = ''
+               echo Rolling back "${config.fileSystems."/".device}"
+               zfs rollback -r ${config.fileSystems."/".device}@blank
+             '';
+            };
+          })
 
-            #     for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
-            #         delete_subvolume_recursively "$i"
-            #     done
+          (lib.mkIf (config.fileSystems ? "/" && config.fileSystems."/".fsType == "btrfs" && config.fileSystems."/".enable) {
+            boot.initrd.systemd.enable = true;
+            boot.initrd.systemd.services.impermanence-root-rollback = {
+              description = "Rollback root btrfs subvolume to a pristine state";
+              wantedBy = [
+                "initrd.target"
+              ];
+              after = [
+                "dev-main-all.device"
+              ];
+              before = [
+                "sysroot.mount"
+              ];
+              path = with pkgs; [
+                btrfs-progs
+                findutils
+                # core-utils / util-linux "mount" are already in /bin
+              ];
+              unitConfig.DefaultDependencies = "no";
+              serviceConfig.Type = "oneshot";
+              script = ''
+                export PATH="$PATH:/bin"
+                mkdir /btrfs_tmp
+                mount /dev/main/all /btrfs_tmp
+                if [[ -e /btrfs_tmp/root ]]; then
+                    mkdir -p /btrfs_tmp/old_roots
+                    timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
+                    mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
+                fi
 
-            #     btrfs subvolume create /btrfs_tmp/root
+                delete_subvolume_recursively() {
+                    IFS=$'\n'
+                    for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
+                        delete_subvolume_recursively "/btrfs_tmp/$i"
+                    done
+                    btrfs subvolume delete "$1"
+                }
 
-            #     # They are created with 'Q' by tmpfiles, let's prevent creating those subvolumes
-            #     mkdir -p /btrfs_tmp/root/var/lib/{machines,portables}
+                for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
+                    delete_subvolume_recursively "$i"
+                done
 
-            #     umount /btrfs_tmp
-            #   '';
-            # };
+                btrfs subvolume create /btrfs_tmp/root
 
+                # They are created with 'Q' by tmpfiles, let's prevent creating those subvolumes
+                mkdir -p /btrfs_tmp/root/var/lib/{machines,portables}
+
+                umount /btrfs_tmp
+              '';
+            };
+          })
 
           (lib.mkIf config.services.homebox.enable {
             environment.persistence."/persist" = {
