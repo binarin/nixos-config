@@ -76,8 +76,6 @@
 
     services.displayManager = {
       defaultSession = lib.mkForce "niri-uwsm";
-      autoLogin.enable = true;
-      autoLogin.user = "binarin";
     };
 
     programs.ssh.knownHosts = {
