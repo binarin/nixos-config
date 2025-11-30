@@ -110,8 +110,6 @@
 
         virtualisation.libvirtd = {
           enable = true;
-          qemu.ovmf.enable = true;
-          qemu.ovmf.packages = [ pkgs.OVMFFull.fd ];
           qemu.runAsRoot = false;
           qemu.swtpm.enable = true;
           onBoot = "ignore"; # autostarded guests are started anyway

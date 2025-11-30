@@ -45,11 +45,11 @@
         networking.hostName = "media";
 
         home-manager.users.binarin.home.packages = with pkgs; [
-          beets-unstable
+          beets
           shntool
           cuetools
           flac
-          mac
+          monkeysAudio
         ];
 
         services.avahi = {
