@@ -11,6 +11,7 @@
         self.nixosModules.impermanence
         self.nixosModules.stylix
         self.nixosModules.gnupg
+        self.nixosModules.emacs
       ];
 
       users.users.binarin.extraGroups = [

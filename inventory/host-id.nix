@@ -10,4 +10,5 @@
   iso = "aaaaaaaa";
   docker-on-nixos = "be23faba";
   qdevice = "f72453f5";
+  furfur = "0a7be8e6";
 }

@@ -4,8 +4,14 @@
     { pkgs, ... }:
     {
       imports = [
-        self.nixosModules.binarin-baseline
+        self.nixosModules.inventory
+        self.nixosModules.nix
+        self.nixosModules.sshd
+        self.nixosModules.security
+
         self.nixosModules.eternal-terminal
+
+        self.nixosModules.binarin-baseline
       ];
 
       environment.enableAllTerminfo = true;

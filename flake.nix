@@ -125,6 +125,9 @@
       };
       url = "github:nix-community/nix-index-database";
     };
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware/master";
+    };
     nixos-wsl = {
       inputs = {
         nixpkgs = {

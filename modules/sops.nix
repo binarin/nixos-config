@@ -38,14 +38,10 @@
       ];
 
       config = {
-        impermanence.local-files = [
-          {
-            file = ".config/age/nixos-config-keys.txt";
-          }
-        ];
-
         sops = {
-          age.keyFile = "${config.home.homeDirectory}/.config/age/nixos-config-keys.txt";
+          age.keyFile = if osConfig.impermanence.enable
+                        then "/persist/${config.home.homeDirectory}/.config/age/nixos-config-keys.txt"
+                        else "${config.home.homeDirectory}/.config/age/nixos-config-keys.txt";
           defaultSopsFile = config.lib.self.optionalFile' "secrets/${osConfig.networking.hostName}/user-${config.home.username}.yaml";
         };
       };

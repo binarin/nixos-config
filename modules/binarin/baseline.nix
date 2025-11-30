@@ -1,6 +1,5 @@
 { self, ... }:
 {
-
   flake.nixosModules.binarin-baseline =
     { config, ... }:
     {
@@ -25,10 +24,10 @@
           description = "Alexey Lebedeff";
           uid = 1000;
           isNormalUser = true;
-          group = "binarin";
           home = "/home/binarin";
+          createHome = true;
+          group = "binarin";
           shell = "/run/current-system/sw/bin/zsh";
-          # hashedPasswordFile = ""; XXX
           extraGroups = [
             "users"
             "wheel"

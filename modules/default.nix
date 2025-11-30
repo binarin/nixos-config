@@ -28,18 +28,7 @@ in
         self.nixosModules.use-nix-cache
       ];
 
-      options = {
-        inventory.hostIpAllocation = lib.mkOption {
-          type = lib.types.raw;
-          readOnly = true;
-        };
-      };
-
       config = {
-        networking.hostId = (import "${self}/inventory/host-id.nix")."${config.networking.hostName}";
-        networking.hosts = flakeConfig.inventory.networks.home.hosts;
-        inventory.hostIpAllocation = flakeConfig.inventory.ipAllocation."${config.networking.hostName}";
-
         system.switch.enable = true;
 
         services.dbus.implementation = lib.mkDefault "broker";

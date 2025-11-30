@@ -2,6 +2,7 @@
 
 keys:
   - &admin_binarin age1ec9gz6f685mn8pdrz48qm4vq7qzpzcz48vgkcty9aa665evra9lq2uz3s2
+  - &admin_demandred_binarin age1dvu92xmh3w23ghey4l0epcs27m89f3nswzs5twgnel36xxu42f4sfsv023
 
   - &server_demandred age1flg86f4c6xd2jss983nml4vvqexxyxavm22rp4ve3h6mywc9kdesnppy7j
   - &user_demandred_binarin age1dvu92xmh3w23ghey4l0epcs27m89f3nswzs5twgnel36xxu42f4sfsv023
@@ -17,6 +18,8 @@ keys:
   - &user_ishamael_binarin age1qk6g50qsla4mn9qm8zc9nhf0vwz37wyvlhajann8ct9shkxg0g7s5yuqn5
 
   - &server_qdevice age1hsfqzyxhmr5r6ekwmthpzfuser4g7ktt0m554u5zfnnxt8tff98sdmzagt
+  - &server_furfur age14uq5t9y9sapf54enpahql6ncfqvttrwwxk459vtkegu4slk9ef7s6pp2uw
+  - &user_furfur_binarin age1nvy6629y23y7c38f9qk8qekqn089a5x55nklp2t3hdzl7la7xgys5rcfsy
 
 creation_rules:
   - path_regex: secrets/demandred/(secrets.yaml|user-binarin.yaml)
@@ -83,3 +86,17 @@ creation_rules:
           - *user_demandred_binarin
           - *server_media
           - *server_docker-on-nixos
+  - path_regex: secrets/[^/]+/(ssh_host_(ed25519|rsa|ecdsa)_key|user-binarin-age)
+    key_groups:
+      - age:
+          - *user_demandred_binarin
+  - path_regex: secrets/furfur/secrets.yaml
+    key_groups:
+      - age:
+          - *admin_demandred_binarin
+          - *server_furfur
+  - path_regex: secrets/furfur/user-binarin.yaml
+    key_groups:
+      - age:
+          - *admin_demandred_binarin
+          - *user_furfur_binarin

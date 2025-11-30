@@ -78,54 +78,55 @@
 
             programs.fuse.userAllowOther = true;
 
-            boot.initrd.systemd.services.impermanence-root-rollback = {
-              description = "Rollback root btrfs subvolume to a pristine state";
-              wantedBy = [
-                "initrd.target"
-              ];
-              after = [
-                "dev-main-all.device"
-              ];
-              before = [
-                "sysroot.mount"
-              ];
-              path = with pkgs; [
-                btrfs-progs
-                findutils
-                # core-utils / util-linux "mount" are already in /bin
-              ];
-              unitConfig.DefaultDependencies = "no";
-              serviceConfig.Type = "oneshot";
-              script = ''
-                export PATH="$PATH:/bin"
-                mkdir /btrfs_tmp
-                mount /dev/main/all /btrfs_tmp
-                if [[ -e /btrfs_tmp/root ]]; then
-                    mkdir -p /btrfs_tmp/old_roots
-                    timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
-                    mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
-                fi
+            # boot.initrd.systemd.services.impermanence-root-rollback = {
+            #   description = "Rollback root btrfs subvolume to a pristine state";
+            #   wantedBy = [
+            #     "initrd.target"
+            #   ];
+            #   after = [
+            #     "dev-main-all.device"
+            #   ];
+            #   before = [
+            #     "sysroot.mount"
+            #   ];
+            #   path = with pkgs; [
+            #     btrfs-progs
+            #     findutils
+            #     # core-utils / util-linux "mount" are already in /bin
+            #   ];
+            #   unitConfig.DefaultDependencies = "no";
+            #   serviceConfig.Type = "oneshot";
+            #   script = ''
+            #     export PATH="$PATH:/bin"
+            #     mkdir /btrfs_tmp
+            #     mount /dev/main/all /btrfs_tmp
+            #     if [[ -e /btrfs_tmp/root ]]; then
+            #         mkdir -p /btrfs_tmp/old_roots
+            #         timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
+            #         mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
+            #     fi
 
-                delete_subvolume_recursively() {
-                    IFS=$'\n'
-                    for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
-                        delete_subvolume_recursively "/btrfs_tmp/$i"
-                    done
-                    btrfs subvolume delete "$1"
-                }
+            #     delete_subvolume_recursively() {
+            #         IFS=$'\n'
+            #         for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
+            #             delete_subvolume_recursively "/btrfs_tmp/$i"
+            #         done
+            #         btrfs subvolume delete "$1"
+            #     }
 
-                for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
-                    delete_subvolume_recursively "$i"
-                done
+            #     for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
+            #         delete_subvolume_recursively "$i"
+            #     done
 
-                btrfs subvolume create /btrfs_tmp/root
+            #     btrfs subvolume create /btrfs_tmp/root
 
-                # They are created with 'Q' by tmpfiles, let's prevent creating those subvolumes
-                mkdir -p /btrfs_tmp/root/var/lib/{machines,portables}
+            #     # They are created with 'Q' by tmpfiles, let's prevent creating those subvolumes
+            #     mkdir -p /btrfs_tmp/root/var/lib/{machines,portables}
 
-                umount /btrfs_tmp
-              '';
-            };
+            #     umount /btrfs_tmp
+            #   '';
+            # };
+
             sops.age.sshKeyPaths = lib.mkForce [ "/persist/ssh/ssh_host_ed25519_key" ];
 
             system.activationScripts = {
@@ -135,7 +136,6 @@
                   "groups"
                 ];
                 text = ''
-                  mkdir -p /local/etc/NetworkManager/system-connections/
                   mkdir -p /local/var/lib/tailscale/
                 '';
               };
@@ -153,6 +153,10 @@
                   type = "rsa";
                   bits = 4096;
                 }
+                {
+                  path = "/persist/ssh/ssh_host_ecdsa_key";
+                  type = "ecdsa";
+                }
               ];
             };
 
@@ -160,16 +164,13 @@
               "/local/var/lib/tailscale:/var/lib/tailscale"
             ];
 
-            environment.etc."NetworkManager/system-connections" = {
-              source = "/local/etc/NetworkManager/system-connections/";
-            };
-
             environment.persistence."/persist" = {
               enable = true;
               hideMounts = true;
               directories = [
                 "/var/lib/nixos"
                 "/root/.ssh"
+                "/etc/NetworkManager/system-connections"
               ];
               files = [
                 "/etc/machine-id"
@@ -188,9 +189,10 @@
               enable = true;
               hideMounts = true;
               directories = [
-                "/var/log"
                 "/var/lib/systemd/coredump"
                 "/var/lib/systemd/timers"
+              ] ++ lib.optionals config.boot.isContainer [
+                "/var/log" # XXX only do it when there is no actual mount yet. But without infinite recursion.
               ];
               users =
                 with lib;
@@ -318,9 +320,10 @@
               videos = "${homeDir}/Videos";
             };
 
-            impermanence.persist-files = [
-              ".config/sops/age/keys.txt"
-            ];
+            # XXX ~/.config permission issues, https://github.com/nix-community/impermanence/issues/74
+            # impermanence.persist-files = [
+            #   ".config/sops/age/keys.txt"
+            # ];
           }
 
           (lib.mkIf config.programs.starship.enable {
