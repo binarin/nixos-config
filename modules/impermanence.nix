@@ -156,18 +156,6 @@
             };
           }
 
-          (lib.mkIf ("/persist" ? config.boot.fileSystems && config.boot.fileSystems."/persist".fsType == "zfs") {
-            boot.initrd.systemd.services.impermanence-reset = {
-              description = "reset root filesystem";
-              wantedBy = [ "initrd.target" ];
-              after = [ "zfs-import-system.service" ];
-              before = [ "sysroot.mount" ];
-              path = with pkgs; [ zfs ];
-              unitConfig.DefaultDependencies = "no";
-              serviceConfig.Type = "oneshot";
-              script = "zfs rollback -r rpool/ROOT/nixos@blank";
-            };
-          })
 
 
             # boot.initrd.systemd.services.impermanence-root-rollback = {

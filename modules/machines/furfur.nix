@@ -85,6 +85,22 @@
       };
     };
 
+
+    boot.initrd.systemd.enable = true;
+    boot.initrd.systemd.services.impermanence-reset = {
+      description = "reset root filesystem";
+
+      wantedBy = [ "sysroot.mount" ];
+
+      after = [ "zfs-import-rpool.service" ];
+      requires = [ "zfs-import-rpool.service" ];
+
+      path = with pkgs; [ zfs ];
+      unitConfig.DefaultDependencies = "no";
+      serviceConfig.Type = "oneshot";
+      script = "zfs rollback -r rpool/ROOT/nixos@blank";
+    };
+
     networking.networkmanager.enable = true;
     networking.networkmanager.ensureProfiles = {
       environmentFiles = [
