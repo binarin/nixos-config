@@ -22,7 +22,9 @@
 
       self.nixosModules.microsoft-surface
 
+      self.nixosModules.kanata
       self.nixosModules.niri
+      self.nixosModules.firefox
       self.nixosModules.user-binarin
 
       "${self}/machines/furfur/hardware-configuration.nix"

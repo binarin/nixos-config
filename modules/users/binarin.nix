@@ -63,6 +63,7 @@
         self.homeModules.foot
         self.homeModules.fonts
         self.homeModules.syncthing
+        self.homeModules.firefox
       ]);
 
       programs.git = {

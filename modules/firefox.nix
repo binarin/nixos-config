@@ -12,8 +12,6 @@
       key = "nixos-config.modules.nixos.firefox";
 
       config = {
-        home-manager.sharedModules = [ self.homeModules.firefox ];
-
         programs.firefox = {
           enable = true;
           policies = {
@@ -49,7 +47,7 @@
 
       config = {
         stylix.targets.firefox.enable = true;
-        stylix.targets.firefox.profileNames = [ "default" ];
+        stylix.targets.firefox.profileNames = [ "clean" ];
         stylix.targets.firefox.firefoxGnomeTheme.enable = true;
 
         impermanence.local-directories = [ ".mozilla/firefox" ];
@@ -67,7 +65,7 @@
 
         programs.firefox = {
           enable = true;
-          profiles.default = {
+          profiles.clean = {
             id = 0;
             isDefault = true;
 
@@ -111,9 +109,6 @@
               "ui.key.contentAccess" = 5; # Alt-Shift
               "ui.key.menuAccessKey" = -1;
             };
-          };
-          profiles.test = {
-            id = 1;
           };
         };
       };

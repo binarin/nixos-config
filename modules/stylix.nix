@@ -222,7 +222,6 @@ in
               [
                 "swaync"
                 "vscode"
-                "firefox"
                 "gtk"
               ]
               (_nm: {
