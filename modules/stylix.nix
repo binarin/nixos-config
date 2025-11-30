@@ -183,7 +183,6 @@ in
 
   flake.homeModules.stylix =
     {
-      config,
       lib,
       pkgs,
       osConfig,

@@ -1,7 +1,7 @@
 { ... }:
 {
   flake.nixosModules.security =
-    { config, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.nixos.security";
 

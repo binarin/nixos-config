@@ -14,7 +14,6 @@
   flake.nixosModules.docker-on-nixos-configuration =
     {
       config,
-      lib,
       pkgs,
       ...
     }:

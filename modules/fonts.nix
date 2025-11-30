@@ -4,7 +4,6 @@
 {
   flake.homeModules.fonts =
     {
-      config,
       pkgs,
       lib,
       osConfig,

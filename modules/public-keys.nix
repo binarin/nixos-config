@@ -6,7 +6,6 @@
   flake.modules.generic.public-keys =
     {
       lib,
-      config,
       ...
     }:
     let

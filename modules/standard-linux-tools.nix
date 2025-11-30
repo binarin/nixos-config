@@ -2,7 +2,6 @@
 {
   flake.nixosModules.standard-linux-tools =
     {
-      config,
       ...
     }:
     {

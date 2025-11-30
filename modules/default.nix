@@ -4,12 +4,9 @@
   config,
   ...
 }:
-let
-  flakeConfig = config;
-in
 {
   flake.nixosModules.default =
-    { config, ... }:
+    { ... }:
     {
       key = "nixos-config.default";
 

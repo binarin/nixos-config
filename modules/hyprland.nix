@@ -22,10 +22,8 @@
 
   flake.nixosModules.hyprland =
     {
-      config,
       pkgs,
       lib,
-      system,
       ...
     }:
     {

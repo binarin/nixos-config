@@ -1,7 +1,7 @@
 { self, inputs, ... }:
 {
   flake.nixosModules.impure-nix-setup =
-    { config, lib, ... }:
+    { config, ... }:
     {
       key = "nixos-config.modules.nixos.impure-nix-setup";
 

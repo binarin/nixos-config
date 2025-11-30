@@ -15,7 +15,7 @@
   };
 
   flake.nixosModules.gc =
-    { config, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.nixos.gc";
 

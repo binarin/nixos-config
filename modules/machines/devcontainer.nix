@@ -13,7 +13,6 @@
 
   flake.nixosModules.devcontainer-configuration =
     {
-      config,
       lib,
       ...
     }:

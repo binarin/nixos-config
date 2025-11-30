@@ -6,7 +6,6 @@
   flake.homeModules.waybar =
     {
       config,
-      lib,
       pkgs,
       ...
     }:
@@ -86,7 +85,19 @@
                 format-charging = " {capacity}%";
                 format-plugged = " {capacity}%";
                 format-alt = "{time} {icon}";
-                format-icons = ["󰂎" "󰁺" "󰁻" "󰁼" "󰁽" "󰁾" "󰁿" "󰂀" "󰂁" "󰂂" "󰁹"];
+                format-icons = [
+                  "󰂎"
+                  "󰁺"
+                  "󰁻"
+                  "󰁼"
+                  "󰁽"
+                  "󰁾"
+                  "󰁿"
+                  "󰂀"
+                  "󰂁"
+                  "󰂂"
+                  "󰁹"
+                ];
               };
 
               idle_inhibitor = {

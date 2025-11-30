@@ -13,7 +13,6 @@
 
   flake.nixosModules.demandred-configuration =
     {
-      config,
       lib,
       pkgs,
       modulesPath,

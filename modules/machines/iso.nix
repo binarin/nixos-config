@@ -9,13 +9,18 @@
     modules = [
       self.nixosModules.iso-configuration
       inputs.nixos-hardware.nixosModules.microsoft-surface-pro-intel
-      ({config, ...}: {
-        hardware.microsoft-surface.kernelVersion = "stable";
-        boot.kernelPatches = [{
-            name = "rust-1.91-fix";
-            patch = config.lib.self.file "rust-fix.patch";
-        }];
-      })
+      (
+        { config, ... }:
+        {
+          hardware.microsoft-surface.kernelVersion = "stable";
+          boot.kernelPatches = [
+            {
+              name = "rust-1.91-fix";
+              patch = config.lib.self.file "rust-fix.patch";
+            }
+          ];
+        }
+      )
     ];
   };
 

@@ -1,7 +1,6 @@
 {
   self,
   inputs,
-  lib,
   config,
   ...
 }:
@@ -27,7 +26,6 @@
 
   flake.nixosModules.qdevice-configuration =
     {
-      lib,
       config,
       pkgs,
       ...

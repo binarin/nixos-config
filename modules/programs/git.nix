@@ -1,5 +1,4 @@
 {
-  self,
   ...
 }:
 {
@@ -7,7 +6,6 @@
     {
       pkgs,
       config,
-      lib,
       osConfig,
       ...
     }:

@@ -1,4 +1,4 @@
-{ flake, ... }:
+{ ... }:
 {
 
   flake.nixosModules.systemd-boot =

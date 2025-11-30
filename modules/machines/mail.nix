@@ -14,7 +14,6 @@
 
   flake.nixosModules.mail-configuration =
     {
-      config,
       pkgs,
       ...
     }:

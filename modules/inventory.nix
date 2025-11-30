@@ -89,20 +89,22 @@ in
         };
       };
 
-    flake.nixosModules.inventory = { config, ... }: {
-      key = "nixos-config.modules.nixos.inventory";
-      options = {
-        inventory.hostIpAllocation = lib.mkOption {
-          type = lib.types.raw;
-          readOnly = true;
+    flake.nixosModules.inventory =
+      { config, ... }:
+      {
+        key = "nixos-config.modules.nixos.inventory";
+        options = {
+          inventory.hostIpAllocation = lib.mkOption {
+            type = lib.types.raw;
+            readOnly = true;
+          };
+        };
+        config = {
+          networking.hostId = (import "${self}/inventory/host-id.nix")."${config.networking.hostName}";
+          networking.hosts = flakeConfig.inventory.networks.home.hosts;
+          inventory.hostIpAllocation = flakeConfig.inventory.ipAllocation."${config.networking.hostName}";
         };
       };
-      config = {
-        networking.hostId = (import "${self}/inventory/host-id.nix")."${config.networking.hostName}";
-        networking.hosts = flakeConfig.inventory.networks.home.hosts;
-        inventory.hostIpAllocation = flakeConfig.inventory.ipAllocation."${config.networking.hostName}";
-      };
-    };
 
     flake.nixosModules.inventory-legacy =
       { ... }:

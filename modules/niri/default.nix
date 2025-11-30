@@ -50,7 +50,6 @@
 
   flake.homeModules.niri =
     {
-      lib,
       config,
       pkgs,
       ...

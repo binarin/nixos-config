@@ -10,7 +10,6 @@
 
   flake.homeModules.wayland =
     {
-      config,
       ...
     }:
     {
