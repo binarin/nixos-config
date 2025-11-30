@@ -76,6 +76,51 @@ window#waybar {
     color: {{ zenburn.yellow }};
 }
 
+#battery {
+    border-radius: 5px;
+    background: {{ zenburn.bg_plus_1 }};
+    color: {{ zenburn.green_plus_2 }};
+    min-width: 4em;
+    margin: 1px 2px;
+    padding: 0;
+    color: {{ zenburn.yellow }};
+}
+
+/* #battery.good { */
+/* } */
+
+@keyframes blink
+{
+  to
+  {
+    background-color : {{ zenburn.bg_plus_1 }};
+    color            : {{ zenburn.green_plus_2 }};
+  }
+}
+
+#battery.warning:not(charging) {
+  background                : {{ zenburn.yellow_minus_2 }};
+  color                     : {{ zenburn.bg_minus_1 }};
+  min-width                 : 10em;
+  animation-name            : blink;
+  animation-duration        : 0.5s;
+  animation-timing-function : linear;
+  animation-iteration-count : infinite;
+  animation-direction       : alternate;
+}
+
+
+#battery.critical:not(charging) {
+  background                : {{ zenburn.red_plus_2 }};
+  color                     : {{ zenburn.fg }};
+  min-width                 : 10em;
+  animation-name            : blink;
+  animation-duration        : 0.5s;
+  animation-timing-function : linear;
+  animation-iteration-count : infinite;
+  animation-direction       : alternate;
+}
+
 #custom-notification {
     font-family: {{ fonts.monospace }}, mono;
     border-radius: 5px;

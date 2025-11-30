@@ -49,6 +49,7 @@
                 "tray"
                 "idle_inhibitor"
                 "pulseaudio"
+                "battery"
                 "clock"
                 "niri/language"
                 "custom/notification"
@@ -71,6 +72,21 @@
               "tray" = {
                 icon-size = 16;
                 spacing = 5;
+              };
+
+              "battery" = {
+                bat = "BAT1";
+                interval = "10";
+                states = {
+                  good = 95;
+                  warning = 30;
+                  critical = 15;
+                };
+                format = "{icon} {capacity}%";
+                format-charging = " {capacity}%";
+                format-plugged = " {capacity}%";
+                format-alt = "{time} {icon}";
+                format-icons = ["󰂎" "󰁺" "󰁻" "󰁼" "󰁽" "󰁾" "󰁿" "󰂀" "󰂁" "󰂂" "󰁹"];
               };
 
               idle_inhibitor = {
