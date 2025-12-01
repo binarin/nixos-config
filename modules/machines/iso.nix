@@ -8,19 +8,6 @@
     system = "x86_64-linux";
     modules = [
       self.nixosModules.iso-configuration
-      inputs.nixos-hardware.nixosModules.microsoft-surface-pro-intel
-      (
-        { config, ... }:
-        {
-          hardware.microsoft-surface.kernelVersion = "stable";
-          boot.kernelPatches = [
-            {
-              name = "rust-1.91-fix";
-              patch = config.lib.self.file "rust-fix.patch";
-            }
-          ];
-        }
-      )
     ];
   };
 
@@ -36,11 +23,18 @@
       imports = [
         "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma6.nix"
         "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/channel.nix"
-        self.nixosModules.default
+
+        self.nixosModules.baseline
+        self.nixosModules.microsoft-surface
+        self.nixosModules.sshd
+        self.nixosModules.kanata
         self.nixosModules.large-console-fonts
       ];
 
       config = {
+        # build faster
+        isoImage.squashfsCompression = "gzip -Xcompression-level 1";
+
         networking.hostName = "iso";
 
         nixpkgs.hostPlatform = "x86_64-linux";
@@ -64,6 +58,7 @@
 
         services.openssh.enable = true;
         services.openssh.settings.PermitRootLogin = lib.mkForce "yes";
+        services.openssh.authorizedKeysInHomedir = lib.mkForce true;
 
         services.tailscale.enable = true;
 
@@ -73,6 +68,33 @@
 
         users.users.nixos.password = "nixos";
         users.users.nixos.initialHashedPassword = lib.mkForce null;
+
+        networking.networkmanager.enable = true;
+        networking.networkmanager.ensureProfiles = {
+          profiles = {
+            agares = {
+              connection = {
+                id = "agares-guest";
+                type = "wifi";
+              };
+              ipv4 = {
+                method = "auto";
+              };
+              ipv6 = {
+                addr-gen-mode = "stable-privacy";
+                method = "auto";
+              };
+              wifi = {
+                mode = "infrastructure";
+                ssid = "agares-guest";
+              };
+              wifi-security = {
+                key-mgmt = "wpa-psk";
+                psk = config.lib.self.read "agares-guest.git-crypt";
+              };
+            };
+          };
+        };
 
         systemd = {
           targets = {
