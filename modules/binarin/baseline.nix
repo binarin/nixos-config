@@ -74,6 +74,8 @@
       ...
     }:
     {
+      key = "nixos-config.home.binarin-baseline";
+
       programs.fzf = {
         enable = true;
         tmux = {
@@ -90,8 +92,23 @@
         terminal = "screen-256color"; # needed, e.g. for emacs -nw
         mouse = true;
         focusEvents = true;
-        sensibleOnTop = true;
+        plugins = with pkgs.tmuxPlugins; [
+          {
+            plugin = extrakto;
+          }
+          {
+            plugin = pain-control;
+          }
+          {
+            plugin = sensible;
+          }
+        ];
+
         extraConfig = ''
+          # even having sensible last is not enough to do these 2 binds
+          bind-key o last-window
+          bind-key C-o send-prefix
+
           set -g word-separators ' "=()[]'
           set -ag word-separators "'"  # '-a' for append, "'" should be quoted differently
 
