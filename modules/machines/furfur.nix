@@ -10,17 +10,6 @@
     ];
   };
 
-  flake.homeModules.furfur-binarin =
-    { ... }:
-    {
-      key = "nixos-config.furfur-binarin";
-
-      programs.waybar.battery = {
-        enable = true;
-        name = "BAT1";
-      };
-    };
-
   flake.nixosModules.furfur-configuration =
     { config, lib, ... }:
     {
@@ -39,6 +28,7 @@
         self.nixosModules.kanata
         self.nixosModules.niri
         self.nixosModules.firefox
+        self.nixosModules.bluetooth
         self.nixosModules.user-binarin
 
         "${self}/machines/furfur/hardware-configuration.nix"
@@ -132,4 +122,16 @@
         };
       };
     };
+
+  flake.homeModules.furfur-binarin =
+    { ... }:
+    {
+      key = "nixos-config.furfur-binarin";
+
+      programs.waybar.battery = {
+        enable = true;
+        name = "BAT1";
+      };
+    };
+
 }
