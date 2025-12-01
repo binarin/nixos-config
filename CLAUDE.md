@@ -136,6 +136,48 @@ in
 }
 ```
 
+### Per-machine user configuration
+
+To add per-machine settings for user binarin, create a `homeModules.<machine>-binarin` module in the machine's configuration file and assign it to `home-manager.users.binarin`:
+
+```nix
+# In modules/machines/some-machine.nix
+{ self, inputs, ... }:
+{
+  # Per-machine home-manager configuration for user binarin
+  flake.homeModules.some-machine-binarin = {...}: {
+    key = "nixos-config.some-machine-binarin";
+
+    # Home-manager options specific to this machine
+    programs.waybar.battery = {
+      enable = true;
+      name = "BAT1";
+    };
+  };
+
+  flake.nixosModules.some-machine-configuration = { config, lib, ... }: {
+    key = "nixos-config.some-machine-configuration";
+
+    imports = [
+      self.nixosModules.user-binarin
+      # ... other imports
+    ];
+
+    # Assign per-machine home-manager configuration
+    # This will be merged with the base user-binarin configuration
+    home-manager.users.binarin = self.homeModules.some-machine-binarin;
+
+    # ... rest of configuration
+  };
+}
+```
+
+This pattern allows you to:
+
+- Keep machine-specific user settings in the machine's configuration file
+- Leverage home-manager's module merging to combine base and per-machine settings
+- Maintain the dendritic pattern by keeping related configurations together
+
 ### Validating changes
 
 When making changes to dendritic modules:

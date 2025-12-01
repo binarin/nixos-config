@@ -10,6 +10,17 @@
     ];
   };
 
+  flake.homeModules.furfur-binarin =
+    { ... }:
+    {
+      key = "nixos-config.furfur-binarin";
+
+      programs.waybar.battery = {
+        enable = true;
+        name = "BAT1";
+      };
+    };
+
   flake.nixosModules.furfur-configuration =
     { config, lib, ... }:
     {
@@ -32,6 +43,8 @@
 
         "${self}/machines/furfur/hardware-configuration.nix"
       ];
+
+      home-manager.users.binarin = self.homeModules.furfur-binarin;
 
       system.stateVersion = "25.11";
       hardware.microsoft-surface.kernelVersion = "stable";

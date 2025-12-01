@@ -6,6 +6,7 @@
   flake.homeModules.waybar =
     {
       config,
+      lib,
       pkgs,
       ...
     }:
@@ -15,6 +16,20 @@
         self.modules.generic.zenburn
         self.modules.generic.flake-files
       ];
+
+      options = {
+        programs.waybar.battery = {
+          enable = lib.mkEnableOption "battery module in waybar" // {
+            default = false;
+          };
+
+          name = lib.mkOption {
+            type = lib.types.str;
+            default = "BAT1";
+            description = "Battery name to monitor";
+          };
+        };
+      };
 
       config = {
         home.packages = [ pkgs.noto-fonts ];
@@ -48,7 +63,9 @@
                 "tray"
                 "idle_inhibitor"
                 "pulseaudio"
-                "battery"
+              ]
+              ++ lib.optionals config.programs.waybar.battery.enable [ "battery" ]
+              ++ [
                 "clock"
                 "niri/language"
                 "custom/notification"
@@ -74,7 +91,7 @@
               };
 
               "battery" = {
-                bat = "BAT1";
+                bat = config.programs.waybar.battery.name;
                 interval = "10";
                 states = {
                   good = 95;
