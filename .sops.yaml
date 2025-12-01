@@ -1,6 +1,7 @@
 # nix-shell -p ssh-to-age --run 'ssh-keyscan 192.168.2.7 | ssh-to-age'
 
 keys:
+  - &admin_binarin_gpg 7668F12EF30BE2A802E1E13E6D4365C3B5E703F5
   - &admin_binarin age1ec9gz6f685mn8pdrz48qm4vq7qzpzcz48vgkcty9aa665evra9lq2uz3s2
   - &admin_demandred_binarin age1dvu92xmh3w23ghey4l0epcs27m89f3nswzs5twgnel36xxu42f4sfsv023
 
@@ -24,63 +25,85 @@ keys:
 creation_rules:
   - path_regex: secrets/demandred/(secrets.yaml|user-binarin.yaml)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_demandred
   - path_regex: secrets/docker-on-nixos/(secrets.yaml|user-binarin.yaml)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_docker-on-nixos
   - path_regex: secrets/forgejo/(secrets.yaml|user-binarin.yaml)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_forgejo
   - path_regex: secrets/ishamael/(secrets.yaml|user-binarin.yaml)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
           - *user_ishamael_binarin
           - *server_ishamael
   - path_regex: secrets/mail/(secrets.yaml|user-binarin.yaml|dovecot-passwd)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_mail
   - path_regex: secrets/media/(secrets.yaml|user-binarin.yaml)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_media
   - path_regex: secrets/monitor/(secrets.yaml|user-binarin.yaml)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_monitor
   - path_regex: secrets/nix-cache/(secrets.yaml|user-binarin.yaml)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_nix-cache
   - path_regex: secrets/iso/(secrets.yaml|user-binarin.yaml)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
   - path_regex: secrets/qdevice/(secrets.yaml|user-binarin.yaml)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
           - *server_qdevice
   - path_regex: secrets/webservers.yaml
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_binarin
           - *user_demandred_binarin
@@ -88,15 +111,21 @@ creation_rules:
           - *server_docker-on-nixos
   - path_regex: secrets/[^/]+/(ssh_host_(ed25519|rsa|ecdsa)_key|user-binarin-age)
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *user_demandred_binarin
   - path_regex: secrets/furfur/secrets.yaml
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_demandred_binarin
           - *server_furfur
   - path_regex: secrets/furfur/user-binarin.yaml
     key_groups:
+      - pgp:
+          - *admin_binarin_gpg
       - age:
           - *admin_demandred_binarin
           - *user_furfur_binarin
