@@ -27,7 +27,7 @@ creation_rules:
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_demandred
@@ -35,7 +35,7 @@ creation_rules:
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_docker-on-nixos
@@ -43,7 +43,7 @@ creation_rules:
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_forgejo
@@ -51,7 +51,7 @@ creation_rules:
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
           - *user_ishamael_binarin
           - *server_ishamael
@@ -59,7 +59,7 @@ creation_rules:
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_mail
@@ -67,7 +67,7 @@ creation_rules:
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_media
@@ -75,7 +75,7 @@ creation_rules:
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_monitor
@@ -83,7 +83,7 @@ creation_rules:
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_nix-cache
@@ -91,20 +91,20 @@ creation_rules:
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
   - path_regex: secrets/qdevice/(secrets.yaml|user-binarin.yaml)
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
           - *server_qdevice
   - path_regex: secrets/webservers.yaml
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_media
@@ -113,19 +113,19 @@ creation_rules:
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *user_demandred_binarin
   - path_regex: secrets/furfur/secrets.yaml
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_demandred_binarin
           - *server_furfur
   - path_regex: secrets/furfur/user-binarin.yaml
     key_groups:
       - pgp:
           - *admin_binarin_gpg
-      - age:
+        age:
           - *admin_demandred_binarin
           - *user_furfur_binarin
