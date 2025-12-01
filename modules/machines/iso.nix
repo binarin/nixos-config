@@ -68,6 +68,15 @@
 
         users.users.nixos.password = "nixos";
         users.users.nixos.initialHashedPassword = lib.mkForce null;
+        users.users.nixos.openssh.authorizedPrincipals = [
+          "root"
+          "binarin"
+        ];
+
+        users.users.root.openssh.authorizedPrincipals = [
+          "root"
+          "binarin"
+        ];
 
         networking.networkmanager.enable = true;
         networking.networkmanager.ensureProfiles = {
