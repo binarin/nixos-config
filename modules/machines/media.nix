@@ -189,12 +189,7 @@
         services.caddy = {
           enable = true;
           enableReload = false; # fails to reload when new hosts are added
-          package = pkgs.caddy.withPlugins {
-            plugins = [
-              "github.com/caddy-dns/cloudflare@v0.0.0-20251022184029-2fc25ee62f40"
-            ];
-            hash = "sha256-sexPn0LzErmK8ptUICUPSSqLNLYIy7F9M3JBJfyCpJQ";
-          };
+          package = self.packages."${pkgs.stdenv.hostPlatform.system}".caddy-with-cloudflare-dns;
           extraConfig = ''
             (letsencrypt) {
               tls {
