@@ -42,3 +42,27 @@ This should be configured on a per-machine basis.
 * TODO pin caddy version?
 * TODO sort out zenburn
 * TODO configure treefmt / pre-commit hooks - for nix, ansible, terraform
+* build-all - support remote-only builds
+  --builders 'ssh://nix-cache x86_64-linux /home/binarin/.ssh/id_ed25519 16 1 big-parallel' --max-jobs 0
+* connect desktop nix machines to proxmox backup server
+  :PROPERTIES:
+  :ID: aee8dfaa-6081-439c-b3ec-1df5765e3aa7
+  :CREATED: [2025-12-01 Mon 09:38]
+  :END:
+  :CLOCK:
+  CLOCK: [2025-12-01 Mon 09:38]--[2025-12-01 Mon 09:39] =>  0:01
+  :END:
+* surface broken RTC - add backstop, early in stage-2 boot
+  :PROPERTIES:
+  :ID: 33c0e58f-bf97-4975-b63f-7bcfc4d2c418
+  :CREATED: [2025-12-01 Mon 09:37]
+  :END:
+  :CLOCK:
+  CLOCK: [2025-12-01 Mon 09:37]--[2025-12-01 Mon 09:38] =>  0:01
+  :END:
+* TODO smb-sketchup like share for valak vms
+  :PROPERTIES:
+  :ID: 8bde76c6-05cf-4c65-88ab-97c68d391e1f
+  :CREATED: [2025-11-27 Thu 17:22]
+  :END:
+* add validation that every module has proper ~key~
