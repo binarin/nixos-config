@@ -1321,9 +1321,24 @@
 
      (general-setq org-attach-id-dir (file-name-as-directory (expand-file-name "~/org/data")))
 
+     ;; don't try to save, init.el is in nix store and is read-only
+     (defun binarin/org-agenda-file-to-front (&optional to-end)
+       (interactive "P")
+       (let ((user-init-file nil))
+         (org-agenda-file-to-front to-end)))
 
+     (defun binarin/org-remove-file (&optional file)
+       (interactive)
+       (let ((user-init-file nil))
+         (org-remove-file file)))
 
+     (define-key org-mode-map
+                 (kbd "C-c [")
+                 'binarin/org-agenda-file-to-front)
 
+     (define-key org-mode-map
+                 (kbd "C-c ]")
+                 'binarin/org-remove-file)
 
      (use-package org-contrib
        :ensure t
