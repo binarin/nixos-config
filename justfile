@@ -66,19 +66,29 @@ eval-all:
 iso:
     nix build "$(pwd)#nixosConfigurations.iso.config.system.build.isoImage" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'nixos-configuration' / 'iso' }}"
 
+# Check if git-crypt is unlocked (fails if repository is locked)
+[private]
+check-git-crypt-unlocked:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "$(git config --local --get filter.git-crypt.smudge)" ]; then
+        echo "ERROR: Repository is locked with git-crypt." >&2
+        echo "Please unlock it first with: git-crypt unlock" >&2
+        exit 1
+    fi
 
 [group('Deploy')]
-deploy target profile="system":
+deploy target profile="system": check-git-crypt-unlocked
     deploy "$(pwd)#{{ target }}.{{ profile }}" -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
 
 [group('Deploy')]
-deploy-boot target profile="system":
+deploy-boot target profile="system": check-git-crypt-unlocked
     deploy "$(pwd)#{{ target }}.{{ profile }}" --boot -s -k --ssh-opts="{{ sshOpts }}" -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
     ssh "root@$(nix eval "$(pwd)#deploy.nodes.{{ target }}.hostname" --json | jq -r)" systemctl reload dbus-broker.service
     ssh "root@$(nix eval "$(pwd)#deploy.nodes.{{ target }}.hostname" --json | jq -r)" systemctl reboot
 
 [group('Deploy')]
-deploy-no-rollback target profile="system":
+deploy-no-rollback target profile="system": check-git-crypt-unlocked
     deploy "$(pwd)#{{ target }}.{{ profile }}" --auto-rollback false --magic-rollback false -s -k --ssh-opts="{{ sshOpts }}" -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
 
 
@@ -105,7 +115,7 @@ all: check
     done
 
 [group('Main')]
-deploy-all: all
+deploy-all: check-git-crypt-unlocked all
     #!/usr/bin/env bash
     set -euo pipefail
     mapfile -t all < <(nix eval "$(pwd)#deploy.nodes" --apply builtins.attrNames --json | jq -r ".[]")
@@ -115,7 +125,7 @@ deploy-all: all
     done
 
 [group('Main')]
-deploy-boot-all: all
+deploy-boot-all: check-git-crypt-unlocked all
     #!/usr/bin/env bash
     set -euo pipefail
     mapfile -t all < <(nix eval "$(pwd)#deploy.nodes" --apply builtins.attrNames --json | jq -r ".[]")
