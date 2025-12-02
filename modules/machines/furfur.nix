@@ -22,6 +22,7 @@
         self.nixosModules.disko
         self.nixosModules.systemd-boot
         self.nixosModules.tailscale
+        self.nixosModules.impure-nix-setup
 
         self.nixosModules.microsoft-surface
 
