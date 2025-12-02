@@ -9,10 +9,13 @@
         insync
       ];
 
-      impermanence.local-directories = [
+      impermanence.persist-directories = [
         "Insync"
         ".config/Insync"
         ".local/share/Insync"
+      ];
+
+      impermanence.local-directories = [
         ".cache/Insync"
       ];
     };
