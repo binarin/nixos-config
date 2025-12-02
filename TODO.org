@@ -66,3 +66,11 @@ This should be configured on a per-machine basis.
   :CREATED: [2025-11-27 Thu 17:22]
   :END:
 * add validation that every module has proper ~key~
+* Script to rolling upgrade all deploy_rs machines
+  :PROPERTIES:
+  :ID: 25507817-4383-4a0d-8234-ecc01264c6be
+  :CREATED: [2025-12-01 Mon 19:33]
+  :END:
+  :CLOCK:
+  CLOCK: [2025-12-01 Mon 19:33]--[2025-12-01 Mon 19:34] =>  0:01
+  :END:
