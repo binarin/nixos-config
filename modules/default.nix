@@ -1,7 +1,6 @@
 {
   self,
   lib,
-  config,
   ...
 }:
 {
