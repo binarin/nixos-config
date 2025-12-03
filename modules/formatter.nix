@@ -28,6 +28,7 @@
           "terraform/**"
           "ansible/**"
           ".forgejo/**"
+          ".beads/**"
           "files/*"
           "justfile"
           ".sops.yaml"
