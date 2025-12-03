@@ -2,3 +2,6 @@ priv-*.nix filter=git-crypt diff=git-crypt
 secrets/dnscontrol/* filter=git-crypt diff=git-crypt
 *.jwe filter=git-crypt diff=git-crypt
 *.git-crypt filter=git-crypt diff=git-crypt
+
+# Use bd merge for beads JSONL files
+.beads/issues.jsonl merge=beads
