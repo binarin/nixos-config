@@ -1310,6 +1310,13 @@
        (("C-c a" . org-agenda)
         ("C-c r" . org-capture))
        :config
+       (define-key org-mode-map
+                   (kbd "C-c [")
+                   'binarin/org-agenda-file-to-front)
+
+       (define-key org-mode-map
+                   (kbd "C-c ]")
+                   'binarin/org-remove-file)
        (setq org-agenda-files (-map #'f-expand
                                     (-filter #'f-exists?
                                              '("~/org/personal.org"
@@ -1332,13 +1339,6 @@
        (let ((user-init-file nil))
          (org-remove-file file)))
 
-     (define-key org-mode-map
-                 (kbd "C-c [")
-                 'binarin/org-agenda-file-to-front)
-
-     (define-key org-mode-map
-                 (kbd "C-c ]")
-                 'binarin/org-remove-file)
 
      (use-package org-contrib
        :ensure t
