@@ -99,7 +99,7 @@
               "privacy.clearOnShutdown_v2.historyFormDataAndDownloads" = false;
               "privacy.sanitize.sanitizeOnShutdown" = false;
               "sidebar.revamp" = true;
-              "sidebar.verticalTabs" = true;
+              "sidebar.verticalTabs" = false;
               "svg.context-properties.content.enabled" = true;
               "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
               "toolkit.tabbox.switchByScrolling" = false;
