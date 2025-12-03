@@ -3,6 +3,8 @@
   flake.nixosModules.baseline =
     { lib, pkgs, ... }:
     {
+      key = "nixos-config.modules.nixos.baseline";
+
       imports = [
         self.nixosModules.inventory
         self.nixosModules.nix

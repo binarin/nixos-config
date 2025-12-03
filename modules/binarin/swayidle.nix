@@ -3,12 +3,16 @@
   flake.nixosModules.swayidle =
     { ... }:
     {
+      key = "nixos-config.modules.nixos.swayidle";
+
       security.pam.services.swaylock = { };
     };
 
   flake.homeModules.swayidle =
     { lib, pkgs, ... }:
     {
+      key = "nixos-config.modules.home.swayidle";
+
       imports = [
         self.homeModules.stylix
       ];

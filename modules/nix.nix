@@ -29,6 +29,8 @@ in
   flake.nixosModules.nix =
     { ... }:
     {
+      key = "nixos-config.modules.nixos.nix";
+
       config = {
         nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
