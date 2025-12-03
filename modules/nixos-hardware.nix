@@ -7,7 +7,7 @@
   flake.nixosModules.microsoft-surface =
     { config, ... }:
     {
-      key = "nixos-config.nixos.microsoft-surface";
+      key = "nixos-config.modules.nixos.microsoft-surface";
       imports = [
         inputs.nixos-hardware.nixosModules.microsoft-surface-pro-intel
         self.modules.generic.flake-files

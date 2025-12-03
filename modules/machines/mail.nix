@@ -18,7 +18,7 @@
       ...
     }:
     {
-      key = "nixos-config.mail-configuration";
+      key = "nixos-config.modules.nixos.mail-configuration";
       imports = [
         self.nixosModules.default
         self.nixosModules.lxc

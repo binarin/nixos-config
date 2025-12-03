@@ -34,7 +34,7 @@
   flake.homeModules.home-misc =
     { lib, ... }:
     {
-      key = "nixos-config.modules.home.misc";
+      key = "nixos-config.modules.home.home-misc";
 
       config = {
         home.keyboard = lib.mkDefault null;

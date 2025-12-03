@@ -20,7 +20,7 @@
       ...
     }:
     {
-      key = "nixos-config.forgejo-configuration";
+      key = "nixos-config.modules.nixos.forgejo-configuration";
       imports = [
         self.nixosModules.default
         self.nixosModules.lxc

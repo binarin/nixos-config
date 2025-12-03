@@ -7,7 +7,7 @@
   flake.nixosModules.default =
     { ... }:
     {
-      key = "nixos-config.default";
+      key = "nixos-config.modules.nixos.default";
 
       imports = [
         self.nixosModules.baseline

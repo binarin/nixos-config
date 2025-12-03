@@ -33,7 +33,7 @@
       };
     in
     {
-      key = "nixos-config.media-configuration";
+      key = "nixos-config.modules.nixos.media-configuration";
       imports = [
         self.nixosModules.default
         self.nixosModules.lxc

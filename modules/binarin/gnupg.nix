@@ -15,7 +15,7 @@
   flake.homeModules.gnupg =
     { osConfig, pkgs, ... }:
     {
-      key = "nixos-config.modules.nixos.gnupg";
+      key = "nixos-config.modules.home.gnupg";
 
       imports = [
         self.homeModules.impermanence

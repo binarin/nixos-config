@@ -19,7 +19,7 @@
       ...
     }:
     {
-      key = "nixos-config.iso-configuration";
+      key = "nixos-config.modules.nixos.iso-configuration";
       imports = [
         "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma6.nix"
         "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/channel.nix"

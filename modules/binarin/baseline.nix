@@ -3,6 +3,8 @@
   flake.nixosModules.binarin-baseline =
     { config, ... }:
     {
+      key = "nixos-config.modules.nixos.binarin-baseline";
+
       imports = [
         self.nixosModules.home-manager
         self.modules.generic.public-keys
@@ -74,7 +76,7 @@
       ...
     }:
     {
-      key = "nixos-config.home.binarin-baseline";
+      key = "nixos-config.modules.home.binarin-baseline";
 
       programs.fzf = {
         enable = true;

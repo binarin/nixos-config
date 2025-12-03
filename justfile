@@ -19,6 +19,7 @@ update:
 # Lint nix files
 [group('dev')]
 lint:
+    ./scripts/check-module-keys.sh
     nix fmt
 
 # Check nix flake

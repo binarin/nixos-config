@@ -31,7 +31,7 @@
       ...
     }:
     {
-      key = "nixos-config.qdevice-configuration";
+      key = "nixos-config.modules.nixos.qdevice-configuration";
 
       imports = [
         self.nixosModules.default

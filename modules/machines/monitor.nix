@@ -18,7 +18,7 @@
       ...
     }:
     {
-      key = "nixos-config.monitor-configuration";
+      key = "nixos-config.modules.nixos.monitor-configuration";
       imports = [
         self.nixosModules.default
         self.nixosModules.lxc

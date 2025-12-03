@@ -13,7 +13,7 @@
   flake.nixosModules.furfur-configuration =
     { config, lib, ... }:
     {
-      key = "nixos-config.furfur-configuration";
+      key = "nixos-config.modules.nixos.furfur-configuration";
 
       imports = [
         self.nixosModules.baseline
@@ -127,7 +127,7 @@
   flake.homeModules.furfur-binarin =
     { ... }:
     {
-      key = "nixos-config.furfur-binarin";
+      key = "nixos-config.modules.home.furfur-binarin";
 
       programs.waybar.battery = {
         enable = true;

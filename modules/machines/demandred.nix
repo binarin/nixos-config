@@ -19,7 +19,7 @@
       ...
     }:
     {
-      key = "nixos-config.demandred-configuration";
+      key = "nixos-config.modules.nixos.demandred-configuration";
       imports = [
         self.nixosModules.baseline
 

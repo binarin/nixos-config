@@ -17,7 +17,7 @@
       ...
     }:
     {
-      key = "nixos-config.devcontainer-configuration";
+      key = "nixos-config.modules.nixos.devcontainer-configuration";
       imports = [
         self.nixosModules.baseline
         self.nixosModules.impermanence

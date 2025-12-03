@@ -5,6 +5,8 @@
   flake.nixosModules.wayland =
     { ... }:
     {
+      key = "nixos-config.modules.nixos.wayland";
+
       programs.dconf.enable = true;
     };
 

@@ -55,7 +55,8 @@
       '';
     in
     {
-      key = "nixos-config.docker-on-nixos-configuration";
+      key = "nixos-config.modules.nixos.docker-on-nixos-configuration";
+
       imports = [
         self.nixosModules.default
         self.nixosModules.lxc

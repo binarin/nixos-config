@@ -3,7 +3,7 @@
   flake.nixosModules.linkwarden =
     { config, ... }:
     {
-      key = "nixos-config.nixos.linkwarden";
+      key = "nixos-config.modules.nixos.linkwarden";
       config = {
         sops.secrets."linkwarden/nextauth-secret" = { };
         sops.secrets."linkwarden/postgres-password" = { };

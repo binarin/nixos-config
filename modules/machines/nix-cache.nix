@@ -27,7 +27,7 @@ in
       nginx-cache-zone = "nix_cache_cache_zone";
     in
     {
-      key = "nixos-config.nix-cache-configuration";
+      key = "nixos-config.modules.nixos.nix-cache-configuration";
       imports = [
         self.nixosModules.default
         self.nixosModules.lxc

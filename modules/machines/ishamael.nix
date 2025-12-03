@@ -20,7 +20,7 @@
       ...
     }:
     {
-      key = "nixos-config.ishamael-configuration";
+      key = "nixos-config.modules.nixos.ishamael-configuration";
       imports = [
         (modulesPath + "/profiles/qemu-guest.nix")
         self.nixosModules.default
