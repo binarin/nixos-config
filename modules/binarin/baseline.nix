@@ -106,8 +106,8 @@
 
         extraConfig = ''
           # even having sensible last is not enough to do these 2 binds
-          bind-key o last-window
-          bind-key C-o send-prefix
+          bind-key C-o last-window
+          bind-key o send-prefix
 
           set -g word-separators ' "=()[]'
           set -ag word-separators "'"  # '-a' for append, "'" should be quoted differently
