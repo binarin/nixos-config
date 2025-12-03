@@ -2,49 +2,15 @@
 #+TODO: TODO(t) | DONE(d)
 #+TODO: PLAN(r) | PROJ(p)
 #+TODO: | CNCL(c)
-* DONE kanata should only be bound to concrete devices, instead of all
-  CLOSED: [2025-11-06 Thu 14:43]
-  :LOGBOOK:
-  - State "DONE"       from "TODO"       [2025-11-06 Thu 14:43]
-  :END:
-
-This should be configured on a per-machine basis.
-
-
-* DONE create debian vm on qdevice (investigate firt: virt-install, terraform, something else?)
-  CLOSED: [2025-11-08 Sat 09:09]
-  :LOGBOOK:
-  - State "DONE"       from "TODO"       [2025-11-08 Sat 09:09]
-  :END:
-* DONE convert to dendritic (large task)
-  CLOSED: [2025-11-08 Sat 09:09]
-  :LOGBOOK:
-  - State "DONE"       from "TODO"       [2025-11-08 Sat 09:09]
-  :END:
-* DONE tmux - change word boundaries for mouse selection
-  CLOSED: [2025-11-06 Thu 15:38]
-  :LOGBOOK:
-  - State "DONE"       from "TODO"       [2025-11-06 Thu 15:38]
-  :END:
-* DONE install bluetui from an external flake
-* TODO Convert nixos configurations
-* TODO Remove nixosSharedModules
-* TODO pre-commit hooks / treefmt
-* TODO Drop hostConfig.features
-* TODO Patched git-crypt with worktree support
+* TODO add validation that every nixos module in modules/ has proper ~key~
 * TODO Closure size tracking (with git notes?)
-* TODO nix-all-follow
-* TODO eval-all - sort according to evaluation time
 * TODO `just lint` - remove check, convert to pre-commit hook, ???
 * TODO Explain why explicit key is needed
-* TODO Why was I not able to use pkgs.stdenv.hostPlatform.isLinux without inifinite recursion in home-manager?
 * TODO tpm2-pkcs11-esapi FTW
-* TODO pin caddy version?
-* TODO sort out zenburn
 * TODO configure treefmt / pre-commit hooks - for nix, ansible, terraform
-* build-all - support remote-only builds
+* TODO build-all - support remote-only builds
   --builders 'ssh://nix-cache x86_64-linux /home/binarin/.ssh/id_ed25519 16 1 big-parallel' --max-jobs 0
-* connect desktop nix machines to proxmox backup server
+* TODO connect desktop nix machines to proxmox backup server
   :PROPERTIES:
   :ID: aee8dfaa-6081-439c-b3ec-1df5765e3aa7
   :CREATED: [2025-12-01 Mon 09:38]
@@ -52,7 +18,7 @@ This should be configured on a per-machine basis.
   :CLOCK:
   CLOCK: [2025-12-01 Mon 09:38]--[2025-12-01 Mon 09:39] =>  0:01
   :END:
-* surface broken RTC - add backstop, early in stage-2 boot
+* TODO surface broken RTC - add backstop, early in stage-2 boot
   :PROPERTIES:
   :ID: 33c0e58f-bf97-4975-b63f-7bcfc4d2c418
   :CREATED: [2025-12-01 Mon 09:37]
@@ -65,8 +31,7 @@ This should be configured on a per-machine basis.
   :ID: 8bde76c6-05cf-4c65-88ab-97c68d391e1f
   :CREATED: [2025-11-27 Thu 17:22]
   :END:
-* add validation that every module has proper ~key~
-* Script to rolling upgrade all deploy_rs machines
+* TODO Script to rolling upgrade all deploy_rs machines
   :PROPERTIES:
   :ID: 25507817-4383-4a0d-8234-ecc01264c6be
   :CREATED: [2025-12-01 Mon 19:33]
