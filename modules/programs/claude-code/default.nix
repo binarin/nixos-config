@@ -12,6 +12,7 @@
       ];
 
       home.packages = [
+        self.packages.${pkgs.stdenv.hostPlatform.system}.beads
         self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}.claude-code
         self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}.claudebox
       ];
