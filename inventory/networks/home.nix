@@ -17,7 +17,7 @@
     "192.168.2.5" = "nix-cache";
     "192.168.2.6" = "ishamael";
     "192.168.2.7" = "mail";
-    "192.168.2.8" = "nanokvm";
+    "192.168.2.8" = "qdevice-kvm"; # nanokvm
     "192.168.2.9" = "demandred";
     "192.168.2.10" = [
       "demandred"
