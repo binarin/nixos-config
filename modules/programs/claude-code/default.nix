@@ -4,7 +4,7 @@
   flake-file.inputs.nix-ai-tools.inputs.nixpkgs.follows = "nixpkgs";
 
   flake.homeModules.claude-code =
-    { pkgs, ... }:
+    { pkgs, lib, config, ... }:
     {
       key = "nixos-config.modules.home.claude-code";
       imports = [
@@ -16,6 +16,9 @@
         self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}.claude-code
         self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}.claudebox
       ];
+
+      home.file.".claude/skills/".source =
+        config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/claude-skills";
 
       impermanence.persist-files = [
         ".claude.json"
