@@ -890,7 +890,7 @@
        ("C-c p" . projectile-command-map)
        :config
        (setq projectile-keymap-prefix (kbd "C-c p"))
-       (setq projectile-enable-caching t)
+       (setq projectile-enable-caching nil)
        (setq projectile-completion-system 'default)
        ;; For my projects I usually don't want to include submodules in file
        ;; list. And anyway, this is broken for some of the things I work on
