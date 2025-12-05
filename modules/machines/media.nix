@@ -632,7 +632,7 @@
                   (svc "tinypilot wired" "https://${config.inventory.ipAllocation.tinypilot.home.primary.address}/"
                     "/custom-icons/tiny-pilot.png"
                   )
-                  (svc "nanokvm - home" "http://${config.inventory.ipAllocation.nanokvm.home.primary.address}/"
+                  (svc "qdevice nanokvm" "http://${config.inventory.ipAllocation.qdevice-kvm.home.primary.address}/"
                     "/custom-icons/sipeed.png"
                   )
                   (svc "nanokvm - ts" "http://nanokvm.lynx-lizard.ts.net/" "/custom-icons/sipeed.png")
