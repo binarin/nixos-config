@@ -34,7 +34,7 @@ in
     {
       key = "nixos-config.modules.nixos.nix";
       imports = [
-        inputs.determinate.nixosModules.default
+        # inputs.determinate.nixosModules.default
       ];
 
       config = {
