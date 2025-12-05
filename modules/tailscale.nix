@@ -83,7 +83,10 @@
                 options = {
                   serviceName = lib.mkOption {
                     type = lib.types.str;
-                    description = "Service name to advertise on the tailnet";
+                    description = ''
+                      Service name to advertise on the tailnet (without svc: prefix).
+                      The svc: prefix will be automatically added.
+                    '';
                     example = "archivebox";
                   };
 
@@ -243,9 +246,8 @@
                 lib.mapAttrsToList (name: srvCfg: ''
                   echo "Configuring serve: ${name}"
                   tailscale serve --bg \
-                    ${lib.optionalString (srvCfg.protocol != "https") "--${srvCfg.protocol}"} \
-                    ${lib.optionalString (srvCfg.port != null) "${toString srvCfg.port}"} \
-                    ${lib.optionalString (srvCfg.path != null) "--set-path ${srvCfg.path}"} \
+                    ${lib.optionalString (srvCfg.port != null) "--${srvCfg.protocol}=${toString srvCfg.port}"} \
+                    ${lib.optionalString (srvCfg.path != null) "--set-path=${srvCfg.path}"} \
                     ${srvCfg.target} \
                     || { echo "Failed to configure ${name}"; exit 1; }
                 '') serveCfg.configs
@@ -254,12 +256,11 @@
               # Apply each configured service (with distinct virtual IP)
               ${lib.concatStringsSep "\n" (
                 lib.mapAttrsToList (name: svcCfg: ''
-                  echo "Configuring service: ${name} (${svcCfg.serviceName})"
-                  tailscale serve --bg \
-                    --service ${svcCfg.serviceName} \
-                    ${lib.optionalString (svcCfg.protocol != "https") "--${svcCfg.protocol}"} \
-                    ${lib.optionalString (svcCfg.port != null) "${toString svcCfg.port}"} \
-                    ${lib.optionalString (svcCfg.path != null) "--set-path ${svcCfg.path}"} \
+                  echo "Configuring service: ${name} (svc:${svcCfg.serviceName})"
+                  tailscale serve \
+                    --service=svc:${svcCfg.serviceName} \
+                    ${lib.optionalString (svcCfg.port != null) "--${svcCfg.protocol}=${toString svcCfg.port}"} \
+                    ${lib.optionalString (svcCfg.path != null) "--set-path=${svcCfg.path}"} \
                     ${lib.optionalString svcCfg.tunnel "--tun"} \
                     ${svcCfg.target} \
                     || { echo "Failed to configure service ${name}"; exit 1; }
