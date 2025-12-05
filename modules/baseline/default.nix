@@ -25,6 +25,8 @@
 
       environment.systemPackages = with pkgs; [
         psmisc # pstree
+        usbutils
+        pciutils
       ];
 
       programs.bat.enable = true;

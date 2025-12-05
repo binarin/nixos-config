@@ -75,6 +75,8 @@
 
       home.packages = with pkgs; [
         gopass
+        dos2unix
+        qmk
       ];
 
       impermanence.local-files = [
@@ -98,6 +100,7 @@
         ".ssh"
         ".local/share/gopass"
         ".config/gopass"
+        ".config/qmk"
       ];
     };
 }

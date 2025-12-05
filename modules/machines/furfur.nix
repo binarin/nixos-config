@@ -46,7 +46,6 @@
         "/dev/input/by-path/platform-MSHW0263:00-event-kbd"
       ];
 
-
       # Buggy, it get's another short press immediately after wake-up if woken up with the same key.
       services.logind.settings.Login.HandlePowerKey = "ignore";
       services.logind.settings.Login.HandlePowerKeyLongPress = "suspend";
