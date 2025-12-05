@@ -76,6 +76,73 @@
               }
             '';
           };
+
+          services = lib.mkOption {
+            type = lib.types.attrsOf (
+              lib.types.submodule {
+                options = {
+                  serviceName = lib.mkOption {
+                    type = lib.types.str;
+                    description = "Service name to advertise on the tailnet";
+                    example = "archivebox";
+                  };
+
+                  protocol = lib.mkOption {
+                    type = lib.types.enum [
+                      "http"
+                      "https"
+                      "tcp"
+                      "tls-terminated-tcp"
+                    ];
+                    default = "https";
+                    description = "Protocol type for this service configuration";
+                  };
+
+                  target = lib.mkOption {
+                    type = lib.types.str;
+                    description = ''
+                      Target backend. Examples:
+                      - Port: "3000"
+                      - Host:port: "localhost:3000"
+                      - Full URL: "http://localhost:3000"
+                      - Insecure HTTPS: "https+insecure://localhost:8443"
+                    '';
+                    example = "localhost:8000";
+                  };
+
+                  port = lib.mkOption {
+                    type = lib.types.nullOr lib.types.port;
+                    default = null;
+                    description = "Port to expose on tailnet service";
+                  };
+
+                  path = lib.mkOption {
+                    type = lib.types.nullOr lib.types.str;
+                    default = null;
+                    description = "Path to append to base URL (--set-path flag)";
+                    example = "/api";
+                  };
+
+                  tunnel = lib.mkOption {
+                    type = lib.types.bool;
+                    default = false;
+                    description = "Forward all traffic to the local machine (--tun flag)";
+                  };
+                };
+              }
+            );
+            default = { };
+            description = "Named tailscale service configurations (with distinct virtual IPs)";
+            example = lib.literalExpression ''
+              {
+                archivebox = {
+                  serviceName = "archivebox";
+                  protocol = "https";
+                  target = "localhost:8000";
+                };
+              }
+            '';
+          };
         };
       };
 
@@ -100,7 +167,7 @@
         }
 
         # New serve configuration service
-        (lib.mkIf (serveCfg.enable && serveCfg.configs != { }) {
+        (lib.mkIf (serveCfg.enable && (serveCfg.configs != { } || serveCfg.services != { })) {
           systemd.services.tailscale-serve-config = {
             description = "Configure Tailscale serve";
 
@@ -113,7 +180,10 @@
             wantedBy = [ "multi-user.target" ];
 
             # Restart on configuration changes
-            restartTriggers = [ (builtins.toJSON serveCfg.configs) ];
+            restartTriggers = [
+              (builtins.toJSON serveCfg.configs)
+              (builtins.toJSON serveCfg.services)
+            ];
 
             serviceConfig = {
               Type = "oneshot";
@@ -147,7 +217,7 @@
 
               # Build desired configuration JSON representation
               desired=$(cat <<'EOF'
-              ${builtins.toJSON serveCfg.configs}
+              {"configs":${builtins.toJSON serveCfg.configs},"services":${builtins.toJSON serveCfg.services}}
               EOF
               )
 
@@ -168,7 +238,7 @@
                 echo "Warning: Failed to reset serve config, continuing anyway"
               }
 
-              # Apply each configured serve
+              # Apply each configured serve (per-node)
               ${lib.concatStringsSep "\n" (
                 lib.mapAttrsToList (name: srvCfg: ''
                   echo "Configuring serve: ${name}"
@@ -179,6 +249,21 @@
                     ${srvCfg.target} \
                     || { echo "Failed to configure ${name}"; exit 1; }
                 '') serveCfg.configs
+              )}
+
+              # Apply each configured service (with distinct virtual IP)
+              ${lib.concatStringsSep "\n" (
+                lib.mapAttrsToList (name: svcCfg: ''
+                  echo "Configuring service: ${name} (${svcCfg.serviceName})"
+                  tailscale serve --bg \
+                    --service ${svcCfg.serviceName} \
+                    ${lib.optionalString (svcCfg.protocol != "https") "--${svcCfg.protocol}"} \
+                    ${lib.optionalString (svcCfg.port != null) "${toString svcCfg.port}"} \
+                    ${lib.optionalString (svcCfg.path != null) "--set-path ${svcCfg.path}"} \
+                    ${lib.optionalString svcCfg.tunnel "--tun"} \
+                    ${svcCfg.target} \
+                    || { echo "Failed to configure service ${name}"; exit 1; }
+                '') serveCfg.services
               )}
 
               # Save current config to state file

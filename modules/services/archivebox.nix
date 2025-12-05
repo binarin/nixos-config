@@ -1,7 +1,10 @@
-{ inputs, ... }:
+{ inputs, self, ... }:
 {
   flake.nixosModules.archivebox =
-    { config, ... }:
+    { config, lib, ... }:
+    let
+      inherit (lib) mkDefault;
+    in
     {
       key = "nixos-config.modules.nixos.archivebox";
 
@@ -9,6 +12,7 @@
       imports = [
         inputs.sops-nix.nixosModules.sops
         inputs.arion.nixosModules.arion
+        self.nixosModules.tailscale
       ];
 
       config = {
@@ -121,6 +125,16 @@
                 };
               };
             };
+          };
+        };
+
+        # Expose ArchiveBox as a tailscale service
+        services.tailscale.serve = {
+          enable = mkDefault true;
+          services.archivebox = {
+            serviceName = "archivebox";
+            protocol = "https";
+            target = "localhost:8000";
           };
         };
       };
