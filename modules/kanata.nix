@@ -66,8 +66,6 @@
             m menu
             i up
 
-            a pgup
-            f pgdn
             h home
             k down
             j left
@@ -111,7 +109,7 @@
             fn (layer-toggle fn)
             fn2 (layer-toggle fn2)
             spc  (tap-hold-release $tap-time $hold-time spc @fn)
-            cps (tap-hold-release $tap-time $hold-time esc @fn2)
+            cps (layer-toggle fn2) ;; (tap-hold-release $tap-time $hold-time esc @fn2)
             hpr (multi lsft lctl lalt lmet)
 
             a (tap-hold-release $tap-time $hold-time a lmet)
