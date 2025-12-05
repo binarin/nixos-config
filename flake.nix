@@ -24,6 +24,9 @@
       };
       url = "github:serokell/deploy-rs";
     };
+    determinate = {
+      url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+    };
     disko = {
       inputs = {
         nixpkgs = {

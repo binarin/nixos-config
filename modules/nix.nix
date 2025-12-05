@@ -16,6 +16,9 @@ let
   };
 in
 {
+  flake-file.inputs = {
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+  };
 
   perSystem =
     { system, ... }:
@@ -30,6 +33,9 @@ in
     { ... }:
     {
       key = "nixos-config.modules.nixos.nix";
+      imports = [
+        inputs.determinate.nixosModules.default
+      ];
 
       config = {
         nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
