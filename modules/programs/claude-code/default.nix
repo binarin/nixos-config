@@ -4,7 +4,7 @@
   flake-file.inputs.nix-ai-tools.inputs.nixpkgs.follows = "nixpkgs";
 
   flake.homeModules.claude-code =
-    { pkgs, lib, config, ... }:
+    { pkgs, config, ... }:
     {
       key = "nixos-config.modules.home.claude-code";
       imports = [
