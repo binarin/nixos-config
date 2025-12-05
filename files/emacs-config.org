@@ -1310,6 +1310,7 @@
        (("C-c a" . org-agenda)
         ("C-c r" . org-capture))
        :config
+       (setq org-archive-location "::* Archived Tasks")
        (define-key org-mode-map
                    (kbd "C-c [")
                    'binarin/org-agenda-file-to-front)
