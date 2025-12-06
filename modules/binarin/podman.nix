@@ -1,41 +1,50 @@
-{self, ...}: {
+{ self, ... }:
+{
 
-  flake.nixosModules.binarin-podman = {pkgs, ...}: {
-    imports = [
-      self.nixosModules.impermanence
-    ];
+  flake.nixosModules.binarin-podman =
+    { pkgs, ... }:
+    {
+      key = "nixos-config.modules.nixos.binarin-podman";
 
-    virtualisation = {
-      containers.enable = true;
-      podman = {
-        enable = true;
-        dockerCompat = true;
-        defaultNetwork.settings.dns_enabled = true; # Required for containers under podman-compose to be able to talk to each other.
+      imports = [
+        self.nixosModules.impermanence
+      ];
+
+      virtualisation = {
+        containers.enable = true;
+        podman = {
+          enable = true;
+          dockerCompat = true;
+          defaultNetwork.settings.dns_enabled = true; # Required for containers under podman-compose to be able to talk to each other.
+        };
       };
+
+      users.users.binarin.extraGroups = [
+        "podman"
+      ];
+
+      environment.systemPackages = with pkgs; [
+        distrobox
+      ];
+
+      home-manager.users.binarin = self.homeModules.binarin-podman;
     };
 
-    users.users.binarin.extraGroups = [
-      "podman"
-    ];
+  flake.homeModules.binarin-podman =
+    { ... }:
+    {
+      key = "nixos-config.modules.home.binarin-podman";
 
-    environment.systemPackages = with pkgs; [
-      distrobox
-    ];
+      imports = [
+        self.homeModules.impermanence
+      ];
 
-    home-manager.users.binarin = self.homeModules.binarin-podman;
-  };
+      impermanence.persist-directories = [
+        ".local/share/containers"
+      ];
 
-  flake.homeModules.binarin-podman = {...}: {
-    imports = [
-      self.homeModules.impermanence
-    ];
-
-    impermanence.persist-directories = [
-      ".local/share/containers"
-    ];
-
-    impermanence.local-directories = [
-      ".cache/containers"
-    ];
-  };
+      impermanence.local-directories = [
+        ".cache/containers"
+      ];
+    };
 }
