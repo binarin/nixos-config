@@ -62,9 +62,11 @@
         self.nixosModules.lxc
         self.nixosModules.impermanence
         self.nixosModules.expose-local-http
-        self.nixosModules.archivebox
         "${inputs.nixpkgs}/nixos/modules/profiles/minimal.nix"
         inputs.arion.nixosModules.arion
+
+        self.nixosModules.karakeep
+        self.nixosModules.archivebox
       ];
 
       config = {
