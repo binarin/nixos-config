@@ -1,5 +1,10 @@
-{...}: {
+{self, ...}: {
+
   flake.nixosModules.binarin-podman = {pkgs, ...}: {
+    imports = [
+      self.nixosModules.impermanence
+    ];
+
     virtualisation = {
       containers.enable = true;
       podman = {
@@ -15,6 +20,22 @@
 
     environment.systemPackages = with pkgs; [
       distrobox
+    ];
+
+    home-manager.users.binarin = self.homeModules.binarin-podman;
+  };
+
+  flake.homeModules.binarin-podman = {...}: {
+    imports = [
+      self.homeModules.impermanence
+    ];
+
+    impermanence.persist-directories = [
+      ".local/share/containers"
+    ];
+
+    impermanence.local-directories = [
+      ".cache/containers"
     ];
   };
 }
