@@ -1,4 +1,12 @@
-{ inputs, self, ... }:
+{
+  inputs,
+  self,
+  config,
+  ...
+}:
+let
+  flakeConfig = config;
+in
 {
   flake.nixosModules.karakeep =
     { config, lib, ... }:
@@ -19,13 +27,13 @@
       config = {
         # Create karakeep user with fixed UID/GID from inventory for Docker volume permissions
         users.groups.karakeep = {
-          gid = config.inventory.usersGroups.systemUsers.karakeep.gid;
+          gid = flakeConfig.inventory.usersGroups.systemUsers.karakeep.gid;
         };
 
         users.users.karakeep = {
           isSystemUser = true;
           group = "karakeep";
-          uid = config.inventory.usersGroups.systemUsers.karakeep.uid;
+          uid = flakeConfig.inventory.usersGroups.systemUsers.karakeep.uid;
         };
 
         # Sops secrets configuration
@@ -42,8 +50,8 @@
           BROWSER_WEB_URL=http://chrome:9222
           DATA_DIR=/data
           OPENAI_API_KEY=${config.sops.placeholder."karakeep/openai-api-key"}
-          PUID=${toString config.inventory.usersGroups.systemUsers.karakeep.uid}
-          PGID=${toString config.inventory.usersGroups.systemUsers.karakeep.gid}
+          PUID=${toString flakeConfig.inventory.usersGroups.systemUsers.karakeep.uid}
+          PGID=${toString flakeConfig.inventory.usersGroups.systemUsers.karakeep.gid}
         '';
 
         # Systemd tmpfiles rules for directory creation
