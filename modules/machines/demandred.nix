@@ -28,7 +28,7 @@
         "${self}/machines/demandred/disko.nix"
 
         self.nixosModules.default
-        self.nixosModules.user-binarin
+        self.nixosModules.binarin-workstation
         self.nixosModules.nix
         self.nixosModules.kanata
         self.nixosModules.niri

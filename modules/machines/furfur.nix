@@ -30,7 +30,8 @@
         self.nixosModules.niri
         self.nixosModules.firefox
         self.nixosModules.bluetooth
-        self.nixosModules.user-binarin
+        self.nixosModules.binarin-workstation
+        self.nixosModules.binarin-podman
 
         "${self}/machines/furfur/hardware-configuration.nix"
       ];

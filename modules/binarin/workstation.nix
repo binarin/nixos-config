@@ -1,9 +1,9 @@
 { self, ... }:
 {
-  flake.nixosModules.user-binarin =
+  flake.nixosModules.binarin-workstation =
     { ... }:
     {
-      key = "nixos-config.modules.nixos.user-binarin";
+      key = "nixos-config.modules.nixos.binarin-workstation";
 
       imports = [
         self.nixosModules.binarin-baseline
@@ -33,10 +33,10 @@
 
       hardware.keyboard.qmk.enable = true;
 
-      home-manager.users.binarin = self.homeModules.user-binarin;
+      home-manager.users.binarin = self.homeModules.binarin-workstation;
     };
 
-  flake.homeModules.user-binarin =
+  flake.homeModules.binarin-workstation =
     {
       lib,
       osConfig,
@@ -44,7 +44,7 @@
       ...
     }:
     {
-      key = "nixos-config.modules.home.user-binarin";
+      key = "nixos-config.modules.home.binarin-workstation";
 
       imports = [
         self.homeModules.impermanence

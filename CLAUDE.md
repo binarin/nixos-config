@@ -159,7 +159,7 @@ To add per-machine settings for user binarin, create a `homeModules.<machine>-bi
     key = "nixos-config.some-machine-configuration";
 
     imports = [
-      self.nixosModules.user-binarin
+      self.nixosModules.binarin-workstation
       # ... other imports
     ];
 

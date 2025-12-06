@@ -24,7 +24,7 @@
       imports = [
         (modulesPath + "/profiles/qemu-guest.nix")
         self.nixosModules.default
-        self.nixosModules.user-binarin
+        self.nixosModules.binarin-workstation
         self.nixosModules.hyprland
         self.nixosModules.impure-nix-setup
       ];
