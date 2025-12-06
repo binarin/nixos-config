@@ -79,7 +79,6 @@
       texlive-combined = pkgs.texlive.combine { inherit (pkgs.texlive) scheme-full beamer ps2eps; };
 
       guiPackages = with pkgs; [
-        prusa-slicer
         openscad-unstable
         freecad
         protonmail-bridge
@@ -185,6 +184,16 @@
             ];
             impermanence.local-directories = [
               ".cache/Moonlight Game Streaming Project"
+            ];
+          }
+          {
+            home.packages = [ pkgs.prusa-slicer ];
+            impermanence.persist-directories = [
+              ".config/PrusaSlicer"
+              ".local/share/prusa-slicer"
+            ];
+            impermanence.local-directories = [
+              ".cache/prusa-slicer"
             ];
           }
         ]
