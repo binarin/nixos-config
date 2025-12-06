@@ -1,13 +1,13 @@
 collections:
   - name: victoriametrics.cluster
-    version: "0.65.0"
+    version: "2.37.0"
   - name: prometheus.prometheus
-    version: "0.21.0"
+    version: "0.27.4"
   - name: ansible.posix
-    version: "1.5.4"
+    version: "2.1.0"
+  - name: artis3n.tailscale
+    version: "1.1.0"
 
 roles:
   - name: aroberts.zfs_exporter
     version: "v1.0.0"
-  - name: artis3n.tailscale
-    version: "v4.5.0"
