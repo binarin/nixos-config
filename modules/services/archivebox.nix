@@ -1,4 +1,7 @@
-{ inputs, self, ... }:
+{ inputs, self, config, ... }:
+let
+  flakeConfig = config;
+in
 {
   flake.nixosModules.archivebox =
     { config, lib, ... }:
@@ -19,13 +22,13 @@
       config = {
         # Create archivebox user with fixed UID/GID from inventory for Docker volume permissions
         users.groups.archivebox = {
-          gid = config.inventory.usersGroups.systemUsers.archivebox.gid;
+          gid = flakeConfig.inventory.usersGroups.systemUsers.archivebox.gid;
         };
 
         users.users.archivebox = {
           isSystemUser = true;
           group = "archivebox";
-          uid = config.inventory.usersGroups.systemUsers.archivebox.uid;
+          uid = flakeConfig.inventory.usersGroups.systemUsers.archivebox.uid;
         };
 
         # Sops secrets configuration
@@ -44,8 +47,8 @@
           PUBLIC_ADD_VIEW=False
           SEARCH_BACKEND_ENGINE=sonic
           SEARCH_BACKEND_HOST_NAME=sonic
-          PUID=${toString config.inventory.usersGroups.systemUsers.archivebox.uid}
-          PGID=${toString config.inventory.usersGroups.systemUsers.archivebox.gid}
+          PUID=${toString flakeConfig.inventory.usersGroups.systemUsers.archivebox.uid}
+          PGID=${toString flakeConfig.inventory.usersGroups.systemUsers.archivebox.gid}
         '';
 
         # Systemd tmpfiles rules for directory creation
