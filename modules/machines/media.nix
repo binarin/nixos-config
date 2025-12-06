@@ -698,6 +698,17 @@
           443
         ];
 
+        services.immich = {
+          enable = true;
+          mediaLocation = "/mnt/immich";
+        };
+
+        services.tailscale.serve.enable = true;
+        services.tailscale.serve.services.immich = {
+          serviceName = "immich";
+          protocol = "https";
+          target = "localhost:${builtins.toString config.services.immich.port}";
+        };
       };
     };
 }
