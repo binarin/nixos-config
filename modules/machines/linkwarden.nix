@@ -10,6 +10,7 @@
 
         services.caddy.virtualHosts."linkwarden.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:3000
+          import letsencrypt
         '';
 
         sops.templates."linkwarden-env".content = ''
@@ -46,7 +47,7 @@
                   config.sops.templates."linkwarden-database-url-env".path
                 ];
                 restart = "unless-stopped";
-                image = "ghcr.io/linkwarden/linkwarden:latest";
+                image = "ghcr.io/linkwarden/linkwarden:v2.13.1";
                 ports = [ "3000:3000" ];
                 volumes = [
                   "/var/lib/linkwarden/linkwarden-data:/data/data"

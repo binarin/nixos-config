@@ -37,8 +37,10 @@
       imports = [
         self.nixosModules.default
         self.nixosModules.lxc
-        self.nixosModules.user-binarin
+        self.nixosModules.binarin-baseline
         inputs.arion.nixosModules.arion
+
+        self.nixosModules.linkwarden
       ];
 
       config = {
