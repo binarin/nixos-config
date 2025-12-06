@@ -65,8 +65,8 @@
           # Define preset defaults based on isLaptop
           laptopDefaults = {
             brightness.timeout = 60;
-            lock.timeout = 90;
-            post-lock.timeout = 120;
+            lock.timeout = 180;
+            post-lock.timeout = 200;
             post-lock.command = "${lib.getExe' pkgs.systemd "systemctl"} suspend";
           };
 
