@@ -27,6 +27,7 @@
         psmisc # pstree
         usbutils
         pciutils
+        apg
       ];
 
       programs.bat.enable = true;
