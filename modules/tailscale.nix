@@ -154,9 +154,15 @@
         {
           services.tailscale = {
             enable = true;
+
+            # Works only if authKeyFile is set
             extraUpFlags = [
               "--hostname"
               "${config.networking.hostName}"
+            ];
+
+            extraSetFlags = [
+              "--accept-routes"
             ];
           };
 
