@@ -236,11 +236,18 @@ in
 ### Secrets Population
 
 ```bash
-# Add secrets to sops file
-sops set secrets/docker-on-nixos/secrets.yaml '["karakeep/nextauth-secret"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
-sops set secrets/docker-on-nixos/secrets.yaml '["karakeep/meilisearch-master-key"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
-sops set secrets/docker-on-nixos/secrets.yaml '["karakeep/openai-api-key"]' '""'  # Empty, populate manually
+# Add secrets to sops file (use nested paths for hierarchical structure)
+sops set secrets/docker-on-nixos/secrets.yaml '["karakeep"]["nextauth-secret"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
+sops set secrets/docker-on-nixos/secrets.yaml '["karakeep"]["meilisearch-master-key"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
+sops set secrets/docker-on-nixos/secrets.yaml '["karakeep"]["openai-api-key"]' '""'  # Empty, populate manually
 ```
+
+**Important**: The nested path syntax `'["karakeep"]["nextauth-secret"]'` creates the proper YAML structure:
+```yaml
+karakeep:
+  nextauth-secret: value
+```
+This matches the Nix reference `sops.secrets."karakeep/nextauth-secret"`.
 
 ### Key Conversion Points
 

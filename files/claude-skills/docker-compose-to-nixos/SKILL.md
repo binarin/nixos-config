@@ -190,11 +190,27 @@ sops.templates."service-name-env".content = ''
 '';
 ```
 
-**Add actual secrets with sops set:**
+**IMPORTANT: SOPS YAML Structure**
+
+Secrets with `/` in Nix (like `service-name/secret`) MUST be structured as nested YAML:
+
+```yaml
+# CORRECT - nested structure
+service-name:
+  nextauth-secret: value
+  database-password: value
+  api-key: value
+
+# WRONG - flat structure (will cause build errors)
+service-name/nextauth-secret: value
+service-name/database-password: value
+```
+
+**Add actual secrets with sops set (using nested path):**
 ```bash
-sops set secrets/docker-on-nixos/secrets.yaml '["service-name/nextauth-secret"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
-sops set secrets/docker-on-nixos/secrets.yaml '["service-name/database-password"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
-sops set secrets/docker-on-nixos/secrets.yaml '["service-name/api-key"]' '""'  # Empty for manual population
+sops set secrets/docker-on-nixos/secrets.yaml '["service-name"]["nextauth-secret"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
+sops set secrets/docker-on-nixos/secrets.yaml '["service-name"]["database-password"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
+sops set secrets/docker-on-nixos/secrets.yaml '["service-name"]["api-key"]' '""'  # Empty for manual population
 ```
 
 ### 3. Directory Structure
@@ -427,9 +443,9 @@ service = {
 - Comprehensive: `just eval-all`
 - Lint: `just lint`
 
-**Secrets commands:**
+**Secrets commands (use nested path for hierarchical structure):**
 ```bash
-sops set secrets/docker-on-nixos/secrets.yaml '["service/secret"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
+sops set secrets/docker-on-nixos/secrets.yaml '["service"]["secret"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
 ```
 
 **Module structure:**

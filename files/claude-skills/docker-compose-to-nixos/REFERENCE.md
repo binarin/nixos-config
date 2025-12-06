@@ -387,28 +387,39 @@ env_file = [
 
 4. **Populate secrets**: After validation passes
    ```bash
-   sops set secrets/docker-on-nixos/secrets.yaml '["service/password"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
+   sops set secrets/docker-on-nixos/secrets.yaml '["service"]["password"]' "$(echo '"'$(apg -x16 -m16 -MLCN -n1)'"')"
    ```
+   **CRITICAL**: Use nested path `'["service"]["password"]'` NOT flat path `'["service/password"]'`
 
 5. **Deploy**: Secrets are decrypted at runtime on target machine
 
 ### Sops File Structure
 
+**CRITICAL: Nested YAML Structure Required**
+
+Secrets referenced in Nix as `"service/secret"` MUST be nested YAML in sops file:
+
 **secrets/docker-on-nixos/secrets.yaml** (encrypted):
 ```yaml
+# CORRECT - nested structure (matches Nix reference "karakeep/nextauth-secret")
 karakeep:
   nextauth-secret: ENC[AES256_GCM,data:...,iv:...,tag:...]
   meilisearch-master-key: ENC[AES256_GCM,data:...,iv:...,tag:...]
   openai-api-key: ""
 
+# WRONG - flat structure will cause build errors
+karakeep/nextauth-secret: ENC[...]
+karakeep/meilisearch-master-key: ENC[...]
+
+# Top-level secrets (no hierarchy) are OK
 archivebox-admin-username: ENC[AES256_GCM,data:...,iv:...,tag:...]
 archivebox-admin-password: ENC[AES256_GCM,data:...,iv:...,tag:...]
 ```
 
 **Path mapping:**
-- Secret: `"karakeep/nextauth-secret"`
-- Sops path: `["karakeep"]["nextauth-secret"]` or `["karakeep/nextauth-secret"]`
-- Both work, choose based on sops file organization
+- Nix reference: `sops.secrets."karakeep/nextauth-secret"`
+- YAML structure: `karakeep:\n  nextauth-secret: value`
+- Sops set command: `sops set file.yaml '["karakeep"]["nextauth-secret"]' "value"`
 
 ### Advanced Sops Features
 

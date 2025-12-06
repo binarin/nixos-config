@@ -21,7 +21,6 @@ in
         inputs.sops-nix.nixosModules.sops
         inputs.arion.nixosModules.arion
         self.nixosModules.tailscale
-        self.nixosModules.inventory
       ];
 
       config = {
@@ -42,17 +41,32 @@ in
         sops.secrets."karakeep/openai-api-key" = { };
 
         # Sops template for environment variables
-        sops.templates."karakeep-env".content = ''
-          NEXTAUTH_SECRET=${config.sops.placeholder."karakeep/nextauth-secret"}
-          NEXTAUTH_URL=http://localhost:3000
-          MEILISEARCH_MASTER_KEY=${config.sops.placeholder."karakeep/meilisearch-master-key"}
-          MEILI_ADDR=http://meilisearch:7700
-          BROWSER_WEB_URL=http://chrome:9222
-          DATA_DIR=/data
-          OPENAI_API_KEY=${config.sops.placeholder."karakeep/openai-api-key"}
-          PUID=${toString flakeConfig.inventory.usersGroups.systemUsers.karakeep.uid}
-          PGID=${toString flakeConfig.inventory.usersGroups.systemUsers.karakeep.gid}
-        '';
+        sops.templates."karakeep-env" = {
+          content = ''
+            NEXTAUTH_URL=https://karakeep.lynx-lizard.ts.net
+            NEXTAUTH_SECRET=${config.sops.placeholder."karakeep/nextauth-secret"}
+            MEILI_ADDR=http://meilisearch:7700
+            MEILI_MASTER_KEY=${config.sops.placeholder."karakeep/meilisearch-master-key"}
+            BROWSER_WEB_URL=http://chrome:9222
+            DATA_DIR=/data
+            DISABLE_SIGNUPS=true
+            MAX_ASSET_SIZE_MB=100
+            CRAWLER_DOWNLOAD_BANNER_IMAGE=true
+            CRAWLER_STORE_SCREENSHOT=true
+            OPENAI_API_KEY=${config.sops.placeholder."karakeep/openai-api-key"}
+            PUID=${toString flakeConfig.inventory.usersGroups.systemUsers.karakeep.uid}
+            PGID=${toString flakeConfig.inventory.usersGroups.systemUsers.karakeep.gid}
+          '';
+          restartUnits = [ "karakeep-docker-compose.service" ];
+        };
+
+        sops.templates."karakeep-meili-env" = {
+          content = ''
+            MEILI_MASTER_KEY=${config.sops.placeholder."karakeep/meilisearch-master-key"}
+            MEILI_NO_ANALYTICS=true
+          '';
+          restartUnits = [ "karakeep-docker-compose.service" ];
+        };
 
         # Systemd tmpfiles rules for directory creation
         # Mount structure:
@@ -101,10 +115,9 @@ in
                   volumes = [
                     "/mnt/karakeep/var/meilisearch:/meili_data"
                   ];
-                  environment = {
-                    MEILI_MASTER_KEY = config.sops.placeholder."karakeep/meilisearch-master-key";
-                    MEILI_NO_ANALYTICS = "true";
-                  };
+                  env_file = [
+                    config.sops.templates.karakeep-meili-env.path
+                  ];
                 };
               };
 

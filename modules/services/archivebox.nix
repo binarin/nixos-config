@@ -1,4 +1,9 @@
-{ inputs, self, config, ... }:
+{
+  inputs,
+  self,
+  config,
+  ...
+}:
 let
   flakeConfig = config;
 in
