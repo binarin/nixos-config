@@ -9,6 +9,7 @@ let
   helper = import "${self}/lib/networks-lookup.nix" { inherit self lib; };
   networks = helper.readRawInventory;
   networksLookup = helper.buildHostLookupTable networks;
+  usersGroups = import "${self}/inventory/users-groups.nix";
   getNetworkInfo =
     netName:
     let
@@ -69,6 +70,10 @@ in
     inventory.networks = lib.mkOption {
       type = lib.types.raw;
       default = inventoryNetworks;
+    };
+    inventory.usersGroups = lib.mkOption {
+      type = lib.types.raw;
+      default = usersGroups;
     };
   };
 
