@@ -13,18 +13,19 @@
         inputs.sops-nix.nixosModules.sops
         inputs.arion.nixosModules.arion
         self.nixosModules.tailscale
+        self.nixosModules.inventory
       ];
 
       config = {
-        # Create archivebox user with fixed UID/GID for Docker volume permissions
+        # Create archivebox user with fixed UID/GID from inventory for Docker volume permissions
         users.groups.archivebox = {
-          gid = 2001;
+          gid = config.inventory.usersGroups.systemUsers.archivebox.gid;
         };
 
         users.users.archivebox = {
           isSystemUser = true;
           group = "archivebox";
-          uid = 2001;
+          uid = config.inventory.usersGroups.systemUsers.archivebox.uid;
         };
 
         # Sops secrets configuration
@@ -43,8 +44,8 @@
           PUBLIC_ADD_VIEW=False
           SEARCH_BACKEND_ENGINE=sonic
           SEARCH_BACKEND_HOST_NAME=sonic
-          PUID=2001
-          PGID=2001
+          PUID=${toString config.inventory.usersGroups.systemUsers.archivebox.uid}
+          PGID=${toString config.inventory.usersGroups.systemUsers.archivebox.gid}
         '';
 
         # Systemd tmpfiles rules for directory creation
