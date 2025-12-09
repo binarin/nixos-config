@@ -881,6 +881,16 @@
 
    #+end_src
 * Programming
+** Snippets
+   #+begin_src emacs-lisp :tangle yes
+     (use-package yasnippet
+       :ensure t
+       :autoload yas-minor-mode snippet-mode
+       :config
+       (when (file-directory-p "~/personal-workspace/nixos-config")
+         (setf yas-snippet-dirs '("~/personal-workspace/nixos-config/files/yasnippets"))))
+   #+end_src
+
 ** Projects
    #+BEGIN_SRC emacs-lisp :tangle yes
      (use-package projectile

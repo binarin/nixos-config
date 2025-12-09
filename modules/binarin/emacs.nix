@@ -1,4 +1,5 @@
 {
+  self,
   inputs,
   ...
 }:
@@ -150,6 +151,8 @@
       config = lib.mkIf cfg.enable (
         lib.mkMerge [
           {
+            home.file.".emacs/snippets".source = "${self}/files/yasnippets";
+
             programs.emacs = {
               enable = lib.mkForce false; # finalEmacsPackage is configured and installed in this file
             };
