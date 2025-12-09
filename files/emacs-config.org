@@ -1293,6 +1293,32 @@
      (setq agent-shell-anthropic-authentication
            (agent-shell-anthropic-make-authentication :login t))
    #+end_src
+** ZMK
+   #+begin_src emacs-lisp :tangle yes
+     (use-package devicetree-ts-mode
+       :ensure t
+       :mode "\\.keymap\\'"
+       :config
+       (add-hook 'devicetree-ts-mode-hook 'yas-minor-mode)
+       (define-key devicetree-ts-mode-map (kbd "C-c C-i") 'binarin/indent-zmk-layer))
+
+     (defun binarin/indent-zmk-layer ()
+       (interactive)
+       (let (beg end)
+         (save-excursion
+           (beginning-of-line)
+           (while (not (looking-at (rx (* space) "bindings" (* space) "=" (* space) "<") t))
+             (forward-line -1))
+           (forward-line)
+           (beginning-of-line)
+           (setf beg (point))
+           (re-search-forward ">;")
+           (forward-line -1)
+           (end-of-line)
+           (setf end (point))
+           (align-regexp beg end (rx (not (any " \n")) (group (+ " ")) (not (any " \n"))) 1 1 t))))
+
+   #+end_src
 * Major modes
 ** pdf-tools
    #+begin_src emacs-lisp :tangle yes
