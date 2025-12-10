@@ -62,12 +62,24 @@
         let
           cfg = config.services.swayidle.binarin;
 
+          # Conditional suspend script that only suspends when on battery power
+          conditionalSuspend = pkgs.writeShellApplication {
+            name = "conditional-suspend";
+            runtimeInputs = [ pkgs.systemd ];
+            text = ''
+              # systemd-ac-power exits with 0 if on AC power, non-zero if on battery
+              if ! systemd-ac-power; then
+                systemctl suspend
+              fi
+            '';
+          };
+
           # Define preset defaults based on isLaptop
           laptopDefaults = {
             brightness.timeout = 60;
             lock.timeout = 180;
             post-lock.timeout = 200;
-            post-lock.command = "${lib.getExe' pkgs.systemd "systemctl"} suspend";
+            post-lock.command = "${lib.getExe conditionalSuspend}";
           };
 
           desktopDefaults = {
