@@ -24,35 +24,54 @@
 
       options = {
         services.swayidle.binarin = {
-          isLaptop = lib.mkOption {
-            type = lib.types.bool;
-            default = false;
-            description = "Whether this is a laptop setup (enables shorter timeouts and suspend)";
-          };
-
           brightness = {
-            timeout = lib.mkOption {
-              type = lib.types.int;
-              description = "Brightness dim timeout in seconds";
+            ac = {
+              timeout = lib.mkOption {
+                type = lib.types.int;
+                default = 180;
+                description = "Brightness dim timeout in seconds when on AC power";
+              };
+            };
+            battery = {
+              timeout = lib.mkOption {
+                type = lib.types.int;
+                default = 60;
+                description = "Brightness dim timeout in seconds when on battery";
+              };
             };
           };
 
           lock = {
-            timeout = lib.mkOption {
-              type = lib.types.int;
-              description = "Lock session timeout in seconds";
+            ac = {
+              timeout = lib.mkOption {
+                type = lib.types.int;
+                default = 300;
+                description = "Lock session timeout in seconds when on AC power";
+              };
+            };
+            battery = {
+              timeout = lib.mkOption {
+                type = lib.types.int;
+                default = 180;
+                description = "Lock session timeout in seconds when on battery";
+              };
             };
           };
 
           post-lock = {
-            timeout = lib.mkOption {
-              type = lib.types.int;
-              description = "Post-lock action timeout in seconds";
+            ac = {
+              timeout = lib.mkOption {
+                type = lib.types.int;
+                default = 330;
+                description = "Post-lock timeout in seconds when on AC power (powers off monitors)";
+              };
             };
-
-            command = lib.mkOption {
-              type = lib.types.str;
-              description = "Command to run after lock timeout";
+            battery = {
+              timeout = lib.mkOption {
+                type = lib.types.int;
+                default = 200;
+                description = "Post-lock timeout in seconds when on battery (suspends system)";
+              };
             };
           };
         };
@@ -62,41 +81,47 @@
         let
           cfg = config.services.swayidle.binarin;
 
-          # Conditional suspend script that only suspends when on battery power
-          conditionalSuspend = pkgs.writeShellApplication {
-            name = "conditional-suspend";
-            runtimeInputs = [ pkgs.systemd ];
-            text = ''
-              # systemd-ac-power exits with 0 if on AC power, non-zero if on battery
-              if ! systemd-ac-power; then
-                systemctl suspend
-              fi
-            '';
-          };
+          # Helper to create a wrapper script that runs a command only on AC power
+          onAcPower =
+            command:
+            pkgs.writeShellApplication {
+              name = "on-ac-power";
+              runtimeInputs = [ pkgs.systemd ];
+              text = ''
+                # systemd-ac-power exits with 0 if on AC power, non-zero if on battery
+                if systemd-ac-power; then
+                  ${command}
+                fi
+              '';
+            };
 
-          # Define preset defaults based on isLaptop
-          laptopDefaults = {
-            brightness.timeout = 60;
-            lock.timeout = 180;
-            post-lock.timeout = 200;
-            post-lock.command = "${lib.getExe conditionalSuspend}";
-          };
+          # Helper to create a wrapper script that runs a command only on battery power
+          onBatteryPower =
+            command:
+            pkgs.writeShellApplication {
+              name = "on-battery-power";
+              runtimeInputs = [ pkgs.systemd ];
+              text = ''
+                # systemd-ac-power exits with 0 if on AC power, non-zero if on battery
+                if ! systemd-ac-power; then
+                  ${command}
+                fi
+              '';
+            };
 
-          desktopDefaults = {
-            brightness.timeout = 180;
-            lock.timeout = 300;
-            post-lock.timeout = 330;
-            post-lock.command = "${lib.getExe pkgs.niri} msg action power-off-monitors";
-          };
+          # Wrapped commands for brightness control
+          dimBrightnessAc = onAcPower "${lib.getExe pkgs.brightnessctl} -s s 10%";
+          dimBrightnessBattery = onBatteryPower "${lib.getExe pkgs.brightnessctl} -s s 10%";
 
-          defaults = if cfg.isLaptop then laptopDefaults else desktopDefaults;
+          # Wrapped commands for lock
+          lockAc = onAcPower "${lib.getExe' pkgs.systemd "loginctl"} lock-session";
+          lockBattery = onBatteryPower "${lib.getExe' pkgs.systemd "loginctl"} lock-session";
+
+          # Wrapped commands for post-lock actions
+          postLockAc = onAcPower "${lib.getExe pkgs.niri} msg action power-off-monitors";
+          postLockBattery = onBatteryPower "${lib.getExe' pkgs.systemd "systemctl"} suspend";
         in
         {
-          # Apply computed defaults using lib.mkDefault (allows user overrides)
-          services.swayidle.binarin.brightness.timeout = lib.mkDefault defaults.brightness.timeout;
-          services.swayidle.binarin.lock.timeout = lib.mkDefault defaults.lock.timeout;
-          services.swayidle.binarin.post-lock.timeout = lib.mkDefault defaults.post-lock.timeout;
-          services.swayidle.binarin.post-lock.command = lib.mkDefault defaults.post-lock.command;
 
           stylix.targets.swaylock.enable = true;
           programs.swaylock.enable = true;
@@ -118,18 +143,37 @@
               }
             ];
             timeouts = [
+              # Brightness dimming - AC power
               {
-                timeout = cfg.brightness.timeout;
-                command = "${lib.getExe pkgs.brightnessctl} -s s 10%";
+                timeout = cfg.brightness.ac.timeout;
+                command = "${lib.getExe dimBrightnessAc}";
                 resumeCommand = "${lib.getExe pkgs.brightnessctl} -r";
               }
+              # Brightness dimming - Battery power
               {
-                timeout = cfg.lock.timeout;
-                command = "${lib.getExe' pkgs.systemd "loginctl"} lock-session";
+                timeout = cfg.brightness.battery.timeout;
+                command = "${lib.getExe dimBrightnessBattery}";
+                resumeCommand = "${lib.getExe pkgs.brightnessctl} -r";
               }
+              # Lock session - AC power
               {
-                timeout = cfg.post-lock.timeout;
-                command = cfg.post-lock.command;
+                timeout = cfg.lock.ac.timeout;
+                command = "${lib.getExe lockAc}";
+              }
+              # Lock session - Battery power
+              {
+                timeout = cfg.lock.battery.timeout;
+                command = "${lib.getExe lockBattery}";
+              }
+              # Post-lock action - AC power
+              {
+                timeout = cfg.post-lock.ac.timeout;
+                command = "${lib.getExe postLockAc}";
+              }
+              # Post-lock action - Battery power
+              {
+                timeout = cfg.post-lock.battery.timeout;
+                command = "${lib.getExe postLockBattery}";
               }
             ];
           };

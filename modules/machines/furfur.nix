@@ -138,8 +138,6 @@
     {
       key = "nixos-config.modules.home.furfur-binarin";
 
-      services.swayidle.binarin.isLaptop = true;
-
       programs.waybar.battery = {
         enable = true;
         name = "BAT1";
