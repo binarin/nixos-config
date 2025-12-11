@@ -249,6 +249,10 @@
               print -Pn "\e]133;A\e\\"
           }
           export LS_COLORS="$(${lib.getExe pkgs.vivid} generate zenburn)"
+
+          # show help for built-ins
+          unalias run-help
+          autoload run-help
         '';
 
         history = {
