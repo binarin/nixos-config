@@ -1513,7 +1513,12 @@
      (add-hook 'org-agenda-after-show-hook 'binarin/org-agenda-after-show-reveal)
 
      (setq org-agenda-custom-commands '(("a" "Agenda and NEXTs" ((agenda "")
-                                                                 (todo "NEXT" ())
+                                                                 (tags-todo "-agenda_hide+TODO=\"NEXT\""
+                                                                            ((org-agenda-overriding-header
+                                                                              (lambda () (concat
+                                                                                          (propertize "Tasks to do " 'face 'org-agenda-structure)
+                                                                                          (propertize "NEXT" 'face '(:foreground "#93E0E3" :weight bold))
+                                                                                          (propertize ":\n" 'face 'org-agenda-structure))))))
                                                                  (stuck "" ()))
                                          ((binarin/agenda-prepend-parent t)
                                           (org-agenda-compact-blocks t)
