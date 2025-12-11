@@ -12,6 +12,7 @@
         self.nixosModules.stylix
         self.nixosModules.gnupg
         self.nixosModules.emacs
+        self.nixosModules.binarin-nix-dev
       ];
 
       users.users.binarin.extraGroups = [
@@ -64,6 +65,7 @@
         self.homeModules.fonts
         self.homeModules.syncthing
         self.homeModules.firefox
+        self.homeModules.binarin-nix-dev
       ]);
 
       programs.git = {
