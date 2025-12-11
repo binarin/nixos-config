@@ -32,6 +32,7 @@
         self.nixosModules.bluetooth
         self.nixosModules.binarin-workstation
         self.nixosModules.binarin-podman
+        self.nixosModules.binarin-nix-dev
 
         "${self}/machines/furfur/hardware-configuration.nix"
       ];
