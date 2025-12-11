@@ -1347,7 +1347,7 @@
        (("C-c a" . org-agenda)
         ("C-c r" . org-capture))
        :config
-       (setq org-archive-location "::* Archived Tasks")
+       (setq org-archive-location "archive.org::* From %s")
        (define-key org-mode-map
                    (kbd "C-c [")
                    'binarin/org-agenda-file-to-front)
@@ -1360,6 +1360,7 @@
                                              '("~/org/personal.org"
                                                "~/org/contacts.org"
                                                "~/org/caldav.org"
+                                               "~/org/archive.org"
                                                "~/org/refile.org"
                                                "~/org/ference.org")))
              org-directory "~/org"))
