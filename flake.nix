@@ -27,6 +27,9 @@
     determinate = {
       url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
     };
+    direnv-instant = {
+      url = "github:Mic92/direnv-instant";
+    };
     disko = {
       inputs = {
         nixpkgs = {

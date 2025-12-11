@@ -1,13 +1,15 @@
-{ ... }:
+{ inputs, ... }:
 {
+
   flake.homeModules.direnv =
-    { config, ... }:
+    { config, pkgs, ... }:
     {
       key = "nixos-config.modules.home.direnv";
       config = {
         programs.direnv = {
           enable = true;
-          enableZshIntegration = config.programs.zsh.enable;
+          enableZshIntegration = true;
+          enableBashIntegration = true;
           nix-direnv = {
             enable = true;
           };
