@@ -1361,6 +1361,7 @@
                                                "~/org/contacts.org"
                                                "~/org/caldav.org"
                                                "~/org/archive.org"
+                                               "~/org/maybe.org"
                                                "~/org/refile.org"
                                                "~/org/ference.org")))
              org-directory "~/org"))
