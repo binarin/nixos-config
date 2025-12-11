@@ -1,8 +1,8 @@
-{ inputs, ... }:
+{ ... }:
 {
 
   flake.homeModules.direnv =
-    { config, pkgs, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.home.direnv";
       config = {

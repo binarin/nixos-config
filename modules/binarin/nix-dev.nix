@@ -10,7 +10,6 @@
     }:
     {
       environment.systemPackages = with pkgs; [
-        nix-du
         nix-search-tv
       ];
 
@@ -25,7 +24,6 @@
 
   flake.homeModules.binarin-nix-dev =
     {
-      lib,
       pkgs,
       config,
       ...
