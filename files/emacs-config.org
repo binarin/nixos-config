@@ -1323,7 +1323,8 @@
 ** pdf-tools
    #+begin_src emacs-lisp :tangle yes
      (use-package pdf-tools
-       :ensure t)
+       :ensure t
+       :autload pdf-loader-install)
 
      (pdf-loader-install)
    #+end_src
