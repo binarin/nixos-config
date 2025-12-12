@@ -286,10 +286,8 @@
     }:
     let
       homeDir = config.home.homeDirectory;
-      safeDir = "/persist${homeDir}";
       localDir = "/local${homeDir}";
       localCache = "${localDir}/.cache";
-      safeState = "${safeDir}/.state";
       garbageDir = "${config.home.homeDirectory}/.garbage";
     in
     {
@@ -324,8 +322,6 @@
       config = lib.mkIf osConfig.impermanence.enable (
         lib.mkMerge [
           {
-            programs.atuin.settings.db_path = "${safeState}/atuin/history.db";
-
             home.sessionVariables = {
               IMPERMANENCE_LOCAL_CACHE = "${localCache}";
             };

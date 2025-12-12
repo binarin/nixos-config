@@ -7,6 +7,7 @@
 
       imports = [
         self.nixosModules.home-manager
+        self.nixosModules.impermanence
         self.modules.generic.public-keys
       ];
 
@@ -151,6 +152,9 @@
         };
         daemon.enable = true;
       };
+      impermanence.persist-directories = [
+        ".local/share/atuin"
+      ];
 
       home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
 
