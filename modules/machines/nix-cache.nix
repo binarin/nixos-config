@@ -47,6 +47,7 @@ in
         users.users.nix-remote-builder.openssh.authorizedPrincipals = [
           ''restrict,command="nix-daemon --stdio" nix-remote-builder,root,binarin''
         ];
+        roles.nix-remote-builder.schedulerPublicKeys = [ ];
 
         sops.secrets.tailscale-auth = { };
         services.tailscale = {
