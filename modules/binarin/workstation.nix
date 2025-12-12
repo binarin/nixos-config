@@ -78,7 +78,7 @@
       home.packages = with pkgs; [
         gopass
         dos2unix
-        qmk
+        sox
       ];
 
       impermanence.local-files = [
