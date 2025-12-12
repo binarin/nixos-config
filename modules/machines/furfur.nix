@@ -17,6 +17,7 @@
 
       imports = [
         self.nixosModules.baseline
+        self.nixosModules.srvos-bits
 
         self.nixosModules.impermanence
         self.nixosModules.disko

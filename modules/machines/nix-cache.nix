@@ -29,6 +29,8 @@ in
     {
       key = "nixos-config.modules.nixos.nix-cache-configuration";
       imports = [
+        "${inputs.srvos}/nixos/roles/nix-remote-builder.nix"
+
         self.nixosModules.default
         self.nixosModules.lxc
         self.nixosModules.impure-nix-setup
@@ -41,6 +43,10 @@ in
 
         nix.usePersonalNixCache = false; # we are the cache itself
         nix.settings.substituters = [ (lib.mkBefore "http://localhost?priority=10") ];
+
+        users.users.nix-remote-builder.openssh.authorizedPrincipals = [
+          ''restrict,command="nix-daemon --stdio" nix-remote-builder,root,binarin''
+        ];
 
         sops.secrets.tailscale-auth = { };
         services.tailscale = {

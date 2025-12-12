@@ -20,6 +20,9 @@
 
       programs.direnv.enableZshIntegration = lib.mkForce false;
       programs.direnv.enableBashIntegration = lib.mkForce false;
+
+      # improve desktop responsiveness when updating the system
+      nix.daemonCPUSchedPolicy = "idle";
     };
 
   flake.homeModules.binarin-nix-dev =

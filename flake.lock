@@ -1305,6 +1305,7 @@
         "nixpkgs-unstable": "nixpkgs-unstable",
         "pre-commit-hooks": "pre-commit-hooks",
         "sops-nix": "sops-nix",
+        "srvos": "srvos",
         "stylix": "stylix",
         "systems": "systems_5",
         "treefmt-nix": "treefmt-nix_3",
@@ -1328,6 +1329,26 @@
       "original": {
         "owner": "Mic92",
         "repo": "sops-nix",
+        "type": "github"
+      }
+    },
+    "srvos": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1765415765,
+        "narHash": "sha256-DNEUksb+s7DbwahAlIZ4v/BUFUacOqGklCbjgAHZb4k=",
+        "owner": "nix-community",
+        "repo": "srvos",
+        "rev": "a9e46dc439591c67337a0caf0beebb5a73ed9a86",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "srvos",
         "type": "github"
       }
     },

@@ -162,6 +162,14 @@
       };
       url = "github:Mic92/sops-nix";
     };
+    srvos = {
+      inputs = {
+        nixpkgs = {
+          follows = "nixpkgs";
+        };
+      };
+      url = "github:nix-community/srvos";
+    };
     stylix = {
       inputs = {
         nixpkgs = {
