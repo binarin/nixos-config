@@ -1,4 +1,4 @@
-{ self, ... }:
+{ self, inputs, ... }:
 {
   flake.nixosModules.baseline =
     { lib, pkgs, ... }:
@@ -6,6 +6,8 @@
       key = "nixos-config.modules.nixos.baseline";
 
       imports = [
+        "${inputs.srvos}/nixos/common/update-diff.nix"
+
         self.nixosModules.inventory
         self.nixosModules.nix
         self.nixosModules.sshd
