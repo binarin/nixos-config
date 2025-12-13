@@ -57,6 +57,7 @@
           enable = true;
           listenAddress = "0.0.0.0:8428";
         };
+
         networking.firewall.allowedTCPPorts = [
           8428
           3000
@@ -92,7 +93,7 @@
               datasources = [
                 {
                   name = "VictoriaMetrics";
-                  type = "victoriametrics-datasource";
+                  type = "victoriametrics-metrics-datasource";
                   access = "proxy";
                   url = "http://127.0.0.1:8428";
                   isDefault = true;
