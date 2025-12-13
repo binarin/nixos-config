@@ -44,9 +44,14 @@ in
         nix.usePersonalNixCache = false; # we are the cache itself
         nix.settings.substituters = [ (lib.mkBefore "http://localhost?priority=10") ];
 
-        users.users.nix-remote-builder.openssh.authorizedPrincipals = [
-          ''restrict,command="nix-daemon --stdio" nix-remote-builder,root,binarin''
+        nix.settings.system-features = [
+          "big-parallel"
         ];
+        users.users.nix-remote-builder.openssh.authorizedPrincipals = lib.forEach [
+          "nix-remote-builder"
+          "binarin"
+          "root"
+        ] (k: ''restrict,command="nix-daemon --stdio" ${k}'');
         roles.nix-remote-builder.schedulerPublicKeys = [ ];
 
         sops.secrets.tailscale-auth = { };
