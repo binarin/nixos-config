@@ -161,6 +161,7 @@
             };
           };
         };
+        nixos-config.export-metrics.enable = true;
       };
     };
 }

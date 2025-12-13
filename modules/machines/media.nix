@@ -709,6 +709,8 @@
           protocol = "https";
           target = "localhost:${builtins.toString config.services.immich.port}";
         };
+
+        nixos-config.export-metrics.enable = true;
       };
     };
 }

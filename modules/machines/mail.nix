@@ -62,6 +62,8 @@
           group = "protonmail-bridge";
         };
         users.groups.protonmail-bridge = { };
+
+        nixos-config.export-metrics.enable = true;
       };
     };
 }

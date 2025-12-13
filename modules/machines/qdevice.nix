@@ -45,6 +45,8 @@
         networking.hostName = "qdevice";
         system.stateVersion = "25.05";
 
+        nixos-config.export-metrics.enable = true;
+
         boot.initrd.clevis.enable = true;
         boot.initrd.clevis.useTang = true;
         boot.initrd.clevis.devices."luks1".secretFile = "${self}/secrets/qdevice/luks.jwe";

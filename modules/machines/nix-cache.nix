@@ -38,6 +38,7 @@ in
 
       config = {
         networking.hostName = "nix-cache";
+        nixos-config.export-metrics.enable = true;
 
         system.stateVersion = "24.11";
 

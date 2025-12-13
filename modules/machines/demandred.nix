@@ -39,6 +39,7 @@
         self.nixosModules.large-console-fonts
       ];
       config = {
+        nixos-config.export-metrics.enable = false;
         networking.hostName = "demandred";
 
         impermanence.enable = true;

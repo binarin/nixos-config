@@ -104,6 +104,7 @@
         '';
 
         system.stateVersion = "24.05";
+        nixos-config.export-metrics.enable = true;
       };
     };
 }

@@ -27,6 +27,7 @@
       ];
 
       config = {
+        nixos-config.export-metrics.enable = false;
         boot.isContainer = true;
 
         console.enable = true;

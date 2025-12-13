@@ -12,10 +12,12 @@
         self.nixosModules.nix
         self.nixosModules.sshd
         self.nixosModules.security
+        self.nixosModules.monitored
 
         self.nixosModules.eternal-terminal
 
         self.nixosModules.binarin-baseline
+
       ];
 
       environment.enableAllTerminfo = true;

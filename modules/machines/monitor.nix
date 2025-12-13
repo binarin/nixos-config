@@ -26,6 +26,7 @@
 
       config = {
         networking.hostName = "monitor";
+        nixos-config.export-metrics.enable = true;
 
         services.openssh.enable = true;
         services.openssh.settings.PermitRootLogin = "yes";

@@ -30,6 +30,7 @@
       ];
 
       config = {
+        nixos-config.export-metrics.enable = false;
         networking.hostName = "ishamael";
 
         # Move XDG directories to .xdg subdirectory

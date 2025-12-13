@@ -32,6 +32,8 @@
       ];
 
       config = {
+        nixos-config.export-metrics.enable = false;
+
         # build faster
         isoImage.squashfsCompression = "gzip -Xcompression-level 1";
 
