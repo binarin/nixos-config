@@ -79,6 +79,10 @@
     {
       key = "nixos-config.modules.home.binarin-baseline";
 
+      imports = [
+        self.homeModules.impermanence
+      ];
+
       programs.fzf = {
         enable = true;
         tmux = {
