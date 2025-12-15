@@ -171,6 +171,7 @@ in
                 forgejo-cli
                 gawk
                 gitMinimal
+                git-crypt
                 gnused
                 jq
                 just
