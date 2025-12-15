@@ -2005,6 +2005,7 @@
              (format "%s %s" prefix (binarin/org-get-heading-at-marker marker))
            "Clocked: <NONE>")))
 
+     (autoload 'org-capture-goto-last-stored "org-capture")
      (transient-define-prefix binarin/org-dispatch ()
        "Global dispatcher for org-mode commands."
        [:description "Go to"
