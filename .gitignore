@@ -10,3 +10,5 @@ result
 /terraform/.terraform.tfstate.lock.info
 *.backup
 /ansible/ext-collections/
+/.beads/.local_version
+/.ansible/

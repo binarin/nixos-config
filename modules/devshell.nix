@@ -11,6 +11,8 @@
           dnscontrol
           (terraform_1.withPlugins (p: with p; [ dmacvicar_libvirt ]))
           cloud-init
+          ansible
+          ansible-lint
         ];
       };
     };

@@ -1,0 +1,14 @@
+---
+# ansible-lint configuration
+
+exclude_paths:
+  - ext-collections/
+  - ext-roles/
+  - .cache/
+
+skip_list:
+  - yaml[line-length]  # Allow longer lines for readability
+  - package-latest  # Allow installing latest packages in home lab
+  - var-naming[no-role-prefix]  # Not using roles, so no role prefix needed
+
+# Use default rules for everything else
