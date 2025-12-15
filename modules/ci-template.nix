@@ -30,8 +30,9 @@ let
         uses = ''actions/checkout@v4'';
       }
       {
+        env.GIT_CRYPT_KEY = "\${{ secrets.GIT_CRYPT_KEY }}";
         run = ''
-          git crypt unlock <(echo $GIT_CRYPT_KEY|base64 -d)
+          git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
           nix build "$(pwd)#nixosConfigurations.''${{ matrix.nixosConfiguration }}.config.system.build.toplevel" \
             --keep-going \
             -j auto \
