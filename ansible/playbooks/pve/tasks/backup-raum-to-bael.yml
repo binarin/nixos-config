@@ -17,8 +17,8 @@
     dest: /etc/systemd/system/backup-raum.timer
 
 - name: make sure that the backup-raum.timer is started
-  systemd:
+  ansible.builtin.systemd_service:
     name: backup-raum.timer
     state: started
-    enabled: yes
-    daemon_reload: yes
+    enabled: true
+    daemon_reload: true
