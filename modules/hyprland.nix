@@ -32,27 +32,6 @@
       config = {
         nixpkgs.overlays = [
           inputs.hyprland-contrib.overlays.default
-          # inputs.hyprland.overlays.default
-          (_final: prev: {
-            # hypridle = prev.hypridle.override {
-            #   stdenv = prev.gcc14Stdenv;
-            # };
-            # hyprlock = prev.hyprlock.override {
-            #   stdenv = prev.gcc14Stdenv;
-            # };
-            # xdg-desktop-portal-hyprland = prev.xdg-desktop-portal-hyprland.override {
-            #   stdenv = prev.gcc14Stdenv;
-            # };
-            uwsm = prev.uwsm.overrideAttrs {
-              version = "0.20.5-dev-5fafff9";
-              src = pkgs.fetchFromGitHub {
-                owner = "Vladimir-csp";
-                repo = "uwsm";
-                rev = "5fafff9a1e0464b46a528193c07f36a791d912b6";
-                hash = "sha256-yjKKDizL0Ibne1oUn18h21XBfpGYdMFyD/wdSPQA/Zs=";
-              };
-            };
-          })
         ];
 
         services.displayManager.defaultSession = "hyprland-uwsm";
