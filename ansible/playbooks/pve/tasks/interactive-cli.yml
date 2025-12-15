@@ -1,5 +1,5 @@
 - name: Install some generic linux tools
-  package:
+  ansible.builtin.package:
     state: present
     name:
       - emacs-nox

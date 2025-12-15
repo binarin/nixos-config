@@ -1,17 +1,17 @@
 ---
 - name: Install sanoid
-  package:
+  ansible.builtin.package:
     state: present
     name: sanoid
 - name: Create sanoid config directory
-  file:
+  ansible.builtin.file:
     path: /etc/sanoid
     state: directory
     mode: '0755'
     owner: root
     group: root
 - name: Copy sanoid config
-  copy:
+  ansible.builtin.copy:
     src: "{{ inventory_hostname }}-sanoid.conf"
     dest: /etc/sanoid/sanoid.conf
     mode: '0644'

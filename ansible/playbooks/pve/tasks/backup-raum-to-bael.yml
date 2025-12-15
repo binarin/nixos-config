@@ -1,5 +1,5 @@
 - name: Copy and enable hourly raum->bael backup script
-  copy:
+  ansible.builtin.copy:
     src: backup-raum
     dest: /usr/local/bin/backup-raum
     mode: '0755'
@@ -7,12 +7,12 @@
     group: root
 
 - name: create the backup-raum.service file
-  copy:
+  ansible.builtin.copy:
     src: backup-raum.service
     dest: /etc/systemd/system/backup-raum.service
 
 - name: create the backup-raum.timer file
-  copy:
+  ansible.builtin.copy:
     src: backup-raum.timer
     dest: /etc/systemd/system/backup-raum.timer
 

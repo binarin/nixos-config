@@ -1,11 +1,11 @@
 - name: Redirect tailscale DNS names to local IPs
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/hosts
     state: present
     line: '{{ ip_allocation[item].home.primary.address  }} {{ item }}.lynx-lizard.ts.net'
   loop: "{{ groups['pve_at_home'] | select('ne', inventory_hostname) }}"
 - name: Also resolve own tailscale DNS name
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/hosts
     state: present
     line: '127.0.0.1 {{ inventory_hostname }}.lynx-lizard.ts.net'
