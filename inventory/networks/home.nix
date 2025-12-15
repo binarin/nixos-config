@@ -81,7 +81,7 @@
     "192.168.2.66" = "shelly-plus-plug-s-6";
     # "192.168.2.67" = "";
     "192.168.2.68" = "bael";
-    "192.168.2.69" = "bael-kvm";
+    "192.168.2.69" = "bael-kvm"; # nanokvm pro
     "192.168.2.70" = "shelly-plus-plug-s-7";
     "192.168.2.71" = "shelly-plus-plug-s-8";
     "192.168.2.72" = "shelly-plus-plug-s-9";
