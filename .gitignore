@@ -12,3 +12,4 @@ result
 /ansible/ext-collections/
 /.beads/.local_version
 /.ansible/
+/ansible/.ansible/
