@@ -20,7 +20,7 @@
             enable = cfg.enable;
             port = 9100;
             extraFlags = [
-             	"--collector.filesystem.fs-types-exclude='^(tmpfs|proc|sysfs|ramfs)'"
+              "--collector.filesystem.fs-types-exclude='^(tmpfs|proc|sysfs|ramfs)'"
             ];
             # enabledCollectors = [
             #   "logind"
