@@ -13,16 +13,19 @@ jobs:
     runs-on: native
     steps:
     - uses: actions/checkout@v4
-    - run: "nix build \"$(pwd)#nixosConfigurations.${{ matrix.nixosConfiguration }}.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/master/nixos-configuration/${{\
+    - run: "git crypt unlock <(echo $GIT_CRYPT_KEY|base64 -d)\nnix build \"$(pwd)#nixosConfigurations.${{\
+        \ matrix.nixosConfiguration }}.config.system.build.toplevel\" \\\n  --keep-going\
+        \ \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/master/nixos-configuration/${{\
         \ matrix.nixosConfiguration }}\"\n"
     strategy:
       fail-fast: false
       matrix:
         nixosConfiguration:
         - demandred
+        - devcontainer
         - docker-on-nixos
         - forgejo
+        - furfur
         - ishamael
         - iso
         - mail

@@ -17,6 +17,9 @@ jobs:
     - name: Build nixosConfiguration.demandred
       run: "nix build \"$(pwd)#nixosConfigurations.demandred.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/demandred\"\n"
+    - name: Build nixosConfiguration.devcontainer
+      run: "nix build \"$(pwd)#nixosConfigurations.devcontainer.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/devcontainer\"\n"
     - name: Build nixosConfiguration.docker-on-nixos
       run: "nix build \"$(pwd)#nixosConfigurations.docker-on-nixos.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/docker-on-nixos\"\
@@ -24,6 +27,9 @@ jobs:
     - name: Build nixosConfiguration.forgejo
       run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/forgejo\"\n"
+    - name: Build nixosConfiguration.furfur
+      run: "nix build \"$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel\"\
+        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/furfur\"\n"
     - name: Build nixosConfiguration.ishamael
       run: "nix build \"$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel\"\
         \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/ishamael\"\n"
@@ -54,12 +60,18 @@ jobs:
     - name: Add nix-store GC root for nixosConfiguraion.demandred
       run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/demandred\"\
         \ \\\n  -r \"$(readlink -f \"temp-result/demandred\")\"\n"
+    - name: Add nix-store GC root for nixosConfiguraion.devcontainer
+      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/devcontainer\"\
+        \ \\\n  -r \"$(readlink -f \"temp-result/devcontainer\")\"\n"
     - name: Add nix-store GC root for nixosConfiguraion.docker-on-nixos
       run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/docker-on-nixos\"\
         \ \\\n  -r \"$(readlink -f \"temp-result/docker-on-nixos\")\"\n"
     - name: Add nix-store GC root for nixosConfiguraion.forgejo
       run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/forgejo\"\
         \ \\\n  -r \"$(readlink -f \"temp-result/forgejo\")\"\n"
+    - name: Add nix-store GC root for nixosConfiguraion.furfur
+      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/furfur\"\
+        \ \\\n  -r \"$(readlink -f \"temp-result/furfur\")\"\n"
     - name: Add nix-store GC root for nixosConfiguraion.ishamael
       run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/ishamael\"\
         \ \\\n  -r \"$(readlink -f \"temp-result/ishamael\")\"\n"
