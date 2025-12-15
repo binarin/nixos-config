@@ -23,8 +23,8 @@
         self.nixosModules.home-manager
       ];
 
-      # impermanence is too eager to apply checks, even to `evironment.persistence.XXX` which are not enabled.
-      # Let's introduce a level of indirection here so that `evironment.persistence.XXX` is really defined when we
+      # impermanence is too eager to apply checks, even to `environment.persistence.XXX` which are not enabled.
+      # Let's introduce a level of indirection here so that `environment.persistence.XXX` is really defined when we
       # enable impermanence, yet persistence rules can be defined throughout the configuration. As a side benefit, no
       # typo will be possible in "/local" and "/persist" names.
       options = {
