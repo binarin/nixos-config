@@ -3,7 +3,7 @@
     dest: /etc/hosts
     state: present
     line: '{{ ip_allocation[item].home.primary.address  }} {{ item }}.lynx-lizard.ts.net'
-  with_items: "{{ groups['pve_at_home'] | select('ne', inventory_hostname) }}"
+  loop: "{{ groups['pve_at_home'] | select('ne', inventory_hostname) }}"
 - name: Also resolve own tailscale DNS name
   lineinfile:
     dest: /etc/hosts
