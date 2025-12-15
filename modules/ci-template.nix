@@ -16,6 +16,7 @@ let
       }
     ];
   };
+
   build-all-configurations-job = {
     runs-on = "native";
     strategy = {
@@ -30,6 +31,7 @@ let
       }
       {
         run = ''
+          git crypt unlock <(echo $GIT_CRYPT_KEY|base64 -d)
           nix build "$(pwd)#nixosConfigurations.''${{ matrix.nixosConfiguration }}.config.system.build.toplevel" \
             --keep-going \
             -j auto \
