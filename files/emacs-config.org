@@ -880,6 +880,20 @@
      (mode-line-bell-mode)
 
    #+end_src
+** Folding
+   #+begin_src emacs-lisp :tangle yes
+     (use-package kirigami
+       :ensure t
+       :bind
+       (("C-c k o"   . 'kirigami-open-fold)     ; Open fold at point
+        ("C-c k O"   . 'kirigami-open-fold-rec) ; Open fold recursively
+        ("C-c k m"   . 'kirigami-close-folds)   ; Close all folds
+        ("C-c k c"   . 'kirigami-close-fold)    ; Close fold at point
+        ("C-c k r"   . 'kirigami-open-folds)    ; Open all folds
+        ("C-c k TAB" . 'kirigami-toggle-fold)) ; Toggle fold at point
+       )
+   #+end_src
+
 * Programming
 ** Snippets
    #+begin_src emacs-lisp :tangle yes
