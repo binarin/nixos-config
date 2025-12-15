@@ -38,6 +38,7 @@
         "${self}/machines/furfur/hardware-configuration.nix"
       ];
 
+      services.avahi.enable = true;
       nixos-config.export-metrics.enable = false;
       home-manager.users.binarin = self.homeModules.furfur-binarin;
 
