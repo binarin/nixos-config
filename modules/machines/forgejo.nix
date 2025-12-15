@@ -39,7 +39,10 @@
           ];
         };
 
-        environment.systemPackages = with pkgs; [ emacs-nox ];
+        environment.systemPackages = with pkgs; [
+          emacs-nox
+          git-crypt
+        ];
 
         nix.gc = {
           automatic = true;
