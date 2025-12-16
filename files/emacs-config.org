@@ -1955,7 +1955,7 @@
        :after (org)
        :commands (org-caldav-sync)
        :custom
-       (org-caldav-url "https://nc.binarin.info/remote.php/dav/calendars/binarin")
+       (org-caldav-url "https://nextcloud.lynx-lizard.ts.net/remote.php/dav/calendars/binarin")
        (org-caldav-calendar-id "binarin")
        (org-caldav-inbox "~/org/caldav.org")
        (org-caldav-save-directory org-directory)
