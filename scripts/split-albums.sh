@@ -145,6 +145,33 @@ get_output_format() {
     esac
 }
 
+# Function to find the earliest release subdirectory
+find_earliest_release() {
+    local dir="$1"
+
+    # Look for subdirectories that might be releases (exclude "Scans Only")
+    local release_dirs=()
+    while IFS= read -r -d '' subdir; do
+        local subdir_name=$(basename "$subdir")
+        # Skip "Scans Only" directories
+        if [[ "$subdir_name" =~ "Scans Only" ]]; then
+            continue
+        fi
+        # Check if this subdirectory contains audio files
+        if find_audio_file "$subdir" &>/dev/null; then
+            release_dirs+=("$subdir")
+        fi
+    done < <(find "$dir" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
+
+    if [[ ${#release_dirs[@]} -gt 0 ]]; then
+        # Return the first (earliest) release
+        echo "${release_dirs[0]}"
+        return 0
+    fi
+
+    return 1
+}
+
 # Function to process a single album
 process_album() {
     local album_dir="$1"
@@ -155,9 +182,18 @@ process_album() {
 
     echo -e "${CYAN}[${current}/${total}]${NC} ${BOLD}Processing:${NC} ${album_name}"
 
+    # Check if this directory contains release subdirectories
+    local actual_dir="$album_dir"
+    local earliest_release
+    if earliest_release=$(find_earliest_release "$album_dir"); then
+        local release_name=$(basename "$earliest_release")
+        echo -e "${RED}  ⚠ Multiple releases found, automatically picked earliest: ${release_name}${NC}"
+        actual_dir="$earliest_release"
+    fi
+
     # Find audio file
     local audio_file
-    if ! audio_file=$(find_audio_file "$album_dir"); then
+    if ! audio_file=$(find_audio_file "$actual_dir"); then
         echo -e "${RED}  ✗ No supported audio file found${NC}"
         failed_albums=$((failed_albums + 1))
         return 1
@@ -165,8 +201,8 @@ process_album() {
 
     echo -e "${BLUE}  • Audio file:${NC} $(basename "$audio_file")"
 
-    # Find CUE file
-    local cue_files=("$album_dir"/*.cue)
+    # Find CUE file in the actual directory
+    local cue_files=("$actual_dir"/*.cue)
     if [[ ! -e "${cue_files[0]}" ]]; then
         echo -e "${RED}  ✗ No CUE file found${NC}"
         failed_albums=$((failed_albums + 1))
@@ -194,6 +230,7 @@ process_album() {
     local split_output
     if split_output=$(shnsplit -f <(iconv -f "$encoding" "$cue_file") \
                       -o "$output_format" \
+                      -O always \
                       -d "$target_dir" \
                       -t "%n - %t" \
                       "$audio_file" 2>&1); then

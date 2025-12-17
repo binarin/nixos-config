@@ -50,7 +50,7 @@ in
         ];
 
         nix.extraOptions = ''
-         build-dir = /nix/build
+          build-dir = /nix/build
         '';
 
         users.users.nix-remote-builder.openssh.authorizedPrincipals = lib.forEach [
