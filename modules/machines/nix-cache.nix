@@ -48,6 +48,11 @@ in
         nix.settings.system-features = [
           "big-parallel"
         ];
+
+        nix.extraOptions = ''
+         build-dir = /nix/build
+        '';
+
         users.users.nix-remote-builder.openssh.authorizedPrincipals = lib.forEach [
           "nix-remote-builder"
           "binarin"
