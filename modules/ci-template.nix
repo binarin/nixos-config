@@ -95,6 +95,10 @@ let
               run = "nix flake update";
             }
             {
+              name = "let autofollow chance";
+              run = "nix run .#write-flake";
+            }
+            {
               name = "Set git username for commits";
               run = ''git config user.name "Automatic Flake Updater" '';
             }
