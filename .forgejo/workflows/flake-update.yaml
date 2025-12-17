@@ -6,6 +6,11 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: master
+    - env:
+        GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+      name: unlock git-crypt
+      run: |
+        git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
     - name: Update flake inputs
       run: nix flake update
     - name: Set git username for commits
@@ -15,94 +20,141 @@ jobs:
     - name: Commit updates
       run: git commit --allow-empty -am "Bump inputs"
     - name: Build nixosConfiguration.demandred
-      run: "nix build \"$(pwd)#nixosConfigurations.demandred.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/demandred\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.demandred.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/demandred"
     - name: Build nixosConfiguration.devcontainer
-      run: "nix build \"$(pwd)#nixosConfigurations.devcontainer.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/devcontainer\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.devcontainer.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/devcontainer"
     - name: Build nixosConfiguration.docker-on-nixos
-      run: "nix build \"$(pwd)#nixosConfigurations.docker-on-nixos.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/docker-on-nixos\"\
-        \n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.docker-on-nixos.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/docker-on-nixos"
     - name: Build nixosConfiguration.forgejo
-      run: "nix build \"$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/forgejo\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/forgejo"
     - name: Build nixosConfiguration.furfur
-      run: "nix build \"$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/furfur\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/furfur"
     - name: Build nixosConfiguration.ishamael
-      run: "nix build \"$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/ishamael\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/ishamael"
     - name: Build nixosConfiguration.iso
-      run: "nix build \"$(pwd)#nixosConfigurations.iso.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/iso\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.iso.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/iso"
     - name: Build nixosConfiguration.mail
-      run: "nix build \"$(pwd)#nixosConfigurations.mail.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/mail\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.mail.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/mail"
     - name: Build nixosConfiguration.media
-      run: "nix build \"$(pwd)#nixosConfigurations.media.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/media\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.media.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/media"
     - name: Build nixosConfiguration.monitor
-      run: "nix build \"$(pwd)#nixosConfigurations.monitor.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/monitor\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.monitor.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/monitor"
     - name: Build nixosConfiguration.nix-cache
-      run: "nix build \"$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/nix-cache\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/nix-cache"
     - name: Build nixosConfiguration.qdevice
-      run: "nix build \"$(pwd)#nixosConfigurations.qdevice.config.system.build.toplevel\"\
-        \ \\\n  --keep-going \\\n  -j auto \\\n  -o \"temp-result/qdevice\"\n"
+      run: |
+        nix build "$(pwd)#nixosConfigurations.qdevice.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/qdevice"
     - name: Run flake check
       run: nix flake check
     - name: Clean-up old GC roots
-      run: 'rm -rf "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
-
-        '
+      run: |
+        rm -rf "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
     - name: Add nix-store GC root for nixosConfiguraion.demandred
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/demandred\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/demandred\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/demandred" \
+          -r "$(readlink -f "temp-result/demandred")"
     - name: Add nix-store GC root for nixosConfiguraion.devcontainer
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/devcontainer\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/devcontainer\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/devcontainer" \
+          -r "$(readlink -f "temp-result/devcontainer")"
     - name: Add nix-store GC root for nixosConfiguraion.docker-on-nixos
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/docker-on-nixos\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/docker-on-nixos\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/docker-on-nixos" \
+          -r "$(readlink -f "temp-result/docker-on-nixos")"
     - name: Add nix-store GC root for nixosConfiguraion.forgejo
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/forgejo\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/forgejo\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/forgejo" \
+          -r "$(readlink -f "temp-result/forgejo")"
     - name: Add nix-store GC root for nixosConfiguraion.furfur
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/furfur\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/furfur\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/furfur" \
+          -r "$(readlink -f "temp-result/furfur")"
     - name: Add nix-store GC root for nixosConfiguraion.ishamael
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/ishamael\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/ishamael\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/ishamael" \
+          -r "$(readlink -f "temp-result/ishamael")"
     - name: Add nix-store GC root for nixosConfiguraion.iso
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/iso\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/iso\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/iso" \
+          -r "$(readlink -f "temp-result/iso")"
     - name: Add nix-store GC root for nixosConfiguraion.mail
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/mail\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/mail\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/mail" \
+          -r "$(readlink -f "temp-result/mail")"
     - name: Add nix-store GC root for nixosConfiguraion.media
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/media\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/media\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/media" \
+          -r "$(readlink -f "temp-result/media")"
     - name: Add nix-store GC root for nixosConfiguraion.monitor
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/monitor\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/monitor\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/monitor" \
+          -r "$(readlink -f "temp-result/monitor")"
     - name: Add nix-store GC root for nixosConfiguraion.nix-cache
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/nix-cache\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/nix-cache\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/nix-cache" \
+          -r "$(readlink -f "temp-result/nix-cache")"
     - name: Add nix-store GC root for nixosConfiguraion.qdevice
-      run: "nix-store --add-root \"$HOME/.cache/nixos-config/proposed-update/nixos-configuration/qdevice\"\
-        \ \\\n  -r \"$(readlink -f \"temp-result/qdevice\")\"\n"
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/qdevice" \
+          -r "$(readlink -f "temp-result/qdevice")"
     - name: Push to flake-bump branch
       run: git push --force origin master:flake-bump
     - name: API auth
-      run: set -x; fj -H forgejo.lynx-lizard.ts.net auth logout forgejo.lynx-lizard.ts.net
-        || true; echo "${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net
-        auth add-key nixos-config-bumper
+      run: set -x; fj -H forgejo.lynx-lizard.ts.net auth logout 
+        forgejo.lynx-lizard.ts.net || true; echo "${{ secrets.PR_TOKEN }}" | fj 
+        -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper
     - name: Maybe create PR
-      run: fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config --base
-        master --head flake-bump --body "Bump flake inputs" "Bump everything" || true
-'on':
+      run: fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config 
+        --base master --head flake-bump --body "Bump flake inputs" "Bump 
+        everything" || true
+on:
   schedule:
   - cron: 13 10 * * Mon
   workflow_dispatch: {}

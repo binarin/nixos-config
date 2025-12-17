@@ -6,19 +6,27 @@ jobs:
     runs-on: native
     steps:
     - uses: actions/checkout@v4
-    - run: 'nix flake check
-
-        '
+    - env:
+        GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+      name: unlock git-crypt
+      run: |
+        git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
+    - run: |
+        nix flake check
   nixos-configuration:
     runs-on: native
     steps:
     - uses: actions/checkout@v4
     - env:
         GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-      run: "git crypt unlock <(echo \"$GIT_CRYPT_KEY\"|base64 -d)\nnix build \"$(pwd)#nixosConfigurations.${{\
-        \ matrix.nixosConfiguration }}.config.system.build.toplevel\" \\\n  --keep-going\
-        \ \\\n  -j auto \\\n  -o \"$HOME/.cache/nixos-config/master/nixos-configuration/${{\
-        \ matrix.nixosConfiguration }}\"\n"
+      name: unlock git-crypt
+      run: |
+        git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
+    - run: |
+        nix build "$(pwd)#nixosConfigurations.${{ matrix.nixosConfiguration }}.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "$HOME/.cache/nixos-config/master/nixos-configuration/${{ matrix.nixosConfiguration }}"
     strategy:
       fail-fast: false
       matrix:
@@ -35,7 +43,7 @@ jobs:
         - monitor
         - nix-cache
         - qdevice
-'on':
+on:
   pull_request:
     types:
     - opened
