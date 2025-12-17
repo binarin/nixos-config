@@ -52,6 +52,7 @@
           cuetools
           flac
           monkeysAudio
+          python3Packages.chardet
         ];
 
         services.avahi = {
