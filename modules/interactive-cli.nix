@@ -210,9 +210,6 @@
             zip
           ];
         }
-        (lib.mkIf config.programs.atuin.enable {
-          home.sessionVariables.ATUIN_NOBIND = "1"; # XXX why I did it?
-        })
         (lib.mkIf config.programs.fzf.enable {
           programs.doggo.enable = true;
           programs.fd.enable = true;
