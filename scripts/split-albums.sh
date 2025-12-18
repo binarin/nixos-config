@@ -4,6 +4,7 @@ set -euo pipefail
 # Configuration
 SUPPORTED_FORMATS=(ape flac)
 OUTPUT_BASE="/media/music/import"
+DISC_PATTERNS=("Disc " "CD" "Disk ")
 
 # Command-line options
 FILTER_REGEX=""
@@ -22,6 +23,7 @@ BOLD='\033[1m'
 
 # Statistics
 declare -A album_stats
+declare -A album_releases
 total_tracks=0
 processed_albums=0
 failed_albums=0
@@ -145,29 +147,86 @@ get_output_format() {
     esac
 }
 
-# Function to find the earliest release subdirectory
-find_earliest_release() {
-    local dir="$1"
+# Function to check if a directory name matches disc patterns
+is_disc_dir() {
+    local dirname="$1"
 
-    # Look for subdirectories that might be releases (exclude "Scans Only")
-    local release_dirs=()
+    for pattern in "${DISC_PATTERNS[@]}"; do
+        if [[ "$dirname" =~ ^${pattern}[0-9]+$ ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# Function to find disc subdirectories
+find_disc_dirs() {
+    local dir="$1"
+    local disc_dirs=()
+
     while IFS= read -r -d '' subdir; do
         local subdir_name=$(basename "$subdir")
-        # Skip "Scans Only" directories
-        if [[ "$subdir_name" =~ "Scans Only" ]]; then
-            continue
-        fi
-        # Check if this subdirectory contains audio files
-        if find_audio_file "$subdir" &>/dev/null; then
-            release_dirs+=("$subdir")
+        if is_disc_dir "$subdir_name"; then
+            disc_dirs+=("$subdir")
         fi
     done < <(find "$dir" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
 
-    if [[ ${#release_dirs[@]} -gt 0 ]]; then
-        # Return the first (earliest) release
-        echo "${release_dirs[0]}"
+    if [[ ${#disc_dirs[@]} -gt 0 ]]; then
+        printf '%s\0' "${disc_dirs[@]}"
         return 0
     fi
+
+    return 1
+}
+
+# Function to check if directory has audio content (either direct files or disc subdirs)
+has_audio_content() {
+    local dir="$1"
+
+    # Check if it has audio files directly
+    if find_audio_file "$dir" &>/dev/null; then
+        return 0
+    fi
+
+    # Check if it has disc subdirectories with audio files
+    if find_disc_dirs "$dir" &>/dev/null; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Function to find the earliest release subdirectory
+find_earliest_release() {
+    local dir="$1"
+    local -a candidates
+    local release_dir release_name
+
+    # Get all subdirectories, sorted
+    mapfile -t candidates < <(find "$dir" -mindepth 1 -maxdepth 1 -type d ! -name "." | sort)
+
+    # Process directories in sorted order to get the earliest
+    for release_dir in "${candidates[@]}"; do
+        release_name=$(basename "$release_dir")
+
+        # Skip "Scans Only" directories
+        if [[ "$release_name" =~ "Scans Only" ]]; then
+            continue
+        fi
+
+        # Skip disc directories (these will be handled separately)
+        if is_disc_dir "$release_name"; then
+            continue
+        fi
+
+        # Check if this subdirectory contains audio files or disc subdirectories
+        if has_audio_content "$release_dir"; then
+            # Return the first matching release (earliest)
+            echo "$release_dir"
+            return 0
+        fi
+    done
 
     return 1
 }
@@ -185,69 +244,148 @@ process_album() {
     # Check if this directory contains release subdirectories
     local actual_dir="$album_dir"
     local earliest_release
+    local selected_release=""
     if earliest_release=$(find_earliest_release "$album_dir"); then
         local release_name=$(basename "$earliest_release")
         echo -e "${RED}  ⚠ Multiple releases found, automatically picked earliest: ${release_name}${NC}"
         actual_dir="$earliest_release"
+        selected_release="$release_name"
     fi
 
-    # Find audio file
-    local audio_file
-    if ! audio_file=$(find_audio_file "$actual_dir"); then
-        echo -e "${RED}  ✗ No supported audio file found${NC}"
-        failed_albums=$((failed_albums + 1))
-        return 1
-    fi
-
-    echo -e "${BLUE}  • Audio file:${NC} $(basename "$audio_file")"
-
-    # Find CUE file in the actual directory
-    local cue_files=("$actual_dir"/*.cue)
-    if [[ ! -e "${cue_files[0]}" ]]; then
-        echo -e "${RED}  ✗ No CUE file found${NC}"
-        failed_albums=$((failed_albums + 1))
-        return 1
-    fi
-
-    local cue_file="${cue_files[0]}"
-    echo -e "${BLUE}  • CUE file:${NC} $(basename "$cue_file")"
-
-    # Detect encoding
-    local encoding=$(detect_encoding "$cue_file")
-    echo -e "${BLUE}  • Encoding:${NC} ${encoding}"
+    # Check if this directory contains disc subdirectories
+    local disc_dirs=()
+    while IFS= read -r -d '' disc_dir; do
+        disc_dirs+=("$disc_dir")
+    done < <(find_disc_dirs "$actual_dir" 2>/dev/null || true)
 
     # Create target directory
     local target_dir="$OUTPUT_BASE/$artist_name/$album_name"
     mkdir -p "$target_dir"
     echo -e "${BLUE}  • Target:${NC} $target_dir"
 
-    # Determine output format
-    local output_format=$(get_output_format "$audio_file")
+    if [[ ${#disc_dirs[@]} -gt 0 ]]; then
+        # Multi-disc album
+        echo -e "${YELLOW}  • Multi-disc album detected: ${#disc_dirs[@]} discs${NC}"
 
-    # Split the file
-    echo -e "${YELLOW}  ⚙ Splitting tracks...${NC}"
+        local total_disc_tracks=0
+        for disc_dir in "${disc_dirs[@]}"; do
+            local disc_name=$(basename "$disc_dir")
+            echo -e "${YELLOW}    ⚙ Processing ${disc_name}...${NC}"
 
-    local split_output
-    if split_output=$(shnsplit -f <(iconv -f "$encoding" "$cue_file") \
-                      -o "$output_format" \
-                      -O always \
-                      -d "$target_dir" \
-                      -t "%n - %t" \
-                      "$audio_file" 2>&1); then
+            # Find audio file in disc directory
+            local audio_file
+            if ! audio_file=$(find_audio_file "$disc_dir"); then
+                echo -e "${RED}      ✗ No supported audio file found in ${disc_name}${NC}"
+                continue
+            fi
 
-        # Count tracks created
-        local track_count=$(find "$target_dir" -type f -name "*.$output_format" | wc -l)
-        album_stats["$album_name"]=$track_count
-        total_tracks=$((total_tracks + track_count))
-        processed_albums=$((processed_albums + 1))
+            echo -e "${BLUE}      • Audio file:${NC} $(basename "$audio_file")"
 
-        echo -e "${GREEN}  ✓ Success: ${track_count} tracks extracted${NC}"
-        return 0
+            # Find CUE file in disc directory
+            local cue_files=("$disc_dir"/*.cue)
+            if [[ ! -e "${cue_files[0]}" ]]; then
+                echo -e "${RED}      ✗ No CUE file found in ${disc_name}${NC}"
+                continue
+            fi
+
+            local cue_file="${cue_files[0]}"
+            echo -e "${BLUE}      • CUE file:${NC} $(basename "$cue_file")"
+
+            # Detect encoding
+            local encoding=$(detect_encoding "$cue_file")
+            echo -e "${BLUE}      • Encoding:${NC} ${encoding}"
+
+            # Determine output format
+            local output_format=$(get_output_format "$audio_file")
+
+            # Split the disc
+            shnsplit -f <(iconv -f "$encoding" "$cue_file") \
+                     -o "$output_format" \
+                     -O always \
+                     -d "$target_dir" \
+                     -t "${disc_name} - %n - %t" \
+                     "$audio_file" > /dev/null 2>&1
+
+            # Count only tracks from this specific disc
+            local disc_tracks
+            disc_tracks=$(find "$target_dir" -type f -name "${disc_name} - *.${output_format}" 2>/dev/null | wc -l)
+
+            total_disc_tracks=$((total_disc_tracks + disc_tracks))
+            echo -e "${GREEN}      ✓ ${disc_tracks} tracks extracted from ${disc_name}${NC}"
+        done
+
+        if [[ $total_disc_tracks -gt 0 ]]; then
+            album_stats["$album_name"]=$total_disc_tracks
+            if [[ -n "$selected_release" ]]; then
+                album_releases["$album_name"]="$selected_release"
+            fi
+            total_tracks=$((total_tracks + total_disc_tracks))
+            processed_albums=$((processed_albums + 1))
+            echo -e "${GREEN}  ✓ Success: ${total_disc_tracks} tracks extracted from ${#disc_dirs[@]} discs${NC}"
+            return 0
+        else
+            echo -e "${RED}  ✗ No tracks extracted from any disc${NC}"
+            failed_albums=$((failed_albums + 1))
+            return 1
+        fi
     else
-        echo -e "${RED}  ✗ Failed to split${NC}"
-        echo "$split_output" | sed 's/^/    /'
-        failed_albums=$((failed_albums + 1))
-        return 1
+        # Single disc album
+        # Find audio file
+        local audio_file
+        if ! audio_file=$(find_audio_file "$actual_dir"); then
+            echo -e "${RED}  ✗ No supported audio file found${NC}"
+            failed_albums=$((failed_albums + 1))
+            return 1
+        fi
+
+        echo -e "${BLUE}  • Audio file:${NC} $(basename "$audio_file")"
+
+        # Find CUE file in the actual directory
+        local cue_files=("$actual_dir"/*.cue)
+        if [[ ! -e "${cue_files[0]}" ]]; then
+            echo -e "${RED}  ✗ No CUE file found${NC}"
+            failed_albums=$((failed_albums + 1))
+            return 1
+        fi
+
+        local cue_file="${cue_files[0]}"
+        echo -e "${BLUE}  • CUE file:${NC} $(basename "$cue_file")"
+
+        # Detect encoding
+        local encoding=$(detect_encoding "$cue_file")
+        echo -e "${BLUE}  • Encoding:${NC} ${encoding}"
+
+        # Determine output format
+        local output_format=$(get_output_format "$audio_file")
+
+        # Split the file
+        echo -e "${YELLOW}  ⚙ Splitting tracks...${NC}"
+
+        local split_output
+        if split_output=$(shnsplit -f <(iconv -f "$encoding" "$cue_file") \
+                          -o "$output_format" \
+                          -O always \
+                          -d "$target_dir" \
+                          -t "%n - %t" \
+                          "$audio_file" 2>&1); then
+
+            # Count tracks created
+            local track_count=$(find "$target_dir" -type f -name "*.${output_format}" 2>/dev/null | wc -l)
+            album_stats["$album_name"]=$track_count
+            if [[ -n "$selected_release" ]]; then
+                album_releases["$album_name"]="$selected_release"
+            fi
+            total_tracks=$((total_tracks + track_count))
+            processed_albums=$((processed_albums + 1))
+
+            echo -e "${GREEN}  ✓ Success: ${track_count} tracks extracted${NC}"
+            return 0
+        else
+            echo -e "${RED}  ✗ Failed to split${NC}"
+            echo "$split_output" | sed 's/^/    /'
+            failed_albums=$((failed_albums + 1))
+            return 1
+        fi
     fi
 }
 
@@ -364,9 +502,13 @@ main() {
             fi
         done
 
-        # Print aligned table
+        # Print aligned table with optional release info
         for album in "${!album_stats[@]}"; do
-            printf "  ${CYAN}%-${max_width}s${NC} ${GREEN}%3d tracks${NC}\n" "$album" "${album_stats[$album]}"
+            local release_info=""
+            if [[ -n "${album_releases[$album]}" ]]; then
+                release_info=" ${YELLOW}[${album_releases[$album]}]${NC}"
+            fi
+            printf "  ${CYAN}%-${max_width}s${NC} ${GREEN}%3d tracks${NC}%b\n" "$album" "${album_stats[$album]}" "$release_info"
         done | sort
     fi
 
