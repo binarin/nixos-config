@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
-set -x
 exec 2> /tmp/deb
+set -x
 set -eu
 set -o pipefail
 
@@ -23,6 +23,7 @@ home-servers() {
     item "hass" mosh-ts "$@"
     item "barbatos-root" mosh-ts "$@"
     item "ishamael" et-ts "$@"
+    item "media" et-ts "$@"
 }
 
 find-and-focus-window-niri() {
