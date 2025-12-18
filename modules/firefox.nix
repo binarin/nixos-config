@@ -18,6 +18,8 @@
                 Allow = [
                   "https://jellyfin.binarin.info"
                   "https://ts.binarin.info"
+                  "https://navidrome.binarin.info"
+                  "https://youtube.com"
                 ];
               };
             };
