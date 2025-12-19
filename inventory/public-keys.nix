@@ -66,6 +66,7 @@
       ];
     };
 
+
     "yubi-usb-a-5-nfc-keychain" = {
       description = "resident SSH key on Yubikey 5 NFC (usb-a, keychain)";
       public_key = "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAINC200GwDhLpi27iCDBppww5QPuRtXACjXsrtJ5hnW0LAAAABHNzaDo= usb-a yubikey 5 nfc - keychain  - resident ssh fido2";
@@ -73,6 +74,16 @@
       tags = [
         "default"
         "user-ca"
+        "presence"
+      ];
+    };
+
+    "termius-tab-s9" = {
+      description = "biometrical key on tab s9 / termius";
+      public_key = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPMpogmbCYL1eZcImgz+QDH5xW5BoTDUP4/daxglmaBul2tp9SFnMT7f73Z9rVF5XSsavVm4j8mLNV6t3I2xCKI=";
+      secure = true;
+      tags = [
+        "default"
         "presence"
       ];
     };
