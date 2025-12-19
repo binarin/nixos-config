@@ -66,7 +66,6 @@
       ];
     };
 
-
     "yubi-usb-a-5-nfc-keychain" = {
       description = "resident SSH key on Yubikey 5 NFC (usb-a, keychain)";
       public_key = "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAINC200GwDhLpi27iCDBppww5QPuRtXACjXsrtJ5hnW0LAAAABHNzaDo= usb-a yubikey 5 nfc - keychain  - resident ssh fido2";

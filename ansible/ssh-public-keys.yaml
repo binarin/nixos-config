@@ -30,6 +30,13 @@ ssh_keys:
       - root
     public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPKyEXbiRblfl23aNjy73yHjFfV/xct885HH4eIzuW3X2VT0BS/jMEFhNJE7eFJE5vO/QIwJ1FKbEonPRGOvNBI=
     secure: true
+  termius-tab-s9:
+    description: biometrical key on tab s9 / termius
+    public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPMpogmbCYL1eZcImgz+QDH5xW5BoTDUP4/daxglmaBul2tp9SFnMT7f73Z9rVF5XSsavVm4j8mLNV6t3I2xCKI=
+    secure: true
+    tags:
+    - default
+    - presence
   trezor-root-pve:
     description: Trezor ssh key with root@pve identity
     public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAAHsiCVekjyoPDPOGPJFJ5z9FQUfSmThnGWHABNfjz0APf/qcdHHy+Yj2bG0ICcDbBrE10MJiQjrnYRlKUGvAE=
