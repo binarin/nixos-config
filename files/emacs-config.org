@@ -30,17 +30,6 @@
        (setf no-littering-etc-directory (cache-file-name "no-littering" "config"))
        (setf no-littering-var-directory (cache-file-name "no-littering" "data")))
    #+end_src
-** MELPA on windows
-   #+begin_src emacs-lisp :tangle yes
-     (eval-and-compile
-       (when (eq system-type 'windows-nt)
-         (funcall 'require 'package)
-         (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-         (package-initialize t)
-         (when (not (package-installed-p 'no-littering))
-           (package-install 'no-littering))
-         (funcall 'require 'no-littering)))
-   #+end_src
 ** No littering
    #+begin_src emacs-lisp :tangle yes
      ;; If no-littering is not loaded, it means that standalone compilation
