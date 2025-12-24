@@ -278,12 +278,6 @@
        :commands (rainbow-mode))
    #+end_src
 * Behaviour
-** Startup profiling
-   #+begin_src emacs-lisp :tangle yes
-     (use-package esup
-       :ensure t
-       :commands (esup))
-   #+end_src
 ** Date formatting
    #+begin_src emacs-lisp :tangle yes
      (setq system-time-locale "C")
