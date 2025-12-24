@@ -1538,7 +1538,7 @@
              (awhen (and (= 3 (org-current-level)) (org-up-heading-safe)
                          (org-entry-get nil "ITEM"))
                (set-text-properties 0 (length it) nil it)
-               (setf item (replace-regexp-in-string (rx (or "NEXT" "WAIT") (group any) (* any) eos)
+               (setf item (replace-regexp-in-string (rx (or "NEXT" "WAIT") (group anychar) (* anychar) eos)
                                                     (propertize (s-concat " [" it "] ")
                                                                 'face 'org-agenda-dimmed-todo-face)
                                                     item nil nil 1)))))
