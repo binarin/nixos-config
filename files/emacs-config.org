@@ -707,6 +707,13 @@
       (set-language-environment "Russian")
       (setq default-input-method "russian-computer")
       (prefer-coding-system 'utf-8-unix)
+
+      (defun binarin/change-window-divider ()
+        (let ((display-table (or buffer-display-table standard-display-table)))
+          (set-display-table-slot display-table 5 ?┃)
+          (set-window-display-table (selected-window) display-table)))
+
+      (add-hook 'window-configuration-change-hook 'binarin/change-window-divider)
     #+end_src
 
 ** Server
