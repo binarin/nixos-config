@@ -922,6 +922,10 @@
        )
    #+end_src
 
+** Which-Key
+   #+begin_src emacs-lisp :tangle yes
+     (which-key-mode +1)
+   #+end_src
 * Programming
 ** Snippets
    #+begin_src emacs-lisp :tangle yes
@@ -961,7 +965,9 @@
        :ensure t
        :init
        (setq lsp-keymap-prefix "C-c l")
-       :commands (lsp lsp-deferred))
+       :commands (lsp lsp-deferred)
+       :config
+       (add-hook 'lsp-mode-hook 'lsp-enable-which-key-integration))
 
      (add-hook 'lsp-mode-hook 'electric-indent-local-mode)
      (add-hook 'lsp-mode-hook 'electric-pair-local-mode)
