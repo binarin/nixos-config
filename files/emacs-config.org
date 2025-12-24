@@ -12,6 +12,10 @@
              (expand-file-name "~/.cache"))
          "emacs" "eln-cache/")))
    #+end_src
+** use-package
+   #+begin_src emacs-lisp :tangle yes
+     (setopt use-package-ensure-function #'(lambda (&rest _) t))
+   #+end_src
 ** Common folders
    #+begin_src emacs-lisp :tangle yes
      (eval-and-compile
