@@ -46,7 +46,7 @@
        :ensure t
        :no-require t)
 
-     ;; look like a sandboxed nix build
+     ;; looks like a sandboxed nix build
      (unless (string= (getenv "HOME") "/homeless-shelter")
        (funcall 'require 'no-littering))
    #+end_src
