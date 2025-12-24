@@ -1379,6 +1379,15 @@
            (align-regexp beg end (rx (not (any " \n")) (group (+ " ")) (not (any " \n"))) 1 1 t))))
 
    #+end_src
+** Rust
+   #+begin_src emacs-lisp :tangle yes
+     (use-package rustic
+       :ensure t
+       :config
+       (setq rustic-format-on-save nil)
+       :custom
+       (rustic-cargo-use-last-stored-arguments t))
+   #+end_src
 * Major modes
 ** pdf-tools
    #+begin_src emacs-lisp :tangle yes
