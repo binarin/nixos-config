@@ -134,7 +134,8 @@
           basePackage = lib.mkOption {
             type = lib.types.package;
             # XXX emacs-git because 31 is needed for corfu to work on terminal
-            default = if osConfig.services.graphical-desktop.enable then pkgs.emacs-git-pgtk else pkgs.emacs-git-nox;
+            default =
+              if osConfig.services.graphical-desktop.enable then pkgs.emacs-git-pgtk else pkgs.emacs-git-nox;
           };
 
           compiledConfig = lib.mkOption {
