@@ -583,9 +583,9 @@
             };
             web_recipes.service = {
               restart = "unless-stopped";
-              image = "vabene1111/recipes:1.5.34";
+              image = "vabene1111/recipes:2.3.6";
               ports = [
-                "8081:8080"
+                "8081:80"
               ];
               env_file = [
                 config.sops.templates.tandoor-env.path
