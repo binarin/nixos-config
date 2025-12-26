@@ -221,6 +221,7 @@
    #+begin_src emacs-lisp :tangle yes
      (use-package all-the-icons
        :ensure t
+       :defer 10
        :if (display-graphic-p))
 
      (defvar binarin/nerd-font-family (if (eq binarin/system-type 'windows)
@@ -231,6 +232,7 @@
      ;; This is needed explicitly for other nerd-icons-based packages to work better (otherwise you can see a problem e.g. with a marked file in a dired buffer)
      (use-package nerd-icons
        :ensure t
+       :defer 10
        :config
        (setq nerd-icons-font-family binarin/nerd-font-family))
    #+end_src
@@ -358,6 +360,7 @@
      (use-package nerd-icons-completion
        :ensure t
        :after marginalia
+       :defer 10
        :config
        (nerd-icons-completion-mode)
        (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
@@ -703,9 +706,9 @@
       (prefer-coding-system 'utf-8-unix)
 
       (defun binarin/change-window-divider ()
-        (let ((display-table (or buffer-display-table standard-display-table)))
-          (set-display-table-slot display-table 5 ?┃)
-          (set-window-display-table (selected-window) display-table)))
+        (awhen (or buffer-display-table standard-display-table)
+          (set-display-table-slot it 5 ?┃)
+          (set-window-display-table (selected-window) it)))
 
       (add-hook 'window-configuration-change-hook 'binarin/change-window-divider)
     #+end_src
@@ -725,26 +728,21 @@
 ** TRAMP
    #+begin_src emacs-lisp :tangle yes
      (use-package tramp
-       :functions tramp-compile-disable-ssh-controlmaster-options)
-
-     (eval-after-load "tramp"
-       (general-setq tramp-login-prompt-regexp ".*\\(user\\|login\\|2FA Token\\)\\( .*\\)?: *"))
-
-     (general-setq
-      remote-file-name-inhibit-delete-by-moving-to-trash t
-      tramp-use-scp-direct-remote-copying t
-      remote-file-name-inhibit-auto-save-visited t
-      tramp-copy-size-limit (* 1024 1024) ;; 1MB
-      tramp-verbose 2)
-
-     (setq vc-ignore-dir-regexp
-           (format "\\(%s\\)\\|\\(%s\\)"
-                   vc-ignore-dir-regexp
-                   tramp-file-name-regexp))
+       :defer 10
+       :functions tramp-compile-disable-ssh-controlmaster-options
+       :custom
+       (remote-file-name-inhibit-delete-by-moving-to-trash t)
+       (tramp-use-scp-direct-remote-copying t)
+       (remote-file-name-inhibit-auto-save-visited t)
+       (tramp-copy-size-limit (* 1024 1024)) ;; 1MB
+       (tramp-verbose 2)
+       (vc-ignore-dir-regexp (format "\\(%s\\)\\|\\(%s\\)"
+                                     vc-ignore-dir-regexp
+                                     tramp-file-name-regexp)))
 
      (connection-local-set-profile-variables
-      'remote-direct-async-process
-      '((tramp-direct-async-process . t)))
+     'remote-direct-async-process
+     '((tramp-direct-async-process . t)))
 
      (connection-local-set-profiles
       '(:application tramp :protocol "scp")
@@ -1332,14 +1330,12 @@
 ** AI coding
    #+begin_src emacs-lisp :tangle yes
      (use-package agent-shell
-       :commands (agent-shell-make-environment-variables agent-shell-anthropic-make-authentication)
-       :ensure t)
+       :ensure t
+       :defer 30
+       :custom
+       (agent-shell-anthropic-claude-environment (agent-shell-make-environment-variables :inherit-env t))
+       (agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :login t)))
 
-     (setq agent-shell-anthropic-claude-environment
-           (agent-shell-make-environment-variables :inherit-env t))
-
-     (setq agent-shell-anthropic-authentication
-           (agent-shell-anthropic-make-authentication :login t))
    #+end_src
 
    #+begin_src emacs-lisp :tangle yes
@@ -1383,10 +1379,15 @@
    #+begin_src emacs-lisp :tangle yes
      (use-package rustic
        :ensure t
+       :mode ("\\.rs\\'" . rustic-mode)
        :config
-       (setq rustic-format-on-save nil)
+       (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1)))
+       (add-hook 'rustic-mode 'rustic-doc-mode)
        :custom
-       (rustic-cargo-use-last-stored-arguments t))
+       (rustic-cargo-clippy-trigger-fix 'on-compile)
+       (rustic-cargo-use-last-stored-arguments t)
+       (rustic-lsp-client 'eglot)
+       (rustic-format-on-save t))
    #+end_src
 * Major modes
 ** pdf-tools
