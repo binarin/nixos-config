@@ -32,6 +32,7 @@
         usbutils
         pciutils
         apg
+        net-tools # netstat
       ];
 
       programs.bat.enable = true;
