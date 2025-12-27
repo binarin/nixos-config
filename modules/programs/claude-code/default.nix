@@ -2,7 +2,6 @@
 {
   flake-file.inputs.nix-ai-tools.url = "github:numtide/nix-ai-tools";
   flake-file.inputs.nix-ai-tools.inputs.nixpkgs.follows = "nixpkgs";
-  flake-file.inputs.beads.url = "github:steveyegge/beads";
 
   flake.homeModules.claude-code =
     { pkgs, config, ... }:
@@ -13,7 +12,7 @@
       ];
 
       home.packages = [
-        self.inputs.beads.packages.${pkgs.stdenv.hostPlatform.system}.default
+        self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}.beads
         self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}.claude-code
         self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}.claudebox
       ];

@@ -13,9 +13,6 @@
       };
       url = "github:hercules-ci/arion";
     };
-    beads = {
-      url = "github:steveyegge/beads";
-    };
     den = {
       url = "github:vic/den";
     };
