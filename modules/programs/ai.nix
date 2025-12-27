@@ -11,15 +11,17 @@
         self.homeModules.impermanence
       ];
 
-      home.packages = (with self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}; [
-        beads
-        claude-code
-        eca
-        gemini-cli
-      ]) ++ (with pkgs; [
-        llm
-        python3Packages.markitdown
-      ]);
+      home.packages =
+        (with self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}; [
+          beads
+          claude-code
+          eca
+          gemini-cli
+        ])
+        ++ (with pkgs; [
+          llm
+          python3Packages.markitdown
+        ]);
 
       home.file.".claude/skills/".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/claude-skills";
