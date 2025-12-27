@@ -492,11 +492,6 @@
 
    #+end_src
 
-** External shell
-   #+BEGIN_SRC emacs-lisp :tangle yes
-     (unless (eq system-type 'windows-nt)
-       (setq shell-file-name "/bin/sh")) ;; mostly for TRAMP, should work everywhere
-   #+END_SRC
 ** Dired
    #+BEGIN_SRC emacs-lisp :tangle yes
      (add-hook 'dired-mode-hook 'dired-hide-details-mode)
@@ -859,7 +854,14 @@
    #+begin_src emacs-lisp :tangle yes
      (use-package eat
        :ensure t
-       :commands (eat))
+       :commands (eat eat-project eat-eshell-mode))
+
+     (use-package eshell
+       :commands (eshell)
+       :custom
+       (eshell-visual-mode nil)
+       :config
+       (eat-eshell-mode 1))
    #+end_src
 ** vterm
    #+begin_src emacs-lisp :tangle yes

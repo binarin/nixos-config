@@ -253,6 +253,9 @@
           }
           add-zsh-hook -Uz chpwd osc7
 
+          [ -n "$EAT_SHELL_INTEGRATION_DIR" ] && \
+            source "$EAT_SHELL_INTEGRATION_DIR/zsh"
+
           # OSC 133 (shell integration / semantic prompt) support, delimits the shell prompt from a command output
           precmd() {
               print -Pn "\e]133;A\e\\"
