@@ -22,7 +22,7 @@
         self.nixosModules.baseline
         self.nixosModules.impermanence
         {
-          home-manager.users.binarin = self.homeModules.claude-code;
+          home-manager.users.binarin = self.homeModules.ai-tools;
         }
       ];
 

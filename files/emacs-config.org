@@ -1351,6 +1351,13 @@
              gptel-default-mode 'org-mode)
        (add-hook 'gptel-mode-hook 'gptel-highlight-mode))
    #+end_src
+
+   #+begin_src emacs-lisp :tangle yes
+     (use-package eca
+       :ensure t
+       :commands (eca))
+   #+end_src
+
 ** ZMK
    #+begin_src emacs-lisp :tangle yes
      (use-package devicetree-ts-mode
