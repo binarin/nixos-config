@@ -1334,9 +1334,10 @@
      (use-package agent-shell
        :ensure t
        :defer 30
-       :custom
-       (agent-shell-anthropic-claude-environment (agent-shell-make-environment-variables :inherit-env t))
-       (agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :login t)))
+       :commands (agent-shell agent-shell-make-environment-variables agent-shell-anthropic-make-authentication)
+       :config
+       (setf agent-shell-anthropic-claude-environment (agent-shell-make-environment-variables :inherit-env t))
+       (setf agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :login t)))
 
    #+end_src
 
