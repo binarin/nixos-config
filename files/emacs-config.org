@@ -1350,6 +1350,12 @@
 
 #+INCLUDE: "./pta.el" src emacs-lisp :tangle yes
 
+** beancount
+   #+begin_src emacs-lisp :tangle yes
+     (use-package beancount
+       :ensure t
+       :mode ("\\.beancount\\'" . beancount-mode))
+   #+end_src
 ** KMonad/Kanata .kbd files
    #+begin_src emacs-lisp :tangle yes
      (use-package kbd-mode
