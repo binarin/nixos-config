@@ -294,7 +294,6 @@
       key = "nixos-config.modules.home.impermanence";
 
       imports = [
-        inputs.impermanence.homeManagerModules.impermanence
         self.homeModules.sops
       ];
 
