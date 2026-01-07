@@ -1566,7 +1566,6 @@
     "treefmt-nix_2": {
       "inputs": {
         "nixpkgs": [
-          "nix-ai-tools",
           "nixpkgs"
         ]
       },
