@@ -113,7 +113,7 @@
           follows = "nixpkgs";
         };
       };
-      url = "github:numtide/nix-ai-tools";
+      url = "github:numtide/llm-agents.nix";
     };
     nix-auto-follow = {
       inputs = {

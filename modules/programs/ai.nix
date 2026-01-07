@@ -1,6 +1,6 @@
 { self, ... }:
 {
-  flake-file.inputs.nix-ai-tools.url = "github:numtide/nix-ai-tools";
+  flake-file.inputs.nix-ai-tools.url = "github:numtide/llm-agents.nix";
   flake-file.inputs.nix-ai-tools.inputs.nixpkgs.follows = "nixpkgs";
 
   flake.homeModules.ai-tools =
