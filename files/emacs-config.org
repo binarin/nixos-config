@@ -958,14 +958,62 @@
    #+END_SRC
 
 ** LSP
+   #+begin_src emacs-lisp :tangle no
+     (use-package eglot
+       :ensure t
+       :commands (eglot-ensure)
+       :bind (;; ("C-c i i" . eglot-find-implementation)
+              ;; ("C-c i e" . eglot)
+              ;; ("C-c i k" . eglot-shutdown-all)
+              ;; ("C-c i r" . eglot-rename)
+              ;; ("C-c i x" . eglot-reconnect)
+              ("C-c i a" . eglot-code-actions)
+              ("C-c i m" . eglot-menu)
+              ("C-c i f" . eglot-format-buffer)
+              ;; ("C-c i h" . eglot-inlay-hints-mode)
+              )
+       :init
+       (setq eglot-autoshutdown t
+             eglot-confirm-server-edits nil
+             eglot-report-progress t
+             eglot-extend-to-xref t
+             eglot-autoreconnect t)
+
+       :config
+       (setf (alist-get :rust-analyzer eglot-workspace-configuration)
+                     '( :check (:command "clippy")
+                        :cargo (:sysroot "discover"
+                                         :features "all"
+                                         :buildScripts (:enable t))
+                        :diagnostics (:disabled ["macro-error"])
+                        :procMacro (:enable t)))
+       )
+   #+end_src
+
    #+begin_src emacs-lisp :tangle yes
      (use-package lsp-mode
        :ensure t
        :init
        (setq lsp-keymap-prefix "C-c l")
+       :bind (:map lsp-mode-map
+                   ("C-c l d" . lsp-rust-analyzer-open-external-docs))
        :commands (lsp lsp-deferred)
        :config
        (add-hook 'lsp-mode-hook 'lsp-enable-which-key-integration))
+
+     (defun binarin/set-lsp-ui-doc-frame-font (frame _w)
+       (set-face-attribute 'default frame :height 130))
+
+     (use-package lsp-ui
+       :ensure t
+       :defer t
+       :config
+       (add-hook 'lsp-ui-doc-frame-hook 'binarin/set-lsp-ui-doc-frame-font)
+       (setf lsp-ui-doc-position 'top
+             lsp-ui-doc-side 'right))
+
+     (with-eval-after-load "lsp-mode"
+       (require 'lsp-ui))
 
      (add-hook 'lsp-mode-hook 'electric-indent-local-mode)
      (add-hook 'lsp-mode-hook 'electric-pair-local-mode)
@@ -1085,12 +1133,6 @@
      (use-package dhall-mode
        :ensure t
        :mode "\\.dhall\\'")
-   #+end_src
-** Rust
-   #+begin_src emacs-lisp :tangle yes
-     (use-package rust-mode
-       :ensure t
-       :mode "\\.rs\\'")
    #+end_src
 ** Just
    #+begin_src emacs-lisp :tangle yes
@@ -1389,15 +1431,40 @@
        :ensure t
        :mode ("\\.rs\\'" . rustic-mode)
        :config
-       (add-hook 'eglot--managed-mode-hook (lambda () (flymake-mode -1)))
+       ;; (add-hook 'eglot-managed-mode-hook (lambda () (flymake-mode -1)))
        (add-hook 'rustic-mode 'rustic-doc-mode)
        :custom
        (rustic-cargo-clippy-trigger-fix 'on-compile)
        (rustic-cargo-use-last-stored-arguments t)
-       (rustic-lsp-client 'eglot)
+       ;; (rustic-lsp-client 'eglot)
        (rustic-format-on-save t))
    #+end_src
+
+   #+begin_src emacs-lisp :tangle no
+     (use-package rust-mode
+       :ensure t
+       :mode ("\\.rs\\'" . rust-mode))
+
+     (defun binarin/rust-mode-hook ()
+       (add-hook 'eldoc-documentation-functions 'flymake-eldoc-function -100 t)
+       (setq-local eldoc-documentation-strategy #'eldoc-documentation-compose)
+       (eglot-ensure)
+       (add-hook 'before-save-hook 'eglot-format-buffer nil t))
+
+     (add-hook 'rust-mode-hook 'binarin/rust-mode-hook)
+   #+end_src
+
 * Major modes
+** AUCTeX
+   #+begin_src emacs-lisp :tangle yes
+     (use-package auctex
+       :ensure t
+       :defer t
+       :config
+       ;; (setq TeX-auto-save t
+       ;;       TeX-parse-self t)
+       )
+   #+end_src
 ** pdf-tools
    #+begin_src emacs-lisp :tangle yes
      (use-package pdf-tools
