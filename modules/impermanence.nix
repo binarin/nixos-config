@@ -259,7 +259,7 @@
           (lib.mkIf config.virtualisation.docker.enable {
             assertions = [
               {
-                assertion = config.fileSystems ? "/var/lib/docker";
+                assertion = (config.fileSystems ? "/var/lib/docker") || (lib.any (de: de.directory == "/var/lib/docker") config.environment.persistence."/persist".directories);
                 message = "Docker's /var/lib/docker should be persisted, either by impermanence or explicitely separately mounted";
               }
             ];
@@ -268,7 +268,7 @@
           (lib.mkIf config.virtualisation.libvirtd.enable {
             assertions = [
               {
-                assertion = config.fileSystems ? "/var/lib/libvirt";
+                assertion = (config.fileSystems ? "/var/lib/libvirt") || (lib.any (de: de.directory == "/var/lib/libvirt") config.environment.persistence."/persist".directories);
                 message = "/var/lib/libvirt should be persisted, either by impermanence or explicitely separately mounted";
               }
             ];
