@@ -2276,6 +2276,11 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
      (add-hook 'delete-frame-functions 'binarin/org-capture-kill-on-delete-frame)
    #+end_src
 * Test space
+** [[https://sr.ht/~niklaseklund/detached.el/][detached.el: An Emacs package to launch, and manage, detached processes]]
+   :PROPERTIES:
+   :ID:       973d5ad6-b736-4d32-90b6-dbebe839baa6
+   :CREATED:  [2026-01-07 Wed 18:06]
+   :END:
 ** [[https://github.com/minad/cape][minad/cape: 🦸cape.el - Completion At Point Extensions]]
  :PROPERTIES:
   :ID: 1117a737-2067-4c03-874b-72e8735f3894
