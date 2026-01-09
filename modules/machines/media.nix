@@ -712,6 +712,19 @@
         };
 
         nixos-config.export-metrics.enable = true;
+
+        services.tailscale.serve.services.commafeed = {
+          serviceName = "commafeed";
+          protocol = "https";
+          target = "localhost:${builtins.toString config.services.commafeed.environment.QUARKUS_HTTP_PORT}";
+        };
+
+        services.commafeed = {
+          enable = true;
+          environment = {
+            QUARKUS_HTTP_PORT = 9090;
+          };
+        };
       };
     };
 }
