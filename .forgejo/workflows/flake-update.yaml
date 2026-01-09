@@ -13,7 +13,7 @@ jobs:
         git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
     - name: Update flake inputs
       run: nix flake update
-    - name: let autofollow chance
+    - name: give autofollow a chance to mess with flake.lock
       run: nix run .#write-flake
     - name: Set git username for commits
       run: 'git config user.name "Automatic Flake Updater" '

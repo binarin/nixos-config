@@ -95,7 +95,7 @@ let
               run = "nix flake update";
             }
             {
-              name = "let autofollow chance";
+              name = "give autofollow a chance to mess with flake.lock";
               run = "nix run .#write-flake";
             }
             {
