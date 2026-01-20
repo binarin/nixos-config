@@ -1184,6 +1184,12 @@
      (defvar binarin/after-compilation-commands (make-hash-table :test 'equal))
      (defvar binarin/project-bazel-target (make-hash-table :test 'equal))
 
+     ;; skip anything less than error
+     ;; XXX What I really want is to skip warnings only when there are errors
+     (setf compilation-skip-threshold 2
+           compilation-scroll-output nil ;; 'first-error
+           )
+
      (add-to-list
       'display-buffer-alist
       `(,(rx (or "*compilation*" (seq "*project-vterm:" (1+ anychar) "*")))
@@ -1439,7 +1445,16 @@
        :config
        ;; (add-hook 'eglot-managed-mode-hook (lambda () (flymake-mode -1)))
        (add-hook 'rustic-mode 'rustic-doc-mode)
-       :custom
+       (setf rustic-compilation-panic
+             (cons (rx (: "thread '" (+ (not "'")) "'" (+? not-newline) " panicked at ")
+                       (group (+ not-newline))
+                       ":"
+                       (group (+ (any digit)))
+                       ":"
+                       (group (+ (any digit)))
+                       ":")
+                   '(1 2 3)))
+     :custom
        (rustic-cargo-clippy-trigger-fix 'on-compile)
        (rustic-cargo-use-last-stored-arguments t)
        ;; (rustic-lsp-client 'eglot)
