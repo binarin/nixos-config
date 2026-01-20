@@ -33,6 +33,7 @@
         pciutils
         apg
         net-tools # netstat
+        dysk
       ];
 
       programs.bat.enable = true;
