@@ -55,6 +55,10 @@
       services.logind.settings.Login.HandlePowerKey = "ignore";
       services.logind.settings.Login.HandlePowerKeyLongPress = "suspend";
 
+      boot.kernelParams = [
+        "i915.enable_psr=0"
+      ];
+
       fileSystems."/persist".neededForBoot = true;
       fileSystems."/local".neededForBoot = true;
 
