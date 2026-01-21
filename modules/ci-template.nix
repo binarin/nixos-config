@@ -10,7 +10,7 @@ let
     [
       (
         {
-          uses = ''actions/checkout@v4'';
+          uses = "actions/checkout@v4";
         }
         // lib.optionalAttrs (ref != null) {
           "with".ref = ref;
@@ -143,7 +143,7 @@ let
           ++ [
             {
               name = "Push to flake-bump branch";
-              run = ''git push --force origin master:flake-bump'';
+              run = "git push --force origin master:flake-bump";
             }
             {
               name = "API auth";

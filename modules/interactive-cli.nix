@@ -134,7 +134,7 @@
 
           programs.zsh = {
             shellAliases = {
-              o = ''xdg-open'';
+              o = "xdg-open";
             };
             dirHashes = {
               docs = config.xdg.userDirs.documents;

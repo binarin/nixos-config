@@ -71,7 +71,7 @@
 
             userChrome = (config.lib.self.read "firefox-userChrome.css");
 
-            userContent = '''';
+            userContent = "";
 
             settings = {
               "browser.aboutConfig.showWarning" = false;
