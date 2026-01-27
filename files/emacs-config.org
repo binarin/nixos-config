@@ -991,6 +991,10 @@
    #+end_src
 
    #+begin_src emacs-lisp :tangle yes
+     (use-package dap-mode
+       :ensure t
+       :defer t)
+
      (use-package lsp-mode
        :ensure t
        :init
