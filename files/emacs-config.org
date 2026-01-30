@@ -852,7 +852,9 @@
    #+begin_src emacs-lisp :tangle yes
      (use-package eat
        :ensure t
-       :commands (eat eat-project eat-eshell-mode))
+       :commands (eat eat-eshell-mode)
+       :bind
+       (("<f21>" . eat-project)))
 
      (use-package eshell
        :commands (eshell)
@@ -1446,6 +1448,10 @@
      (use-package rustic
        :ensure t
        :mode ("\\.rs\\'" . rustic-mode)
+       :bind
+       (:map rustic-mode-map
+             ("<f16>" . rustic-cargo-run)
+             ("<f17>" . rustic-cargo-test))
        :config
        ;; (add-hook 'eglot-managed-mode-hook (lambda () (flymake-mode -1)))
        (add-hook 'rustic-mode 'rustic-doc-mode)
@@ -1520,8 +1526,13 @@
                 org-clock-auto-clockout-timer)
        :mode ("\\.org\\'" . org-mode)
        :bind
-       (("C-c a" . org-agenda)
-        ("C-c r" . org-capture))
+       (
+        ("C-c a" . org-agenda)
+        ("C-c r" . org-capture)
+        :map org-mode-map
+        ("<Open>" . org-edit-special)
+        :map org-src-mode-map
+        ("<Open>" . org-edit-src-exit))
        :config
        (setq org-archive-location "archive.org::* From %s")
        (define-key org-mode-map
