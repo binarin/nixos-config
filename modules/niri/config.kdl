@@ -15,7 +15,7 @@ input {
     xkb {
       layout "us,ru"
       variant ",winkeys"
-      options "ctrl:nocaps,altwin:super_win,grp:sclk_toggle"
+      options "ctrl:nocaps,altwin:super_win,grp:sclk_toggle,fkeys:basic_13-24"
 
       // If this section is empty, niri will fetch xkb settings
       // from org.freedesktop.locale1. You can control these using
