@@ -57,6 +57,14 @@
           };
         };
 
+      lilypond-mode-builder =
+        { trivialBuild }:
+        trivialBuild {
+          pname = "lilypond-mode";
+          version = pkgs.lilypond.version;
+          src = "${pkgs.lilypond}/share/emacs/site-lisp";
+        };
+
       finalEmacsPackage =
         (pkgs.emacsWithPackagesFromUsePackage {
           override =
@@ -64,6 +72,7 @@
             epkgs
             // {
               kbd-mode = kbd-mode-builder { inherit (epkgs) trivialBuild; };
+              lilypond-mode = lilypond-mode-builder { inherit (epkgs) trivialBuild; };
             };
           extraEmacsPackages =
             epkgs: with epkgs; [

@@ -1498,6 +1498,12 @@
 
      (pdf-loader-install)
    #+end_src
+** lilypond
+   #+begin_src emacs-lisp :tangle yes
+     (use-package lilypond-mode
+       :ensure t
+       :mode ("\\.ly\\'" . LilyPond-mode))
+   #+end_src
 * Org mode
 ** Load modules
    #+BEGIN_SRC emacs-lisp :tangle yes
