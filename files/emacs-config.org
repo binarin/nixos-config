@@ -1197,6 +1197,9 @@
            compilation-scroll-output nil ;; 'first-error
            compilation-ask-about-save nil)
 
+     (bind-key "<Forward>" 'next-error)
+     (bind-key "<Back>" 'previous-error)
+
      (defun binarin/toggle-compilation-warning-recognition ()
        (interactive)
        (setf compilation-skip-threshold
