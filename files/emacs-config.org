@@ -1197,6 +1197,16 @@
            compilation-scroll-output nil ;; 'first-error
            compilation-ask-about-save nil)
 
+     (defun binarin/toggle-compilation-warning-recognition ()
+       (interactive)
+       (setf compilation-skip-threshold
+             (if (eql compilation-skip-threshold 0)
+                 (progn
+                   (message "`next-error` will ignore warnings")
+                   2)
+               (message "`next-error` will recognize warnings")
+               0)))
+
      (add-to-list
       'display-buffer-alist
       `(,(rx (or "*compilation*" (seq "*project-vterm:" (1+ anychar) "*")))
@@ -1465,7 +1475,7 @@
                        (group (+ (any digit)))
                        ":")
                    '(1 2 3)))
-     :custom
+       :custom
        (rustic-cargo-clippy-trigger-fix 'on-compile)
        (rustic-cargo-use-last-stored-arguments t)
        ;; (rustic-lsp-client 'eglot)
