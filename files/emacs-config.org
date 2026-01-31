@@ -1002,6 +1002,7 @@
        :init
        (setq lsp-keymap-prefix "C-c l")
        :bind (:map lsp-mode-map
+                   ("<f22>" . lsp-execute-code-action)
                    ("C-c l d" . lsp-rust-analyzer-open-external-docs))
        :commands (lsp lsp-deferred)
        :config
