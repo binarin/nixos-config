@@ -11,7 +11,7 @@
   };
 
   flake.nixosModules.furfur-configuration =
-    { config, lib, ... }:
+    { pkgs, config, lib, ... }:
     {
       key = "nixos-config.modules.nixos.furfur-configuration";
 
@@ -41,6 +41,9 @@
       services.avahi.enable = true;
       nixos-config.export-metrics.enable = false;
       home-manager.users.binarin = self.homeModules.furfur-binarin;
+      environment.systemPackages = with pkgs; [
+        zoom-us
+      ];
 
       system.stateVersion = "25.11";
       hardware.microsoft-surface.kernelVersion = "stable";
@@ -57,6 +60,11 @@
 
       boot.kernelParams = [
         "i915.enable_psr=0"
+      ];
+
+      boot.blacklistedKernelModules = [
+        "intel_ipu6"
+        "intel_ipu6_isys"
       ];
 
       fileSystems."/persist".neededForBoot = true;
