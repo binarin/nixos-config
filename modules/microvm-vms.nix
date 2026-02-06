@@ -18,7 +18,7 @@
             ip,
             macAddress,
             workspace,
-            cid ? 2,
+            cid ? 3, # 2 is reserved
             extraPackages ? [ ],
             extraConfig ? { },
           }:
