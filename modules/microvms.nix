@@ -73,6 +73,13 @@
               };
               linkConfig.RequiredForOnline = false;
             };
+
+            # Attach VM tap interfaces to bridge
+            networks."20-vm-tap" = {
+              matchConfig.Name = "vm-*";
+              networkConfig.Bridge = config.nixos-config.microvms.bridgeName;
+              linkConfig.RequiredForOnline = false;
+            };
           };
 
           # NAT setup
