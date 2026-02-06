@@ -81,6 +81,14 @@
 
                     # Writable Nix store overlay
                     boot.initrd.availableKernelModules = [ "overlay" ];
+
+                    # Explicit filesystem entry for virtiofs ro-store
+                    fileSystems."/nix/.ro-store" = {
+                      fsType = "virtiofs";
+                      device = "ro-store";
+                      neededForBoot = true;
+                    };
+
                     fileSystems."/nix/.rw-store" = {
                       fsType = "tmpfs";
                       options = [ "mode=0755" ];
