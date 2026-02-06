@@ -11,7 +11,12 @@
   };
 
   flake.nixosModules.furfur-configuration =
-    { pkgs, config, lib, ... }:
+    {
+      pkgs,
+      config,
+      lib,
+      ...
+    }:
     {
       key = "nixos-config.modules.nixos.furfur-configuration";
 

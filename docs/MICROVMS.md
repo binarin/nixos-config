@@ -48,6 +48,7 @@ sudo scripts/create-microvm-workspace.sh myvm
 ```
 
 This creates:
+
 - `/persist/home/binarin/workspaces/myvm/` - workspace directory
 - `/persist/home/binarin/workspaces/myvm/ssh-host-keys/` - SSH keys directory
 - SSH host keys for the VM
@@ -176,6 +177,7 @@ sudo systemctl enable microvm@myvm
 ### VM won't start
 
 Check the journal for errors:
+
 ```bash
 sudo journalctl -u microvm@myvm -n 100
 ```
