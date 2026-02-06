@@ -168,7 +168,7 @@
 
         config = lib.mkIf cfg.enable {
           # Example VM: claudevm
-          microvm.vms.claudevm = mkMicroVM {
+          microvm.vms.claudevm = (mkMicroVM {
             name = "claudevm";
             ip = "${cfg.subnet}.2";
             macAddress = "02:00:00:00:00:02";
@@ -177,6 +177,8 @@
               nodejs
               python3
             ];
+          }) // {
+            autostart = false;
           };
         };
       };
