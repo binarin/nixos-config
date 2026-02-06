@@ -18,6 +18,7 @@
             ip,
             macAddress,
             workspace,
+            cid ? 2,
             extraPackages ? [ ],
             extraConfig ? { },
           }:
@@ -38,6 +39,9 @@
                   {
                     # Use cloud-hypervisor
                     microvm.hypervisor = "cloud-hypervisor";
+
+                    # Enable vsock for systemd-notify
+                    microvm.vsock.cid = cid;
 
                     # Resource allocation
                     microvm.vcpu = 8;
