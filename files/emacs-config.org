@@ -970,6 +970,7 @@
               ;; ("C-c i r" . eglot-rename)
               ;; ("C-c i x" . eglot-reconnect)
               ("C-c i a" . eglot-code-actions)
+              ("<f22>" . eglot-code-actions)
               ("C-c i m" . eglot-menu)
               ("C-c i f" . eglot-format-buffer)
               ;; ("C-c i h" . eglot-inlay-hints-mode)
@@ -1499,6 +1500,49 @@
      (add-hook 'rust-mode-hook 'binarin/rust-mode-hook)
    #+end_src
 
+** Go
+   #+begin_src emacs-lisp :tangle yes
+     (use-package dape
+       :ensure t
+       :defer t
+       :config
+       (add-hook 'dape-display-source-hook 'pulse-momentary-highlight-one-line)
+
+       ;; To not display info and/or buffers on startup
+       ;; (remove-hook 'dape-start-hook 'dape-info)
+       (remove-hook 'dape-start-hook 'dape-repl))
+
+     (defun binarin/go-mode-hook ()
+       (add-hook 'before-save-hook 'gofmt-before-save nil t))
+
+     (use-package go-mode
+       :ensure t
+       :mode "\\.go\\'"
+       :hook (go-mode . binarin/go-mode-hook)
+       :bind (:map go-mode-map
+                   ("<f16>" . go-run))
+       :config
+       (setf gofmt-command "goimports"))
+
+
+     (defun binarin/go-tests ()
+       (interactive)
+       (save-some-buffers t nil)
+       (go-test-current-file))
+
+     (use-package gotest
+       :ensure t
+       :after go-mode
+       :commands (go-test-current-file)
+       :bind (:map go-mode-map
+                   ("C-c t f" . binarin/go-tests)
+                   ("<f17>" . binarin/go-tests)
+                   ("C-c t t" . go-test-current-test)
+                   ("C-c t j" . go-test-current-project)
+                   ("C-c t b" . go-test-current-benchmark)
+                   ("C-c t c" . go-test-current-coverage)
+                   ("C-c t x" . go-run)))
+   #+end_src
 * Major modes
 ** AUCTeX
    #+begin_src emacs-lisp :tangle yes

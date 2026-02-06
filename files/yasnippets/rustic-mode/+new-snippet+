@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: rust unit-tests
+# key: tst
+# --
+#[cfg(test)]
+mod tests {
+    use assertables::*;
+    use pretty_assertions::*;
+
+    #[test]
+    fn $0() {
+    }
+}
