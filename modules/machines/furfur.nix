@@ -40,9 +40,6 @@
         self.nixosModules.binarin-podman
         self.nixosModules.binarin-nix-dev
 
-        self.nixosModules.microvms
-        self.nixosModules.microvm-vms
-
         "${self}/machines/furfur/hardware-configuration.nix"
       ];
 
@@ -52,12 +49,6 @@
       environment.systemPackages = with pkgs; [
         zoom-us
       ];
-
-      # Enable MicroVM setup for coding agents
-      nixos-config.microvms = {
-        enable = true;
-        hostInterface = "wlp0s20f3"; # WiFi interface - adjust if needed
-      };
 
       system.stateVersion = "25.11";
       hardware.microsoft-surface.kernelVersion = "stable";
