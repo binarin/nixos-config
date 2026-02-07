@@ -108,7 +108,12 @@
       url = "github:vic/import-tree";
     };
     microvm = {
-      url = "github:astro/microvm.nix";
+      inputs = {
+        nixpkgs = {
+          follows = "nixpkgs";
+        };
+      };
+      url = "github:microvm-nix/microvm.nix";
     };
     nix-ai-tools = {
       inputs = {

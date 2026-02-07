@@ -40,6 +40,8 @@
         self.nixosModules.binarin-podman
         self.nixosModules.binarin-nix-dev
 
+        self.nixosModules.use-microvms
+
         "${self}/machines/furfur/hardware-configuration.nix"
       ];
 
