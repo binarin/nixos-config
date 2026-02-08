@@ -927,6 +927,13 @@
      (which-key-mode +1)
    #+end_src
 * Programming
+** Code formatting
+   #+begin_src emacs-lisp :tangle yes
+     (use-package reformatter
+       :ensure t)
+
+
+   #+end_src
 ** Snippets
    #+begin_src emacs-lisp :tangle yes
      (use-package yasnippet
@@ -1062,9 +1069,18 @@
 
 ** Nix
    #+BEGIN_SRC emacs-lisp :tangle yes
+     (defgroup nixfmt nil ""
+       :group 'languages)
+
+     (with-no-warnings
+       (reformatter-define nixfmt
+         :program "nixfmt"
+         :group 'nixfmt))
+
      (use-package nix-mode
        :ensure t
-       :mode "\\.nix\\'")
+       :mode "\\.nix\\'"
+       :hook (nix-mode . nixfmt-on-save-mode))
    #+END_SRC
 ** Share source position
    #+BEGIN_SRC emacs-lisp :tangle yes

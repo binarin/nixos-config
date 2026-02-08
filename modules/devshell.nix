@@ -8,6 +8,7 @@
         packages = with pkgs; [
           just
           nixd
+          nixfmt
           dnscontrol
           (terraform_1.withPlugins (p: with p; [ dmacvicar_libvirt ]))
           cloud-init
