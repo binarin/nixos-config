@@ -6,7 +6,7 @@
   flake.homeModules.ai-tools =
     { pkgs, config, ... }:
     {
-      key = "nixos-config.modules.home.claude-code";
+      key = "nixos-config.modules.home.ai-tools";
       imports = [
         self.homeModules.impermanence
       ];

@@ -4,7 +4,7 @@
   flake-file.inputs.srvos.inputs.nixpkgs.follows = "nixpkgs";
 
   flake.nixosModules.srvos-bits = {
-    key = "nixos-config.module.nixos.srvos-bits";
+    key = "nixos-config.modules.nixos.srvos-bits";
     imports = [
       "${inputs.srvos}/nixos/common/networking.nix"
       "${inputs.srvos}/nixos/common/nix.nix"

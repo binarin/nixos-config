@@ -9,6 +9,7 @@
       ...
     }:
     {
+      key = "nixos-config.modules.nixos.binarin-nix-dev";
       environment.systemPackages = with pkgs; [
         nix-search-tv
       ];
@@ -32,6 +33,7 @@
       ...
     }:
     {
+      key = "nixos-config.modules.home.binarin-nix-dev";
       imports = [
         inputs.direnv-instant.homeModules.direnv-instant
       ];
