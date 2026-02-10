@@ -44,6 +44,20 @@ in
           };
         };
 
+        services.squid = {
+          enable = true;
+          proxyAddress = "192.168.83.1";
+          extraConfig = ''
+            acl microvm src 192.168.83.0/24
+            cache deny all
+            cache_dir null /tmp
+            http_access allow microvm
+            http_access deny all
+          '';
+        };
+
+        networking.firewall.interfaces.microvm.allowedTCPPorts = [ 3128 ];
+
         microvm.vms = {
           microvm-nixos-config = {
             autostart = false;
@@ -90,9 +104,13 @@ in
           microvm.hypervisor = "cloud-hypervisor";
           nixos-config.export-metrics.enable = false;
           system.stateVersion = "25.11";
+          networking.proxy.default = "http://192.168.83.1:3128";
+          nix.extraOptions = ''
+            build-dir = /nix/build
+          '';
           microvm = {
             vcpu = 8;
-            mem = 4096;
+            mem = 8192;
             vsock.cid = 3;
             interfaces = [
               {
@@ -117,12 +135,36 @@ in
               }
               {
                 proto = "virtiofs";
+                tag = "claude-credentials";
+                source = "${workspace}/${config.networking.hostName}/claude-credentials";
+                mountPoint = "/home/binarin/.claude";
+              }
+              {
+                proto = "virtiofs";
+                tag = "nix-store";
+                source = "${workspace}/${config.networking.hostName}/nix-store";
+                mountPoint = "/nix/.rw-store";
+              }
+              {
+                proto = "virtiofs";
+                tag = "nix-build";
+                source = "${workspace}/${config.networking.hostName}/nix-build";
+                mountPoint = "/nix/build";
+              }
+              {
+                proto = "virtiofs";
                 tag = "workspace";
                 source = "/persist/home/binarin/personal-workspace/microvm-workspace/nixos-config";
                 mountPoint = "/home/binarin/personal-workspace/microvm-workspace/nixos-config";
               }
             ];
           };
+          services.openssh.hostKeys = [
+            {
+              path = "/etc/ssh/host-keys/ssh_host_ed25519_key";
+              type = "ed25519";
+            }
+          ];
           services.resolved.enable = true;
           networking.useDHCP = false;
           networking.useNetworkd = true;
@@ -144,9 +186,7 @@ in
               unitConfig.DefaultDependencies = false;
             }
           ];
-
         }
       ];
     };
-
 }
