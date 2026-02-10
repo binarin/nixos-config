@@ -178,3 +178,8 @@ em:
     for file in {early-,}init.el{,c} ; do
       ln -sf $cfg/$file ~/.config/emacs/$file
     done
+
+# Check if arion docker images have newer versions available
+[group('dev')]
+check-arion-images:
+    nix shell nixpkgs#jq nixpkgs#curl -c ./scripts/check-arion-images.sh
