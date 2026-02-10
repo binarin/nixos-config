@@ -388,7 +388,7 @@
           serviceName = "qbittorrent-docker-compose";
           settings.services.qbittorrent = {
             service = {
-              image = "lscr.io/linuxserver/qbittorrent:latest";
+              image = "lscr.io/linuxserver/qbittorrent:5.1.4-r2-ls440";
               container_name = "qbittorrent";
               environment = {
                 # So I can move files directly to jellyfin folders using qbittorent itself
