@@ -88,7 +88,7 @@ in
               # Main Karakeep service
               karakeep = {
                 service = {
-                  image = "ghcr.io/karakeep-app/karakeep:0.29.1";
+                  image = "ghcr.io/karakeep-app/karakeep:0.30.0";
                   container_name = "karakeep";
                   restart = "unless-stopped";
                   ports = [ "3000:3000" ];

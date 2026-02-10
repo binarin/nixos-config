@@ -47,7 +47,7 @@
                   config.sops.templates."linkwarden-database-url-env".path
                 ];
                 restart = "unless-stopped";
-                image = "ghcr.io/linkwarden/linkwarden:v2.13.1";
+                image = "ghcr.io/linkwarden/linkwarden:v2.13.5";
                 ports = [ "3000:3000" ];
                 volumes = [
                   "/var/lib/linkwarden/linkwarden-data:/data/data"

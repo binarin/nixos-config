@@ -277,7 +277,7 @@
                 service = {
                   container_name = "tubearchivist";
                   restart = "unless-stopped";
-                  image = "bbilly1/tubearchivist:v0.5.8";
+                  image = "bbilly1/tubearchivist:v0.5.9";
                   ports = [ "8001:8000" ];
                   volumes = [
                     "/media/tubearchivist:/youtube"
@@ -323,7 +323,7 @@
 
               archivist-es = {
                 service = {
-                  image = "bbilly1/tubearchivist-es";
+                  image = "bbilly1/tubearchivist-es:8.19.0";
                   container_name = "archivist-es";
                   restart = "unless-stopped";
                   env_file = [ config.sops.templates.tubearchivist-elastic-env.path ];
@@ -346,7 +346,7 @@
               };
               archivist-redis = {
                 service = {
-                  image = "redis";
+                  image = "redis:8.4.0";
                   container_name = "archivist-redis";
                   restart = "unless-stopped";
                   environment = {
@@ -583,7 +583,7 @@
             };
             web_recipes.service = {
               restart = "unless-stopped";
-              image = "vabene1111/recipes:2.3.6";
+              image = "vabene1111/recipes:2.5.0";
               ports = [
                 "8081:80"
               ];

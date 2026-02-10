@@ -105,7 +105,7 @@
                 service = {
                   container_name = "BrickTracker";
                   restart = "unless-stopped";
-                  image = "gitea.baerentsen.space/frederikbaerentsen/bricktracker:1.2.1";
+                  image = "gitea.baerentsen.space/frederikbaerentsen/bricktracker:1.3.1";
                   ports = [ "3333:3333" ];
                   volumes = [
                     "/persist/BrickTracker/data:/data/"
