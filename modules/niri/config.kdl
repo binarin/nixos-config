@@ -10,6 +10,7 @@
 // include "layout-binds.kdl" XXX
 
 input {
+  disable-power-key-handling
   keyboard {
     track-layout "window"
     xkb {

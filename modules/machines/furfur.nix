@@ -61,9 +61,17 @@
         "/dev/input/by-path/platform-MSHW0263:00-event-kbd"
       ];
 
-      # Buggy, it get's another short press immediately after wake-up if woken up with the same key.
-      services.logind.settings.Login.HandlePowerKey = "ignore";
-      services.logind.settings.Login.HandlePowerKeyLongPress = "suspend";
+      services.logind.settings.Login = {
+        HandlePowerKey = "suspend";
+        HandlePowerKeyLongPress = "poweroff";
+
+        HandleLidSwitch = "suspend";
+        HandleLidSwitchExternalPower = "ignore";
+        HandleLidSwitchDocked = "ignore";
+
+        IdleAction = "ignore";
+        IdleActionSec = "150";
+      };
 
       boot.kernelParams = [
         "i915.enable_psr=0"

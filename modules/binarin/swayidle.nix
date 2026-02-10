@@ -83,9 +83,9 @@
 
           # Helper to create a wrapper script that runs a command only on AC power
           onAcPower =
-            command:
+            name: command:
             pkgs.writeShellApplication {
-              name = "on-ac-power";
+              name = "on-ac-power-${name}";
               runtimeInputs = [ pkgs.systemd ];
               text = ''
                 # systemd-ac-power exits with 0 if on AC power, non-zero if on battery
@@ -97,9 +97,9 @@
 
           # Helper to create a wrapper script that runs a command only on battery power
           onBatteryPower =
-            command:
+            name: command:
             pkgs.writeShellApplication {
-              name = "on-battery-power";
+              name = "on-battery-power-${name}";
               runtimeInputs = [ pkgs.systemd ];
               text = ''
                 # systemd-ac-power exits with 0 if on AC power, non-zero if on battery
@@ -110,16 +110,16 @@
             };
 
           # Wrapped commands for brightness control
-          dimBrightnessAc = onAcPower "${lib.getExe pkgs.brightnessctl} -s s 10%";
-          dimBrightnessBattery = onBatteryPower "${lib.getExe pkgs.brightnessctl} -s s 10%";
+          dimBrightnessAc = onAcPower "br-10" "${lib.getExe pkgs.brightnessctl} -s s 10%";
+          dimBrightnessBattery = onBatteryPower "br-10" "${lib.getExe pkgs.brightnessctl} -s s 10%";
 
           # Wrapped commands for lock
-          lockAc = onAcPower "${lib.getExe' pkgs.systemd "loginctl"} lock-session";
-          lockBattery = onBatteryPower "${lib.getExe' pkgs.systemd "loginctl"} lock-session";
+          lockAc = onAcPower "lock-session" "${lib.getExe' pkgs.systemd "loginctl"} lock-session";
+          lockBattery = onBatteryPower "lock-session" "${lib.getExe' pkgs.systemd "loginctl"} lock-session";
 
           # Wrapped commands for post-lock actions
-          postLockAc = onAcPower "${lib.getExe pkgs.niri} msg action power-off-monitors";
-          postLockBattery = onBatteryPower "${lib.getExe' pkgs.systemd "systemctl"} suspend";
+          postLockAc = onAcPower "niri-dpms-off" "${lib.getExe pkgs.niri} msg action power-off-monitors";
+          postLockBattery = onBatteryPower "suspend" "${lib.getExe' pkgs.systemd "systemctl"} suspend";
         in
         {
 
@@ -128,6 +128,10 @@
 
           services.swayidle = {
             enable = true;
+            extraArgs = [
+              "-w"
+              "-d"
+            ];
             events = [
               {
                 event = "before-sleep";
