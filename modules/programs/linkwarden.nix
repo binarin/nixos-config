@@ -1,4 +1,7 @@
 { ... }:
+let
+  linkwardenTags = builtins.fromJSON (builtins.readFile ./linkwarden.json);
+in
 {
   flake.nixosModules.linkwarden =
     { config, ... }:
@@ -32,7 +35,7 @@
           settings = {
             services = {
               postgres.service = {
-                image = "postgres:16-alpine";
+                image = "postgres:${linkwardenTags.postgres}";
                 env_file = [
                   config.sops.templates."linkwarden-env".path
                 ];
@@ -47,7 +50,7 @@
                   config.sops.templates."linkwarden-database-url-env".path
                 ];
                 restart = "unless-stopped";
-                image = "ghcr.io/linkwarden/linkwarden:v2.13.5";
+                image = "ghcr.io/linkwarden/linkwarden:${linkwardenTags.linkwarden}";
                 ports = [ "3000:3000" ];
                 volumes = [
                   "/var/lib/linkwarden/linkwarden-data:/data/data"
@@ -58,7 +61,7 @@
                 ];
               };
               meilisearch.service = {
-                image = "getmeili/meilisearch:v1.12.8";
+                image = "getmeili/meilisearch:${linkwardenTags.meilisearch}";
                 restart = "unless-stopped";
                 env_file = [
                   config.sops.templates."linkwarden-env".path

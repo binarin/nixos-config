@@ -9,7 +9,7 @@ in
   };
 
   flake.nixosModules.use-microvms =
-    { pkgs, config, ... }:
+    { config, ... }:
     {
       key = "nixos-config.modules.nixos.use-microvms";
       imports = [

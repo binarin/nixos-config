@@ -1,0 +1,5 @@
+{
+  "postgres": "16-alpine",
+  "linkwarden": "v2.13.5",
+  "meilisearch": "v1.12.8"
+}

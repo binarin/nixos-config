@@ -1,0 +1,4 @@
+{
+  "db_recipes": "16-alpine",
+  "web_recipes": "2.5.0"
+}

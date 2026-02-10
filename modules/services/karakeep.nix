@@ -6,6 +6,7 @@
 }:
 let
   flakeConfig = config;
+  karakeepTags = builtins.fromJSON (builtins.readFile ./karakeep.json);
 in
 {
   flake.nixosModules.karakeep =
@@ -88,7 +89,7 @@ in
               # Main Karakeep service
               karakeep = {
                 service = {
-                  image = "ghcr.io/karakeep-app/karakeep:0.30.0";
+                  image = "ghcr.io/karakeep-app/karakeep:${karakeepTags.karakeep}";
                   container_name = "karakeep";
                   restart = "unless-stopped";
                   ports = [ "3000:3000" ];
@@ -108,7 +109,7 @@ in
               # Meilisearch search backend
               meilisearch = {
                 service = {
-                  image = "getmeili/meilisearch:v1.13.3";
+                  image = "getmeili/meilisearch:${karakeepTags.meilisearch}";
                   container_name = "karakeep-meilisearch";
                   restart = "unless-stopped";
                   expose = [ "7700" ];
@@ -124,7 +125,7 @@ in
               # Chrome headless browser for page capture
               chrome = {
                 service = {
-                  image = "gcr.io/zenika-hub/alpine-chrome:124";
+                  image = "gcr.io/zenika-hub/alpine-chrome:${karakeepTags.chrome}";
                   container_name = "karakeep-chrome";
                   restart = "unless-stopped";
                   expose = [ "9222" ];

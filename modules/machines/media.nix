@@ -272,92 +272,96 @@
         virtualisation.arion.projects.tubearchivist = {
           serviceName = "tubearchivist-docker-compose";
           settings = {
-            services = {
-              tubearchivist = {
-                service = {
-                  container_name = "tubearchivist";
-                  restart = "unless-stopped";
-                  image = "bbilly1/tubearchivist:v0.5.9";
-                  ports = [ "8001:8000" ];
-                  volumes = [
-                    "/media/tubearchivist:/youtube"
-                    "/var/lib/tubearchivist/cache:/cache"
-                  ];
-                  environment = {
-                    ES_URL = "http://archivist-es:9200"; # needs protocol e.g. http and port
-                    REDIS_CON = "redis://archivist-redis:6379";
-                    HOST_UID = "1000";
-                    HOST_GID = "1000";
-                    TA_HOST = "https://ta.binarin.info";
-                    TA_AUTO_UPDATE_YTDLP = "release";
-                    TZ = "Europe/Amsterdam"; # set your time zone
-                  };
-                  env_file = [
-                    config.sops.templates.tubearchivist-elastic-env.path
-                    config.sops.templates.tubearchivist-env.path
-                  ];
-                  healthcheck = {
-                    test = [
-                      "CMD"
-                      "curl"
-                      "-f"
-                      "http://localhost:8000/health"
+            services =
+              let
+                tags = builtins.fromJSON (builtins.readFile ./tubearchivist.json);
+              in
+              {
+                tubearchivist = {
+                  service = {
+                    container_name = "tubearchivist";
+                    restart = "unless-stopped";
+                    image = "bbilly1/tubearchivist:${tags.tubearchivist}";
+                    ports = [ "8001:8000" ];
+                    volumes = [
+                      "/media/tubearchivist:/youtube"
+                      "/var/lib/tubearchivist/cache:/cache"
                     ];
-                    interval = "2m";
-                    timeout = "10s";
-                    retries = 3;
-                    start_period = "30s";
+                    environment = {
+                      ES_URL = "http://archivist-es:9200"; # needs protocol e.g. http and port
+                      REDIS_CON = "redis://archivist-redis:6379";
+                      HOST_UID = "1000";
+                      HOST_GID = "1000";
+                      TA_HOST = "https://ta.binarin.info";
+                      TA_AUTO_UPDATE_YTDLP = "release";
+                      TZ = "Europe/Amsterdam"; # set your time zone
+                    };
+                    env_file = [
+                      config.sops.templates.tubearchivist-elastic-env.path
+                      config.sops.templates.tubearchivist-env.path
+                    ];
+                    healthcheck = {
+                      test = [
+                        "CMD"
+                        "curl"
+                        "-f"
+                        "http://localhost:8000/health"
+                      ];
+                      interval = "2m";
+                      timeout = "10s";
+                      retries = 3;
+                      start_period = "30s";
+                    };
+                    depends_on = [
+                      "archivist-es"
+                      "archivist-redis"
+                    ];
                   };
-                  depends_on = [
-                    "archivist-es"
-                    "archivist-redis"
-                  ];
-                };
-                out.service.ulimits = {
-                  nofile = {
-                    soft = "4096";
-                    hard = "4096";
+                  out.service.ulimits = {
+                    nofile = {
+                      soft = "4096";
+                      hard = "4096";
+                    };
                   };
                 };
-              };
 
-              archivist-es = {
-                service = {
-                  image = "bbilly1/tubearchivist-es:8.19.0";
-                  container_name = "archivist-es";
-                  restart = "unless-stopped";
-                  env_file = [ config.sops.templates.tubearchivist-elastic-env.path ];
-                  environment = {
-                    ES_JAVA_OPTS = "-Xms1g -Xmx1g";
-                    "xpack.security.enabled" = "true";
-                    "discovery.type" = "single-node";
-                    "path.repo" = "/usr/share/elasticsearch/data/snapshot";
+                archivist-es = {
+                  service = {
+                    image = "bbilly1/tubearchivist-es:${tags.archivist-es}";
+                    container_name = "archivist-es";
+                    restart = "unless-stopped";
+                    env_file = [ config.sops.templates.tubearchivist-elastic-env.path ];
+                    environment = {
+                      ES_JAVA_OPTS = "-Xms1g -Xmx1g";
+                      "xpack.security.enabled" = "true";
+                      "discovery.type" = "single-node";
+                      "path.repo" = "/usr/share/elasticsearch/data/snapshot";
+                    };
+                    expose = [ "9200" ];
+                    volumes = [ "/var/lib/tubearchivist/es:/usr/share/elasticsearch/data" ];
                   };
-                  expose = [ "9200" ];
-                  volumes = [ "/var/lib/tubearchivist/es:/usr/share/elasticsearch/data" ];
+                  # XXX reboot bael for new limits, maybe add them to nixos config too
+                  # out.service.ulimits = {
+                  #   memlock = {
+                  #     soft = "-1";
+                  #     hard = "-1";
+                  #   };
+                  # };
                 };
-                # XXX reboot bael for new limits, maybe add them to nixos config too
-                # out.service.ulimits = {
-                #   memlock = {
-                #     soft = "-1";
-                #     hard = "-1";
-                #   };
-                # };
-              };
-              archivist-redis = {
-                service = {
-                  image = "redis:8.4.0";
-                  container_name = "archivist-redis";
-                  restart = "unless-stopped";
-                  environment = {
-                    # REDISEARCH_ARGS = "MAXSEARCHRESULTS 30000";
+                archivist-redis = {
+                  service = {
+                    image = "redis:${tags.archivist-redis}";
+                    container_name = "archivist-redis";
+                    restart = "unless-stopped";
+                    environment = {
+                      # REDISEARCH_ARGS = "MAXSEARCHRESULTS 30000";
+                    };
+                    expose = [ "6379" ];
+                    volumes = [ "/var/lib/tubearchivist/redis:/data" ];
+                    depends_on = [ "archivist-es" ];
                   };
-                  expose = [ "6379" ];
-                  volumes = [ "/var/lib/tubearchivist/redis:/data" ];
-                  depends_on = [ "archivist-es" ];
                 };
               };
-            };
           };
         };
 
@@ -386,39 +390,45 @@
 
         virtualisation.arion.projects.qbittorrent = {
           serviceName = "qbittorrent-docker-compose";
-          settings.services.qbittorrent = {
-            service = {
-              image = "lscr.io/linuxserver/qbittorrent:5.1.4-r2-ls440";
-              container_name = "qbittorrent";
-              environment = {
-                # So I can move files directly to jellyfin folders using qbittorent itself
-                # It would be more correct to only use group, but I don't want to mess with samba permissions anymore
-                PUID = config.users.users.jellyfin.uid;
-                PGID = config.users.groups.jellyfin.gid;
-                TZ = "Europe/Amsterdam";
-                UMASK = "0002";
-                WEBUI_PORT = 8080;
-                TORRENTING_PORT = 6881;
+          settings.services =
+            let
+              tags = builtins.fromJSON (builtins.readFile ./qbittorrent.json);
+            in
+            {
+              qbittorrent = {
+                service = {
+                  image = "lscr.io/linuxserver/qbittorrent:${tags.qbittorrent}";
+                  container_name = "qbittorrent";
+                  environment = {
+                    # So I can move files directly to jellyfin folders using qbittorent itself
+                    # It would be more correct to only use group, but I don't want to mess with samba permissions anymore
+                    PUID = config.users.users.jellyfin.uid;
+                    PGID = config.users.groups.jellyfin.gid;
+                    TZ = "Europe/Amsterdam";
+                    UMASK = "0002";
+                    WEBUI_PORT = 8080;
+                    TORRENTING_PORT = 6881;
+                  };
+                  volumes = [
+                    "/var/lib/qbittorrent/appdata:/config"
+                    "/media/torrents:/downloads"
+                    "/media/movies:/media/movies"
+                  ];
+                  ports = [
+                    "8080:8080"
+                    "6881:6881"
+                    "6881:6881/udp"
+                  ];
+                  restart = "unless-stopped";
+                };
+                out.service.ulimits = {
+                  nofile = {
+                    soft = "4096";
+                    hard = "4096";
+                  };
+                };
               };
-              volumes = [
-                "/var/lib/qbittorrent/appdata:/config"
-                "/media/torrents:/downloads"
-                "/media/movies:/media/movies"
-              ];
-              ports = [
-                "8080:8080"
-                "6881:6881"
-                "6881:6881/udp"
-              ];
-              restart = "unless-stopped";
             };
-            out.service.ulimits = {
-              nofile = {
-                soft = "4096";
-                hard = "4096";
-              };
-            };
-          };
         };
 
         services.caddy.virtualHosts."qbittorrent.binarin.info".extraConfig = ''
@@ -570,33 +580,37 @@
         virtualisation.arion.projects.tandoor = {
           serviceName = "tandoor-docker-compose";
           settings.docker-compose.volumes.nginx_config = { };
-          settings.services = {
-            db_recipes.service = {
-              restart = "unless-stopped";
-              image = "postgres:16-alpine";
-              volumes = [
-                "/var/lib/tandoor/postgresql:/var/lib/postgresql/data"
-              ];
-              env_file = [
-                config.sops.templates.tandoor-env.path
-              ];
+          settings.services =
+            let
+              tags = builtins.fromJSON (builtins.readFile ./tandoor.json);
+            in
+            {
+              db_recipes.service = {
+                restart = "unless-stopped";
+                image = "postgres:${tags.db_recipes}";
+                volumes = [
+                  "/var/lib/tandoor/postgresql:/var/lib/postgresql/data"
+                ];
+                env_file = [
+                  config.sops.templates.tandoor-env.path
+                ];
+              };
+              web_recipes.service = {
+                restart = "unless-stopped";
+                image = "vabene1111/recipes:${tags.web_recipes}";
+                ports = [
+                  "8081:80"
+                ];
+                env_file = [
+                  config.sops.templates.tandoor-env.path
+                ];
+                volumes = [
+                  "/var/lib/tandoor/staticfiles:/opt/recipes/staticfiles"
+                  "/var/lib/tandoor/mediafiles:/opt/recipes/mediafiles"
+                ];
+                depends_on = [ "db_recipes" ];
+              };
             };
-            web_recipes.service = {
-              restart = "unless-stopped";
-              image = "vabene1111/recipes:2.5.0";
-              ports = [
-                "8081:80"
-              ];
-              env_file = [
-                config.sops.templates.tandoor-env.path
-              ];
-              volumes = [
-                "/var/lib/tandoor/staticfiles:/opt/recipes/staticfiles"
-                "/var/lib/tandoor/mediafiles:/opt/recipes/mediafiles"
-              ];
-              depends_on = [ "db_recipes" ];
-            };
-          };
         };
 
         # homepage-dashboard configuration

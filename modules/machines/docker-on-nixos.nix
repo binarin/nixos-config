@@ -100,32 +100,36 @@
         virtualisation.arion.projects.bricktracker = {
           serviceName = "bricktracker-docker-compose";
           settings = {
-            services = {
-              bricktracker = {
-                service = {
-                  container_name = "BrickTracker";
-                  restart = "unless-stopped";
-                  image = "gitea.baerentsen.space/frederikbaerentsen/bricktracker:1.3.1";
-                  ports = [ "3333:3333" ];
-                  volumes = [
-                    "/persist/BrickTracker/data:/data/"
-                    "/persist/BrickTracker/instructions:/app/static/instructions/"
-                    "/persist/BrickTracker/minifigures:/app/static/minifigures/"
-                    "/persist/BrickTracker/parts:/app/static/parts/"
-                    "/persist/BrickTracker/sets:/app/static/sets/"
-                  ];
-                  environment = {
-                    BK_DATABASE_PATH = "/data/app.db";
-                    BK_MINIFIGURES_FOLDER = "minifigures";
-                    BK_RETIRED_SETS_PATH = "/data/retired_sets.csv";
-                    BK_THEMES_PATH = "/data/themes.csv";
+            services =
+              let
+                tags = builtins.fromJSON (builtins.readFile ./bricktracker.json);
+              in
+              {
+                bricktracker = {
+                  service = {
+                    container_name = "BrickTracker";
+                    restart = "unless-stopped";
+                    image = "gitea.baerentsen.space/frederikbaerentsen/bricktracker:${tags.bricktracker}";
+                    ports = [ "3333:3333" ];
+                    volumes = [
+                      "/persist/BrickTracker/data:/data/"
+                      "/persist/BrickTracker/instructions:/app/static/instructions/"
+                      "/persist/BrickTracker/minifigures:/app/static/minifigures/"
+                      "/persist/BrickTracker/parts:/app/static/parts/"
+                      "/persist/BrickTracker/sets:/app/static/sets/"
+                    ];
+                    environment = {
+                      BK_DATABASE_PATH = "/data/app.db";
+                      BK_MINIFIGURES_FOLDER = "minifigures";
+                      BK_RETIRED_SETS_PATH = "/data/retired_sets.csv";
+                      BK_THEMES_PATH = "/data/themes.csv";
+                    };
+                    env_file = [
+                      config.sops.templates.bricktracker-env.path
+                    ];
                   };
-                  env_file = [
-                    config.sops.templates.bricktracker-env.path
-                  ];
                 };
               };
-            };
           };
         };
 
@@ -134,31 +138,35 @@
         virtualisation.arion.projects.homebox = {
           serviceName = "home-box-docker-compose";
           settings = {
-            services = {
-              homebox = {
-                service = {
-                  image = "ghcr.io/sysadminsmedia/homebox:0.21";
-                  container_name = "homebox";
-                  restart = "unless-stopped";
-                  environment = {
-                    HBOX_LOG_LEVEL = "info";
-                    HBOX_LOG_FORMAT = "text";
-                    HBOX_WEB_MAX_FILE_UPLOAD = "10";
-                    HBOX_OPTIONS_ALLOW_REGISTRATION = "false";
-                    HBOX_MODE = "production";
-                    HBOX_STORAGE_DATA = "/data";
-                    HBOX_DATABASE_DRIVER = "sqlite3";
-                    HBOX_STORAGE_SQLITE_PATH = "/data/homebox.db?_pragma=busy_timeout=999&_pragma=journal_mode=WAL&_fk=1";
+            services =
+              let
+                tags = builtins.fromJSON (builtins.readFile ./homebox.json);
+              in
+              {
+                homebox = {
+                  service = {
+                    image = "ghcr.io/sysadminsmedia/homebox:${tags.homebox}";
+                    container_name = "homebox";
+                    restart = "unless-stopped";
+                    environment = {
+                      HBOX_LOG_LEVEL = "info";
+                      HBOX_LOG_FORMAT = "text";
+                      HBOX_WEB_MAX_FILE_UPLOAD = "10";
+                      HBOX_OPTIONS_ALLOW_REGISTRATION = "false";
+                      HBOX_MODE = "production";
+                      HBOX_STORAGE_DATA = "/data";
+                      HBOX_DATABASE_DRIVER = "sqlite3";
+                      HBOX_STORAGE_SQLITE_PATH = "/data/homebox.db?_pragma=busy_timeout=999&_pragma=journal_mode=WAL&_fk=1";
+                    };
+                    volumes = [
+                      "/persist/homebox/data:/data/"
+                    ];
+                    ports = [
+                      "7745:7745"
+                    ];
                   };
-                  volumes = [
-                    "/persist/homebox/data:/data/"
-                  ];
-                  ports = [
-                    "7745:7745"
-                  ];
                 };
               };
-            };
           };
         };
         nixos-config.export-metrics.enable = true;

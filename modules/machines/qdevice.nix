@@ -138,16 +138,22 @@
 
         virtualisation.arion.projects.vlmcsd = {
           serviceName = "vlmcsd-docker-compose";
-          settings.services.vlmcsd = {
-            service = {
-              image = "mikolatero/vlmcsd";
-              container_name = "vlmcsd";
-              ports = [
-                "1688:1688"
-              ];
-              restart = "unless-stopped";
+          settings.services =
+            let
+              tags = builtins.fromJSON (builtins.readFile ./vlmcsd.json);
+            in
+            {
+              vlmcsd = {
+                service = {
+                  image = "mikolatero/vlmcsd:${tags.vlmcsd}";
+                  container_name = "vlmcsd";
+                  ports = [
+                    "1688:1688"
+                  ];
+                  restart = "unless-stopped";
+                };
+              };
             };
-          };
         };
       };
     };

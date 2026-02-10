@@ -6,6 +6,7 @@
 }:
 let
   flakeConfig = config;
+  archiveboxTags = builtins.fromJSON (builtins.readFile ./archivebox.json);
 in
 {
   flake.nixosModules.archivebox =
@@ -77,7 +78,7 @@ in
               # Main ArchiveBox service
               archivebox = {
                 service = {
-                  image = "archivebox/archivebox:0.7.3";
+                  image = "archivebox/archivebox:${archiveboxTags.archivebox}";
                   container_name = "archivebox";
                   restart = "unless-stopped";
                   ports = [ "8000:8000" ];
@@ -95,7 +96,7 @@ in
               # Scheduler service for periodic archiving
               archivebox_scheduler = {
                 service = {
-                  image = "archivebox/archivebox:0.7.3";
+                  image = "archivebox/archivebox:${archiveboxTags.archivebox}";
                   container_name = "archivebox_scheduler";
                   restart = "unless-stopped";
                   command = [
@@ -121,7 +122,7 @@ in
               # Sonic search backend
               sonic = {
                 service = {
-                  image = "archivebox/sonic:1.4.9";
+                  image = "archivebox/sonic:${archiveboxTags.sonic}";
                   container_name = "sonic";
                   restart = "unless-stopped";
                   expose = [ "1491" ];

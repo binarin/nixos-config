@@ -3,7 +3,26 @@
 #
 # Usage: Run with: nix shell nixpkgs#jq nixpkgs#curl -c ./scripts/check-arion-images.sh
 #        Or ensure jq and curl are in PATH
+#
+# Options:
+#   --write    Write updated versions to JSON files (excludes infrastructure images)
 set -euo pipefail
+
+# Parse arguments
+WRITE_MODE=false
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --write)
+            WRITE_MODE=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [--write]"
+            exit 1
+            ;;
+    esac
+done
 
 # Infrastructure images that don't need frequent updates
 # These will be reported in a separate section
@@ -223,6 +242,40 @@ is_infra_image() {
     done
     return 1
 }
+
+# Find JSON file for a project
+find_json_file() {
+    local project="$1"
+    local json_file
+    json_file=$(find "$REPO_ROOT/modules" -name "${project}.json" -type f 2>/dev/null | head -1)
+    echo "$json_file"
+}
+
+# Update a service tag in a JSON file
+update_json_tag() {
+    local json_file="$1"
+    local service="$2"
+    local new_tag="$3"
+
+    if [[ ! -f "$json_file" ]]; then
+        echo "Warning: JSON file not found: $json_file" >&2
+        return 1
+    fi
+
+    # Update the JSON file using jq
+    local tmp_file
+    tmp_file=$(mktemp)
+    if jq --arg service "$service" --arg tag "$new_tag" '.[$service] = $tag' "$json_file" > "$tmp_file"; then
+        mv "$tmp_file" "$json_file"
+        return 0
+    else
+        rm -f "$tmp_file"
+        return 1
+    fi
+}
+
+# Associative array to collect updates for JSON files
+declare -A json_updates
 
 # Get all tags for an image
 get_tags() {
@@ -459,6 +512,8 @@ while read -r entry; do
                 else
                     regular_updates+=("${RED}UPDATE${NC} $machine/$project/$service: $image -> $gitea_latest")
                     ((updates_found++)) || true
+                    # Store for writing: project|service|new_tag
+                    json_updates["$project|$service"]="$gitea_latest"
                 fi
             fi
             continue
@@ -484,6 +539,8 @@ while read -r entry; do
                 else
                     regular_updates+=("${RED}UPDATE${NC} $machine/$project/$service: $image -> $github_latest")
                     ((updates_found++)) || true
+                    # Store for writing: project|service|new_tag
+                    json_updates["$project|$service"]="$github_latest"
                 fi
             fi
             continue
@@ -535,6 +592,8 @@ while read -r entry; do
         else
             regular_updates+=("${RED}UPDATE${NC} $machine/$project/$service: $image -> $latest")
             ((updates_found++)) || true
+            # Store for writing: project|service|new_tag
+            json_updates["$project|$service"]="$latest"
         fi
     fi
 done < <(echo "$IMAGES_JSON" | jq -c '.[]')
@@ -608,3 +667,38 @@ echo "  Infrastructure updates: $infra_updates_found"
 echo "  Unpinned (latest): $unpinned"
 echo "  Skipped: $skipped"
 echo "  Errors: $errors"
+
+# Write updates to JSON files if --write is specified
+if [[ "$WRITE_MODE" == "true" ]] && [[ ${#json_updates[@]} -gt 0 ]]; then
+    echo ""
+    echo "========================"
+    echo "Writing updates to JSON files..."
+    echo "========================"
+
+    written=0
+    write_errors=0
+
+    for key in "${!json_updates[@]}"; do
+        project="${key%%|*}"
+        service="${key#*|}"
+        new_tag="${json_updates[$key]}"
+
+        json_file=$(find_json_file "$project")
+        if [[ -z "$json_file" ]]; then
+            echo -e "${RED}ERROR${NC} No JSON file found for project: $project"
+            ((write_errors++)) || true
+            continue
+        fi
+
+        if update_json_tag "$json_file" "$service" "$new_tag"; then
+            echo -e "${GREEN}UPDATED${NC} $json_file: $service -> $new_tag"
+            ((written++)) || true
+        else
+            echo -e "${RED}ERROR${NC} Failed to update $json_file"
+            ((write_errors++)) || true
+        fi
+    done
+
+    echo ""
+    echo "Write summary: $written updated, $write_errors errors"
+fi
