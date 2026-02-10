@@ -76,16 +76,6 @@ in
       };
     };
 
-  flake.nixosConfigurations.microvm-nixos-config = inputs.nixpkgs.lib.nixosSystem {
-    system = "x86_64-linux";
-    specialArgs = {
-      inventoryHostName = "microvm-nixos-config";
-    };
-    modules = [
-      self.nixosModules.microvm-nixos-config-configuration
-    ];
-  };
-
   flake.nixosModules.microvm-nixos-config-configuration =
     { lib, config, ... }:
     {
