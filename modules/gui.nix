@@ -97,6 +97,7 @@
         texlive-combined
         pdftk
         usbutils.python
+        v4l-utils
         vlc
         vscode
         xdg-user-dirs
