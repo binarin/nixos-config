@@ -79,9 +79,9 @@
       texlive-combined = pkgs.texlive.combine { inherit (pkgs.texlive) scheme-full beamer ps2eps; };
 
       guiPackages = with pkgs; [
+        libreoffice
         openscad-unstable
         freecad
-        protonmail-bridge
         chromium
         evince
         flacon

@@ -199,7 +199,7 @@
             ssh-to-age
             sshfs
             tcpdump
-            # trezor-agent
+            trezor-agent
             unrar
             unzip
             viddy
