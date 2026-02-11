@@ -5,24 +5,48 @@
 #        Or ensure jq and curl are in PATH
 #
 # Options:
-#   --write    Write updated versions to JSON files (excludes infrastructure images)
+#   --write         Write updated versions to JSON files (excludes infrastructure images)
+#   -v|--verbose    Show verbose output
+#   --image <ref>   Check a single image without evaluating nixos config
+#   --docker-auth   Use credentials from ~/.local/share/containers/auth.json for Docker Hub
 set -euo pipefail
 
 # Parse arguments
 WRITE_MODE=false
+VERBOSE=false
+SINGLE_IMAGE=""
+USE_DOCKER_AUTH=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --write)
             WRITE_MODE=true
             shift
             ;;
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        --image)
+            SINGLE_IMAGE="$2"
+            shift 2
+            ;;
+        --docker-auth)
+            USE_DOCKER_AUTH=true
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: $0 [--write]"
+            echo "Usage: $0 [--write] [-v|--verbose] [--image <image>] [--docker-auth]"
             exit 1
             ;;
     esac
 done
+
+verbose() {
+    if [[ "$VERBOSE" == "true" ]]; then
+        echo "$@" >&2
+    fi
+}
 
 # Infrastructure images that don't need frequent updates
 # These will be reported in a separate section
@@ -61,10 +85,12 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 cd "$REPO_ROOT"
 
-echo "Extracting arion images from all nixosConfigurations..."
+# Skip nix evaluation if checking a single image
+if [[ -z "$SINGLE_IMAGE" ]]; then
+    echo "Extracting arion images from all nixosConfigurations..."
 
-# Nix expression to extract all images from arion projects
-read -r -d '' NIX_EXPR << 'EOF' || true
+    # Nix expression to extract all images from arion projects
+    read -r -d '' NIX_EXPR << 'EOF' || true
 let
   flake = builtins.getFlake (toString ./.);
   lib = flake.inputs.nixpkgs.lib;
@@ -98,12 +124,13 @@ in
 lib.flatten allImages
 EOF
 
-# Get all images as JSON
-IMAGES_JSON=$(nix eval --json --impure --expr "$NIX_EXPR" 2>/dev/null || echo "[]")
+    # Get all images as JSON
+    IMAGES_JSON=$(nix eval --json --impure --expr "$NIX_EXPR" 2>/dev/null || echo "[]")
 
-if [[ "$IMAGES_JSON" == "[]" ]]; then
-    echo "No arion images found or evaluation failed."
-    exit 0
+    if [[ "$IMAGES_JSON" == "[]" ]]; then
+        echo "No arion images found or evaluation failed."
+        exit 0
+    fi
 fi
 
 # Parse image reference into components
@@ -143,9 +170,45 @@ parse_image() {
     echo "$registry|$repo|$tag"
 }
 
+# Get credentials from containers auth.json
+get_registry_auth() {
+    local registry="$1"
+    local auth_file="${HOME}/.local/share/containers/auth.json"
+
+    if [[ ! -f "$auth_file" ]]; then
+        return
+    fi
+
+    # Try different key formats used for Docker Hub
+    local auth=""
+    case "$registry" in
+        docker.io)
+            auth=$(jq -r '.auths["docker.io"].auth // .auths["https://index.docker.io/v1/"].auth // .auths["registry-1.docker.io"].auth // empty' "$auth_file" 2>/dev/null)
+            ;;
+        *)
+            auth=$(jq -r --arg reg "$registry" '.auths[$reg].auth // empty' "$auth_file" 2>/dev/null)
+            ;;
+    esac
+
+    if [[ -n "$auth" ]]; then
+        echo "$auth" | base64 -d
+    fi
+}
+
 # Get auth token for Docker Hub
 get_dockerhub_token() {
     local repo="$1"
+
+    if [[ "$USE_DOCKER_AUTH" == "true" ]]; then
+        local creds
+        creds=$(get_registry_auth "docker.io")
+        if [[ -n "$creds" ]]; then
+            verbose "  Using Docker Hub credentials from auth.json"
+            curl -s -u "$creds" "https://auth.docker.io/token?service=registry.docker.io&scope=repository:$repo:pull" | jq -r '.token'
+            return
+        fi
+    fi
+
     curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:$repo:pull" | jq -r '.token'
 }
 
@@ -461,6 +524,66 @@ find_latest_version() {
     echo "$best_tag"
 }
 
+# Handle single image check mode
+if [[ -n "$SINGLE_IMAGE" ]]; then
+    parsed=$(parse_image "$SINGLE_IMAGE")
+    registry="${parsed%%|*}"
+    rest="${parsed#*|}"
+    repo="${rest%%|*}"
+    tag="${rest#*|}"
+
+    echo "Image: $SINGLE_IMAGE"
+    echo "Registry: $registry"
+    echo "Repository: $repo"
+    echo "Current tag: $tag"
+    echo ""
+
+    verbose "Fetching tags from $registry for $repo..."
+    tags_raw=$(get_tags "$registry" "$repo" 2>/dev/null)
+
+    if [[ -z "$tags_raw" ]]; then
+        echo -e "${RED}ERROR${NC}: Failed to fetch tags from $registry"
+        exit 1
+    fi
+
+    mapfile -t tags <<< "$tags_raw"
+    echo "Found ${#tags[@]} tags"
+
+    if [[ "$tag" == "latest" ]]; then
+        latest=$(find_latest_version "${tags[@]}")
+        if [[ -n "$latest" ]]; then
+            echo -e "Recommended pin: ${GREEN}$latest${NC}"
+        else
+            echo -e "${YELLOW}No versioned tags found${NC}"
+        fi
+    elif is_version_tag "$tag"; then
+        latest=$(find_latest_matching "$tag" "${tags[@]}")
+        if [[ "$latest" == "$tag" ]]; then
+            echo -e "${GREEN}Up to date${NC}"
+        else
+            echo -e "Latest matching: ${RED}$latest${NC}"
+        fi
+    else
+        echo -e "${YELLOW}Non-version tag, showing latest versions:${NC}"
+        latest=$(find_latest_version "${tags[@]}")
+        if [[ -n "$latest" ]]; then
+            echo "  Latest version: $latest"
+        fi
+    fi
+
+    if [[ "$VERBOSE" == "true" ]]; then
+        echo ""
+        echo "All version tags:"
+        for t in "${tags[@]}"; do
+            if is_version_tag "$t"; then
+                echo "  $t"
+            fi
+        done | sort -V | tail -20
+    fi
+
+    exit 0
+fi
+
 echo ""
 echo "Checking for updates..."
 echo ""
@@ -497,8 +620,10 @@ while read -r entry; do
 
     # Special handling for Gitea registries - try to get latest release
     if [[ "$registry" == *"gitea"* ]] || [[ "$registry" == *".baerentsen.space"* ]]; then
+        verbose "Fetching latest release from Gitea API: $registry/$repo"
         gitea_latest=$(get_gitea_latest_release "$registry" "$repo")
         if [[ -n "$gitea_latest" ]]; then
+            verbose "  Found latest release: $gitea_latest"
             # Strip leading v for comparison if present in one but not other
             current_clean="${tag#v}"
             latest_clean="${gitea_latest#v}"
@@ -524,8 +649,10 @@ while read -r entry; do
     # Special handling for LinuxServer.io images - check GitHub releases
     if [[ "$registry" == "lscr.io" ]] && [[ "$repo" == linuxserver/* ]]; then
         image_name="${repo#linuxserver/}"
+        verbose "Fetching latest release from GitHub API: linuxserver/docker-${image_name}"
         github_latest=$(get_github_latest_release "linuxserver" "docker-${image_name}")
         if [[ -n "$github_latest" ]]; then
+            verbose "  Found latest release: $github_latest"
             # Strip leading v for comparison if present in one but not other
             current_clean="${tag#v}"
             latest_clean="${github_latest#v}"
@@ -549,6 +676,7 @@ while read -r entry; do
     fi
 
     # Get available tags
+    verbose "Fetching tags from $registry for $repo..."
     tags_raw=$(get_tags "$registry" "$repo" 2>/dev/null)
     if [[ -z "$tags_raw" ]]; then
         error_messages+=("${RED}ERROR${NC} $machine/$project/$service: $image (failed to fetch tags from $registry)")
@@ -563,6 +691,7 @@ while read -r entry; do
     if [[ "$tag" == "latest" ]]; then
         latest=$(find_latest_version "${tags[@]}")
         if [[ -n "$latest" ]]; then
+            verbose "  Found latest version: $latest"
             pin_messages+=("${YELLOW}PIN${NC} $machine/$project/$service: $image -> $latest")
             ((unpinned++)) || true
         else
@@ -581,6 +710,7 @@ while read -r entry; do
 
     # Find latest matching version
     latest=$(find_latest_matching "$tag" "${tags[@]}")
+    verbose "  Found latest matching version: $latest"
 
     if [[ "$latest" == "$tag" ]]; then
         ok_messages+=("${GREEN}OK${NC} $machine/$project/$service: $image")
