@@ -79,83 +79,81 @@ let
   docker-update-yaml-data = {
     on = {
       schedule = [
-        { cron = "42 11 * * *"; }  # Daily at 11:42
+        { cron = "42 11 * * *"; } # Daily at 11:42
       ];
       workflow_dispatch = { };
     };
     jobs = {
       propose-docker-updates = {
         runs-on = "native";
-        steps =
-          (checkout-and-unlock { ref = "master"; })
-          ++ [
-            {
-              name = "Set git username for commits";
-              run = ''git config user.name "Docker Image Updater" '';
-            }
-            {
-              name = "Set git email for commits";
-              run = ''git config user.email "docker-updater@binarin.info"'';
-            }
-            {
-              name = "API auth";
-              run = ''set -x; fj -H forgejo.lynx-lizard.ts.net auth logout forgejo.lynx-lizard.ts.net || true; echo "''${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper'';
-            }
-            {
-              name = "Check for docker image updates and create PRs";
-              run = ''
-                set -euo pipefail
+        steps = (checkout-and-unlock { ref = "master"; }) ++ [
+          {
+            name = "Set git username for commits";
+            run = ''git config user.name "Docker Image Updater" '';
+          }
+          {
+            name = "Set git email for commits";
+            run = ''git config user.email "docker-updater@binarin.info"'';
+          }
+          {
+            name = "API auth";
+            run = ''set -x; fj -H forgejo.lynx-lizard.ts.net auth logout forgejo.lynx-lizard.ts.net || true; echo "''${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper'';
+          }
+          {
+            name = "Check for docker image updates and create PRs";
+            run = ''
+              set -euo pipefail
 
-                # Run the check script in write mode
-                nix run .#check-arion-images -- --write || true
+              # Run the check script in write mode
+              nix run .#check-arion-images -- --write || true
 
-                # Get list of changed JSON files
-                changed_files=$(git diff --name-only -- '*.json' || true)
+              # Get list of changed JSON files
+              changed_files=$(git diff --name-only -- '*.json' || true)
 
-                if [[ -z "$changed_files" ]]; then
-                  echo "No docker image updates found"
-                  exit 0
-                fi
+              if [[ -z "$changed_files" ]]; then
+                echo "No docker image updates found"
+                exit 0
+              fi
 
-                echo "Found updates in: $changed_files"
+              echo "Found updates in: $changed_files"
 
-                # Process each changed file
-                for json_file in $changed_files; do
-                  # Extract project name from filename (e.g., modules/machines/homebox.json -> homebox)
-                  project=$(basename "$json_file" .json)
-                  branch="docker-update-$project"
+              # Process each changed file
+              for json_file in $changed_files; do
+                # Extract project name from filename (e.g., modules/machines/homebox.json -> homebox)
+                project=$(basename "$json_file" .json)
+                branch="docker-update-$project"
 
-                  echo "Processing $project..."
+                echo "Processing $project..."
 
-                  # Stage just this file
-                  git add "$json_file"
+                # Stage just this file
+                git add "$json_file"
 
-                  # Commit
-                  git commit -m "Update docker image versions for $project"
+                # Commit
+                git commit -m "Update docker image versions for $project"
 
-                  # Push to branch (force to overwrite existing)
-                  git push --force origin "HEAD:$branch"
+                # Push to branch (force to overwrite existing)
+                git push --force origin "HEAD:$branch"
 
-                  # Create or update PR
-                  fj -H forgejo.lynx-lizard.ts.net pr create \
-                    -r binarin/nixos-config \
-                    --base master \
-                    --head "$branch" \
-                    --body "Automated docker image version bump for $project" \
-                    "Update docker images: $project" || true
+                # Create or update PR
+                fj -H forgejo.lynx-lizard.ts.net pr create \
+                  -r binarin/nixos-config \
+                  --base master \
+                  --head "$branch" \
+                  --body "Automated docker image version bump for $project" \
+                  "Update docker images: $project" || true
 
-                  # Reset back: undo the commit but keep changes staged
-                  git reset --soft HEAD~1
-                  # Unstage all changes
-                  git reset HEAD
+                # Reset back: undo the commit but keep changes staged
+                git reset --soft HEAD~1
+                # Unstage all changes
+                git reset HEAD
 
-                  echo "Created/updated PR for $project"
-                done
+                echo "Created/updated PR for $project"
+              done
 
-                echo "Done processing all updates"
-              '';
-            }
-          ];
+              echo "Done processing all updates"
+            '';
+          }
+        ];
       };
     };
   };
