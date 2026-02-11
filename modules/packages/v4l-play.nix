@@ -19,8 +19,13 @@
             exit 1
           fi
 
+          # Workaround for some hardware (like nanokvm capture card) that fails on first attempt
+          start=$SECONDS
           if ! vlc "v4l2://$device"; then
-            vlc "v4l2://$device"
+            elapsed=$((SECONDS - start))
+            if ((elapsed < 2)); then
+              vlc "v4l2://$device"
+            fi
           fi
         '';
       };
