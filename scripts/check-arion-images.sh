@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Check if arion docker images have newer versions available
 #
-# Usage: Run with: nix shell nixpkgs#jq nixpkgs#curl -c ./scripts/check-arion-images.sh
-#        Or ensure jq and curl are in PATH
+# Usage: nix run .#check-arion-images -- [options]
+#        Or run directly if jq and curl are in PATH
 #
 # Options:
 #   --write         Write updated versions to JSON files (excludes infrastructure images)

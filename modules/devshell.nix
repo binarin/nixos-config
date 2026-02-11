@@ -14,6 +14,9 @@
           cloud-init
           ansible
           ansible-lint
+          # For check-arion-images script
+          jq
+          curl
         ];
       };
     };

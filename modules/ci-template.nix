@@ -107,7 +107,7 @@ let
                 set -euo pipefail
 
                 # Run the check script in write mode
-                nix shell nixpkgs#jq nixpkgs#curl -c ./scripts/check-arion-images.sh --write || true
+                nix run .#check-arion-images -- --write || true
 
                 # Get list of changed JSON files
                 changed_files=$(git diff --name-only -- '*.json' || true)
