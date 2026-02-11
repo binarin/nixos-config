@@ -186,7 +186,7 @@ When making changes to dendritic modules:
 
 2. Run `just eval-all` (runs for quite a long time, set timeout to 30 minutes if needed). Do it in a loop, going back to `just eval-nixos` for any failed configuration.
 
-3. Run `just lint` in a loop - it can reformat changed files. When everything is clean, amend the last git commit with formatting changes if needed.
+3. Run `nix fmt` and `just lint` before committing - they reformat changed files. When everything is clean, you can commit. If you already committed, amend the commit with formatting changes.
 
 ## Inventory
 
