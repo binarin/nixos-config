@@ -79,9 +79,15 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Get the directory where this script lives
+# Determine the repo root
+# When running from nix store, use current working directory
+# When running standalone (e.g., ./scripts/check-arion-images.sh), derive from script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+if [[ "$SCRIPT_DIR" == /nix/store/* ]]; then
+    REPO_ROOT="$(pwd)"
+else
+    REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+fi
 
 cd "$REPO_ROOT"
 
