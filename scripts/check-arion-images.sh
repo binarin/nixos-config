@@ -195,6 +195,62 @@ get_registry_auth() {
     fi
 }
 
+# Fetch all tags from a Docker Registry V2 API endpoint with pagination
+# Args: base_url auth_header (optional)
+fetch_tags_paginated() {
+    local base_url="$1"
+    local auth_header="${2:-}"
+
+    local url="${base_url}?n=1000"
+    local all_tags=""
+
+    while [[ -n "$url" ]]; do
+        local response headers body
+        if [[ -n "$auth_header" ]]; then
+            response=$(curl -sS -D - -H "$auth_header" "$url" 2>/dev/null)
+        else
+            response=$(curl -sS -D - "$url" 2>/dev/null)
+        fi
+
+        # Split headers and body (separated by blank line)
+        headers=$(echo "$response" | sed -n '1,/^\r*$/p')
+        body=$(echo "$response" | sed '1,/^\r*$/d')
+
+        # Extract tags from body
+        local tags
+        tags=$(echo "$body" | jq -r '.tags[]?' 2>/dev/null)
+        if [[ -n "$tags" ]]; then
+            if [[ -n "$all_tags" ]]; then
+                all_tags="${all_tags}"$'\n'"${tags}"
+            else
+                all_tags="$tags"
+            fi
+        fi
+
+        # Check for Link header with next page
+        local link_header
+        link_header=$(echo "$headers" | grep -i '^link:' | head -1)
+
+        if [[ -n "$link_header" && "$link_header" == *"rel=\"next\""* ]]; then
+            # Extract path from Link header: </v2/repo/tags/list?...>; rel="next"
+            local next_path
+            next_path=$(echo "$link_header" | sed -n 's/.*<\([^>]*\)>.*/\1/p')
+            if [[ -n "$next_path" ]]; then
+                # Extract host from base_url and combine with path
+                local host
+                host=$(echo "$base_url" | sed -n 's|\(https://[^/]*\).*|\1|p')
+                url="${host}${next_path}"
+            else
+                url=""
+            fi
+        else
+            url=""
+        fi
+    done
+
+    echo "$all_tags"
+}
+
 # Get auth token for Docker Hub
 get_dockerhub_token() {
     local repo="$1"
@@ -217,8 +273,7 @@ get_dockerhub_tags() {
     local repo="$1"
     local token
     token=$(get_dockerhub_token "$repo")
-    curl -s -H "Authorization: Bearer $token" \
-        "https://registry-1.docker.io/v2/$repo/tags/list" | jq -r '.tags[]?' 2>/dev/null || echo ""
+    fetch_tags_paginated "https://registry-1.docker.io/v2/$repo/tags/list" "Authorization: Bearer $token"
 }
 
 # Get auth token for GHCR
@@ -232,40 +287,33 @@ get_ghcr_tags() {
     local repo="$1"
     local token
     token=$(get_ghcr_token "$repo")
+
+    local auth_header=""
     if [[ -n "$token" && "$token" != "null" ]]; then
-        curl -s -H "Authorization: Bearer $token" \
-            "https://ghcr.io/v2/$repo/tags/list" | jq -r '.tags[]?' 2>/dev/null || echo ""
-    else
-        # Fallback without token
-        curl -s "https://ghcr.io/v2/$repo/tags/list" | jq -r '.tags[]?' 2>/dev/null || echo ""
+        auth_header="Authorization: Bearer $token"
     fi
+
+    fetch_tags_paginated "https://ghcr.io/v2/$repo/tags/list" "$auth_header"
 }
 
 # Get tags from GCR (Google Container Registry)
 get_gcr_tags() {
     local repo="$1"
-    curl -s "https://gcr.io/v2/$repo/tags/list" | jq -r '.tags[]?' 2>/dev/null || echo ""
+    fetch_tags_paginated "https://gcr.io/v2/$repo/tags/list"
 }
 
 # Get tags from LinuxServer.io registry (backed by GHCR)
 get_lscr_tags() {
     local repo="$1"
     # LSCR is backed by GHCR, so use GHCR token and API
-    local token
-    token=$(get_ghcr_token "$repo")
-    if [[ -n "$token" && "$token" != "null" ]]; then
-        curl -s -H "Authorization: Bearer $token" \
-            "https://ghcr.io/v2/$repo/tags/list" | jq -r '.tags[]?' 2>/dev/null || echo ""
-    else
-        curl -s "https://ghcr.io/v2/$repo/tags/list" | jq -r '.tags[]?' 2>/dev/null || echo ""
-    fi
+    get_ghcr_tags "$repo"
 }
 
 # Get tags from any OCI registry
 get_generic_tags() {
     local registry="$1"
     local repo="$2"
-    curl -s "https://$registry/v2/$repo/tags/list" | jq -r '.tags[]?' 2>/dev/null || echo ""
+    fetch_tags_paginated "https://$registry/v2/$repo/tags/list"
 }
 
 # Get latest release tag from a Gitea instance
