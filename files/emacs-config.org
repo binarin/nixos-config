@@ -1421,7 +1421,8 @@
    #+end_src
 
 ** AI coding
-   #+begin_src emacs-lisp :tangle yes
+   XXX broken as of 2026-02-12
+   #+begin_src emacs-lisp :tangle no
      (use-package agent-shell
        :ensure t
        :defer 30
@@ -1444,7 +1445,7 @@
        (add-hook 'gptel-mode-hook 'gptel-highlight-mode))
    #+end_src
 
-   XXX broken at 2026-02-12
+   XXX broken as of 2026-02-12
    #+begin_src emacs-lisp :tangle no
      (use-package eca
        :ensure t
