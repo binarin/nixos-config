@@ -322,28 +322,83 @@ get_generic_tags() {
     fetch_tags_paginated "https://$registry/v2/$repo/tags/list"
 }
 
-# Get latest release tag from a Gitea instance
-get_gitea_latest_release() {
-    local registry="$1"
-    local repo="$2"
-    # Use Gitea API to get latest release
+# =============================================================================
+# Forge integration for registries that need release API instead of tag listing
+# =============================================================================
+
+# Registry to forge mapping
+# Format: "registry|forge_type|forge_url"
+# - registry: exact registry hostname to match
+# - forge_type: github, gitea, forgejo
+# - forge_url: forge host and repo path, can use {repo} or {image} placeholders
+#   - {repo} = full image repo (e.g., linuxserver/qbittorrent)
+#   - {image} = image name only (e.g., qbittorrent)
+REGISTRY_FORGE_MAP=(
+    "lscr.io|github|github.com/linuxserver/docker-{image}"
+    "gitea.baerentsen.space|gitea|gitea.baerentsen.space/{repo}"
+)
+
+# Get latest release from Gitea/Forgejo forge
+# Args: forge_url (host/owner/repo)
+forge_gitea_latest() {
+    local forge_url="$1"
+    local host="${forge_url%%/*}"
+    local repo="${forge_url#*/}"
     local release_json
-    release_json=$(curl -s "https://$registry/api/v1/repos/$repo/releases/latest" 2>/dev/null)
+    release_json=$(curl -s "https://$host/api/v1/repos/$repo/releases/latest" 2>/dev/null)
     if [[ -n "$release_json" ]]; then
         echo "$release_json" | jq -r '.tag_name // empty' 2>/dev/null || echo ""
     fi
 }
 
-# Get latest release tag from GitHub
-get_github_latest_release() {
-    local owner="$1"
-    local repo="$2"
-    # Use GitHub API to get latest release
+# Get latest release from GitHub
+# Args: forge_url (github.com/owner/repo)
+forge_github_latest() {
+    local forge_url="$1"
+    local repo="${forge_url#github.com/}"
     local release_json
-    release_json=$(curl -s "https://api.github.com/repos/$owner/$repo/releases/latest" 2>/dev/null)
+    release_json=$(curl -s "https://api.github.com/repos/$repo/releases/latest" 2>/dev/null)
     if [[ -n "$release_json" ]]; then
         echo "$release_json" | jq -r '.tag_name // empty' 2>/dev/null || echo ""
     fi
+}
+
+# Get latest release from forge for a registry/repo
+# Args: registry repo
+# Returns: latest release tag or empty
+get_forge_latest() {
+    local registry="$1"
+    local repo="$2"
+    local image="${repo##*/}"
+
+    for mapping in "${REGISTRY_FORGE_MAP[@]}"; do
+        local map_registry forge_type forge_url_template
+        IFS='|' read -r map_registry forge_type forge_url_template <<< "$mapping"
+
+        if [[ "$registry" == "$map_registry" ]]; then
+            # Expand placeholders in forge_url
+            local forge_url="$forge_url_template"
+            forge_url="${forge_url//\{repo\}/$repo}"
+            forge_url="${forge_url//\{image\}/$image}"
+
+            verbose "  Forge lookup: $registry -> $forge_type @ $forge_url"
+
+            case "$forge_type" in
+                github)
+                    forge_github_latest "$forge_url"
+                    ;;
+                gitea|forgejo)
+                    forge_gitea_latest "$forge_url"
+                    ;;
+                *)
+                    verbose "  Unknown forge type: $forge_type"
+                    return 1
+                    ;;
+            esac
+            return
+        fi
+    done
+    return 1
 }
 
 # Check if an image name matches an infrastructure pattern
@@ -592,6 +647,21 @@ if [[ -n "$SINGLE_IMAGE" ]]; then
     echo "Current tag: $tag"
     echo ""
 
+    # Try forge-based release lookup first
+    forge_latest=$(get_forge_latest "$registry" "$repo" 2>/dev/null || true)
+    if [[ -n "$forge_latest" ]]; then
+        echo "Latest release (via forge): $forge_latest"
+        current_clean="${tag#v}"
+        latest_clean="${forge_latest#v}"
+        if [[ "$current_clean" == "$latest_clean" ]]; then
+            echo -e "${GREEN}Up to date${NC}"
+        else
+            echo -e "Update available: ${RED}$forge_latest${NC}"
+        fi
+        exit 0
+    fi
+
+    # Fall back to registry tag listing
     verbose "Fetching tags from $registry for $repo..."
     tags_raw=$(get_tags "$registry" "$repo" 2>/dev/null)
 
@@ -672,62 +742,30 @@ while read -r entry; do
     repo="${rest%%|*}"
     tag="${rest#*|}"
 
-    # Special handling for Gitea registries - try to get latest release
-    if [[ "$registry" == *"gitea"* ]] || [[ "$registry" == *".baerentsen.space"* ]]; then
-        verbose "Fetching latest release from Gitea API: $registry/$repo"
-        gitea_latest=$(get_gitea_latest_release "$registry" "$repo")
-        if [[ -n "$gitea_latest" ]]; then
-            verbose "  Found latest release: $gitea_latest"
-            # Strip leading v for comparison if present in one but not other
-            current_clean="${tag#v}"
-            latest_clean="${gitea_latest#v}"
-            if [[ "$current_clean" == "$latest_clean" ]]; then
-                ok_messages+=("${GREEN}OK${NC} $machine/$project/$service: $image")
-                ((up_to_date++)) || true
+    # Try forge-based release lookup for registries with known forge mappings
+    forge_latest=$(get_forge_latest "$registry" "$repo" 2>/dev/null || true)
+    if [[ -n "$forge_latest" ]]; then
+        verbose "  Found latest release via forge: $forge_latest"
+        # Strip leading v for comparison if present in one but not other
+        current_clean="${tag#v}"
+        latest_clean="${forge_latest#v}"
+        if [[ "$current_clean" == "$latest_clean" ]]; then
+            ok_messages+=("${GREEN}OK${NC} $machine/$project/$service: $image")
+            ((up_to_date++)) || true
+        else
+            if is_infra_image "$repo"; then
+                infra_updates+=("${RED}UPDATE${NC} $machine/$project/$service: $image -> $forge_latest")
+                ((infra_updates_found++)) || true
             else
-                if is_infra_image "$repo"; then
-                    infra_updates+=("${RED}UPDATE${NC} $machine/$project/$service: $image -> $gitea_latest")
-                    ((infra_updates_found++)) || true
-                else
-                    regular_updates+=("${RED}UPDATE${NC} $machine/$project/$service: $image -> $gitea_latest")
-                    ((updates_found++)) || true
-                    # Store for writing: project|service|new_tag
-                    json_updates["$project|$service"]="$gitea_latest"
-                fi
+                regular_updates+=("${RED}UPDATE${NC} $machine/$project/$service: $image -> $forge_latest")
+                ((updates_found++)) || true
+                # Store for writing: project|service|new_tag
+                json_updates["$project|$service"]="$forge_latest"
             fi
-            continue
         fi
-        # Fall through to regular tag checking if Gitea API didn't work
+        continue
     fi
-
-    # Special handling for LinuxServer.io images - check GitHub releases
-    if [[ "$registry" == "lscr.io" ]] && [[ "$repo" == linuxserver/* ]]; then
-        image_name="${repo#linuxserver/}"
-        verbose "Fetching latest release from GitHub API: linuxserver/docker-${image_name}"
-        github_latest=$(get_github_latest_release "linuxserver" "docker-${image_name}")
-        if [[ -n "$github_latest" ]]; then
-            verbose "  Found latest release: $github_latest"
-            # Strip leading v for comparison if present in one but not other
-            current_clean="${tag#v}"
-            latest_clean="${github_latest#v}"
-            if [[ "$current_clean" == "$latest_clean" ]]; then
-                ok_messages+=("${GREEN}OK${NC} $machine/$project/$service: $image")
-                ((up_to_date++)) || true
-            else
-                if is_infra_image "$repo"; then
-                    infra_updates+=("${RED}UPDATE${NC} $machine/$project/$service: $image -> $github_latest")
-                    ((infra_updates_found++)) || true
-                else
-                    regular_updates+=("${RED}UPDATE${NC} $machine/$project/$service: $image -> $github_latest")
-                    ((updates_found++)) || true
-                    # Store for writing: project|service|new_tag
-                    json_updates["$project|$service"]="$github_latest"
-                fi
-            fi
-            continue
-        fi
-        # Fall through to regular tag checking if GitHub API didn't work
-    fi
+    # Fall through to regular tag checking if forge lookup didn't work
 
     # Get available tags
     verbose "Fetching tags from $registry for $repo..."
