@@ -1444,7 +1444,8 @@
        (add-hook 'gptel-mode-hook 'gptel-highlight-mode))
    #+end_src
 
-   #+begin_src emacs-lisp :tangle yes
+   XXX broken at 2026-02-12
+   #+begin_src emacs-lisp :tangle no
      (use-package eca
        :ensure t
        :commands (eca))
