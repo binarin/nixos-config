@@ -11,31 +11,26 @@ This skill guides you through adding a new NixOS machine configuration following
 
 Copy and complete this checklist when adding a new machine:
 
-- [ ] **1. Determine machine type**: qemu-guest, microvm, lxc, or bare-metal
-- [ ] **2. Choose machine name**: Should be unique and follow existing naming conventions
-- [ ] **3. Generate hostId**: Run `./scripts/generate-hostid.sh` from skill directory
-- [ ] **4. Add hostId to inventory**: Edit `inventory/host-id.nix`
-- [ ] **5. Allocate IP** (if needed): Edit `inventory/networks/home.nix` or skip for microvm/isolated machines
-- [ ] **6. Create machine module**: Create `modules/machines/<machine-name>.nix`
-- [ ] **7. Stage new file**: `git add modules/machines/<machine-name>.nix`
-- [ ] **8. Run validation**: `just nixOpts= eval-nixos` in a loop until clean
-- [ ] **9. Get stateVersion**: Run the get-state-version script and add explicit value
-- [ ] **10. Run comprehensive validation**: `just eval-all`
-- [ ] **11. Format and lint**: `nix fmt && just lint`
-- [ ] **12. Commit**: Follow git workflow in CLAUDE.md
+- [ ] **1. Pre-check**: Run `nix fmt && just lint && just eval-all` to ensure the configuration is clean before making changes
+- [ ] **2. Determine machine type**: qemu-guest, microvm, lxc, or bare-metal
+- [ ] **3. Choose machine name**: Should be unique and follow existing naming conventions
+- [ ] **4. Generate hostId**: Run `./scripts/generate-hostid.sh` from skill directory
+- [ ] **5. Add hostId to inventory**: Edit `inventory/host-id.nix`
+- [ ] **6. Allocate IP** (if needed): Edit `inventory/networks/home.nix` or skip for microvm/isolated machines
+- [ ] **7. Create machine module**: Create `modules/machines/<machine-name>.nix` using examples from REFERENCE.md
+- [ ] **8. Stage new file**: `git add modules/machines/<machine-name>.nix`
+- [ ] **9. Run validation**: `just nixOpts= eval-nixos` in a loop until clean
+- [ ] **10. Get stateVersion**: Run the get-state-version script and add explicit value
+- [ ] **11. Run comprehensive validation**: `just eval-all`
+- [ ] **12. Format and lint**: `nix fmt && just lint`
+- [ ] **13. Commit**: Follow git workflow in CLAUDE.md
 
 ## Machine Types
 
 ### qemu-guest
 Standard VM running in QEMU/KVM. Uses `modulesPath + "/profiles/qemu-guest.nix"`.
 
-**Typical imports:**
-```nix
-imports = [
-  (modulesPath + "/profiles/qemu-guest.nix")
-  self.nixosModules.default
-];
-```
+**Template**: See REFERENCE.md for complete examples.
 
 ### microvm
 MicroVM with custom networking. Does NOT use inventory IP allocation - networking is configured manually within the microvm host's configuration.
