@@ -1,5 +1,5 @@
 # modules/packages/proxmox-vm-create.nix
-{ self, ... }:
+{ ... }:
 {
   perSystem =
     { pkgs, ... }:
@@ -143,7 +143,7 @@
                 STORAGE=$(echo "$DISK" | jq -r '.storage')
                 SIZE=$(echo "$DISK" | jq -r '.size')
                 # For image type, size is specified as storage:size (e.g., local-zfs:32)
-                SIZE_NUM=$(echo "$SIZE" | sed 's/[^0-9]//g')
+                SIZE_NUM="''${SIZE//[!0-9]/}"
                 CMDS+=("qm set $VMID --$DISK_KEY $STORAGE:$SIZE_NUM")
                 ;;
             esac

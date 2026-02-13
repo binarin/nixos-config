@@ -12,11 +12,11 @@
   };
 
   flake.nixosModules.yolo-nixos-config-configuration =
-    { modulesPath, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.nixos.yolo-nixos-config-configuration";
       imports = [
-        (modulesPath + "/profiles/qemu-guest.nix")
+        self.nixosModules.qemu-guest
         self.nixosModules.default
       ];
 
@@ -25,9 +25,27 @@
         networking.hostName = "yolo-nixos-config";
         system.stateVersion = "25.11";
 
-        boot.loader.grub.device = "/dev/vda";
+        # Proxmox VM metadata (not used by NixOS, for VM creation script)
+        nixos-config.qemu-guest.proxmox = {
+          memory = 32768; # 32GB
+          cores = 16;
+          disks = [
+            {
+              type = "passthrough";
+              device = "/dev/disk/by-id/ata-MZ7LM960HCHP-000V3_00YC381_00YC384LEN_91X5908M";
+              bus = "scsi";
+              index = 0;
+              bootOrder = 1;
+            }
+          ];
+          onboot = true;
+          agent = true;
+          description = "YOLO NixOS configuration testing VM";
+        };
+
+        boot.loader.grub.device = "/dev/disk/by-id/ata-MZ7LM960HCHP-000V3_00YC381_00YC384LEN_91X5908M";
         fileSystems."/" = {
-          device = "/dev/vda1";
+          device = "/dev/disk/by-id/ata-MZ7LM960HCHP-000V3_00YC381_00YC384LEN_91X5908M-part1";
           fsType = "ext4";
         };
       };

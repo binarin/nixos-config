@@ -1,5 +1,5 @@
 # modules/qemu-guest.nix
-{ self, ... }:
+{ ... }:
 {
   flake.nixosModules.qemu-guest =
     {

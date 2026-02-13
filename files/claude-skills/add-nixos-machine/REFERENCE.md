@@ -94,6 +94,141 @@ VM with inventory IP allocation:
 }
 ```
 
+### qemu-guest with Proxmox metadata
+
+VM configuration with Proxmox VM creation metadata:
+
+```nix
+# modules/machines/my-proxmox-vm.nix
+{ self, inputs, ... }:
+{
+  flake.nixosConfigurations.my-proxmox-vm = inputs.nixpkgs.lib.nixosSystem {
+    system = "x86_64-linux";
+    specialArgs = {
+      inventoryHostName = "my-proxmox-vm";
+    };
+    modules = [
+      self.nixosModules.my-proxmox-vm-configuration
+    ];
+  };
+
+  flake.nixosModules.my-proxmox-vm-configuration =
+    { ... }:
+    {
+      key = "nixos-config.modules.nixos.my-proxmox-vm-configuration";
+      imports = [
+        self.nixosModules.qemu-guest  # Includes qemu profile + proxmox metadata options
+        self.nixosModules.default
+      ];
+
+      config = {
+        nixos-config.export-metrics.enable = true;
+        networking.hostName = "my-proxmox-vm";
+        system.stateVersion = "25.11";
+
+        # Proxmox VM metadata (not used by NixOS, for VM creation script)
+        nixos-config.qemu-guest.proxmox = {
+          vmId = 200;  # Optional: can be specified at creation time with --vmid
+          memory = 4096;  # 4GB in MB
+          cores = 4;
+
+          # For passthrough disk (physical device attached to VM)
+          disks = [
+            {
+              type = "passthrough";
+              device = "/dev/disk/by-id/ata-EXAMPLE_DISK_ID";
+              bus = "scsi";
+              index = 0;
+              bootOrder = 1;
+            }
+          ];
+
+          # OR for image-based disk (Proxmox-managed storage)
+          # disks = [
+          #   {
+          #     type = "image";
+          #     storage = "local-zfs";
+          #     size = "32G";
+          #     bus = "scsi";
+          #     index = 0;
+          #     bootOrder = 1;
+          #   }
+          # ];
+
+          network = {
+            bridge = "vmbr0";
+            model = "virtio";
+            firewall = true;
+          };
+
+          onboot = true;
+          agent = true;
+          description = "My NixOS Proxmox VM";
+        };
+
+        # Disk configuration should match proxmox metadata
+        boot.loader.grub.device = "/dev/disk/by-id/ata-EXAMPLE_DISK_ID";
+        fileSystems."/" = {
+          device = "/dev/disk/by-id/ata-EXAMPLE_DISK_ID-part1";
+          fsType = "ext4";
+        };
+      };
+    };
+}
+```
+
+#### Proxmox metadata options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `vmId` | int | null | Proxmox VM ID (can override with --vmid) |
+| `memory` | int | 2048 | Memory in MB |
+| `cores` | int | 2 | CPU cores |
+| `sockets` | int | 1 | CPU sockets |
+| `bios` | enum | "seabios" | BIOS type (seabios/ovmf) |
+| `machine` | str | "q35" | Machine type |
+| `scsihw` | str | "virtio-scsi-single" | SCSI hardware type |
+| `onboot` | bool | false | Start on host boot |
+| `agent` | bool | true | Enable QEMU guest agent |
+| `description` | str | null | VM description |
+
+#### Disk configuration
+
+For passthrough disks (physical devices):
+```nix
+{
+  type = "passthrough";
+  device = "/dev/disk/by-id/...";
+  bus = "scsi";  # or virtio, sata, ide
+  index = 0;
+  bootOrder = 1;  # optional
+}
+```
+
+For image disks (Proxmox storage):
+```nix
+{
+  type = "image";
+  storage = "local-zfs";
+  size = "32G";
+  bus = "scsi";
+  index = 0;
+  bootOrder = 1;
+}
+```
+
+#### Using proxmox-vm-create script
+
+```bash
+# Generate qm commands (dry run)
+nix run .#proxmox-vm-create -- my-proxmox-vm --vmid 200 --dry-run
+
+# Execute on Proxmox host via SSH
+ssh root@valak "$(nix run .#proxmox-vm-create -- my-proxmox-vm --vmid 200 --dry-run)"
+```
+
+The script automatically adds `--serial0 socket --vga serial0` for NixOS console access.
+
 ### LXC Container
 
 Proxmox LXC container configuration:
