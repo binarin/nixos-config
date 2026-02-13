@@ -2,10 +2,10 @@
 #+TODO: TODO(t) | DONE(d)
 #+TODO: PLAN(r) | PROJ(p)
 #+TODO: | CNCL(c)
-* TODO add validation that every nixos module in modules/ has proper ~key~
-* TODO Closure size tracking (with git notes?)
+* DONE add validation that every nixos module in modules/ has proper ~key~
+* CNCL Closure size tracking (with git notes?)
 * TODO `just lint` - remove check, convert to pre-commit hook, ???
-* TODO Explain why explicit key is needed
+* DONE Explain why explicit key is needed
 * TODO tpm2-pkcs11-esapi FTW
 * TODO configure treefmt / pre-commit hooks - for nix, ansible, terraform
 * TODO build-all - support remote-only builds
