@@ -13,10 +13,9 @@
 
       home.packages =
         (with self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}; [
-          beads
           claude-code
-          eca
           gemini-cli
+          opencode
         ])
         ++ (with pkgs; [
           llm
