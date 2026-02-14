@@ -87,6 +87,16 @@
       ];
     };
 
+    "termius-pixel" = {
+      description = "biometrical key on pixel / termius";
+      public_key = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGv/Jf+1Xd1nfIGyeEa17VrWrLGDxHKGV0T1tOwtR/IwixUyFqM2jiLuAt+AdPw6xeVoHSeDdd4zMglDE7y5tfI=";
+      secure = true;
+      tags = [
+        "default"
+        "presence"
+      ];
+    };
+
     "trezor-trusted-user-ca" = {
       description = "trezor-agent with 'trusted-user-ca' identity";
       public_key = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKx4e7PnTrPabkbTwYVsCum+j/Fxgs46NR2ltvgqmUnsJyxVm42rhoqNBp9+1D2Xt0WxikWUBXpe5liSPZzFleo=";
