@@ -81,6 +81,9 @@
         let
           cfg = config.services.swayidle.binarin;
 
+          # Wrapper that handles both DDC monitors (via ddcutil) and laptop displays
+          brightnessctl-wrapper = self.packages.${pkgs.system}.brightnessctl-wrapper;
+
           # Helper to create a wrapper script that runs a command only on AC power
           onAcPower =
             name: command:
@@ -109,9 +112,9 @@
               '';
             };
 
-          # Wrapped commands for brightness control
-          dimBrightnessAc = onAcPower "br-10" "${lib.getExe pkgs.brightnessctl} -s s 10%";
-          dimBrightnessBattery = onBatteryPower "br-10" "${lib.getExe pkgs.brightnessctl} -s s 10%";
+          # Wrapped commands for brightness control (using wrapper for DDC monitor support)
+          dimBrightnessAc = onAcPower "br-10" "${lib.getExe brightnessctl-wrapper} -s s 10%";
+          dimBrightnessBattery = onBatteryPower "br-10" "${lib.getExe brightnessctl-wrapper} -s s 10%";
 
           # Wrapped commands for lock
           lockAc = onAcPower "lock-session" "${lib.getExe' pkgs.systemd "loginctl"} lock-session";
@@ -151,13 +154,13 @@
               {
                 timeout = cfg.brightness.ac.timeout;
                 command = "${lib.getExe dimBrightnessAc}";
-                resumeCommand = "${lib.getExe pkgs.brightnessctl} -r";
+                resumeCommand = "${lib.getExe brightnessctl-wrapper} -r";
               }
               # Brightness dimming - Battery power
               {
                 timeout = cfg.brightness.battery.timeout;
                 command = "${lib.getExe dimBrightnessBattery}";
-                resumeCommand = "${lib.getExe pkgs.brightnessctl} -r";
+                resumeCommand = "${lib.getExe brightnessctl-wrapper} -r";
               }
               # Lock session - AC power
               {
