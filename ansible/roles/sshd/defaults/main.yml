@@ -19,7 +19,8 @@ sshd_use_pam: false
 sshd_include_config_d: true
 
 # SSH users to provision authorized keys for (in addition to root)
-sshd_users: "{{ ssh_users | default([]) }}"
+# Dict format: { username: { principals: [list of principals] } }
+sshd_users: "{{ ssh_users | default({}) }}"
 
 # SSH keys data structure (should be provided via vars_files or group_vars)
 ssh_keys: {}

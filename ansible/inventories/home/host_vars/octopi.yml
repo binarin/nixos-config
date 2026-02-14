@@ -1,0 +1,7 @@
+---
+ansible_host: 192.168.3.2
+# ansible_user: pi
+ssh_users:
+  pi:
+    principals:
+      - binarin

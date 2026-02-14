@@ -26,7 +26,9 @@ Role Variables
 - `sshd_use_pam`: Enable PAM (default: `false`)
 
 ### SSH Users and Keys
-- `sshd_users`: List of users to configure authorized keys for (default: `[]`)
+- `sshd_users`: Dictionary of users to configure. Keys are usernames, values contain:
+  - `principals`: List of authorized principals for the user (defaults to username if not set)
+  Example: `{ binarin: { principals: [binarin, admin] }, pi: {} }`
 - `ssh_keys`: Dictionary of SSH key definitions (should be provided via vars_files)
 
 ### Other Settings

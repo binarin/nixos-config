@@ -14,7 +14,7 @@
   template:
     src: authorized_keys.j2
     dest: "{{ authorized_keys_path }}/{{ username }}"
-  loop: "{{ ['root'] + sshd_users }}"
+  loop: "{{ ['root'] + (sshd_users | list) }}"
   loop_control:
     loop_var: username
 
@@ -24,6 +24,14 @@
     dest: "{{ authorized_principals_path }}/root"
   vars:
     ssh_principals: "{{ sshd_root_principals }}"
+
+- name: Provision authorized_principals for users
+  template:
+    src: authorized_principals.j2
+    dest: "{{ authorized_principals_path }}/{{ item.key }}"
+  vars:
+    ssh_principals: "{{ item.value.principals | default([item.key]) }}"
+  loop: "{{ sshd_users | dict2items }}"
 
 - name: Ensure that /etc/ssh/sshd_config.d/*.conf is sourced by sshd
   when: sshd_include_config_d

@@ -2,6 +2,6 @@
 - hosts: manage_ssh_access
   tags: ssh
   vars_files:
-    - ./ssh-public-keys.yaml
+    - ../ssh-public-keys.yaml
   roles:
     - sshd
