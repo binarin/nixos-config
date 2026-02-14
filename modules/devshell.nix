@@ -10,7 +10,7 @@
           nixd
           nixfmt
           dnscontrol
-          (terraform_1.withPlugins (p: with p; [ dmacvicar_libvirt ]))
+          # (terraform_1.withPlugins (p: with p; [ dmacvicar_libvirt ])) # too expensive to build
           cloud-init
           ansible
           ansible-lint
