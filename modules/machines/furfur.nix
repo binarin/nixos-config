@@ -45,6 +45,9 @@
         "${self}/machines/furfur/hardware-configuration.nix"
       ];
 
+      users.users.binarin.extraGroups = [ "i2c" ];
+      hardware.i2c.enable = true;
+
       services.avahi.enable = true;
       nixos-config.export-metrics.enable = false;
       home-manager.users.binarin = self.homeModules.furfur-binarin;
