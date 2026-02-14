@@ -103,6 +103,7 @@
         xdg-user-dirs
         xdotool
         xorg.xhost
+        self.packages."${pkgs.stdenv.hostPlatform.system}".v4l-play
       ];
     in
     {
