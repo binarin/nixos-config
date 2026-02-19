@@ -15,4 +15,5 @@
   microvm-nixos-config = "2347471f";
   yolo-nixos-config = "80406bd1";
   octopi = "42c0f970";
+  claude-nixos-config = "6123245c";
 }
