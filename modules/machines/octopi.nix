@@ -48,17 +48,19 @@
       key = "nixos-config.modules.nixos.octopi-configuration";
 
       imports = [
-        self.nixosModules.inventory
-        self.nixosModules.inventory-legacy
-        self.nixosModules.nix
-        self.nixosModules.sshd
-        self.nixosModules.security
-        self.nixosModules.sops
-        self.nixosModules.tailscale
+        self.nixosModules.baseline
+        # self.nixosModules.flake-files
+        # self.nixosModules.inventory
+        # self.nixosModules.inventory-legacy
+        # self.nixosModules.nix
+        # self.nixosModules.sshd
+        # self.nixosModules.security
+        # self.nixosModules.sops
+        # self.nixosModules.tailscale
       ];
 
       networking.hostName = "octopi";
-      system.stateVersion = "25.05";
+      system.stateVersion = "25.11";
 
       # SD card filesystem layout
       fileSystems."/" = {
@@ -75,23 +77,42 @@
         ];
       };
 
-      users.users.root.openssh.authorizedPrincipals = [ "octopi" ];
+      users.users.root.openssh.authorizedPrincipals = [
+        "root"
+        "binarin"
+      ];
 
-      networking.useDHCP = false;
-
-      systemd.network = {
-        enable = true;
-        networks."10-eth0" = {
-          matchConfig.Name = "end0";
-          dns = config.inventory.networks.guest.dns;
-          address = [
-            config.inventory.ipAllocation."${config.networking.hostName}".guest.primary.addressWithPrefix
-          ];
-          routes = [ { Gateway = config.inventory.networks.guest.gateway; } ];
-          linkConfig.RequiredForOnline = "routable";
+      networking.networkmanager.enable = true;
+      networking.networkmanager.ensureProfiles = {
+        profiles = {
+          agares-guest = {
+            connection = {
+              id = "agares-guest";
+              type = "wifi";
+            };
+            ipv4 = {
+              method = "auto";
+            };
+            ipv6 = {
+              addr-gen-mode = "stable-privacy";
+              method = "auto";
+            };
+            wifi = {
+              mode = "infrastructure";
+              ssid = "agares-guest";
+            };
+            wifi-security = {
+              key-mgmt = "wpa-psk";
+              psk = config.lib.self.read "agares-guest.git-crypt";
+            };
+          };
         };
       };
 
       networking.firewall.enable = true;
+      nixos-config.export-metrics.enable = false;
+
+      nixpkgs.buildPlatform = "x86_64-linux";
+      nixpkgs.hostPlatform = "aarch64-linux";
     };
 }
