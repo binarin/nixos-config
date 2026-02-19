@@ -60,9 +60,9 @@
       networking.hostName = "furfur";
       impermanence.enable = true;
 
-      services.kanata.keyboards.all.devices = [
-        "/dev/input/by-path/platform-MSHW0263:00-event-kbd"
-      ];
+      # services.kanata.keyboards.all.devices = [
+      #   "/dev/input/by-path/platform-MSHW0263:00-event-kbd"
+      # ];
 
       services.logind.settings.Login = {
         HandlePowerKey = "suspend";
