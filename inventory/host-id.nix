@@ -14,4 +14,5 @@
   devcontainer = "86c445cf";
   microvm-nixos-config = "2347471f";
   yolo-nixos-config = "80406bd1";
+  octopi = "42c0f970";
 }
