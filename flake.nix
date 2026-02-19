@@ -142,6 +142,14 @@
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware/master";
     };
+    nixos-raspberrypi = {
+      inputs = {
+        nixpkgs = {
+          follows = "nixpkgs";
+        };
+      };
+      url = "github:nvmd/nixos-raspberrypi/develop";
+    };
     nixos-wsl = {
       inputs = {
         nixpkgs = {
