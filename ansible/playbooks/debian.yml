@@ -1,0 +1,25 @@
+---
+- hosts: debian
+  tags: ssh
+  become: true
+  vars_files:
+    - ../ssh-public-keys.yaml
+  roles:
+    - sshd
+
+- hosts: debian
+  become: true
+  tasks:
+    - name: Refresh apt-cache
+      ansible.builtin.apt:
+        update_cache: true
+    - name: install etckeeper
+      ansible.builtin.apt: name=etckeeper
+    - name: install some packages
+      ansible.builtin.apt:
+        name:
+          - emacs-nox
+    - name: use emacs as default editor
+      community.general.alternatives:
+        name: editor
+        path: /usr/bin/emacs-nox
