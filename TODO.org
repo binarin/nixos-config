@@ -39,7 +39,222 @@
   :CLOCK:
   CLOCK: [2025-12-01 Mon 19:33]--[2025-12-01 Mon 19:34] =>  0:01
   :END:
-* TODO Adding new machine
+* PROJ nixos-secrets - Python Secrets Manager
+** Overview
+
+Python CLI tool for managing NixOS secrets. Two types of secrets:
+
+*Deploy secrets* (delivered by nixos-anywhere, used for sops decryption on machine):
+- SSH host keys - decrypt =secrets.yaml= (system secrets)
+- User age key (=user-binarin-age=) - decrypt =user-binarin.yaml= (user secrets)
+
+*Sops secrets* (encrypted YAML files, decrypted on machine using deploy secrets):
+- =secrets.yaml= - system-level secrets (tailscale auth, service credentials)
+- =user-binarin.yaml= - user-level secrets (syncthing passwords, etc.)
+
+** Python Dependencies
+
+| Package      | Purpose                                        |
+|--------------+------------------------------------------------|
+| typer        | Modern CLI framework with type hints           |
+| rich         | Pretty output, tables, progress bars, colors   |
+| ruamel.yaml  | YAML manipulation preserving comments/anchors  |
+| pydantic     | Data validation and models                     |
+| gitpython    | Git interactions (staging files, status)       |
+
+External tools (available in nixpkgs): ssh-keygen, age-keygen, sops, ssh-to-age
+
+** File Structure
+
+#+begin_src
+tools/
+  nixos-secrets/
+    pyproject.toml              # Project config for pip install -e
+    nixos_secrets/
+      __init__.py
+      cli.py                    # Main CLI entry point with Typer
+      config.py                 # Configuration, paths, defaults
+      models.py                 # Data models (Machine, Key, etc.)
+      sops_yaml.py              # .sops.yaml manipulation
+      external.py               # External tool runners
+      commands/
+        __init__.py
+        init_machine.py         # init-machine command
+        list_machines.py        # list machines command
+        verify.py               # Verify secrets integrity
+#+end_src
+
+** Command Structure
+
+#+begin_src
+nixos-secrets
+  init-machine <name>          # Initialize secrets for a new machine
+    --no-user-key              # Skip user-binarin-age generation
+    --dry-run                  # Show what would be done
+    # Handles existing secrets gracefully (for migration)
+
+  list                         # List all machines and their status
+    --json                     # Output as JSON
+
+  verify [machine]             # Verify secrets integrity
+    --all                      # Check all machines
+
+  show-keys <machine>          # Show derived age keys for a machine
+#+end_src
+
+** DONE Add Python packages to devshell.nix
+Add to modules/devshell.nix:
+#+begin_src nix
+(python3.withPackages (ps: with ps; [
+  typer
+  rich
+  ruamel-yaml
+  pydantic
+  gitpython
+]))
+ssh-to-age
+#+end_src
+
+** TODO Create project structure
+- [ ] Create tools/nixos-secrets/ directory
+- [ ] Create pyproject.toml
+- [ ] Create package directories and __init__.py files
+- [ ] Add to git immediately (flakes need staged files)
+
+** TODO Implement core modules
+
+*** config.py
+- Repo root detection (find .sops.yaml or flake.nix)
+- Path helpers for secrets directories
+- Admin key constants (GPG fingerprint, age keys)
+
+*** models.py
+- Machine dataclass with name, paths, key info
+- KeyInfo for tracking public/derived keys
+
+*** external.py
+- run_command() wrapper with error handling
+- Specific wrappers: ssh_keygen(), age_keygen(), sops_encrypt(), ssh_to_age()
+
+*** sops_yaml.py
+Critical module for .sops.yaml manipulation:
+- Load with ruamel.yaml (preserves anchors/comments)
+- add_key_anchor(name, key) - Add to keys section
+- add_creation_rule(machine, pattern, key_refs) - Add creation rule
+- save() - Write back preserving formatting
+
+** TODO Implement init-machine command
+
+Steps performed by =init-machine <name>=:
+1. Create secrets/<machine>/ directory (if doesn't exist)
+2. Check for existing secrets - handle migration gracefully:
+   - If SSH host keys exist: skip generation, derive age key from existing .pub
+   - If user-binarin-age exists: skip generation, extract public key
+   - If secrets.yaml/user-binarin.yaml exist: keep them
+   - Always update .sops.yaml with keys and creation_rules (idempotent)
+3. Generate SSH host keys (only if missing):
+   #+begin_src bash
+   ssh-keygen -A -f ./secrets/<machine>/
+   mv ./secrets/<machine>/etc/ssh/* ./secrets/<machine>/
+   rmdir ./secrets/<machine>/etc/ssh ./secrets/<machine>/etc
+   #+end_src
+4. Encrypt SSH private keys with sops:
+   #+begin_src bash
+   sops encrypt -i secrets/<machine>/ssh_host_ecdsa_key
+   sops encrypt -i secrets/<machine>/ssh_host_ed25519_key
+   sops encrypt -i secrets/<machine>/ssh_host_rsa_key
+   #+end_src
+5. Generate user age keypair (only if missing):
+   #+begin_src bash
+   age-keygen -o secrets/<machine>/user-binarin-age 2> secrets/<machine>/user-binarin-age.pub
+   # Note: age-keygen outputs public key to stderr
+   #+end_src
+   If exists: extract public key with =age-keygen -y= from decrypted key
+6. Encrypt user age key (only if not already encrypted):
+   #+begin_src bash
+   sops encrypt -i secrets/<machine>/user-binarin-age
+   #+end_src
+7. Derive server age key from SSH public key:
+   #+begin_src bash
+   ssh-to-age -i secrets/<machine>/ssh_host_ed25519_key.pub
+   #+end_src
+8. Update .sops.yaml:
+   - Add key anchors: =&server_<machine>=, =&user_<machine>_binarin=
+   - Add creation rules for secrets.yaml and user-binarin.yaml
+9. Create empty YAML files (only if missing):
+   #+begin_src bash
+   echo '{}' > secrets/<machine>/secrets.yaml
+   echo '{}' > secrets/<machine>/user-binarin.yaml
+   #+end_src
+10. Stage all new files in git
+
+** TODO Implement list command
+- Scan secrets/ directory for machine directories
+- Show status: has SSH keys, has user key, has secrets files
+- Check if keys are in .sops.yaml
+
+** TODO Implement verify command
+- Verify all referenced keys in .sops.yaml exist
+- Check public keys match private keys (can decrypt)
+- Verify all machines have required files
+- Test sops can decrypt with current keys
+
+** TODO Add justfile commands
+#+begin_src just
+[group('Secrets')]
+init-machine machine:
+    cd tools/nixos-secrets && python -m nixos_secrets init-machine {{ machine }}
+
+[group('Secrets')]
+list-secrets:
+    cd tools/nixos-secrets && python -m nixos_secrets list
+
+[group('Secrets')]
+verify-secrets machine="":
+    cd tools/nixos-secrets && python -m nixos_secrets verify {{ machine }}
+#+end_src
+
+** .sops.yaml Structure Reference
+
+Keys section (YAML anchors):
+#+begin_src yaml
+keys:
+  - &admin_binarin_gpg 7668F12EF30BE2A802E1E13E6D4365C3B5E703F5
+  - &admin_binarin age1ec9gz6f685mn8pdrz48qm4vq7qzpzcz48vgkcty9aa665evra9lq2uz3s2
+  - &server_<machine> age1...  # from ssh_host_ed25519_key.pub via ssh-to-age
+  - &user_<machine>_binarin age1...  # from user-binarin-age.pub
+#+end_src
+
+Creation rules pattern:
+#+begin_src yaml
+creation_rules:
+  - path_regex: secrets/<machine>/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_binarin  # or *admin_demandred_binarin for some machines
+          - *user_<machine>_binarin
+          - *server_<machine>
+#+end_src
+
+** Future Commands (Not in Initial Scope)
+
+- =rotate-host-keys <machine>= - Rotate SSH host keys, re-encrypt
+- =add-user <machine> <user>= - Add new user secrets to machine
+- =sync-keys= - Re-encrypt all secrets with current .sops.yaml keys
+
+** Verification Steps
+
+After implementation, test with:
+1. =nixos-secrets init-machine test-machine= - Create test secrets
+2. Verify .sops.yaml was updated correctly
+3. Verify =sops secrets/test-machine/secrets.yaml= can edit
+4. Clean up test machine if not needed
+
+Note: Skip =just eval-nixos= - existing config issues.
+
+* DONE Adding new machine (manual steps - to be automated)
 
 mkdir -p ./secrets/claude-nixos-config/etc/ssh
 ssh-keygen -A -f ./secrets/claude-nixos-config/

@@ -17,6 +17,15 @@
           # For check-arion-images script
           jq
           curl
+          # For nixos-secrets tool
+          ssh-to-age
+          (python3.withPackages (ps: with ps; [
+            typer
+            rich
+            ruamel-yaml
+            pydantic
+            gitpython
+          ]))
         ];
       };
     };
