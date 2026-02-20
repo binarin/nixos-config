@@ -1,6 +1,18 @@
 {
   perSystem =
     { pkgs, ... }:
+    let
+      nixos-secrets-python = pkgs.python3.withPackages (ps: with ps; [
+        typer
+        rich
+        ruamel-yaml
+        pydantic
+        gitpython
+      ]);
+      nixos-secrets = pkgs.writeShellScriptBin "nixos-secrets" ''
+        exec ${nixos-secrets-python}/bin/python -m nixos_secrets "$@"
+      '';
+    in
     {
       devShells.default = pkgs.mkShell {
         name = "nixos-unified-template-shell";
@@ -19,14 +31,11 @@
           curl
           # For nixos-secrets tool
           ssh-to-age
-          (python3.withPackages (ps: with ps; [
-            typer
-            rich
-            ruamel-yaml
-            pydantic
-            gitpython
-          ]))
+          nixos-secrets
         ];
+        shellHook = ''
+          export PYTHONPATH="$PWD/tools/nixos-secrets:$PYTHONPATH"
+        '';
       };
     };
 }

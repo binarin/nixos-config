@@ -13,3 +13,5 @@ result
 /.beads/.local_version
 /.ansible/
 /ansible/.ansible/
+__pycache__/
+*.pyc
