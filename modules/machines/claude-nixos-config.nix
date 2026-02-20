@@ -22,7 +22,7 @@
   };
 
   flake.nixosModules.claude-nixos-config-configuration =
-    { modulesPath, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.nixos.claude-nixos-config-configuration";
       imports = [
