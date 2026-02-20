@@ -56,6 +56,7 @@
         self.homeModules.interactive-cli
         self.homeModules.sops
         self.homeModules.gnupg
+        self.homeModules.binarin-nix-dev
       ]
       ++ (lib.optionals osConfig.services.graphical-desktop.enable [
         self.homeModules.niri
@@ -65,7 +66,6 @@
         self.homeModules.fonts
         self.homeModules.syncthing
         self.homeModules.firefox
-        self.homeModules.binarin-nix-dev
       ]);
 
       programs.git = {
@@ -79,6 +79,7 @@
         gopass
         dos2unix
         sox
+        forgejo-cli
       ];
 
       impermanence.local-files = [

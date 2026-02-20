@@ -39,3 +39,30 @@
   :CLOCK:
   CLOCK: [2025-12-01 Mon 19:33]--[2025-12-01 Mon 19:34] =>  0:01
   :END:
+* TODO Adding new machine
+
+mkdir -p ./secrets/claude-nixos-config/etc/ssh
+ssh-keygen -A -f ./secrets/claude-nixos-config/
+mv -v ./secrets/claude-nixos-config/etc/ssh/* ./secrets/claude-nixos-config/
+sops encrypt -i secrets/claude-nixos-config/ssh_host_ecdsa_key
+sops encrypt -i secrets/claude-nixos-config/ssh_host_ed25519_key
+sops encrypt -i secrets/claude-nixos-config/ssh_host_rsa_key
+
+age-keygen -o secrets/claude-nixos-config/user-binarin-age # XXX remember public key here instead of decrypt
+sops encrypt -i secrets/claude-nixos-config/user-binarin-age
+user_claude_nixos_config=$(age-keygen -y <(sops decrypt secrets/claude-nixos-config/user-binarin-age)))
+serve_claude_nixosd-config=$(ssh-to-age < ./secrets/claude-nixos-config/ssh_host_ed25519_key.pub)
+
+add 2 keys in .sops.yaml
+add secrets.yaml / user-binarin.yaml stanzas in .sops.yaml
+
+
+if impermanence:
+fileSystems."/persist".neededForBoot = true;
+fileSystems."/local".neededForBoot = true;
+
+self.nixosModules.systemd-boot
+
+drop iso from proxmox vm
+
+flake.deploy.nodes.claude-nixos-config = {
