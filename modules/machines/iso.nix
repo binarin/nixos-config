@@ -81,31 +81,8 @@
         ];
 
         networking.networkmanager.enable = true;
-        networking.networkmanager.ensureProfiles = {
-          profiles = {
-            agares = {
-              connection = {
-                id = "agares-guest";
-                type = "wifi";
-              };
-              ipv4 = {
-                method = "auto";
-              };
-              ipv6 = {
-                addr-gen-mode = "stable-privacy";
-                method = "auto";
-              };
-              wifi = {
-                mode = "infrastructure";
-                ssid = "agares-guest";
-              };
-              wifi-security = {
-                key-mgmt = "wpa-psk";
-                psk = config.lib.self.read "agares-guest.git-crypt";
-              };
-            };
-          };
-        };
+        # WiFi credentials should be injected post-build to avoid git-crypt dependency during evaluation
+        # Use scripts/inject-iso-wifi.sh to add WiFi profile to built ISO
 
         systemd = {
           targets = {
