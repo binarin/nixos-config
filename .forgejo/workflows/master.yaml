@@ -45,7 +45,6 @@ jobs:
         - nix-cache
         - octopi
         - qdevice
-        - yolo-nixos-config
 on:
   pull_request:
     types:

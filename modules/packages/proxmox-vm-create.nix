@@ -23,8 +23,8 @@
             echo "  --dry-run     Print commands without executing"
             echo ""
             echo "Examples:"
-            echo "  proxmox-vm-create yolo-nixos-config --vmid 200 --dry-run"
-            echo "  ssh root@valak \"\$(proxmox-vm-create yolo-nixos-config --vmid 200 --dry-run)\""
+            echo "  proxmox-vm-create claude-nixos-config --vmid 200 --dry-run"
+            echo "  ssh root@valak \"\$(proxmox-vm-create claude-nixos-config --vmid 200 --dry-run)\""
             exit 1
           }
 
