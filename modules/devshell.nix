@@ -34,6 +34,11 @@
           # For ncf tool
           ssh-to-age
           ncf
+          # For inject-iso-wifi.sh script
+          libarchive # provides bsdtar
+          fakeroot
+          squashfsTools # provides unsquashfs/mksquashfs
+          xorriso
         ];
         shellHook = ''
           export PYTHONPATH="$PWD/tools/ncf:$PYTHONPATH"
