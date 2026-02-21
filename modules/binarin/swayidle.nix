@@ -82,7 +82,7 @@
           cfg = config.services.swayidle.binarin;
 
           # Wrapper that handles both DDC monitors (via ddcutil) and laptop displays
-          brightnessctl-wrapper = self.packages.${pkgs.system}.brightnessctl-wrapper;
+          brightnessctl-wrapper = self.packages.${pkgs.stdenv.hostPlatform.system}.brightnessctl-wrapper;
 
           # Helper to create a wrapper script that runs a command only on AC power
           onAcPower =
