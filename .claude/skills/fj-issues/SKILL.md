@@ -14,7 +14,33 @@ immediately reflected in fj issue comment!!!
 # Showing issue
 
     fj issue view ID
-    fj issue view ID comments
+
+# Fetching comments with metadata
+
+Use the wrapper script to get comments with IDs and timestamps:
+
+    .claude/skills/fj-issues/fj-comments.sh <ISSUE_ID>
+
+Returns JSON array with fields: id, body, created_at, updated_at, user.
+This provides the comment ID needed for `fj issue edit` and timestamps
+to track plan freshness.
+
+Example output:
+
+```json
+[
+  {
+    "id": 42,
+    "body": "## Plan...",
+    "created_at": "2026-02-21T10:00:00Z",
+    "updated_at": "2026-02-21T10:05:00Z",
+    "user": "claude-nixos-config"
+  }
+]
+```
+
+To identify the plan comment, look for body starting with "## Plan".
+Use the `id` field with `fj issue edit` to update specific comments.
 
 # Creating PR
 

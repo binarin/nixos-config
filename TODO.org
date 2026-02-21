@@ -5,6 +5,10 @@
 * DONE add validation that every nixos module in modules/ has proper ~key~
 * CNCL Closure size tracking (with git notes?)
 * TODO `just lint` - remove check, convert to pre-commit hook, ???
+* TODO Drop fj-comments.sh when forgejo-cli adds structured output
+  Wrapper script for fetching issue comments with metadata (id, timestamps).
+  Location: .claude/skills/fj-issues/fj-comments.sh
+  When forgejo-cli supports JSON output for comments, this can be removed.
 * DONE Explain why explicit key is needed
 * TODO tpm2-pkcs11-esapi FTW
 * TODO configure treefmt / pre-commit hooks - for nix, ansible, terraform
