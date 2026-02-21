@@ -6,6 +6,8 @@
 # the ISO image's squashfs. This allows WiFi connectivity without embedding
 # credentials in the nix store during build time.
 #
+# Uses fakeroot for rootless operation (suitable for CI environments).
+#
 # Usage: inject-iso-wifi.sh <iso-file> <ssid> <password> [output-iso]
 #
 # Example:
@@ -59,44 +61,46 @@ method=auto
 WORK_DIR=$(mktemp -d)
 trap 'rm -rf "$WORK_DIR"' EXIT
 
+FAKEROOT_STATE="$WORK_DIR/fakeroot.state"
+
 echo "Creating NetworkManager connection file..."
 mkdir -p "$WORK_DIR/etc/NetworkManager/system-connections"
 echo "$NM_CONNECTION" > "$WORK_DIR/etc/NetworkManager/system-connections/${SSID}.nmconnection"
 chmod 600 "$WORK_DIR/etc/NetworkManager/system-connections/${SSID}.nmconnection"
 
-echo "Extracting ISO..."
+echo "Extracting ISO using bsdtar..."
 ISO_EXTRACT="$WORK_DIR/iso"
 mkdir -p "$ISO_EXTRACT"
 
-# Mount ISO and copy contents
-ISO_MOUNT="$WORK_DIR/iso-mount"
-mkdir -p "$ISO_MOUNT"
-sudo mount -o loop "$ISO_FILE" "$ISO_MOUNT"
-cp -a "$ISO_MOUNT"/* "$ISO_EXTRACT/"
-sudo umount "$ISO_MOUNT"
+# Extract ISO without mounting (rootless)
+bsdtar -xf "$ISO_FILE" -C "$ISO_EXTRACT"
 
-# Find and extract squashfs
+# Find squashfs
 SQUASHFS=$(find "$ISO_EXTRACT" -name "*.squashfs" | head -1)
 if [[ -z "$SQUASHFS" ]]; then
     echo "Error: No squashfs found in ISO"
     exit 1
 fi
 
-echo "Extracting squashfs..."
+echo "Extracting squashfs with fakeroot..."
 SQUASH_EXTRACT="$WORK_DIR/squashfs"
-sudo unsquashfs -d "$SQUASH_EXTRACT" "$SQUASHFS"
 
-# Inject NetworkManager connection
+# Extract squashfs using fakeroot to preserve permissions
+fakeroot -s "$FAKEROOT_STATE" unsquashfs -no-xattrs -d "$SQUASH_EXTRACT" "$SQUASHFS"
+
+# Inject NetworkManager connection using fakeroot
 echo "Injecting WiFi credentials..."
-sudo mkdir -p "$SQUASH_EXTRACT/etc/NetworkManager/system-connections"
-sudo cp "$WORK_DIR/etc/NetworkManager/system-connections/${SSID}.nmconnection" \
-    "$SQUASH_EXTRACT/etc/NetworkManager/system-connections/"
-sudo chmod 600 "$SQUASH_EXTRACT/etc/NetworkManager/system-connections/${SSID}.nmconnection"
+fakeroot -i "$FAKEROOT_STATE" -s "$FAKEROOT_STATE" bash -c "
+    mkdir -p '$SQUASH_EXTRACT/etc/NetworkManager/system-connections'
+    cp '$WORK_DIR/etc/NetworkManager/system-connections/${SSID}.nmconnection' \
+        '$SQUASH_EXTRACT/etc/NetworkManager/system-connections/'
+    chmod 600 '$SQUASH_EXTRACT/etc/NetworkManager/system-connections/${SSID}.nmconnection'
+"
 
-# Repack squashfs
+# Repack squashfs using fakeroot
 echo "Repacking squashfs..."
-sudo rm "$SQUASHFS"
-sudo mksquashfs "$SQUASH_EXTRACT" "$SQUASHFS" -comp gzip -Xcompression-level 1
+rm "$SQUASHFS"
+fakeroot -i "$FAKEROOT_STATE" mksquashfs "$SQUASH_EXTRACT" "$SQUASHFS" -no-xattrs -comp gzip -Xcompression-level 1
 
 # Recreate ISO
 echo "Creating new ISO..."
