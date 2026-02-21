@@ -3,6 +3,10 @@ name: fj-issues
 description: Working on project issues stored in forgejo (fj)
 ---
 
+IMPORTANT: Primary place for storing planning information/questions is
+forgejo issue comments. After plan update/create, this should be
+immediately reflected in fj issue comment!!!
+
 # Listing open issues
 
     fj issue search
@@ -37,6 +41,11 @@ shoud also keep the timestamp of the latest comment with feedback that
 was already incorporated, so it'll be possible to check whether the
 plan is up-to-date.
 
+The plan scope is only the implementation, no deployments at all - if
+you can't test something just from the confines of repository, skip
+including it from plan altogether. The ultimate checks are `eval-all`
+and `build-all`.
+
 # Execute phase
 
 Only check that plan is up-to-date (as described in 'Planning phase'),
@@ -63,3 +72,8 @@ Otherwise:
   using `fj pr search` in case if it already exists.
 - If there were some valuable learnings in the process of execution,
   add them as an separate issue comment.
+
+# Passwords
+
+- If you need to add some sops secrets, don't bother getting the real
+  values - just stick random placeholders there.
