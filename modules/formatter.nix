@@ -14,6 +14,8 @@
       treefmt = {
         projectRootFile = "flake.nix";
         programs.nixf-diagnose.enable = lib.mkForce false;
+        programs.black.enable = true;
+        programs.taplo.enable = true;
         settings.global.excludes = [
           ".gitattributes"
           "*.org"
