@@ -21,7 +21,8 @@ If you are already in one of those directories, branch name will tell
 you the forgejo issue id.
 
 Otherwise:
-- Fetch the latest git changes  `git fetch --all`
+
+- Fetch the latest git changes `git fetch --all`
 - Get issue info via `fj issue view ISSUE_NUMBER`
 - Check whether the branch starting `issue-ISSUE_NUMBER` already
   exists in origin, get the branch name from there.
@@ -29,12 +30,13 @@ Otherwise:
   short name infejrred from the issue description,
   i.e. `issue-28-pkgs-system-deprecation`
 - Create worktree `git worktree add -b
-  issue-28-pkgs-system-deprecation
-  .git/forgejo-issues-trees/issue-28-pkgs-system-deprecation origin/master`
+issue-28-pkgs-system-deprecation
+.git/forgejo-issues-trees/issue-28-pkgs-system-deprecation origin/master`
 - Run `direnv allow` in that directory
 - Stop and exit
 
 First thing to do when starting to work in a worktree is to get up-to-date:
+
 - commit if there is anything to commit
 - `git fetch --all`
 - do `git rebase --autosquash` against the base branch
