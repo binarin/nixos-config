@@ -3,7 +3,7 @@ result
 .direnv
 /ansible/home-network.yaml
 /.idea/
-/.claude/
+/.claude/settings.local.json
 /ansible/ext-roles/
 /terraform/.terraform/
 /terraform/.terraform.lock.hcl
