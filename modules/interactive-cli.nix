@@ -135,6 +135,7 @@
           programs.zsh = {
             shellAliases = {
               o = "xdg-open";
+              yolo = "claude --dangerously-skip-permissions --print";
             };
             dirHashes = {
               docs = config.xdg.userDirs.documents;
