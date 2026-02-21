@@ -1,30 +1,23 @@
 # nix-shell -p ssh-to-age --run 'ssh-keyscan 192.168.2.7 | ssh-to-age'
-
 keys:
   - &admin_binarin_gpg 7668F12EF30BE2A802E1E13E6D4365C3B5E703F5
   - &admin_binarin age1ec9gz6f685mn8pdrz48qm4vq7qzpzcz48vgkcty9aa665evra9lq2uz3s2
   - &admin_demandred_binarin age1dvu92xmh3w23ghey4l0epcs27m89f3nswzs5twgnel36xxu42f4sfsv023
-
   - &server_demandred age1flg86f4c6xd2jss983nml4vvqexxyxavm22rp4ve3h6mywc9kdesnppy7j
   - &user_demandred_binarin age1dvu92xmh3w23ghey4l0epcs27m89f3nswzs5twgnel36xxu42f4sfsv023
-  
   - &server_media age1hke3wvqndu8wnsxdsefjsu5e7r9szkprtjeu8ey48fhyutxpcsvsglmv2q
   - &server_monitor age1y74a28z6tpym2c0wpqnhwaegqlns8z3t286wxjhms86vxdttnvws2lev3r
   - &server_forgejo age17jnj7kvw0wn0nfk02wll05yhe8xnu86u489tfks6hgnd4gfs4f2qy9chtv
   - &server_mail age14n05u2z9u9h7chvn2rmmwr9flc25790rapxtvx97lqt78uk3ce3sy3xc6s
   - &server_nix-cache age1a4lwvtxlnz8vzhqva8cwvrvkumjdzeau6rmrwg0xu7tseyxe33zs5sw04d
   - &server_docker-on-nixos age1j6rw67wmjz4ngmnl57efxmfyytk7rj6swer6e677pl83s60u7spq5hjt6t
-
   - &server_ishamael age1qud3t3zq28d0p3z42gj0vr5yamqcgcd4sh0uvfdg2g24qwkknqds4356qd
   - &user_ishamael_binarin age1qk6g50qsla4mn9qm8zc9nhf0vwz37wyvlhajann8ct9shkxg0g7s5yuqn5
-
   - &server_qdevice age1hsfqzyxhmr5r6ekwmthpzfuser4g7ktt0m554u5zfnnxt8tff98sdmzagt
   - &server_furfur age14uq5t9y9sapf54enpahql6ncfqvttrwwxk459vtkegu4slk9ef7s6pp2uw
   - &user_furfur_binarin age1nvy6629y23y7c38f9qk8qekqn089a5x55nklp2t3hdzl7la7xgys5rcfsy
-
   - &server_claude-nixos-config age17v0z2umczgg2wm5rh25ajt76l6dwe9ceqkyjm0svc2zty5emve2slchqpm
   - &user_claude-nixos-config_binarin age19xt3l3zrduegqqzcmu06qk0nsmmlcr2lae6qwjxxdxxnjqhlz3zqx4n6zd
-
 creation_rules:
   - path_regex: secrets/demandred/(secrets.yaml|user-binarin.yaml)
     key_groups:

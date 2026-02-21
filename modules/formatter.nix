@@ -16,6 +16,7 @@
         programs.nixf-diagnose.enable = lib.mkForce false;
         programs.black.enable = true;
         programs.taplo.enable = true;
+        programs.yamlfmt.enable = true;
         settings.global.excludes = [
           ".gitattributes"
           "*.org"
@@ -33,7 +34,6 @@
           ".beads/**"
           "files/*"
           "justfile"
-          ".sops.yaml"
           "**/config"
         ];
       };
