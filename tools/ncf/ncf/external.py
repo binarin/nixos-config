@@ -1,4 +1,4 @@
-"""External tool wrappers for nixos-secrets."""
+"""External tool wrappers for ncf."""
 
 import subprocess
 import shutil

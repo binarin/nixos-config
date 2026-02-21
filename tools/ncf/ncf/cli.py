@@ -1,4 +1,4 @@
-"""Main CLI entry point for nixos-secrets."""
+"""Main CLI entry point for ncf."""
 
 import typer
 from rich.console import Console
@@ -6,14 +6,22 @@ from rich.console import Console
 from .commands import init_machine, list_machines, verify
 
 app = typer.Typer(
-    name="nixos-secrets",
-    help="CLI tool for managing NixOS secrets",
+    name="ncf",
+    help="CLI tool for NixOS configuration management",
     no_args_is_help=True,
 )
+
+secrets_app = typer.Typer(
+    name="secrets",
+    help="Manage NixOS secrets",
+    no_args_is_help=True,
+)
+app.add_typer(secrets_app, name="secrets")
+
 console = Console()
 
 
-@app.command("init-machine")
+@secrets_app.command("init-machine")
 def init_machine_cmd(
     name: str = typer.Argument(help="Machine name"),
     no_user_key: bool = typer.Option(
@@ -31,7 +39,7 @@ def init_machine_cmd(
     init_machine.run(name, no_user_key=no_user_key, dry_run=dry_run)
 
 
-@app.command("list")
+@secrets_app.command("list")
 def list_cmd(
     json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
 ):
@@ -39,7 +47,7 @@ def list_cmd(
     list_machines.run(json_output=json_output)
 
 
-@app.command("verify")
+@secrets_app.command("verify")
 def verify_cmd(
     machine: str = typer.Argument(None, help="Machine name (or all if not specified)"),
     all_machines: bool = typer.Option(False, "--all", "-a", help="Check all machines"),
@@ -48,7 +56,7 @@ def verify_cmd(
     verify.run(machine=machine, all_machines=all_machines)
 
 
-@app.command("show-keys")
+@secrets_app.command("show-keys")
 def show_keys_cmd(
     machine: str = typer.Argument(help="Machine name"),
 ):

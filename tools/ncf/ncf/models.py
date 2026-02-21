@@ -1,4 +1,4 @@
-"""Data models for nixos-secrets."""
+"""Data models for ncf secrets."""
 
 from dataclasses import dataclass, field
 from pathlib import Path

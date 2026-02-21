@@ -1,4 +1,4 @@
-"""Configuration and path helpers for nixos-secrets."""
+"""Configuration and path helpers for ncf secrets."""
 
 from pathlib import Path
 from typing import Optional
