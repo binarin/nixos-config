@@ -3,9 +3,9 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "nixos-secrets"
+name = "ncf"
 version = "0.1.0"
-description = "CLI tool for managing NixOS secrets"
+description = "CLI tool for NixOS configuration management"
 requires-python = ">=3.10"
 dependencies = [
   "typer>=0.9.0",
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-nixos-secrets = "nixos_secrets.cli:app"
+ncf = "ncf.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -2,7 +2,7 @@
   perSystem =
     { pkgs, ... }:
     let
-      nixos-secrets-python = pkgs.python3.withPackages (
+      ncf-python = pkgs.python3.withPackages (
         ps: with ps; [
           typer
           rich
@@ -11,8 +11,8 @@
           gitpython
         ]
       );
-      nixos-secrets = pkgs.writeShellScriptBin "nixos-secrets" ''
-        exec ${nixos-secrets-python}/bin/python -m nixos_secrets "$@"
+      ncf = pkgs.writeShellScriptBin "ncf" ''
+        exec ${ncf-python}/bin/python -m ncf "$@"
       '';
     in
     {
@@ -31,12 +31,12 @@
           # For check-arion-images script
           jq
           curl
-          # For nixos-secrets tool
+          # For ncf tool
           ssh-to-age
-          nixos-secrets
+          ncf
         ];
         shellHook = ''
-          export PYTHONPATH="$PWD/tools/nixos-secrets:$PYTHONPATH"
+          export PYTHONPATH="$PWD/tools/ncf:$PYTHONPATH"
         '';
       };
     };
