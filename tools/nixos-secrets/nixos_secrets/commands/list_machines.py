@@ -37,17 +37,19 @@ def run(json_output: bool = False) -> None:
     if json_output:
         output = []
         for m in machines:
-            output.append({
-                "name": m.name,
-                "has_ssh_keys": m.has_all_ssh_keys,
-                "ssh_keys_encrypted": m.all_ssh_keys_encrypted,
-                "has_user_key": m.has_user_key,
-                "user_key_encrypted": m.user_key_encrypted,
-                "has_secrets_yaml": m.secrets_yaml_exists,
-                "has_user_yaml": m.user_binarin_yaml_exists,
-                "in_sops_yaml": m.in_sops_yaml,
-                "is_complete": m.is_complete,
-            })
+            output.append(
+                {
+                    "name": m.name,
+                    "has_ssh_keys": m.has_all_ssh_keys,
+                    "ssh_keys_encrypted": m.all_ssh_keys_encrypted,
+                    "has_user_key": m.has_user_key,
+                    "user_key_encrypted": m.user_key_encrypted,
+                    "has_secrets_yaml": m.secrets_yaml_exists,
+                    "has_user_yaml": m.user_binarin_yaml_exists,
+                    "in_sops_yaml": m.in_sops_yaml,
+                    "is_complete": m.is_complete,
+                }
+            )
         console.print(json.dumps(output, indent=2))
         return
 
@@ -85,7 +87,11 @@ def run(json_output: bool = False) -> None:
             secrets_parts.append("S")
         if m.user_binarin_yaml_exists:
             secrets_parts.append("U")
-        secrets_status = "[green]" + "/".join(secrets_parts) + "[/green]" if secrets_parts else "[dim]-[/dim]"
+        secrets_status = (
+            "[green]" + "/".join(secrets_parts) + "[/green]"
+            if secrets_parts
+            else "[dim]-[/dim]"
+        )
 
         # SOPS config status
         sops_status = "[green]OK[/green]" if m.in_sops_yaml else "[red]NO[/red]"
@@ -98,14 +104,24 @@ def run(json_output: bool = False) -> None:
         else:
             overall = "[dim]EMPTY[/dim]"
 
-        table.add_row(m.name, ssh_status, user_status, secrets_status, sops_status, overall)
+        table.add_row(
+            m.name, ssh_status, user_status, secrets_status, sops_status, overall
+        )
 
     console.print(table)
 
     # Summary
     complete = sum(1 for m in machines if m.is_complete)
-    partial = sum(1 for m in machines if (m.has_all_ssh_keys or m.has_user_key) and not m.is_complete)
+    partial = sum(
+        1
+        for m in machines
+        if (m.has_all_ssh_keys or m.has_user_key) and not m.is_complete
+    )
     empty = len(machines) - complete - partial
 
-    console.print(f"\n[bold]Summary:[/bold] {complete} ready, {partial} partial, {empty} empty")
-    console.print("\n[dim]Legend: SSH=SSH host keys, User=user age key, Secrets=S(secrets.yaml)/U(user-binarin.yaml), SOPS=in .sops.yaml[/dim]")
+    console.print(
+        f"\n[bold]Summary:[/bold] {complete} ready, {partial} partial, {empty} empty"
+    )
+    console.print(
+        "\n[dim]Legend: SSH=SSH host keys, User=user age key, Secrets=S(secrets.yaml)/U(user-binarin.yaml), SOPS=in .sops.yaml[/dim]"
+    )

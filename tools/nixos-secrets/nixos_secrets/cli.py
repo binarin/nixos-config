@@ -33,9 +33,7 @@ def init_machine_cmd(
 
 @app.command("list")
 def list_cmd(
-    json_output: bool = typer.Option(
-        False, "--json", help="Output as JSON"
-    ),
+    json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
 ):
     """List all machines and their secrets status."""
     list_machines.run(json_output=json_output)
@@ -44,9 +42,7 @@ def list_cmd(
 @app.command("verify")
 def verify_cmd(
     machine: str = typer.Argument(None, help="Machine name (or all if not specified)"),
-    all_machines: bool = typer.Option(
-        False, "--all", "-a", help="Check all machines"
-    ),
+    all_machines: bool = typer.Option(False, "--all", "-a", help="Check all machines"),
 ):
     """Verify secrets integrity for a machine or all machines."""
     verify.run(machine=machine, all_machines=all_machines)
@@ -58,7 +54,12 @@ def show_keys_cmd(
 ):
     """Show derived age keys for a machine."""
     from . import config
-    from .external import ssh_to_age, age_keygen_extract_public, sops_decrypt_to_stdout, is_sops_encrypted
+    from .external import (
+        ssh_to_age,
+        age_keygen_extract_public,
+        sops_decrypt_to_stdout,
+        is_sops_encrypted,
+    )
     import tempfile
     from pathlib import Path
 
@@ -95,7 +96,9 @@ def show_keys_cmd(
             try:
                 decrypted = sops_decrypt_to_stdout(age_key)
                 # Write to temp file and extract public key
-                with tempfile.NamedTemporaryFile(mode="w", suffix=".key", delete=False) as f:
+                with tempfile.NamedTemporaryFile(
+                    mode="w", suffix=".key", delete=False
+                ) as f:
                     f.write(decrypted)
                     temp_path = Path(f.name)
                 try:

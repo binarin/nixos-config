@@ -84,9 +84,7 @@ class MachineSecrets:
     def all_ssh_keys_encrypted(self) -> bool:
         """Check if all existing SSH keys are encrypted."""
         return all(
-            key_info.encrypted
-            for key_info in self.ssh_keys.values()
-            if key_info.exists
+            key_info.encrypted for key_info in self.ssh_keys.values() if key_info.exists
         )
 
     @property

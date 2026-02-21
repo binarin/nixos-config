@@ -45,7 +45,9 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
         console.print("[yellow]DRY RUN - no changes will be made[/yellow]\n")
 
     # Step 1: Create directory
-    console.print(f"\n[bold]Step 1:[/bold] Creating directory {machine_dir.relative_to(repo_root)}")
+    console.print(
+        f"\n[bold]Step 1:[/bold] Creating directory {machine_dir.relative_to(repo_root)}"
+    )
     if machine_dir.exists():
         console.print("  [dim]Directory already exists[/dim]")
     elif dry_run:
@@ -76,7 +78,9 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
 
     # Step 3: Generate SSH host keys
     console.print("\n[bold]Step 3:[/bold] Generating SSH host keys")
-    need_ssh_keys = not existing_ssh_keys or len(existing_ssh_keys) < len(config.SSH_KEY_TYPES)
+    need_ssh_keys = not existing_ssh_keys or len(existing_ssh_keys) < len(
+        config.SSH_KEY_TYPES
+    )
 
     if not need_ssh_keys:
         console.print("  [dim]All SSH keys already exist, skipping generation[/dim]")
@@ -103,7 +107,9 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
     # Step 5 & 6: Generate and encrypt user age key
     user_age_pub = None
     if no_user_key:
-        console.print("\n[bold]Step 5-6:[/bold] [dim]Skipping user age key (--no-user-key)[/dim]")
+        console.print(
+            "\n[bold]Step 5-6:[/bold] [dim]Skipping user age key (--no-user-key)[/dim]"
+        )
     else:
         console.print("\n[bold]Step 5:[/bold] Generating user age keypair")
         age_key_path = config.user_age_key_path(machine_dir)
@@ -128,7 +134,9 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
                     finally:
                         temp_path.unlink()
                 except Exception as e:
-                    console.print(f"  [yellow]Warning: Could not extract public key: {e}[/yellow]")
+                    console.print(
+                        f"  [yellow]Warning: Could not extract public key: {e}[/yellow]"
+                    )
             else:
                 user_age_pub = external.age_keygen_extract_public(age_key_path)
         elif dry_run:

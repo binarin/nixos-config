@@ -103,7 +103,9 @@ def run(machine: str = None, all_machines: bool = False) -> None:
             if p.is_dir()
         ]
     else:
-        console.print("[yellow]Specify a machine name or use --all to verify all machines[/yellow]")
+        console.print(
+            "[yellow]Specify a machine name or use --all to verify all machines[/yellow]"
+        )
         return
 
     total_issues = 0
@@ -125,4 +127,6 @@ def run(machine: str = None, all_machines: bool = False) -> None:
     if total_issues:
         console.print(f"[bold red]Found {total_issues} issue(s)[/bold red]")
     else:
-        console.print(f"[bold green]All {len(machines_to_check)} machine(s) verified successfully[/bold green]")
+        console.print(
+            f"[bold green]All {len(machines_to_check)} machine(s) verified successfully[/bold green]"
+        )
