@@ -158,6 +158,49 @@ let
     };
   };
 
+  iso-wifi-yaml-data = {
+    on = {
+      workflow_dispatch = { };
+    };
+    jobs = {
+      build-iso-wifi = {
+        runs-on = "native";
+        "if" = "github.ref == 'refs/heads/master'";
+        steps = (checkout-and-unlock { ref = "master"; }) ++ [
+          {
+            name = "Build ISO image";
+            run = ''
+              nix build "$(pwd)#nixosConfigurations.iso.config.system.build.isoImage" \
+                -j auto \
+                -o iso-result
+            '';
+          }
+          {
+            name = "Inject WiFi credentials and create GC root";
+            run = ''
+              set -euo pipefail
+
+              # Read WiFi password from git-crypt decrypted file
+              WIFI_PASSWORD=$(cat files/agares-guest.git-crypt)
+
+              # Find the ISO file
+              ISO_FILE=$(find iso-result -name "*.iso" | head -1)
+
+              # Prepare output directory
+              OUTPUT_DIR="$HOME/.cache/nixos-config/master/iso-wifi"
+              mkdir -p "$OUTPUT_DIR"
+
+              # Run injection script
+              ./scripts/inject-iso-wifi.sh "$ISO_FILE" "agares-guest" "$WIFI_PASSWORD" "$OUTPUT_DIR/nixos-wifi.iso"
+
+              echo "WiFi-enabled ISO created at: $OUTPUT_DIR/nixos-wifi.iso"
+            '';
+          }
+        ];
+      };
+    };
+  };
+
   flake-update-yaml-data = {
     on = {
       schedule = [
@@ -276,6 +319,7 @@ in
           cat "${makeYaml "master.yaml" master-yaml-data}" > "$git_wt/.forgejo/workflows/master.yaml"
           cat "${makeYaml "flake-update.yaml" flake-update-yaml-data}" > "$git_wt/.forgejo/workflows/flake-update.yaml"
           cat "${makeYaml "docker-update.yaml" docker-update-yaml-data}" > "$git_wt/.forgejo/workflows/docker-update.yaml"
+          cat "${makeYaml "iso-wifi.yaml" iso-wifi-yaml-data}" > "$git_wt/.forgejo/workflows/iso-wifi.yaml"
         '';
       };
     };

@@ -21,6 +21,12 @@ jobs:
       run: git config user.email "flake-updater@binarin.info"
     - name: Commit updates
       run: git commit --allow-empty -am "Bump inputs"
+    - name: Build nixosConfiguration.claude-nixos-config
+      run: |
+        nix build "$(pwd)#nixosConfigurations.claude-nixos-config.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/claude-nixos-config"
     - name: Build nixosConfiguration.demandred
       run: |
         nix build "$(pwd)#nixosConfigurations.demandred.config.system.build.toplevel" \
@@ -87,17 +93,33 @@ jobs:
           --keep-going \
           -j auto \
           -o "temp-result/nix-cache"
+    - name: Build nixosConfiguration.octopi
+      run: |
+        nix build "$(pwd)#nixosConfigurations.octopi.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/octopi"
     - name: Build nixosConfiguration.qdevice
       run: |
         nix build "$(pwd)#nixosConfigurations.qdevice.config.system.build.toplevel" \
           --keep-going \
           -j auto \
           -o "temp-result/qdevice"
+    - name: Build nixosConfiguration.yolo-nixos-config
+      run: |
+        nix build "$(pwd)#nixosConfigurations.yolo-nixos-config.config.system.build.toplevel" \
+          --keep-going \
+          -j auto \
+          -o "temp-result/yolo-nixos-config"
     - name: Run flake check
       run: nix flake check
     - name: Clean-up old GC roots
       run: |
         rm -rf "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
+    - name: Add nix-store GC root for nixosConfiguraion.claude-nixos-config
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/claude-nixos-config" \
+          -r "$(readlink -f "temp-result/claude-nixos-config")"
     - name: Add nix-store GC root for nixosConfiguraion.demandred
       run: |
         nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/demandred" \
@@ -142,10 +164,18 @@ jobs:
       run: |
         nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/nix-cache" \
           -r "$(readlink -f "temp-result/nix-cache")"
+    - name: Add nix-store GC root for nixosConfiguraion.octopi
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/octopi" \
+          -r "$(readlink -f "temp-result/octopi")"
     - name: Add nix-store GC root for nixosConfiguraion.qdevice
       run: |
         nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/qdevice" \
           -r "$(readlink -f "temp-result/qdevice")"
+    - name: Add nix-store GC root for nixosConfiguraion.yolo-nixos-config
+      run: |
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/yolo-nixos-config" \
+          -r "$(readlink -f "temp-result/yolo-nixos-config")"
     - name: Push to flake-bump branch
       run: git push --force origin master:flake-bump
     - name: API auth

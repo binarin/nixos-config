@@ -31,6 +31,7 @@ jobs:
       fail-fast: false
       matrix:
         nixosConfiguration:
+        - claude-nixos-config
         - demandred
         - devcontainer
         - docker-on-nixos
@@ -42,7 +43,9 @@ jobs:
         - media
         - monitor
         - nix-cache
+        - octopi
         - qdevice
+        - yolo-nixos-config
 on:
   pull_request:
     types:
