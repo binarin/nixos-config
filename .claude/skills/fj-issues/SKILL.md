@@ -58,6 +58,7 @@ Otherwise:
 - Switch to / create the issue branch
 - Work on the issue, creating logically separate commits. Don't
   rewrite commit history, use fixup commits.
+- `nix fmt` should be always run before commit.
 - create PR (use issued ID in the PR title), so it'll be easy to find
   using `fj pr search` in case if it already exists.
 - If there were some valuable learnings in the process of execution,
