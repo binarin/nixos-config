@@ -90,9 +90,11 @@
         ".cache/nix"
         ".local/state/home-manager"
         ".local/state/nix"
+        ".local/share/forgejo-cli"
       ];
 
       impermanence.persist-files = [
+        ".git-credentials"
       ];
 
       impermanence.persist-directories = [

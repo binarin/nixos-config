@@ -40,6 +40,8 @@ binarin_age_dir=$(dirname $binarin_age)
 
 install -d -m700 "$temp/persist/home/binarin"
 install -d -m700 "$temp/local/home/binarin"
+touch "$temp/local/home/binarin/.claude.json"
+
 
 install -d -m700 "$temp/$binarin_age_dir"
 sops decrypt "secrets/$host/user-binarin-age" > "$temp/$binarin_age"
