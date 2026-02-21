@@ -94,7 +94,10 @@
       ];
 
       impermanence.persist-files = [
-        ".git-credentials"
+        {
+          file = ".git-credentials";
+          method = "symlink";
+        }
       ];
 
       impermanence.persist-directories = [
