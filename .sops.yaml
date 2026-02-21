@@ -96,6 +96,12 @@ creation_rules:
           - *admin_binarin_gpg
         age:
           - *admin_binarin
+  - path_regex: secrets/octopi/(secrets.yaml|user-binarin.yaml)
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_binarin
   - path_regex: secrets/qdevice/(secrets.yaml|user-binarin.yaml)
     key_groups:
       - pgp:

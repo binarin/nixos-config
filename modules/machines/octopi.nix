@@ -49,13 +49,13 @@
 
       imports = [
         self.nixosModules.baseline
+        self.nixosModules.sops
         # self.nixosModules.flake-files
         # self.nixosModules.inventory
         # self.nixosModules.inventory-legacy
         # self.nixosModules.nix
         # self.nixosModules.sshd
         # self.nixosModules.security
-        # self.nixosModules.sops
         # self.nixosModules.tailscale
       ];
 
@@ -82,8 +82,17 @@
         "binarin"
       ];
 
+      sops.secrets.agares_password = { };
+      sops.templates.networkmanager-env-file.content = ''
+        AGARES_PSK=${config.sops.placeholder.agares_password}
+      '';
+
       networking.networkmanager.enable = true;
       networking.networkmanager.ensureProfiles = {
+        environmentFiles = [
+          config.sops.templates.networkmanager-env-file.path
+        ];
+
         profiles = {
           agares-guest = {
             connection = {
@@ -103,7 +112,7 @@
             };
             wifi-security = {
               key-mgmt = "wpa-psk";
-              psk = config.lib.self.read "agares-guest.git-crypt";
+              psk = "$AGARES_PSK";
             };
           };
         };
