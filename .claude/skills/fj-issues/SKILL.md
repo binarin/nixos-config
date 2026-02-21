@@ -36,6 +36,9 @@ Otherwise update plan with the new inputs, update the plan comment using
 
     fj issue edit <ISSUE> comment <IDX> [NEW_BODY]
 
+IMPORTANT: Check that you are update the plan comment, and not any of
+the feedback comments!!!!!!
+
 As I want to keep the plan near the beginning of the comment list, it
 shoud also keep the timestamp of the latest comment with feedback that
 was already incorporated, so it'll be possible to check whether the
