@@ -42,30 +42,18 @@ boot:
     sudo time nixos-rebuild boot --flake "$(pwd)#$(hostname -s)" --keep-going -j {{ jobs }} {{ nixOpts }}
 
 [group('Main')]
-build-hm host=`hostname -s` user="$USER":
-    nix build "$(pwd)#nixosConfigurations.{{ host }}.config.home-manager.users.{{ user }}.home.activationPackage" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'home-configuration' / host / user }}"
-
-[group('Main')]
 hm host=`hostname -s` user="$USER":
     nix run --keep-going -j {{ jobs }} {{ nixOpts }} "$(pwd)#nixosConfigurations.{{ host }}.config.home-manager.users.{{ user }}.home.activationPackage"
-
-[group('Main')]
-build-nixos configuration=`hostname -s`:
-    ./scripts/build-nixos.sh "{{ configuration }}" "{{ topCacheDir / 'nixos-configuration' / configuration }}" -j {{ jobs }} {{ nixOpts }}
 
 # Evaluate a single configuration without building (useful for debugging infinite recursion)
 [group('Main')]
 eval-nixos configuration=`hostname -s`:
-    ./scripts/eval-nixos.sh "{{ configuration }}" {{ nixOpts }}
+    ncf eval nixos "{{ configuration }}"
 
 # Evaluate all configurations individually (useful for debugging infinite recursion and isolating failures)
 [group('Main')]
 eval-all:
-    ./scripts/eval-all-nixos.sh {{ nixOpts }}
-
-[group('Deploy')]
-iso:
-    nix build "$(pwd)#nixosConfigurations.iso.config.system.build.isoImage" --keep-going -j {{ jobs }} {{ nixOpts }} -o "{{ topCacheDir / 'nixos-configuration' / 'iso' }}"
+    ncf eval all
 
 # Check if git-crypt is unlocked (fails if repository is locked)
 [private]
@@ -92,13 +80,9 @@ deploy-boot target profile="system": check-git-crypt-unlocked
 deploy-no-rollback target profile="system": check-git-crypt-unlocked
     deploy "$(pwd)#{{ target }}.{{ profile }}" --auto-rollback false --magic-rollback false -s -k --ssh-opts="{{ sshOpts }}" -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
 
-
 [group('Deploy')]
-lxc target:
-    nix build "$(pwd)#nixosConfigurations.{{ target }}.config.system.build.tarball" --keep-going -j {{ jobs }} {{ nixOpts }} -o "proxmox-lxc-{{ target }}"
-
-[group('Deploy')]
-lxc-upload target host="raum": (lxc target)
+lxc-upload target host="raum":
+    ncf build lxc "{{ target }}"
     rsync -vL proxmox-lxc-{{ target }}/tarball/nixos-system-x86_64-linux.tar.xz root@{{ host }}:/var/lib/vz/template/cache/proxmox-lxc-{{ target }}.tar.xz
 
 [group('Deploy')]
@@ -106,17 +90,11 @@ lxc-create target id host="raum": (lxc-upload target)
     nix eval "$(pwd)#nixosConfigurations.docker-on-nixos.config.lib.lxc.createCommand" --apply 'f: f "{{ id }}"' --json | jq -r . | ssh root@raum bash -xeu -
 
 [group('Main')]
-all: check
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mapfile -t all < <(nix flake show --json | jq  -r '.nixosConfigurations | keys | join("\n")')
-    for cf in "${all[@]}"; do
-      echo "Building $cf"
-      just nixOpts="" build-nixos "$cf" || echo "Failed"
-    done
+build-all: check
+    ncf build all
 
 [group('Main')]
-deploy-all: check-git-crypt-unlocked all
+deploy-all: check-git-crypt-unlocked build-all
     #!/usr/bin/env bash
     set -euo pipefail
     mapfile -t all < <(nix eval "$(pwd)#deploy.nodes" --apply builtins.attrNames --json | jq -r ".[]")
@@ -126,7 +104,7 @@ deploy-all: check-git-crypt-unlocked all
     done
 
 [group('Main')]
-deploy-boot-all: check-git-crypt-unlocked all
+deploy-boot-all: check-git-crypt-unlocked build-all
     #!/usr/bin/env bash
     set -euo pipefail
     mapfile -t all < <(nix eval "$(pwd)#deploy.nodes" --apply builtins.attrNames --json | jq -r ".[]")
