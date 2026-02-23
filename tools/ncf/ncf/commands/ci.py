@@ -203,7 +203,7 @@ def generate_iso_wifi_yaml() -> dict:
                 + [
                     {
                         "name": "Build WiFi-enabled ISO",
-                        "run": "ncf iso build-wifi --password-file files/agares-guest.git-crypt",
+                        "run": "nix run .#ncf -- iso build-wifi --password-file files/agares-guest.git-crypt",
                     },
                 ],
             }

@@ -25,83 +25,31 @@ jobs:
     - name: Commit updates
       run: git commit --allow-empty -am "Bump inputs"
     - name: Build nixosConfiguration.claude-nixos-config
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.claude-nixos-config.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/claude-nixos-config"
+      run: nix run .#ncf -- build nixos claude-nixos-config --no-nom -o temp-result/claude-nixos-config
     - name: Build nixosConfiguration.demandred
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.demandred.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/demandred"
+      run: nix run .#ncf -- build nixos demandred --no-nom -o temp-result/demandred
     - name: Build nixosConfiguration.devcontainer
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.devcontainer.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/devcontainer"
+      run: nix run .#ncf -- build nixos devcontainer --no-nom -o temp-result/devcontainer
     - name: Build nixosConfiguration.docker-on-nixos
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.docker-on-nixos.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/docker-on-nixos"
+      run: nix run .#ncf -- build nixos docker-on-nixos --no-nom -o temp-result/docker-on-nixos
     - name: Build nixosConfiguration.forgejo
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.forgejo.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/forgejo"
+      run: nix run .#ncf -- build nixos forgejo --no-nom -o temp-result/forgejo
     - name: Build nixosConfiguration.furfur
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.furfur.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/furfur"
+      run: nix run .#ncf -- build nixos furfur --no-nom -o temp-result/furfur
     - name: Build nixosConfiguration.ishamael
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.ishamael.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/ishamael"
+      run: nix run .#ncf -- build nixos ishamael --no-nom -o temp-result/ishamael
     - name: Build nixosConfiguration.iso
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.iso.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/iso"
+      run: nix run .#ncf -- build nixos iso --no-nom -o temp-result/iso
     - name: Build nixosConfiguration.mail
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.mail.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/mail"
+      run: nix run .#ncf -- build nixos mail --no-nom -o temp-result/mail
     - name: Build nixosConfiguration.media
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.media.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/media"
+      run: nix run .#ncf -- build nixos media --no-nom -o temp-result/media
     - name: Build nixosConfiguration.monitor
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.monitor.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/monitor"
+      run: nix run .#ncf -- build nixos monitor --no-nom -o temp-result/monitor
     - name: Build nixosConfiguration.nix-cache
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.nix-cache.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/nix-cache"
+      run: nix run .#ncf -- build nixos nix-cache --no-nom -o temp-result/nix-cache
     - name: Build nixosConfiguration.qdevice
-      run: |-
-        nix build "$(pwd)#nixosConfigurations.qdevice.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "temp-result/qdevice"
+      run: nix run .#ncf -- build nixos qdevice --no-nom -o temp-result/qdevice
     - name: Run flake check
       run: nix flake check
     - name: Clean-up old GC roots

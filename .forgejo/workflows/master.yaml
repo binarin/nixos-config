@@ -34,15 +34,11 @@ jobs:
       env:
         GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
       run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
-    - run: |-
-        nix build "$(pwd)#nixosConfigurations.${{ matrix.nixosConfiguration }}.config.system.build.toplevel" \
-          --keep-going \
-          -j auto \
-          -o "$HOME/.cache/nixos-config/master/nixos-configuration/${{ matrix.nixosConfiguration }}"
+    - run: nix run .#ncf -- build nixos ${{ matrix.nixosConfiguration }} --no-nom
   check:
     runs-on: native
     needs:
-    - build-all-configurations-job
+    - nixos-configuration
     steps:
     - uses: actions/checkout@v4
     - name: unlock git-crypt
