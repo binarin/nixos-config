@@ -3,6 +3,12 @@
   inputs,
   ...
 }:
+let
+  # WiFi credentials from environment variables (only available in impure mode)
+  wifiSsid = builtins.getEnv "WIFI_SSID";
+  wifiPassword = builtins.getEnv "WIFI_PASSWORD";
+  hasWifiCredentials = wifiSsid != "" && wifiPassword != "";
+in
 {
   flake.nixosConfigurations.iso = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
@@ -81,8 +87,34 @@
         ];
 
         networking.networkmanager.enable = true;
-        # WiFi credentials should be injected post-build to avoid git-crypt dependency during evaluation
-        # Use scripts/inject-iso-wifi.sh to add WiFi profile to built ISO
+
+        # WiFi credentials injected via environment variables in impure mode
+        # In pure mode (CI, regular eval), no WiFi credentials are configured
+        environment.etc = lib.mkIf hasWifiCredentials {
+          "NetworkManager/system-connections/${wifiSsid}.nmconnection" = {
+            mode = "0600";
+            text = ''
+              [connection]
+              id=${wifiSsid}
+              type=wifi
+
+              [wifi]
+              mode=infrastructure
+              ssid=${wifiSsid}
+
+              [wifi-security]
+              key-mgmt=wpa-psk
+              psk=${wifiPassword}
+
+              [ipv4]
+              method=auto
+
+              [ipv6]
+              addr-gen-mode=stable-privacy
+              method=auto
+            '';
+          };
+        };
 
         systemd = {
           targets = {

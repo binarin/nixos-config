@@ -24,6 +24,7 @@ def run_command(
     cwd: Optional[Path] = None,
     capture_output: bool = True,
     check: bool = True,
+    env: Optional[dict[str, str]] = None,
 ) -> subprocess.CompletedProcess:
     """Run a command with error handling."""
     try:
@@ -33,6 +34,7 @@ def run_command(
             capture_output=capture_output,
             text=True,
             check=check,
+            env=env,
         )
         return result
     except subprocess.CalledProcessError as e:
