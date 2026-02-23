@@ -1,4 +1,8 @@
-# auto-generated via: nix run .#ci-template-generator
+# auto-generated via: ncf ci generate
+on:
+  schedule:
+  - cron: 42 11 * * *
+  workflow_dispatch: {}
 jobs:
   propose-docker-updates:
     runs-on: native
@@ -6,19 +10,16 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: master
-    - env:
+    - name: unlock git-crypt
+      env:
         GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-      name: unlock git-crypt
-      run: |
-        git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
+      run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
     - name: Set git username for commits
       run: 'git config user.name "Docker Image Updater" '
     - name: Set git email for commits
       run: git config user.email "docker-updater@binarin.info"
     - name: API auth
-      run: set -x; fj -H forgejo.lynx-lizard.ts.net auth logout 
-        forgejo.lynx-lizard.ts.net || true; echo "${{ secrets.PR_TOKEN }}" | fj 
-        -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper
+      run: set -x; fj -H forgejo.lynx-lizard.ts.net auth logout forgejo.lynx-lizard.ts.net || true; echo "${{ secrets.PR_TOKEN }}" | fj -H forgejo.lynx-lizard.ts.net auth add-key nixos-config-bumper
     - name: Check for docker image updates and create PRs
       run: |
         set -euo pipefail
@@ -70,7 +71,3 @@ jobs:
         done
 
         echo "Done processing all updates"
-on:
-  schedule:
-  - cron: 42 11 * * *
-  workflow_dispatch: {}

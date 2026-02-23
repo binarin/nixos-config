@@ -160,7 +160,7 @@ ansible-deps: # ansible-inventory
 
 [group('CI')]
 render-ci-workflows:
-    nix run '.#ci-template-generator'
+    ncf ci generate
 
 [group('dev')]
 render-templates: ansible-inventory render-ci-workflows

@@ -1,19 +1,20 @@
-# auto-generated via: nix run .#ci-template-generator
+# auto-generated via: ncf ci generate
+on:
+  workflow_dispatch: {}
 jobs:
   build-iso-wifi:
-    if: github.ref == 'refs/heads/master'
     runs-on: native
+    if: github.ref == 'refs/heads/master'
     steps:
     - uses: actions/checkout@v4
       with:
         ref: master
-    - env:
+    - name: unlock git-crypt
+      env:
         GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-      name: unlock git-crypt
-      run: |
-        git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
+      run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
     - name: Build ISO image
-      run: |
+      run: |-
         nix build "$(pwd)#nixosConfigurations.iso.config.system.build.isoImage" \
           -j auto \
           -o iso-result
@@ -35,5 +36,3 @@ jobs:
         ./scripts/inject-iso-wifi.sh "$ISO_FILE" "agares-guest" "$WIFI_PASSWORD" "$OUTPUT_DIR/nixos-wifi.iso"
 
         echo "WiFi-enabled ISO created at: $OUTPUT_DIR/nixos-wifi.iso"
-on:
-  workflow_dispatch: {}

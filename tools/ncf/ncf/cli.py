@@ -3,7 +3,7 @@
 import typer
 from rich.console import Console
 
-from .commands import init_machine, list_machines, verify
+from .commands import ci, init_machine, list_machines, verify
 
 app = typer.Typer(
     name="ncf",
@@ -18,7 +18,28 @@ secrets_app = typer.Typer(
 )
 app.add_typer(secrets_app, name="secrets")
 
+ci_app = typer.Typer(
+    name="ci",
+    help="Manage CI workflows",
+    no_args_is_help=True,
+)
+app.add_typer(ci_app, name="ci")
+
 console = Console()
+
+
+@ci_app.command("generate")
+def ci_generate_cmd(
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without making changes"
+    ),
+):
+    """Generate CI workflow YAML files.
+
+    Reads ci.doBuild from each nixosConfiguration and generates
+    workflow files that only build configurations with doBuild=true.
+    """
+    ci.run_generate(dry_run=dry_run)
 
 
 @secrets_app.command("init-machine")

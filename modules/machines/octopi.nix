@@ -123,5 +123,8 @@
 
       nixpkgs.buildPlatform = "x86_64-linux";
       nixpkgs.hostPlatform = "aarch64-linux";
+
+      # Disable CI builds for octopi (Raspberry Pi cross-compilation)
+      ci.doBuild = false;
     };
 }

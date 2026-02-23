@@ -8,6 +8,7 @@
       imports = [
         "${inputs.srvos}/nixos/common/update-diff.nix"
 
+        self.nixosModules.ci
         self.nixosModules.inventory
         self.nixosModules.nix
         self.nixosModules.sshd
