@@ -95,13 +95,13 @@ def generate_master_yaml(configurations: list[str]) -> dict:
                 "steps": generate_checkout_and_unlock()
                 + [
                     {
-                        "run": 'nix build "$(pwd)#nixosConfigurations.${{ matrix.nixosConfiguration }}.config.system.build.toplevel" \\\n  --keep-going \\\n  -j auto \\\n  -o "$HOME/.cache/nixos-config/master/nixos-configuration/${{ matrix.nixosConfiguration }}"'
+                        "run": "nix run .#ncf -- build nixos ${{ matrix.nixosConfiguration }} --no-nom"
                     }
                 ],
             },
             "check": {
                 "runs-on": "native",
-                "needs": ["build-all-configurations-job"],
+                "needs": ["nixos-configuration"],
                 "steps": generate_checkout_and_unlock() + [{"run": "nix flake check"}],
             },
         },
@@ -216,7 +216,7 @@ def generate_flake_update_yaml(configurations: list[str]) -> dict:
     build_steps = [
         {
             "name": f"Build nixosConfiguration.{cfg}",
-            "run": f'nix build "$(pwd)#nixosConfigurations.{cfg}.config.system.build.toplevel" \\\n  --keep-going \\\n  -j auto \\\n  -o "temp-result/{cfg}"',
+            "run": f"nix run .#ncf -- build nixos {cfg} --no-nom -o temp-result/{cfg}",
         }
         for cfg in configurations
     ]
