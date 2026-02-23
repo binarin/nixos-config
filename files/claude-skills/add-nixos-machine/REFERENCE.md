@@ -332,66 +332,6 @@ Physical machine with full workstation setup:
 }
 ```
 
-### Microvm (inline in host config)
-
-Microvms are defined inline within the host machine's configuration, not as separate files:
-
-```nix
-# In modules/microvm.nix or the host machine's config
-
-microvm.vms = {
-  my-microvm = {
-    autostart = false;
-    pkgs = import inputs.nixpkgs {
-      config = config.nixpkgs.config;
-      system = "x86_64-linux";
-    };
-    specialArgs.inventoryHostName = "my-microvm";
-    config = {
-      imports = [
-        self.nixosModules.my-microvm-configuration
-      ];
-    };
-  };
-};
-
-# The actual microvm configuration module
-flake.nixosModules.my-microvm-configuration =
-  { lib, config, ... }:
-  {
-    key = "nixos-config.modules.nixos.my-microvm-configuration";
-    imports = [
-      inputs.microvm.nixosModules.microvm
-      self.nixosModules.baseline
-    ];
-
-    microvm.hypervisor = "cloud-hypervisor";
-    nixos-config.export-metrics.enable = false;
-    system.stateVersion = "25.11";
-
-    # Custom networking (not using inventory)
-    networking.useDHCP = false;
-    networking.useNetworkd = true;
-    systemd.network.enable = true;
-    systemd.network.networks."10-e" = {
-      matchConfig.Name = "e*";
-      addresses = [ { Address = "192.168.83.10/24"; } ];
-    };
-
-    microvm = {
-      vcpu = 4;
-      mem = 4096;
-      interfaces = [
-        {
-          type = "tap";
-          id = "microvm-10";
-          mac = "02:00:00:00:00:10";
-        }
-      ];
-    };
-  };
-```
-
 ## Inventory Files
 
 ### inventory/host-id.nix

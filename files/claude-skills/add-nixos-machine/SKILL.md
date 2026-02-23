@@ -1,6 +1,6 @@
 ---
 name: add-nixos-machine
-description: Guides the process of adding new NixOS machine configurations following the dendritic pattern. Use when creating new NixOS machines (qemu-guest, microvm, lxc, bare-metal). Handles inventory setup, hostId generation, and module creation.
+description: Guides the process of adding new NixOS machine configurations following the dendritic pattern. Use when creating new NixOS machines (qemu-guest, lxc, bare-metal). Handles inventory setup, hostId generation, and module creation.
 ---
 
 # Add NixOS Machine
@@ -12,7 +12,7 @@ This skill guides you through adding a new NixOS machine configuration following
 Copy and complete this checklist when adding a new machine:
 
 - [ ] **1. Pre-check**: Run `nix fmt && just lint && just eval-all` to ensure the configuration is clean before making changes
-- [ ] **2. Determine machine type**: qemu-guest, microvm, lxc, or bare-metal
+- [ ] **2. Determine machine type**: qemu-guest, lxc, or bare-metal
 - [ ] **3. Choose machine name**: Should be unique and follow existing naming conventions
 - [ ] **4. Generate hostId**: Run `./scripts/generate-hostid.sh` from skill directory
 - [ ] **5. Add hostId to inventory**: Edit `inventory/host-id.nix`
@@ -31,15 +31,6 @@ Copy and complete this checklist when adding a new machine:
 Standard VM running in QEMU/KVM. Uses `modulesPath + "/profiles/qemu-guest.nix"`.
 
 **Template**: See REFERENCE.md for complete examples.
-
-### microvm
-MicroVM with custom networking. Does NOT use inventory IP allocation - networking is configured manually within the microvm host's configuration.
-
-**Key characteristics:**
-- Defined inline in the host machine's configuration
-- Uses `192.168.83.x` internal network
-- No inventory IP allocation needed
-- Still needs hostId in `inventory/host-id.nix`
 
 ### lxc
 Proxmox LXC container. Imports `self.nixosModules.lxc`.
@@ -109,7 +100,7 @@ flake.nixosConfigurations.machine-name = inputs.nixpkgs.lib.nixosSystem {
 ```
 
 ### Machines without inventory IP
-For microvms or other isolated machines, skip the inventory IP allocation but still:
+For isolated machines, skip the inventory IP allocation but still:
 - Add hostId to `inventory/host-id.nix`
 - Configure networking manually in the module
 

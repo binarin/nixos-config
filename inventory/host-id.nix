@@ -12,7 +12,6 @@
   qdevice = "f72453f5";
   furfur = "0a7be8e6";
   devcontainer = "86c445cf";
-  microvm-nixos-config = "2347471f";
   octopi = "42c0f970";
   claude-nixos-config = "6123245c";
 }
