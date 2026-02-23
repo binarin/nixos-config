@@ -3,7 +3,7 @@
 import typer
 from rich.console import Console
 
-from .commands import ci, init_machine, iso, list_machines, verify
+from .commands import build, ci, eval, init_machine, iso, list_machines, verify
 
 app = typer.Typer(
     name="ncf",
@@ -32,7 +32,263 @@ iso_app = typer.Typer(
 )
 app.add_typer(iso_app, name="iso")
 
+build_app = typer.Typer(
+    name="build",
+    help="Build NixOS configurations and related artifacts",
+    no_args_is_help=True,
+)
+app.add_typer(build_app, name="build")
+
+eval_app = typer.Typer(
+    name="eval",
+    help="Evaluate NixOS configurations (for debugging)",
+    no_args_is_help=True,
+)
+app.add_typer(eval_app, name="eval")
+
 console = Console()
+
+
+# Common CLI options
+def verbosity_callback(value: int) -> int:
+    """Convert verbosity flags to level."""
+    return value
+
+
+def builder_callback(value: list[str]) -> list[str]:
+    """Validate builder format."""
+    return value
+
+
+# Build commands
+@build_app.command("nixos")
+def build_nixos_cmd(
+    configuration: str = typer.Argument(help="NixOS configuration name to build"),
+    output: str = typer.Option(
+        None, "--output", "-o", help="Output path for result symlink"
+    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    no_nom: bool = typer.Option(False, "--no-nom", help="Disable nix-output-monitor"),
+    builder: list[str] = typer.Option(
+        [], "--builder", "-b", help="Remote builder (repeatable)"
+    ),
+    jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Build a NixOS configuration."""
+    from pathlib import Path
+
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    use_nom = None if not no_nom else False
+    output_path = Path(output) if output else None
+
+    build.run_nixos(
+        configuration=configuration,
+        output=output_path,
+        verbosity=verbosity,
+        use_nom=use_nom,
+        builders=builder if builder else None,
+        jobs=jobs,
+        dry_run=dry_run,
+    )
+
+
+@build_app.command("home")
+def build_home_cmd(
+    host: str = typer.Argument(help="Host name"),
+    user: str = typer.Argument(help="User name"),
+    output: str = typer.Option(
+        None, "--output", "-o", help="Output path for result symlink"
+    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    no_nom: bool = typer.Option(False, "--no-nom", help="Disable nix-output-monitor"),
+    builder: list[str] = typer.Option(
+        [], "--builder", "-b", help="Remote builder (repeatable)"
+    ),
+    jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Build a home-manager configuration."""
+    from pathlib import Path
+
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    use_nom = None if not no_nom else False
+    output_path = Path(output) if output else None
+
+    build.run_home(
+        host=host,
+        user=user,
+        output=output_path,
+        verbosity=verbosity,
+        use_nom=use_nom,
+        builders=builder if builder else None,
+        jobs=jobs,
+        dry_run=dry_run,
+    )
+
+
+@build_app.command("lxc")
+def build_lxc_cmd(
+    target: str = typer.Argument(help="LXC target name"),
+    output: str = typer.Option(
+        None, "--output", "-o", help="Output path for result symlink"
+    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    no_nom: bool = typer.Option(False, "--no-nom", help="Disable nix-output-monitor"),
+    builder: list[str] = typer.Option(
+        [], "--builder", "-b", help="Remote builder (repeatable)"
+    ),
+    jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Build an LXC tarball."""
+    from pathlib import Path
+
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    use_nom = None if not no_nom else False
+    output_path = Path(output) if output else None
+
+    build.run_lxc(
+        target=target,
+        output=output_path,
+        verbosity=verbosity,
+        use_nom=use_nom,
+        builders=builder if builder else None,
+        jobs=jobs,
+        dry_run=dry_run,
+    )
+
+
+@build_app.command("iso")
+def build_iso_cmd(
+    output: str = typer.Option(
+        None, "--output", "-o", help="Output path for result symlink"
+    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    no_nom: bool = typer.Option(False, "--no-nom", help="Disable nix-output-monitor"),
+    builder: list[str] = typer.Option(
+        [], "--builder", "-b", help="Remote builder (repeatable)"
+    ),
+    jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Build ISO image."""
+    from pathlib import Path
+
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    use_nom = None if not no_nom else False
+    output_path = Path(output) if output else None
+
+    build.run_iso(
+        output=output_path,
+        verbosity=verbosity,
+        use_nom=use_nom,
+        builders=builder if builder else None,
+        jobs=jobs,
+        dry_run=dry_run,
+    )
+
+
+@build_app.command("all")
+def build_all_cmd(
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    no_nom: bool = typer.Option(False, "--no-nom", help="Disable nix-output-monitor"),
+    builder: list[str] = typer.Option(
+        [], "--builder", "-b", help="Remote builder (repeatable)"
+    ),
+    jobs: str = typer.Option(
+        "auto", "--jobs", "-j", help="Number of parallel jobs for nix"
+    ),
+    max_parallel: int = typer.Option(
+        None, "--max-parallel", "-P", help="Max parallel builds (default: CPU count)"
+    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Build all NixOS configurations in parallel."""
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    use_nom = None if not no_nom else False
+
+    build.run_all(
+        verbosity=verbosity,
+        use_nom=use_nom,
+        builders=builder if builder else None,
+        jobs=jobs,
+        max_parallel=max_parallel,
+        dry_run=dry_run,
+    )
+
+
+# Eval commands
+@eval_app.command("nixos")
+def eval_nixos_cmd(
+    configuration: str = typer.Argument(help="NixOS configuration name to evaluate"),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Evaluate a NixOS configuration (get .drv path without building).
+
+    Useful for debugging infinite recursion and evaluation errors.
+    """
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    eval.run_nixos(
+        configuration=configuration,
+        verbosity=verbosity,
+        dry_run=dry_run,
+    )
+
+
+@eval_app.command("all")
+def eval_all_cmd(
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    max_parallel: int = typer.Option(
+        None,
+        "--max-parallel",
+        "-P",
+        help="Max parallel evaluations (default: CPU count)",
+    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Evaluate all NixOS configurations in parallel.
+
+    Useful for debugging which configuration is causing evaluation errors.
+    """
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    eval.run_all(
+        verbosity=verbosity,
+        max_parallel=max_parallel,
+        dry_run=dry_run,
+    )
+
+
+@eval_app.command("query")
+def eval_query_cmd(
+    configuration: str = typer.Argument(help="NixOS configuration name"),
+    attribute: str = typer.Argument(help="Attribute path to evaluate"),
+    json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
+    raw: bool = typer.Option(False, "--raw", help="Output raw string"),
+    apply: str = typer.Option(None, "--apply", help="Apply a function to the result"),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Evaluate an arbitrary attribute from a NixOS configuration."""
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    eval.run_query(
+        configuration=configuration,
+        attribute=attribute,
+        json_output=json_output,
+        raw=raw,
+        apply=apply,
+        verbosity=verbosity,
+        dry_run=dry_run,
+    )
 
 
 @ci_app.command("generate")
