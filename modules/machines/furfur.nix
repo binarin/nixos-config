@@ -64,6 +64,9 @@
       #   "/dev/input/by-path/platform-MSHW0263:00-event-kbd"
       # ];
 
+      # Disable autostart for kanata - start manually with `systemctl start kanata-all`
+      systemd.services.kanata-all.wantedBy = lib.mkForce [ ];
+
       services.logind.settings.Login = {
         HandlePowerKey = "suspend";
         HandlePowerKeyLongPress = "poweroff";
