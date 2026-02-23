@@ -82,9 +82,9 @@
         "binarin"
       ];
 
-      sops.secrets.agares_password = { };
+      sops.secrets.agares_guest_password = { };
       sops.templates.networkmanager-env-file.content = ''
-        AGARES_PSK=${config.sops.placeholder.agares_password}
+        AGARES_GUEST_PSK=${config.sops.placeholder.agares_guest_password}
       '';
 
       networking.networkmanager.enable = true;
@@ -112,7 +112,7 @@
             };
             wifi-security = {
               key-mgmt = "wpa-psk";
-              psk = "$AGARES_PSK";
+              psk = "$AGARES_GUEST_PSK";
             };
           };
         };

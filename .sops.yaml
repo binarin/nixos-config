@@ -18,6 +18,8 @@ keys:
   - &user_furfur_binarin age1nvy6629y23y7c38f9qk8qekqn089a5x55nklp2t3hdzl7la7xgys5rcfsy
   - &server_claude-nixos-config age17v0z2umczgg2wm5rh25ajt76l6dwe9ceqkyjm0svc2zty5emve2slchqpm
   - &user_claude-nixos-config_binarin age19xt3l3zrduegqqzcmu06qk0nsmmlcr2lae6qwjxxdxxnjqhlz3zqx4n6zd
+  - &server_octopi age12yd5jn5h7lzyxmekc7qmtrzypylmz4fxc5uulz23xcm8al4ph5rqt7hkmw
+  - &user_octopi_binarin age1xh6xzxn4q3sjxqctupp6d2fzq79p7r0pa8rejr9x3l3u4zagsc0qel9a2x
 creation_rules:
   - path_regex: secrets/demandred/(secrets.yaml|user-binarin.yaml)
     key_groups:
@@ -145,3 +147,17 @@ creation_rules:
         age:
           - *admin_demandred_binarin
           - *user_claude-nixos-config_binarin
+  - path_regex: secrets/octopi/secrets.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_octopi
+  - path_regex: secrets/octopi/user-binarin.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *user_octopi_binarin
