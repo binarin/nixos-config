@@ -55,6 +55,17 @@ def iso_build_wifi_cmd(
         None, "--output", "-o", help="Output path for the WiFi-enabled ISO"
     ),
     ssid: str = typer.Option(iso.DEFAULT_SSID, "--ssid", help="WiFi network name"),
+    password: str = typer.Option(
+        None,
+        "--password",
+        "-p",
+        help="WiFi password (if not provided, reads from git-crypt file)",
+    ),
+    password_file: str = typer.Option(
+        None,
+        "--password-file",
+        help="Path to file containing WiFi password",
+    ),
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Show what would be done without executing"
     ),
@@ -62,12 +73,20 @@ def iso_build_wifi_cmd(
     """Build ISO with WiFi credentials injected.
 
     Builds the NixOS ISO image and injects WiFi credentials into it.
-    The WiFi password is read from the git-crypt encrypted file.
+    The WiFi password can be provided via --password, --password-file,
+    or it will be read from the default git-crypt encrypted file.
     """
     from pathlib import Path
 
     output_path = Path(output) if output else None
-    iso.run_build_wifi(output=output_path, ssid=ssid, dry_run=dry_run)
+    password_file_path = Path(password_file) if password_file else None
+    iso.run_build_wifi(
+        output=output_path,
+        ssid=ssid,
+        password=password,
+        password_file=password_file_path,
+        dry_run=dry_run,
+    )
 
 
 @secrets_app.command("init-machine")
