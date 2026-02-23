@@ -3,7 +3,7 @@
 import typer
 from rich.console import Console
 
-from .commands import ci, init_machine, list_machines, verify
+from .commands import ci, init_machine, iso, list_machines, verify
 
 app = typer.Typer(
     name="ncf",
@@ -25,6 +25,13 @@ ci_app = typer.Typer(
 )
 app.add_typer(ci_app, name="ci")
 
+iso_app = typer.Typer(
+    name="iso",
+    help="ISO image operations",
+    no_args_is_help=True,
+)
+app.add_typer(iso_app, name="iso")
+
 console = Console()
 
 
@@ -40,6 +47,27 @@ def ci_generate_cmd(
     workflow files that only build configurations with doBuild=true.
     """
     ci.run_generate(dry_run=dry_run)
+
+
+@iso_app.command("build-wifi")
+def iso_build_wifi_cmd(
+    output: str = typer.Option(
+        None, "--output", "-o", help="Output path for the WiFi-enabled ISO"
+    ),
+    ssid: str = typer.Option(iso.DEFAULT_SSID, "--ssid", help="WiFi network name"),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without executing"
+    ),
+):
+    """Build ISO with WiFi credentials injected.
+
+    Builds the NixOS ISO image and injects WiFi credentials into it.
+    The WiFi password is read from the git-crypt encrypted file.
+    """
+    from pathlib import Path
+
+    output_path = Path(output) if output else None
+    iso.run_build_wifi(output=output_path, ssid=ssid, dry_run=dry_run)
 
 
 @secrets_app.command("init-machine")

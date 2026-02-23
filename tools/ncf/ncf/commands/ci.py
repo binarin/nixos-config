@@ -202,28 +202,8 @@ def generate_iso_wifi_yaml() -> dict:
                 "steps": generate_checkout_and_unlock(ref="master")
                 + [
                     {
-                        "name": "Build ISO image",
-                        "run": 'nix build "$(pwd)#nixosConfigurations.iso.config.system.build.isoImage" \\\n  -j auto \\\n  -o iso-result',
-                    },
-                    {
-                        "name": "Inject WiFi credentials and create GC root",
-                        "run": """set -euo pipefail
-
-# Read WiFi password from git-crypt decrypted file
-WIFI_PASSWORD=$(cat files/agares-guest.git-crypt)
-
-# Find the ISO file
-ISO_FILE=$(find iso-result -name "*.iso" | head -1)
-
-# Prepare output directory
-OUTPUT_DIR="$HOME/.cache/nixos-config/master/iso-wifi"
-mkdir -p "$OUTPUT_DIR"
-
-# Run injection script
-./scripts/inject-iso-wifi.sh "$ISO_FILE" "agares-guest" "$WIFI_PASSWORD" "$OUTPUT_DIR/nixos-wifi.iso"
-
-echo "WiFi-enabled ISO created at: $OUTPUT_DIR/nixos-wifi.iso"
-""",
+                        "name": "Build WiFi-enabled ISO",
+                        "run": "ncf iso build-wifi",
                     },
                 ],
             }
