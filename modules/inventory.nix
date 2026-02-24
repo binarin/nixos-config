@@ -105,7 +105,9 @@ in
           };
         };
         config = {
-          networking.hostId = (import "${self}/inventory/host-id.nix")."${config.networking.hostName}";
+          networking.hostId =
+            (builtins.fromTOML (builtins.readFile "${self}/inventory/host-id.toml"))
+            ."${config.networking.hostName}";
           networking.hosts = flakeConfig.inventory.networks.home.hosts;
           inventory.hostIpAllocation = flakeConfig.inventory.ipAllocation."${config.networking.hostName}";
         };

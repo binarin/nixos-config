@@ -25,6 +25,7 @@
           "*.gpg"
           "*.kdl"
           "*.sh"
+          "*.j2"
           ".terraform"
           ".direnv"
           "secrets/**"

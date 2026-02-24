@@ -1,0 +1,12 @@
+[info]
+prefix = 24
+network = "192.168.3.0"
+gateway = "192.168.3.1"
+dns = ["192.168.3.1"]
+domain = "guest.binarin.info"
+
+[ipam]
+"192.168.3.1" = "usg"
+"192.168.3.2" = "octopi"
+"192.168.3.3" = "claude-nixos-config"
+# Remaining IPs 192.168.3.4-255 are unallocated

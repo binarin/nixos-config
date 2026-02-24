@@ -18,6 +18,7 @@
           pydantic
           gitpython
           jinja2
+          toml
         ];
       };
     in

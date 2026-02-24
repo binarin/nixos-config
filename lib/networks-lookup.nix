@@ -3,16 +3,16 @@ let
   readRawInventory =
     let
       dir = builtins.readDir "${self}/inventory/networks";
-      regularNixFiles = lib.attrNames (
-        lib.filterAttrs (n: v: v == "regular" && lib.hasSuffix ".nix" n) dir
+      regularTomlFiles = lib.attrNames (
+        lib.filterAttrs (n: v: v == "regular" && lib.hasSuffix ".toml" n) dir
       );
       val = lib.map (
         fn:
         let
-          netName = lib.removeSuffix ".nix" fn;
+          netName = lib.removeSuffix ".toml" fn;
         in
-        lib.nameValuePair netName (import "${self}/inventory/networks/${fn}")
-      ) regularNixFiles;
+        lib.nameValuePair netName (builtins.fromTOML (builtins.readFile "${self}/inventory/networks/${fn}"))
+      ) regularTomlFiles;
     in
     lib.listToAttrs val;
 

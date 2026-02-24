@@ -3,7 +3,16 @@
 import typer
 from rich.console import Console
 
-from .commands import build, ci, eval, init_machine, iso, list_machines, verify
+from .commands import (
+    add_machine,
+    build,
+    ci,
+    eval,
+    init_machine,
+    iso,
+    list_machines,
+    verify,
+)
 
 app = typer.Typer(
     name="ncf",
@@ -45,6 +54,13 @@ eval_app = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(eval_app, name="eval")
+
+machine_app = typer.Typer(
+    name="machine",
+    help="Manage NixOS machine configurations",
+    no_args_is_help=True,
+)
+app.add_typer(machine_app, name="machine")
 
 console = Console()
 
@@ -303,6 +319,38 @@ def ci_generate_cmd(
     workflow files that only build configurations with doBuild=true.
     """
     ci.run_generate(dry_run=dry_run)
+
+
+@machine_app.command("add")
+def machine_add_cmd(
+    name: str = typer.Argument(help="Name for the new machine"),
+    system: str = typer.Option(
+        "x86_64-linux", "--system", "-s", help="System architecture"
+    ),
+    network: str = typer.Option(
+        "home", "--network", "-n", help="Network for IP allocation"
+    ),
+    no_network: bool = typer.Option(False, "--no-network", help="Skip IP allocation"),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without making changes"
+    ),
+):
+    """Add a new NixOS machine configuration.
+
+    Creates all necessary files for a new machine:
+    - Host ID in inventory/host-id.toml
+    - IP allocation in inventory/networks/<network>.toml
+    - Machine directory with hardware-configuration.nix and disko.nix
+    - Machine module in modules/machines/<name>.nix
+    - Secrets via ncf secrets init-machine
+    """
+    actual_network = None if no_network else network
+    add_machine.run(
+        name=name,
+        system=system,
+        network=actual_network,
+        dry_run=dry_run,
+    )
 
 
 @iso_app.command("build-wifi")

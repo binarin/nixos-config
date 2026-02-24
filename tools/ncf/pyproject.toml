@@ -13,6 +13,8 @@ dependencies = [
   "ruamel.yaml>=0.18.0",
   "pydantic>=2.0.0",
   "gitpython>=3.1.0",
+  "jinja2>=3.0.0",
+  "toml>=0.10.0",
 ]
 
 [project.scripts]
@@ -20,3 +22,6 @@ ncf = "ncf.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.setuptools.package-data]
+ncf = ["templates/*.j2"]

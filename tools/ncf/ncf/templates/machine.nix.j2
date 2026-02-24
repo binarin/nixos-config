@@ -1,0 +1,44 @@
+{ self, inputs, config, ... }:
+let
+  inventoryHostName = "{{ machine_name }}";
+  system = "{{ system }}";
+in
+{
+  flake.deploy.nodes.{{ machine_name }} = {
+    hostname = {% if has_network %}config.inventory.ipAllocation."${inventoryHostName}".{{ network }}.primary.address{% else %}"0.0.0.0"{% endif %};
+    profiles.system = {
+      sshUser = "root";
+      path = self.lib.deploy-nixos self.nixosConfigurations.{{ machine_name }};
+    };
+  };
+
+  flake.nixosConfigurations.{{ machine_name }} = inputs.nixpkgs.lib.nixosSystem {
+    inherit system;
+    specialArgs = {
+      inherit inventoryHostName;
+      flake = {
+        inherit self inputs config;
+      };
+    };
+    modules = [
+      self.nixosModules.{{ machine_name }}-configuration
+    ];
+  };
+
+  flake.nixosModules.{{ machine_name }}-configuration =
+    { ... }:
+    {
+      key = "nixos-config.modules.nixos.{{ machine_name }}-configuration";
+      imports = [
+        "${self}/machines/{{ machine_name }}/hardware-configuration.nix"
+        self.nixosModules.disko
+        self.nixosModules.baseline
+      ];
+
+      config = {
+        networking.hostName = inventoryHostName;
+        system.stateVersion = "{{ state_version }}";
+        nixos-config.export-metrics.enable = false;
+      };
+    };
+}
