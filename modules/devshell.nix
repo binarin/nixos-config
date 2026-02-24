@@ -17,6 +17,7 @@
           ruamel-yaml
           pydantic
           gitpython
+          jinja2
         ];
       };
     in
