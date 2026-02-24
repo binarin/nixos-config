@@ -2,18 +2,23 @@
   perSystem =
     { pkgs, ... }:
     let
-      ncf-python = pkgs.python3.withPackages (
-        ps: with ps; [
+      ncf = pkgs.python3.pkgs.buildPythonApplication {
+        pname = "ncf";
+        version = "0.1.0";
+        format = "pyproject";
+
+        src = ../tools/ncf;
+
+        build-system = [ pkgs.python3.pkgs.setuptools ];
+
+        dependencies = with pkgs.python3.pkgs; [
           typer
           rich
           ruamel-yaml
           pydantic
           gitpython
-        ]
-      );
-      ncf = pkgs.writeShellScriptBin "ncf" ''
-        exec ${ncf-python}/bin/python -m ncf "$@"
-      '';
+        ];
+      };
     in
     {
       packages.ncf = ncf;
