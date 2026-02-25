@@ -43,25 +43,30 @@ def normalize_allocation(value: Any) -> dict[str, Any]:
     """Convert allocation to new hash format.
 
     Input formats:
-    - "hostname" -> { hostname: "hostname", tags: ["primary"] }
-    - ["hostname", "tag1", "tag2"] -> { hostname: "hostname", tags: ["tag1", "tag2"] }
-    - { hostname: "...", tags: [...] } -> unchanged
+    - "hostname" -> { hostname: "hostname", tags: ["primary"], mac: None }
+    - ["hostname", "tag1", "tag2"] -> { hostname: "hostname", tags: ["tag1", "tag2"], mac: None }
+    - { hostname: "...", tags: [...], mac: "..." } -> unchanged
 
-    Output: always { hostname: "...", tags: [...] }
+    Output: always { hostname: "...", tags: [...], mac: ... }
     """
     if isinstance(value, str):
-        return {"hostname": value, "tags": ["primary"]}
+        return {"hostname": value, "tags": ["primary"], "mac": None}
     elif isinstance(value, list):
-        return {"hostname": value[0], "tags": list(value[1:])}
+        return {"hostname": value[0], "tags": list(value[1:]), "mac": None}
     elif isinstance(value, dict):
-        return dict(value)
+        result = dict(value)
+        if "tags" not in result:
+            result["tags"] = ["primary"]
+        if "mac" not in result:
+            result["mac"] = None
+        return result
     else:
         raise ValueError(f"Unknown allocation format: {value}")
 
 
 def is_simple_allocation(alloc: dict[str, Any]) -> bool:
-    """Check if allocation can use simple string format (hostname only with primary tag)."""
-    return alloc["tags"] == ["primary"]
+    """Check if allocation can use simple string format (hostname only with primary tag and no MAC)."""
+    return alloc["tags"] == ["primary"] and alloc.get("mac") is None
 
 
 def format_ipam_section(
@@ -103,10 +108,13 @@ def format_ipam_section(
                     # Simple format: just hostname
                     new_ipam.add(ip, alloc["hostname"])
                 else:
-                    # Complex format: hash with hostname and tags
+                    # Complex format: hash with hostname, tags, and optionally mac
                     inline = tomlkit.inline_table()
                     inline["hostname"] = alloc["hostname"]
-                    inline["tags"] = alloc["tags"]
+                    if alloc["tags"] != ["primary"]:
+                        inline["tags"] = alloc["tags"]
+                    if alloc.get("mac"):
+                        inline["mac"] = alloc["mac"]
                     new_ipam.add(ip, inline)
             else:
                 # Unallocated IP - add as comment
@@ -120,7 +128,10 @@ def format_ipam_section(
             else:
                 inline = tomlkit.inline_table()
                 inline["hostname"] = alloc["hostname"]
-                inline["tags"] = alloc["tags"]
+                if alloc["tags"] != ["primary"]:
+                    inline["tags"] = alloc["tags"]
+                if alloc.get("mac"):
+                    inline["mac"] = alloc["mac"]
                 new_ipam.add(ip, inline)
 
     return new_ipam
@@ -161,6 +172,7 @@ def add_allocation(
     ip: str,
     hostname: str,
     tags: list[str] | None = None,
+    mac: str | None = None,
 ) -> TOMLDocument:
     """Add an IP allocation and reformat the file.
 
@@ -169,6 +181,7 @@ def add_allocation(
         ip: IP address to allocate
         hostname: Hostname to assign
         tags: Optional list of tags (defaults to ["primary"])
+        mac: Optional MAC address
 
     Returns:
         Reformatted document with new allocation
@@ -178,10 +191,15 @@ def add_allocation(
 
     # Add allocation to ipam
     ipam = dict(doc.get("ipam", {}))
-    if tags == ["primary"]:
+    if tags == ["primary"] and mac is None:
         ipam[ip] = hostname
     else:
-        ipam[ip] = {"hostname": hostname, "tags": tags}
+        alloc: dict[str, Any] = {"hostname": hostname}
+        if tags != ["primary"]:
+            alloc["tags"] = tags
+        if mac is not None:
+            alloc["mac"] = mac
+        ipam[ip] = alloc
 
     # Update document and reformat
     doc["ipam"] = ipam
