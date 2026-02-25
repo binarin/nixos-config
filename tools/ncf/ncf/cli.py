@@ -149,7 +149,7 @@ def build_home_cmd(
 def build_lxc_cmd(
     target: str = typer.Argument(help="LXC target name"),
     output: str = typer.Option(
-        None, "--output", "-o", help="Output path for result symlink"
+        None, "--output", "-o", help="Output path for result tarball"
     ),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
@@ -159,6 +159,11 @@ def build_lxc_cmd(
     ),
     jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+    inject_secrets: bool = typer.Option(
+        False,
+        "--inject-secrets",
+        help="Inject decrypted secrets (SSH keys, age key) into the tarball",
+    ),
 ):
     """Build an LXC tarball."""
     from pathlib import Path
@@ -175,6 +180,7 @@ def build_lxc_cmd(
         builders=builder if builder else None,
         jobs=jobs,
         dry_run=dry_run,
+        inject_secrets=inject_secrets,
     )
 
 

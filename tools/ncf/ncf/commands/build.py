@@ -2,7 +2,9 @@
 
 import json
 import os
+import shutil
 import signal
+import subprocess
 import sys
 import tempfile
 import threading
@@ -13,7 +15,12 @@ from typing import Optional
 from rich.console import Console
 
 from .. import config
+from ..external import ExternalToolError
 from ..nix import NixRunner, get_nixos_configurations
+from ..secrets_inject import (
+    gather_secrets_for_machine,
+    decrypt_secrets_to_tempdir,
+)
 
 console = Console()
 
@@ -140,6 +147,7 @@ def run_lxc(
     builders: Optional[list[str]] = None,
     jobs: str = "auto",
     dry_run: bool = False,
+    inject_secrets: bool = False,
 ) -> None:
     """Build an LXC tarball.
 
@@ -151,17 +159,20 @@ def run_lxc(
         builders: List of remote builders
         jobs: Number of parallel jobs
         dry_run: Show what would be done without building
+        inject_secrets: Inject decrypted secrets into the tarball
     """
     repo_root = config.find_repo_root()
 
     if output is None:
-        output = repo_root / f"proxmox-lxc-{target}"
+        output = repo_root / f"proxmox-lxc-{target}.tar.xz"
 
     flake_ref = f"{repo_root}#nixosConfigurations.{target}.config.system.build.tarball"
 
     if dry_run:
         console.print(f"[bold]Would build:[/bold] {flake_ref}")
         console.print(f"[bold]Output:[/bold] {output}")
+        if inject_secrets:
+            console.print("[bold]Would inject secrets[/bold]")
         return
 
     console.print(f"[bold]Building LXC tarball:[/bold] {target}")
@@ -175,8 +186,125 @@ def run_lxc(
         repo_root=repo_root,
     )
 
-    runner.run_build(flake_ref, output=output)
-    console.print(f"[green]✓[/green] Built {target} -> {output}")
+    if inject_secrets:
+        # Build to a temporary symlink first
+        with tempfile.TemporaryDirectory(prefix="ncf-lxc-build-") as temp_build_dir:
+            temp_output = Path(temp_build_dir) / "result"
+            runner.run_build(flake_ref, output=temp_output)
+
+            # Find the actual tarball in the nix store result
+            tarball_path = _find_tarball_in_result(temp_output)
+
+            console.print("[bold]Injecting secrets into tarball...[/bold]")
+            _inject_secrets_into_tarball(target, tarball_path, output, runner)
+
+        console.print(f"[green]✓[/green] Built {target} with secrets -> {output}")
+    else:
+        runner.run_build(flake_ref, output=output)
+        console.print(f"[green]✓[/green] Built {target} -> {output}")
+
+
+def _find_tarball_in_result(result_path: Path) -> Path:
+    """Find the .tar.xz tarball in a nix build result.
+
+    The nix build result for system.build.tarball is a directory
+    containing the tarball.
+    """
+    if result_path.is_symlink():
+        result_path = result_path.resolve()
+
+    # Look for .tar.xz file in the result directory
+    if result_path.is_dir():
+        for item in result_path.iterdir():
+            if item.name.endswith(".tar.xz"):
+                return item
+
+    raise ExternalToolError(
+        "tarball", f"Could not find .tar.xz tarball in {result_path}"
+    )
+
+
+def _inject_secrets_into_tarball(
+    machine_name: str,
+    source_tarball: Path,
+    output_path: Path,
+    runner: NixRunner,
+) -> None:
+    """Inject decrypted secrets into a tarball.
+
+    This function:
+    1. Gathers secrets configuration from NixOS config
+    2. Decrypts secrets to a temp directory
+    3. Copies the tarball (decompressed)
+    4. Appends secrets files to the tarball
+    5. Re-compresses the tarball
+
+    Args:
+        machine_name: The NixOS configuration name
+        source_tarball: Path to the source .tar.xz tarball
+        output_path: Path for the output tarball with secrets
+        runner: NixRunner instance for nix eval
+    """
+    # Gather secrets
+    secrets = gather_secrets_for_machine(machine_name, runner)
+    if not secrets:
+        console.print("[yellow]Warning: No secrets found to inject[/yellow]")
+        # Still copy the tarball to output
+        shutil.copy2(source_tarball, output_path)
+        return
+
+    console.print(f"  Found {len(secrets)} secret(s) to inject")
+
+    # Decrypt secrets to temp directory
+    secrets_dir = decrypt_secrets_to_tempdir(secrets)
+
+    try:
+        # Create a temp file for the decompressed tarball
+        with tempfile.NamedTemporaryFile(
+            prefix="ncf-lxc-", suffix=".tar", delete=False
+        ) as temp_tar:
+            temp_tar_path = Path(temp_tar.name)
+
+        try:
+            # Decompress the source tarball
+            console.print("  Decompressing tarball...")
+            subprocess.run(
+                ["xz", "-d", "-c", str(source_tarball)],
+                stdout=open(temp_tar_path, "wb"),
+                check=True,
+            )
+
+            # Append secrets to the tarball
+            console.print("  Appending secrets...")
+            subprocess.run(
+                [
+                    "tar",
+                    "--append",
+                    "-f",
+                    str(temp_tar_path),
+                    "-C",
+                    str(secrets_dir),
+                    ".",
+                ],
+                check=True,
+            )
+
+            # Re-compress the tarball
+            console.print("  Compressing tarball...")
+            subprocess.run(
+                ["xz", "-c", str(temp_tar_path)],
+                stdout=open(output_path, "wb"),
+                check=True,
+            )
+
+        finally:
+            # Clean up temp tar file
+            if temp_tar_path.exists():
+                temp_tar_path.unlink()
+
+    finally:
+        # Clean up secrets directory
+        shutil.rmtree(secrets_dir, ignore_errors=True)
 
 
 def run_iso(
