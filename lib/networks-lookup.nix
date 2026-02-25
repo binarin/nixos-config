@@ -53,11 +53,16 @@ let
   expandIpAllocationTarget =
     hostNameWithTags:
     if lib.isString hostNameWithTags then
+      # Simple format: just hostname, implies "primary" tag
       [
         hostNameWithTags
         "primary"
       ]
+    else if lib.isAttrs hostNameWithTags then
+      # New hash format: { hostname = "..."; tags = [...]; }
+      [ hostNameWithTags.hostname ] ++ hostNameWithTags.tags
     else
+      # Legacy array format: [hostname, tag1, tag2, ...]
       hostNameWithTags;
 
   normalizeIpam = lib.mapAttrs (_k: v: expandIpAllocationTarget v);

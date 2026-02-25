@@ -12,6 +12,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 from .. import config as ncf_config
+from .. import ipam as ipam_utils
 
 console = Console()
 
@@ -155,11 +156,12 @@ def run(
             console.print(f"  [red]Network file not found: {network_path}[/red]")
             raise SystemExit(1)
 
-        network_data = load_toml(network_path)
-        network_prefix = network_data["info"]["network"]
-        ipam = network_data.get("ipam", {})
+        network_doc = ipam_utils.load_network_file(network_path)
+        network_info = ipam_utils.get_network_info(network_doc)
+        network_prefix = network_info["network"]
+        ipam_data = dict(network_doc.get("ipam", {}))
 
-        allocated_ip = find_next_available_ip(ipam, network_prefix)
+        allocated_ip = ipam_utils.find_next_available_ip(ipam_data, network_prefix)
         if not allocated_ip:
             console.print(f"  [red]No available IPs in network '{network}'[/red]")
             raise SystemExit(1)
@@ -169,9 +171,8 @@ def run(
                 f'  [yellow]Would allocate: {allocated_ip} = "{name}"[/yellow]'
             )
         else:
-            ipam[allocated_ip] = name
-            network_data["ipam"] = ipam
-            save_toml(network_path, network_data)
+            formatted_doc = ipam_utils.add_allocation(network_doc, allocated_ip, name)
+            ipam_utils.save_network_file(network_path, formatted_doc)
             console.print(f'  [green]Allocated {allocated_ip} = "{name}"[/green]')
     else:
         console.print(

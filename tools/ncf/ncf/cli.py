@@ -9,6 +9,7 @@ from .commands import (
     ci,
     eval,
     init_machine,
+    ipam_cmd,
     iso,
     list_machines,
     verify,
@@ -61,6 +62,13 @@ machine_app = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(machine_app, name="machine")
+
+ipam_app = typer.Typer(
+    name="ipam",
+    help="IP address management operations",
+    no_args_is_help=True,
+)
+app.add_typer(ipam_app, name="ipam")
 
 console = Console()
 
@@ -357,6 +365,23 @@ def machine_add_cmd(
         network=actual_network,
         dry_run=dry_run,
     )
+
+
+@ipam_app.command("format")
+def ipam_format_cmd(
+    network: str = typer.Argument(
+        None, help="Network to format (e.g., 'home'), or all if not specified"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without making changes"
+    ),
+):
+    """Format network allocation files.
+
+    Sorts IPs in ascending order, converts complex allocations to hash format,
+    and adds unallocated IPs as comments for /24 networks.
+    """
+    ipam_cmd.run_format(network=network, dry_run=dry_run)
 
 
 @iso_app.command("build-wifi")
