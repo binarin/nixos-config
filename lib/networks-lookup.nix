@@ -54,41 +54,52 @@ let
     hostNameWithTags:
     if lib.isString hostNameWithTags then
       # Simple format: just hostname, implies "primary" tag
-      [
-        hostNameWithTags
-        "primary"
-      ]
+      {
+        hostname = hostNameWithTags;
+        tags = [ "primary" ];
+        mac = null;
+      }
     else if lib.isAttrs hostNameWithTags then
-      # New hash format: { hostname = "..."; tags = [...]; }
-      [ hostNameWithTags.hostname ] ++ hostNameWithTags.tags
+      # New hash format: { hostname = "..."; tags = [...]; mac = "..."; }
+      {
+        hostname = hostNameWithTags.hostname;
+        tags = hostNameWithTags.tags or [ "primary" ];
+        mac = hostNameWithTags.mac or null;
+      }
     else
       # Legacy array format: [hostname, tag1, tag2, ...]
-      hostNameWithTags;
+      {
+        hostname = lib.head hostNameWithTags;
+        tags = lib.tail hostNameWithTags;
+        mac = null;
+      };
 
   normalizeIpam = lib.mapAttrs (_k: v: expandIpAllocationTarget v);
 
   taggedHostnames =
     { domain, ... }:
-    hostnameWithTags:
+    allocationRecord:
     with lib;
     let
-      hostname = head hostnameWithTags;
-      tags = tail hostnameWithTags;
+      hostname = allocationRecord.hostname;
+      tags = allocationRecord.tags;
     in
     map (
       tag: if tag == "primary" then "${hostname}.${domain}" else "${hostname}-${tag}.${domain}"
     ) tags;
 
   assignIp =
-    ipAllocationTarget: ip:
+    allocationRecord: ip:
     let
-      hostName = lib.head ipAllocationTarget;
-      tags = lib.tail ipAllocationTarget;
+      hostName = allocationRecord.hostname;
+      tags = allocationRecord.tags;
+      mac = allocationRecord.mac;
     in
     {
       "${hostName}" = lib.genAttrs tags (_tag: {
         _type = "leaf";
         address = ip;
+        inherit mac;
       });
     };
 in

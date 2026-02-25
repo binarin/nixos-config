@@ -23,7 +23,7 @@ let
       netInfo = getNetworkInfo netName;
     in
     {
-      inherit (x) address;
+      inherit (x) address mac;
       addressWithPrefix = "${x.address}/${builtins.toString netInfo.prefix}";
     }
   ) networksLookup;
@@ -47,6 +47,9 @@ let
       })
       (lib.optionalAttrs (info ? "prefix") {
         inherit (info) prefix;
+      })
+      (lib.optionalAttrs (info ? "searchdomain") {
+        inherit (info) searchdomain;
       })
       (lib.optionalAttrs (ipam != null) {
         hosts =
