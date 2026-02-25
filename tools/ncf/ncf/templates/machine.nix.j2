@@ -31,14 +31,20 @@ in
       key = "nixos-config.modules.nixos.{{ machine_name }}-configuration";
       imports = [
         "${self}/machines/{{ machine_name }}/hardware-configuration.nix"
+        {% for import in extra_imports %}
+        {{ import }}
+        {% endfor %}
+        {% if not extra_imports %}
         self.nixosModules.disko
         self.nixosModules.baseline
+        {% endif %}
       ];
 
       config = {
         networking.hostName = inventoryHostName;
         system.stateVersion = "{{ state_version }}";
         nixos-config.export-metrics.enable = false;
+        {{ extra_config }}
       };
     };
 }

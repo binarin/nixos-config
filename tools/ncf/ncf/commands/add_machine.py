@@ -51,6 +51,18 @@ def generate_host_id() -> str:
     return secrets.token_hex(4)
 
 
+def generate_mac_from_host_id(host_id: str) -> str:
+    """Generate a locally administered MAC address from host ID.
+
+    Uses the host ID (4 bytes / 8 hex chars) as the last 4 octets of the MAC.
+    The first byte is 02 (locally administered, unicast).
+    Format: 02:00:XX:XX:XX:XX where XX:XX:XX:XX is the host ID.
+    """
+    # Split host ID into 4 pairs
+    octets = [host_id[i : i + 2] for i in range(0, 8, 2)]
+    return f"02:00:{octets[0]}:{octets[1]}:{octets[2]}:{octets[3]}".upper()
+
+
 def find_next_available_ip(ipam: dict, network_prefix: str) -> str | None:
     """Find the first available IP in the network.
 
@@ -73,6 +85,7 @@ def run(
     name: str,
     system: str = "x86_64-linux",
     network: str | None = "home",
+    machine_type: str = "default",
     dry_run: bool = False,
 ) -> None:
     """Add a new NixOS machine configuration.
@@ -81,7 +94,7 @@ def run(
     1. Validate machine name doesn't exist
     2. Generate host ID
     3. Update inventory/host-id.toml
-    4. Allocate IP in network (if network specified)
+    4. Allocate IP in network (if network specified, with MAC for LXC)
     5. Create machine directory
     6. Create empty hardware-configuration.nix and disko.nix
     7. Get current stateVersion from nixpkgs
@@ -90,7 +103,8 @@ def run(
     10. Stage all new files in git
     11. Run nix fmt
     """
-    console.print(Panel(f"Adding new machine: [bold]{name}[/bold]"))
+    type_label = f" (type: {machine_type})" if machine_type != "default" else ""
+    console.print(Panel(f"Adding new machine: [bold]{name}[/bold]{type_label}"))
 
     repo_root = ncf_config.find_repo_root()
 
@@ -139,6 +153,7 @@ def run(
 
     # Step 4: Allocate IP in network
     allocated_ip = None
+    allocated_mac = None
     if network:
         console.print(f"\n[bold]Step 4:[/bold] Allocating IP in network '{network}'")
         network_path = repo_root / "inventory" / "networks" / f"{network}.toml"
@@ -157,14 +172,25 @@ def run(
             console.print(f"  [red]No available IPs in network '{network}'[/red]")
             raise SystemExit(1)
 
+        # Generate MAC for LXC machines
+        if machine_type == "lxc":
+            allocated_mac = generate_mac_from_host_id(host_id)
+            console.print(f"  [green]Generated MAC: {allocated_mac}[/green]")
+
         if dry_run:
+            mac_info = f" (MAC: {allocated_mac})" if allocated_mac else ""
             console.print(
-                f'  [yellow]Would allocate: {allocated_ip} = "{name}"[/yellow]'
+                f'  [yellow]Would allocate: {allocated_ip} = "{name}"{mac_info}[/yellow]'
             )
         else:
-            formatted_doc = ipam_utils.add_allocation(network_doc, allocated_ip, name)
+            formatted_doc = ipam_utils.add_allocation(
+                network_doc, allocated_ip, name, mac=allocated_mac
+            )
             ipam_utils.save_network_file(network_path, formatted_doc)
-            console.print(f'  [green]Allocated {allocated_ip} = "{name}"[/green]')
+            mac_info = f" (MAC: {allocated_mac})" if allocated_mac else ""
+            console.print(
+                f'  [green]Allocated {allocated_ip} = "{name}"{mac_info}[/green]'
+            )
     else:
         console.print(
             "\n[bold]Step 4:[/bold] [dim]Skipping IP allocation (--no-network)[/dim]"
@@ -209,12 +235,30 @@ def run(
     env = Environment(loader=PackageLoader("ncf", "templates"))
     template = env.get_template("machine.nix.j2")
 
+    # Configure template based on machine type
+    extra_imports: list[str] = []
+    extra_config = ""
+
+    if machine_type == "lxc":
+        extra_imports = [
+            "self.nixosModules.lxc",
+            "self.nixosModules.baseline",
+        ]
+        extra_config = ""  # proxmoxLXC options have sensible defaults
+    else:
+        extra_imports = [
+            "self.nixosModules.disko",
+            "self.nixosModules.baseline",
+        ]
+
     module_content = template.render(
         machine_name=name,
         system=system,
         state_version=state_version,
         has_network=network is not None,
         network=network or "home",
+        extra_imports=extra_imports,
+        extra_config=extra_config,
     )
 
     if dry_run:
