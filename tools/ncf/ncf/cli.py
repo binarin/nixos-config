@@ -12,6 +12,7 @@ from .commands import (
     ipam_cmd,
     iso,
     list_machines,
+    provision_lxc,
     verify,
 )
 
@@ -345,6 +346,12 @@ def machine_add_cmd(
         "home", "--network", "-n", help="Network for IP allocation"
     ),
     no_network: bool = typer.Option(False, "--no-network", help="Skip IP allocation"),
+    machine_type: str = typer.Option(
+        "default",
+        "--type",
+        "-t",
+        help="Machine type: 'default' (with disko) or 'lxc' (Proxmox LXC container)",
+    ),
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Show what would be done without making changes"
     ),
@@ -353,16 +360,53 @@ def machine_add_cmd(
 
     Creates all necessary files for a new machine:
     - Host ID in inventory/host-id.toml
-    - IP allocation in inventory/networks/<network>.toml
+    - IP allocation in inventory/networks/<network>.toml (with MAC for LXC)
     - Machine directory with hardware-configuration.nix and disko.nix
     - Machine module in modules/machines/<name>.nix
     - Secrets via ncf secrets init-machine
+
+    For LXC machines (--type lxc), generates a MAC address and configures
+    the machine to import the lxc module instead of disko.
     """
     actual_network = None if no_network else network
     add_machine.run(
         name=name,
         system=system,
         network=actual_network,
+        machine_type=machine_type,
+        dry_run=dry_run,
+    )
+
+
+@machine_app.command("provision")
+def machine_provision_cmd(
+    machine: str = typer.Argument(help="Machine name to provision"),
+    proxmox_host: str = typer.Option(
+        ..., "--proxmox-host", "-p", help="Proxmox host to provision on"
+    ),
+    bridge: str = typer.Option("vmbr0", "--bridge", "-b", help="Network bridge name"),
+    reuse_remote_tarball: bool = typer.Option(
+        False,
+        "--reuse-remote-tarball",
+        help="Skip tarball build/copy if remote tarball exists",
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without making changes"
+    ),
+):
+    """Provision a Proxmox LXC container.
+
+    Builds an LXC tarball with secrets, copies it to the Proxmox host,
+    and creates the container with the configuration from NixOS.
+
+    If the container already exists, validates the configuration and
+    reports any mismatches without modifying the container.
+    """
+    provision_lxc.run(
+        machine=machine,
+        proxmox_host=proxmox_host,
+        bridge=bridge,
+        reuse_remote_tarball=reuse_remote_tarball,
         dry_run=dry_run,
     )
 
