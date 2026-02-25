@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import git
-import toml
+import tomlkit
 from jinja2 import Environment, PackageLoader
 from rich.console import Console
 from rich.panel import Panel
@@ -48,17 +48,6 @@ def get_state_version(nixpkgs_rev: str) -> str:
 def generate_host_id() -> str:
     """Generate a random 8-character hex host ID."""
     return secrets.token_hex(4)
-
-
-def load_toml(path: Path) -> dict:
-    """Load a TOML file."""
-    return toml.load(path)
-
-
-def save_toml(path: Path, data: dict) -> None:
-    """Save data to a TOML file."""
-    with open(path, "w") as f:
-        toml.dump(data, f)
 
 
 def find_next_available_ip(ipam: dict, network_prefix: str) -> str | None:
@@ -110,7 +99,7 @@ def run(
     console.print("\n[bold]Step 1:[/bold] Validating machine name")
 
     host_id_path = repo_root / "inventory" / "host-id.toml"
-    host_ids = load_toml(host_id_path)
+    host_ids = tomlkit.parse(host_id_path.read_text())
 
     if name in host_ids:
         console.print(f"  [red]Machine '{name}' already exists in host-id.toml[/red]")
@@ -143,7 +132,7 @@ def run(
         console.print(f'  [yellow]Would add: {name} = "{host_id}"[/yellow]')
     else:
         host_ids[name] = host_id
-        save_toml(host_id_path, host_ids)
+        host_id_path.write_text(tomlkit.dumps(host_ids))
         console.print(f'  [green]Added {name} = "{host_id}"[/green]')
 
     # Step 4: Allocate IP in network
