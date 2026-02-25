@@ -304,6 +304,12 @@ def run(
     else:
         external.nix_fmt(repo_root)
         console.print("  [green]Formatted files with nix fmt[/green]")
+        # Re-stage files to include any formatting changes
+        try:
+            repo.index.add(files_to_add)
+            console.print("  [green]Re-staged formatted files[/green]")
+        except Exception as e:
+            console.print(f"  [yellow]Warning: Could not re-stage files: {e}[/yellow]")
 
     console.print("\n[bold green]Done![/bold green]")
     if not dry_run:
