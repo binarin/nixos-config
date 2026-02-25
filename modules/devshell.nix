@@ -43,6 +43,7 @@
           # For ncf tool
           ssh-to-age
           ncf
+          yamlfmt # For formatting .sops.yaml
           nix-output-monitor # nom for nicer build output
           # For inject-iso-wifi.sh script
           libarchive # provides bsdtar

@@ -7,6 +7,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from . import config
+from . import external
 
 
 class SopsYaml:
@@ -16,7 +17,9 @@ class SopsYaml:
         self.path = path or config.get_sops_yaml_path()
         self.yaml = YAML()
         self.yaml.preserve_quotes = True
-        self.yaml.indent(mapping=2, sequence=2, offset=2)
+        # Use wide width to prevent line breaks in the middle of anchors/values
+        # The formatting will be normalized by yamlfmt after save
+        self.yaml.width = 4096
         self._data: Optional[CommentedMap] = None
 
     def load(self) -> CommentedMap:
@@ -31,6 +34,8 @@ class SopsYaml:
             raise RuntimeError("No data loaded, call load() first")
         with open(self.path, "w") as f:
             self.yaml.dump(self._data, f)
+        # Run yamlfmt to ensure consistent formatting that passes nix fmt
+        external.yamlfmt(self.path)
 
     @property
     def data(self) -> CommentedMap:

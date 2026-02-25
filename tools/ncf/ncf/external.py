@@ -133,3 +133,8 @@ def is_sops_encrypted(file_path: Path) -> bool:
         return False
     content = file_path.read_text()
     return "sops" in content and ("ENC[" in content or '"sops":' in content)
+
+
+def yamlfmt(file_path: Path) -> None:
+    """Format a YAML file using yamlfmt."""
+    run_command(["yamlfmt", str(file_path)])
