@@ -21,6 +21,93 @@ in
         "${modulesPath}/virtualisation/proxmox-lxc.nix"
       ];
 
+      options.proxmoxLXC = {
+        memory = lib.mkOption {
+          type = lib.types.int;
+          default = 2048;
+          description = "Memory allocation in MB";
+        };
+
+        swap = lib.mkOption {
+          type = lib.types.int;
+          default = 0;
+          description = "Swap allocation in MB";
+        };
+
+        onboot = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Start container on boot";
+        };
+
+        unprivileged = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Run as unprivileged container";
+        };
+
+        rootfs = lib.mkOption {
+          type = lib.types.submodule {
+            options = {
+              pool = lib.mkOption {
+                type = lib.types.str;
+                default = "local-zfs";
+                description = "Storage pool name for root filesystem";
+              };
+              size = lib.mkOption {
+                type = lib.types.str;
+                default = "32G";
+                description = "Root filesystem size";
+              };
+            };
+          };
+          default = { };
+          description = "Root filesystem configuration";
+        };
+
+        mounts = lib.mkOption {
+          type = lib.types.listOf (
+            lib.types.submodule {
+              options = {
+                pool = lib.mkOption {
+                  type = lib.types.str;
+                  description = "Storage pool name";
+                };
+                mountPoint = lib.mkOption {
+                  type = lib.types.str;
+                  description = "Mount point inside container";
+                };
+                size = lib.mkOption {
+                  type = lib.types.str;
+                  description = "Volume size (e.g., '2T', '128G')";
+                };
+                backup = lib.mkOption {
+                  type = lib.types.bool;
+                  default = true;
+                  description = "Include in backups";
+                };
+                replicate = lib.mkOption {
+                  type = lib.types.bool;
+                  default = true;
+                  description = "Include in replication";
+                };
+              };
+            }
+          );
+          default = [ ];
+          description = "Additional mount points";
+        };
+
+        extraConfig = lib.mkOption {
+          type = lib.types.lines;
+          default = ''
+            lxc.cgroup2.devices.allow: c 10:200 rwm
+            lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
+          '';
+          description = "Extra lines to append to /etc/pve/lxc/<vmid>.conf (Tailscale enabled by default)";
+        };
+      };
+
       config = {
         proxmoxLXC.enable = true;
 
