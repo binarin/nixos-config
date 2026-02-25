@@ -314,10 +314,15 @@ def run(
         console.print(f"  - State version: {state_version}")
         console.print(f"\nNext steps:")
         console.print(f"  1. Review staged changes: git status")
-        console.print(
-            f"  2. Edit hardware config: machines/{name}/hardware-configuration.nix"
-        )
-        console.print(f"  3. Edit disk layout: machines/{name}/disko.nix")
-        console.print(
-            f"  4. Build to test: nix build .#nixosConfigurations.{name}.config.system.build.toplevel"
-        )
+        if machine_type == "lxc":
+            console.print(f"  2. Edit proxmoxLXC settings: modules/machines/{name}.nix")
+            console.print(f"  3. Build tarball: ncf build lxc {name}")
+            console.print(
+                f"  4. Provision: ncf machine provision {name} --proxmox-host <HOST>"
+            )
+        else:
+            console.print(
+                f"  2. Edit hardware config: machines/{name}/hardware-configuration.nix"
+            )
+            console.print(f"  3. Edit disk layout: machines/{name}/disko.nix")
+            console.print(f"  4. Build to test: ncf build system {name}")
