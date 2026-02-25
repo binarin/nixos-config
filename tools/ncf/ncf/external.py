@@ -138,3 +138,8 @@ def is_sops_encrypted(file_path: Path) -> bool:
 def yamlfmt(file_path: Path) -> None:
     """Format a YAML file using yamlfmt."""
     run_command(["yamlfmt", str(file_path)])
+
+
+def nix_fmt(cwd: Path) -> None:
+    """Run nix fmt in the given directory."""
+    run_command(["nix", "fmt"], cwd=cwd)

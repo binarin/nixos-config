@@ -12,6 +12,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 from .. import config as ncf_config
+from .. import external
 from .. import ipam as ipam_utils
 
 console = Console()
@@ -87,6 +88,7 @@ def run(
     8. Create machine module from template
     9. Run ncf secrets init-machine
     10. Stage all new files in git
+    11. Run nix fmt
     """
     console.print(Panel(f"Adding new machine: [bold]{name}[/bold]"))
 
@@ -250,6 +252,14 @@ def run(
             console.print("  [green]Staged files in git[/green]")
         except Exception as e:
             console.print(f"  [yellow]Warning: Could not stage files: {e}[/yellow]")
+
+    # Step 11: Run nix fmt
+    console.print("\n[bold]Step 11:[/bold] Running nix fmt")
+    if dry_run:
+        console.print("  [yellow]Would run: nix fmt[/yellow]")
+    else:
+        external.nix_fmt(repo_root)
+        console.print("  [green]Formatted files with nix fmt[/green]")
 
     console.print("\n[bold green]Done![/bold green]")
     if not dry_run:
