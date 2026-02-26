@@ -3,13 +3,14 @@
 import json
 import subprocess
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from rich.console import Console
 from rich.panel import Panel
 
 from .. import config
 from ..nix import NixRunner
+from ..proxmox_api import ProxmoxClient
 from . import build
 
 console = Console()
@@ -21,47 +22,6 @@ def query_nixos_config(runner: NixRunner, machine: str, attribute: str) -> Any:
     flake_ref = f"{repo_root}#nixosConfigurations.{machine}.{attribute}"
     result = runner.run_eval(flake_ref, json_output=True)
     return json.loads(result.stdout)
-
-
-def check_container_exists(proxmox_host: str, hostname: str) -> Optional[int]:
-    """Check if a container with the given hostname exists on Proxmox.
-
-    Returns the VMID if found, None otherwise.
-    """
-    cmd = [
-        "ssh",
-        f"root@{proxmox_host}",
-        f"pct list | awk '$3 == \"{hostname}\" {{print $1}}'",
-    ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(f"Failed to query Proxmox: {result.stderr}")
-
-    vmid_str = result.stdout.strip()
-    if vmid_str:
-        return int(vmid_str)
-    return None
-
-
-def get_next_vmid(proxmox_host: str) -> int:
-    """Get the next available VMID from Proxmox."""
-    cmd = ["ssh", f"root@{proxmox_host}", "pvesh get /cluster/nextid"]
-    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    return int(result.stdout.strip())
-
-
-def get_proxmox_config(proxmox_host: str, vmid: int) -> dict[str, str]:
-    """Get the current configuration of a Proxmox LXC container."""
-    cmd = ["ssh", f"root@{proxmox_host}", f"pct config {vmid}"]
-    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-
-    config_dict = {}
-    for line in result.stdout.strip().split("\n"):
-        if ":" in line:
-            key, value = line.split(":", 1)
-            config_dict[key.strip()] = value.strip()
-
-    return config_dict
 
 
 def copy_tarball_to_proxmox(
@@ -166,36 +126,37 @@ def append_extra_config(proxmox_host: str, vmid: int, extra_config: str) -> None
 
 
 def validate_existing_container(
-    proxmox_host: str,
-    vmid: int,
+    current_config: dict[str, Any],
     hostname: str,
     lxc_config: dict[str, Any],
-    network_config: dict[str, Any],
 ) -> list[str]:
     """Validate existing container config against expected values.
+
+    Args:
+        current_config: Current container config from ProxmoxClient.get_container_config()
+        hostname: Expected hostname
+        lxc_config: Expected LXC config from NixOS
 
     Returns a list of mismatches.
     """
     mismatches = []
-    current = get_proxmox_config(proxmox_host, vmid)
 
     # Check memory
-    expected_memory = str(lxc_config["memory"])
-    if current.get("memory") != expected_memory:
-        mismatches.append(
-            f"memory: expected {expected_memory}, got {current.get('memory')}"
-        )
+    expected_memory = lxc_config["memory"]
+    current_memory = current_config.get("memory")
+    if current_memory != expected_memory:
+        mismatches.append(f"memory: expected {expected_memory}, got {current_memory}")
 
     # Check swap
-    expected_swap = str(lxc_config["swap"])
-    if current.get("swap") != expected_swap:
-        mismatches.append(f"swap: expected {expected_swap}, got {current.get('swap')}")
+    expected_swap = lxc_config["swap"]
+    current_swap = current_config.get("swap")
+    if current_swap != expected_swap:
+        mismatches.append(f"swap: expected {expected_swap}, got {current_swap}")
 
     # Check hostname
-    if current.get("hostname") != hostname:
-        mismatches.append(
-            f"hostname: expected {hostname}, got {current.get('hostname')}"
-        )
+    current_hostname = current_config.get("hostname")
+    if current_hostname != hostname:
+        mismatches.append(f"hostname: expected {hostname}, got {current_hostname}")
 
     return mismatches
 
@@ -222,6 +183,13 @@ def run(
 
     repo_root = config.find_repo_root()
     runner = NixRunner(verbosity=1, repo_root=repo_root)
+
+    # Initialize Proxmox client (unless dry run)
+    client: ProxmoxClient | None = None
+    if not dry_run:
+        console.print(f"\nConnecting to Proxmox host: {proxmox_host}")
+        client = ProxmoxClient(proxmox_host)
+        console.print(f"  Connected to node: {client.node}")
 
     # Step 1: Gather metadata from NixOS config
     console.print("\n[bold]Step 1:[/bold] Gathering metadata from NixOS config")
@@ -285,7 +253,8 @@ def run(
         console.print(f"  [yellow]Would check for container '{hostname}'[/yellow]")
         existing_vmid = None
     else:
-        existing_vmid = check_container_exists(proxmox_host, hostname)
+        assert client is not None
+        existing_vmid = client.container_exists(hostname)
 
     if existing_vmid:
         console.print(
@@ -294,8 +263,10 @@ def run(
         console.print("\n[bold]Validation mode:[/bold] Comparing configuration")
 
         if not dry_run:
+            assert client is not None
+            current_config = client.get_container_config(existing_vmid)
             mismatches = validate_existing_container(
-                proxmox_host, existing_vmid, hostname, lxc_config, network_config
+                current_config, hostname, lxc_config
             )
 
             if mismatches:
@@ -366,7 +337,8 @@ def run(
         vmid = 999
         console.print("  [yellow]Would get next VMID from Proxmox[/yellow]")
     else:
-        vmid = get_next_vmid(proxmox_host)
+        assert client is not None
+        vmid = client.get_next_vmid()
         console.print(f"  Next available VMID: {vmid}")
 
     pct_cmd = create_pct_command(

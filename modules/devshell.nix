@@ -19,6 +19,8 @@
           gitpython
           jinja2
           tomlkit
+          proxmoxer
+          paramiko
         ];
       };
     in

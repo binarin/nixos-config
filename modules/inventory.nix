@@ -106,6 +106,10 @@ in
             type = lib.types.raw;
             readOnly = true;
           };
+          inventory.networks = lib.mkOption {
+            type = lib.types.raw;
+            readOnly = true;
+          };
         };
         config = {
           networking.hostId =
@@ -113,6 +117,7 @@ in
             ."${config.networking.hostName}";
           networking.hosts = flakeConfig.inventory.networks.home.hosts;
           inventory.hostIpAllocation = flakeConfig.inventory.ipAllocation."${config.networking.hostName}";
+          inventory.networks = inventoryNetworks;
         };
       };
 
