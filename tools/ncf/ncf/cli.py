@@ -173,6 +173,11 @@ def build_lxc_cmd(
         "--inject-secrets",
         help="Inject decrypted secrets (SSH keys, age key) into the tarball",
     ),
+    fake_secrets: bool = typer.Option(
+        False,
+        "--fake-secrets",
+        help="Use placeholder content instead of decrypting secrets (for testing)",
+    ),
 ):
     """Build an LXC tarball."""
     from pathlib import Path
@@ -180,6 +185,10 @@ def build_lxc_cmd(
     verbosity = 0 if quiet else (2 if verbose else 1)
     use_nom = None if not no_nom else False
     output_path = Path(output) if output else None
+
+    # --fake-secrets implies --inject-secrets
+    if fake_secrets:
+        inject_secrets = True
 
     build.run_lxc(
         target=target,
@@ -190,6 +199,7 @@ def build_lxc_cmd(
         jobs=jobs,
         dry_run=dry_run,
         inject_secrets=inject_secrets,
+        fake_secrets=fake_secrets,
     )
 
 

@@ -196,3 +196,36 @@ def decrypt_secrets_to_tempdir(
             )
 
     return temp_dir
+
+
+def generate_fake_secrets_to_tempdir(
+    secrets: list[SecretFile],
+) -> Path:
+    """Generate fake secrets to a temporary directory.
+
+    Creates a temporary directory with placeholder content for secrets
+    in their target path structure, ready for injection into a tarball.
+    Useful for testing the injection workflow without actual encrypted secrets.
+
+    Args:
+        secrets: List of SecretFile objects to generate
+
+    Returns:
+        Path to the temporary directory containing fake secrets.
+        Caller is responsible for cleaning up this directory.
+    """
+    temp_dir = Path(tempfile.mkdtemp(prefix="ncf-secrets-fake-"))
+
+    for secret in secrets:
+        # Create target directory structure
+        target = temp_dir / secret.target_path.lstrip("/")
+        target.parent.mkdir(parents=True, exist_ok=True)
+
+        # Generate placeholder content
+        placeholder = f"# FAKE SECRET - placeholder for {secret.target_path}\n"
+        placeholder += f"# Source: {secret.source_path}\n"
+        placeholder += "# This is not a real secret, generated with --fake-secrets\n"
+        target.write_text(placeholder)
+        target.chmod(secret.mode)
+
+    return temp_dir
