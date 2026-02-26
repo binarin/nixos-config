@@ -1,0 +1,34 @@
+---
+# Install Tailscale package only, without automatic authentication.
+# Not using artis3n.tailscale role because it requires an auth key,
+# and I don't want to automate key provisioning - prefer manual `tailscale up`.
+
+- name: Ensure keyrings directory exists
+  ansible.builtin.file:
+    path: /usr/share/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Tailscale GPG key
+  register: tailscale_gpg_key
+  ansible.builtin.get_url:
+    url: "https://pkgs.tailscale.com/stable/debian/{{ ansible_facts.distribution_release }}.noarmor.gpg"
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    mode: '0644'
+
+- name: Add Tailscale apt repository
+  register: tailscale_repo
+  ansible.builtin.apt_repository:
+    filename: tailscale
+    repo: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/debian {{ ansible_facts.distribution_release }} main"
+    update_cache: false
+
+- name: Refresh apt cache
+  when: tailscale_gpg_key.changed or tailscale_repo.changed
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    state: present
