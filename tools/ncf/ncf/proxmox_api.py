@@ -8,10 +8,12 @@ from proxmoxer import ProxmoxAPI
 class ProxmoxClient:
     """Wrapper around proxmoxer for LXC container operations."""
 
-    def __init__(self, host: str, user: str = "root@pam"):
+    def __init__(self, host: str, user: str = "root"):
         """Initialize Proxmox client with SSH paramiko backend.
 
         Uses SSH agent or ~/.ssh/ keys for authentication.
+        The user parameter is the SSH user (typically 'root'), not the
+        Proxmox API user (like 'root@pam').
         """
         self.api = ProxmoxAPI(host, user=user, backend="ssh_paramiko")
         # Get the first (usually only) node

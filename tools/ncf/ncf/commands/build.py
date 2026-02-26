@@ -308,13 +308,14 @@ def _inject_secrets_into_tarball(
                 check=True,
             )
 
-            # Re-compress the tarball (using all CPU threads for parallel compression)
+            # Re-compress the tarball (single-threaded for compatibility)
             console.print("  Compressing tarball...")
-            subprocess.run(
-                ["xz", "-T0", "-c", str(temp_tar_path)],
-                stdout=open(output_path, "wb"),
-                check=True,
-            )
+            with open(output_path, "wb") as out_file:
+                subprocess.run(
+                    ["xz", "-c", str(temp_tar_path)],
+                    stdout=out_file,
+                    check=True,
+                )
 
         finally:
             # Clean up temp tar file

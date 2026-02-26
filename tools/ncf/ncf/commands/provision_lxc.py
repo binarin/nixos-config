@@ -16,6 +16,17 @@ from . import build
 console = Console()
 
 
+def normalize_size(size: str) -> str:
+    """Normalize size string for Proxmox pct command.
+
+    Proxmox pct expects sizes as plain numbers (in GB) for ZFS storage.
+    This function strips the 'G' suffix if present.
+    """
+    if size.upper().endswith("G"):
+        return size[:-1]
+    return size
+
+
 def query_nixos_config(runner: NixRunner, machine: str, attribute: str) -> Any:
     """Query an attribute from a NixOS configuration."""
     repo_root = config.find_repo_root()
@@ -78,11 +89,11 @@ def create_pct_command(
 
     # Root filesystem
     rootfs = lxc_config["rootfs"]
-    cmd.extend(["--rootfs", f"{rootfs['pool']}:{rootfs['size']}"])
+    cmd.extend(["--rootfs", f"{rootfs['pool']}:{normalize_size(rootfs['size'])}"])
 
     # Additional mount points
     for i, mount in enumerate(lxc_config.get("mounts", [])):
-        mount_spec = f"{mount['pool']}:{mount['size']},mp={mount['mountPoint']}"
+        mount_spec = f"{mount['pool']}:{normalize_size(mount['size'])},mp={mount['mountPoint']}"
         if not mount.get("backup", True):
             mount_spec += ",backup=0"
         if not mount.get("replicate", True):
@@ -105,6 +116,78 @@ def create_pct_command(
         cmd.extend(["--features", "nesting=1"])
 
     return cmd
+
+
+def restore_ssh_host_keys(
+    proxmox_host: str, vmid: int, machine: str, repo_root: Path
+) -> None:
+    """Restore SSH host keys after Proxmox overwrites them.
+
+    Proxmox generates fresh SSH host keys during container creation,
+    overwriting our injected keys. This function restores the original
+    keys from the secrets directory.
+    """
+    import tempfile
+
+    secrets_dir = repo_root / "secrets" / machine
+
+    # Get the container's rootfs path
+    # For ZFS, it's typically /rpool/data/subvol-{vmid}-disk-0
+    result = subprocess.run(
+        ["ssh", f"root@{proxmox_host}", f"pct config {vmid} | grep rootfs"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    # Parse rootfs line like: rootfs: local-zfs:subvol-100-disk-0,size=32G
+    rootfs_line = result.stdout.strip()
+    # Extract the volume name
+    volume = rootfs_line.split(":")[2].split(",")[0]
+    # For local-zfs, the path is /rpool/data/{volume}
+    container_root = f"/rpool/data/{volume}"
+
+    ssh_dir = f"{container_root}/etc/ssh"
+
+    for key_type in ["ed25519", "rsa", "ecdsa"]:
+        key_file = secrets_dir / f"ssh_host_{key_type}_key"
+        pub_file = secrets_dir / f"ssh_host_{key_type}_key.pub"
+
+        if key_file.exists():
+            # Decrypt the key to a temp file
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
+                tmp_path = tmp.name
+
+            try:
+                with open(tmp_path, "w") as out_file:
+                    subprocess.run(
+                        ["sops", "decrypt", str(key_file)],
+                        stdout=out_file,
+                        check=True,
+                    )
+
+                # Copy private key to container
+                subprocess.run(
+                    ["scp", tmp_path, f"root@{proxmox_host}:{ssh_dir}/ssh_host_{key_type}_key"],
+                    check=True,
+                )
+                # Set correct permissions
+                subprocess.run(
+                    ["ssh", f"root@{proxmox_host}", f"chmod 600 {ssh_dir}/ssh_host_{key_type}_key"],
+                    check=True,
+                )
+            finally:
+                Path(tmp_path).unlink(missing_ok=True)
+
+        if pub_file.exists():
+            # Public keys are not encrypted
+            subprocess.run(
+                ["scp", str(pub_file), f"root@{proxmox_host}:{ssh_dir}/ssh_host_{key_type}_key.pub"],
+                check=True,
+            )
+            subprocess.run(
+                ["ssh", f"root@{proxmox_host}", f"chmod 644 {ssh_dir}/ssh_host_{key_type}_key.pub"],
+                check=True,
+            )
 
 
 def append_extra_config(proxmox_host: str, vmid: int, extra_config: str) -> None:
@@ -358,6 +441,12 @@ def run(
         ssh_cmd = ["ssh", f"root@{proxmox_host}"] + pct_cmd
         subprocess.run(ssh_cmd, check=True)
         console.print(f"  [green]Container {vmid} created[/green]")
+
+    # Step 5b: Restore SSH host keys (Proxmox overwrites them during creation)
+    if not dry_run:
+        console.print("\n[bold]Step 5b:[/bold] Restoring SSH host keys")
+        restore_ssh_host_keys(proxmox_host, vmid, machine, repo_root)
+        console.print("  [green]SSH host keys restored[/green]")
 
     # Step 6: Append extra config
     extra_config = lxc_config.get("extraConfig", "")
