@@ -27,7 +27,7 @@ searchdomain = "localdomain"
 "192.168.2.17" = "qdevice-vm"
 "192.168.2.18" = "furfur"
 "192.168.2.19" = "unifi"
-# "192.168.2.20" = # unallocated
+"192.168.2.20" = { hostname = "garage", mac = "02:00:30:4F:A9:21" }
 "192.168.2.21" = "claude-nixos-config"
 # "192.168.2.22" = # unallocated
 "192.168.2.23" = "hass-vm"

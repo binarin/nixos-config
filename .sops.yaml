@@ -20,6 +20,8 @@ keys:
   - &user_claude-nixos-config_binarin age19xt3l3zrduegqqzcmu06qk0nsmmlcr2lae6qwjxxdxxnjqhlz3zqx4n6zd
   - &server_octopi age12yd5jn5h7lzyxmekc7qmtrzypylmz4fxc5uulz23xcm8al4ph5rqt7hkmw
   - &user_octopi_binarin age1xh6xzxn4q3sjxqctupp6d2fzq79p7r0pa8rejr9x3l3u4zagsc0qel9a2x
+  - &server_garage age1la4a58ra8ngr723pat6kq83rc8mujl6wjrl00sjskktj3mxwhp6sv8qpdl
+  - &user_garage_binarin age1l8ck4vwukr00qdfs68kpmuc044am3pka0yhd5n3ssnp06r6e8pzquh3ra9
 creation_rules:
   - path_regex: secrets/demandred/(secrets.yaml|user-binarin.yaml)
     key_groups:
@@ -161,3 +163,17 @@ creation_rules:
         age:
           - *admin_demandred_binarin
           - *user_octopi_binarin
+  - path_regex: secrets/garage/secrets.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_garage
+  - path_regex: secrets/garage/user-binarin.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *user_garage_binarin
