@@ -19,6 +19,14 @@ ssh_keys:
       - paperless
     public_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCrBq26K0dIo5wDqyMF8FL4NoqP9p4+IJxuTa5bLfEdp/yS9F07orqIfJDx6j+Pb4dRV3F4o9Qe23250SBEmf6z5SY8PxrzkECpx+EzzegkNJkTCgJN0XAep4treDnnO0YqYNtcVCsz+/Td+6aRr/cJGVlKdnqMAUAN35wmBbsc+npwt3yt3K2N11ZmCAQj9sBbS8FCRxFJhBB3h0JiSGeYDQZZle63j2gavDUbBUR0dXuiMnRoitCc1d9Bv3rBMhy4sRKqubcXK48g2CDDxHno5hXd3pyEfbx1N3HdIevV7OnhTUCp6X4KG7h9Sh18ccsJNVr5Awagb5RKAM/9kYbL
     secure: false
+  claude-nixos-config:
+    description: Let it YOLO
+    force_install_on:
+      proxmox-test:
+      - root
+    public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJJEu8TMOeD/d6H+1wt6vKBypE3gGJig1JS+zcdmCq4U
+      claude-nixos-config - 2025-02-26
+    secure: false
   raum.lynx-lizard.ts.net-pkcs11-root:
     description: root SSH key in pkcs11 at raum - needed for ProxmoxVE operations
     force_install_on:
@@ -30,6 +38,13 @@ ssh_keys:
       - root
     public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPKyEXbiRblfl23aNjy73yHjFfV/xct885HH4eIzuW3X2VT0BS/jMEFhNJE7eFJE5vO/QIwJ1FKbEonPRGOvNBI=
     secure: true
+  termius-pixel:
+    description: biometrical key on pixel / termius
+    public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGv/Jf+1Xd1nfIGyeEa17VrWrLGDxHKGV0T1tOwtR/IwixUyFqM2jiLuAt+AdPw6xeVoHSeDdd4zMglDE7y5tfI=
+    secure: true
+    tags:
+    - default
+    - presence
   termius-tab-s9:
     description: biometrical key on tab s9 / termius
     public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPMpogmbCYL1eZcImgz+QDH5xW5BoTDUP4/daxglmaBul2tp9SFnMT7f73Z9rVF5XSsavVm4j8mLNV6t3I2xCKI=

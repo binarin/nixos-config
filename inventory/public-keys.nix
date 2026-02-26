@@ -114,5 +114,15 @@
         paperless = [ "paperless" ];
       };
     };
+
+    claude-nixos-config = {
+      description = "Let it YOLO";
+      public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJJEu8TMOeD/d6H+1wt6vKBypE3gGJig1JS+zcdmCq4U claude-nixos-config - 2025-02-26";
+      secure = false;
+      force_install_on = {
+        proxmox-test = [ "root" ];
+      };
+    };
+
   };
 }

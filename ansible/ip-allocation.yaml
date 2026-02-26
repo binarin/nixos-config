@@ -4,241 +4,324 @@ ip_allocation:
       primary:
         _type: leaf
         address: 192.168.2.68
+        mac: null
   bael-kvm:
     home:
       primary:
         _type: leaf
         address: 192.168.2.69
+        mac: null
   brother-mfc:
     home:
       primary:
         _type: leaf
         address: 192.168.2.49
+        mac: null
   brother-scanner:
     home:
       primary:
         _type: leaf
         address: 192.168.2.58
+        mac: null
+  claude-nixos-config:
+    guest:
+      primary:
+        _type: leaf
+        address: 192.168.3.3
+        mac: null
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.21
+        mac: null
   demandred:
     home:
       eth:
         _type: leaf
         address: 192.168.2.10
+        mac: null
       primary:
         _type: leaf
         address: 192.168.2.9
+        mac: null
   dnscontrol:
     home:
       primary:
         _type: leaf
         address: 192.168.2.77
+        mac: null
   docker-on-nixos:
     home:
       primary:
         _type: leaf
         address: 192.168.2.11
+        mac: null
   elgato-key-left:
     home:
       primary:
         _type: leaf
         address: 192.168.2.40
+        mac: null
   elgato-key-right:
     home:
       primary:
         _type: leaf
         address: 192.168.2.41
+        mac: null
   enphase-envoy:
     home:
       primary:
         _type: leaf
         address: 192.168.2.42
+        mac: null
   forgejo:
     home:
       primary:
         _type: leaf
         address: 192.168.2.3
+        mac: null
   furfur:
     home:
       primary:
         _type: leaf
         address: 192.168.2.18
+        mac: null
   galayou-g2:
     home:
       primary:
         _type: leaf
         address: 192.168.2.12
+        mac: null
+  garage:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.20
+        mac: 02:00:30:4F:A9:21
   hass-vm:
     home:
       primary:
         _type: leaf
         address: 192.168.2.23
+        mac: null
   ishamael:
     home:
       primary:
         _type: leaf
         address: 192.168.2.6
+        mac: null
   lanfear:
     home:
       primary:
         _type: leaf
         address: 192.168.2.4
+        mac: null
   mail:
     home:
       primary:
         _type: leaf
         address: 192.168.2.7
+        mac: null
   media:
     home:
       primary:
         _type: leaf
         address: 192.168.2.79
+        mac: null
   monitor:
     home:
       primary:
         _type: leaf
         address: 192.168.2.2
+        mac: null
   nix-cache:
     home:
       primary:
         _type: leaf
         address: 192.168.2.5
+        mac: null
+  octopi:
+    guest:
+      primary:
+        _type: leaf
+        address: 192.168.3.2
+        mac: null
+  proxmox-test:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.22
+        mac: null
   prusa-mk4:
     home:
       primary:
         _type: leaf
         address: 192.168.2.56
+        mac: null
   prusa-xl:
     home:
       primary:
         _type: leaf
         address: 192.168.2.57
+        mac: null
   qdevice:
     home:
       primary:
         _type: leaf
         address: 192.168.2.16
+        mac: null
   qdevice-kvm:
     home:
       primary:
         _type: leaf
         address: 192.168.2.8
+        mac: null
   qdevice-vm:
     home:
       primary:
         _type: leaf
         address: 192.168.2.17
+        mac: null
   raum:
     home:
       primary:
         _type: leaf
         address: 192.168.2.44
+        mac: null
   raum-kvm:
     home:
       primary:
         _type: leaf
         address: 192.168.2.45
+        mac: null
   remarkable:
     home:
       primary:
         _type: leaf
         address: 192.168.2.43
+        mac: null
   shelly-plus-plug-s-1:
     home:
       primary:
         _type: leaf
         address: 192.168.2.60
+        mac: null
   shelly-plus-plug-s-10:
     home:
       primary:
         _type: leaf
         address: 192.168.2.73
+        mac: null
   shelly-plus-plug-s-2:
     home:
       primary:
         _type: leaf
         address: 192.168.2.61
+        mac: null
   shelly-plus-plug-s-3:
     home:
       primary:
         _type: leaf
         address: 192.168.2.63
+        mac: null
   shelly-plus-plug-s-4:
     home:
       primary:
         _type: leaf
         address: 192.168.2.64
+        mac: null
   shelly-plus-plug-s-5:
     home:
       primary:
         _type: leaf
         address: 192.168.2.65
+        mac: null
   shelly-plus-plug-s-6:
     home:
       primary:
         _type: leaf
         address: 192.168.2.66
+        mac: null
   shelly-plus-plug-s-7:
     home:
       primary:
         _type: leaf
         address: 192.168.2.70
+        mac: null
   shelly-plus-plug-s-8:
     home:
       primary:
         _type: leaf
         address: 192.168.2.71
+        mac: null
   shelly-plus-plug-s-9:
     home:
       primary:
         _type: leaf
         address: 192.168.2.72
+        mac: null
   slzb-06:
     home:
       primary:
         _type: leaf
         address: 192.168.2.74
+        mac: null
   tapo-c100:
     home:
       primary:
         _type: leaf
         address: 192.168.2.13
+        mac: null
   tinypilot:
     home:
       primary:
         _type: leaf
         address: 192.168.2.50
+        mac: null
   ulanzi-tc001:
     home:
       primary:
         _type: leaf
         address: 192.168.2.80
+        mac: null
   unifi:
     home:
       primary:
         _type: leaf
         address: 192.168.2.19
+        mac: null
   usg:
+    guest:
+      primary:
+        _type: leaf
+        address: 192.168.3.1
+        mac: null
     home:
       primary:
         _type: leaf
         address: 192.168.2.1
+        mac: null
   valak:
     home:
       primary:
         _type: leaf
         address: 192.168.2.26
+        mac: null
   valak-kvm:
     home:
       primary:
         _type: leaf
         address: 192.168.2.15
+        mac: null
   xmg1915:
     home:
       primary:
         _type: leaf
         address: 192.168.2.78
+        mac: null
   xray:
     home:
       primary:
         _type: leaf
         address: 192.168.2.14
+        mac: null

@@ -1,8 +1,12 @@
 ---
+- name: Check if custom sanoid config exists
+  local_action: stat path="./files/{{ inventory_hostname }}-sanoid.conf"
+  register: file
 - name: Install sanoid
   ansible.builtin.package:
     state: present
     name: sanoid
+  when: file.stat.exists
 - name: Create sanoid config directory
   ansible.builtin.file:
     path: /etc/sanoid
@@ -10,8 +14,10 @@
     mode: '0755'
     owner: root
     group: root
+  when: file.stat.exists
 - name: Copy sanoid config
   ansible.builtin.copy:
     src: "{{ inventory_hostname }}-sanoid.conf"
     dest: /etc/sanoid/sanoid.conf
     mode: '0644'
+  when: file.stat.exists
