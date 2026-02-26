@@ -365,6 +365,12 @@ def machine_add_cmd(
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Show what would be done without making changes"
     ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Proceed even if working directory has uncommitted changes",
+    ),
 ):
     """Add a new NixOS machine configuration.
 
@@ -377,6 +383,9 @@ def machine_add_cmd(
 
     For LXC machines (--type lxc), generates a MAC address and configures
     the machine to import the lxc module instead of disko.
+
+    If any step fails, all changes are rolled back automatically.
+    Use --force to proceed despite uncommitted changes (rollback may be incomplete).
     """
     actual_network = None if no_network else network
     add_machine.run(
@@ -385,6 +394,7 @@ def machine_add_cmd(
         network=actual_network,
         machine_type=machine_type,
         dry_run=dry_run,
+        force=force,
     )
 
 

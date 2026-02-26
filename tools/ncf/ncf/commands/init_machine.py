@@ -14,7 +14,7 @@ from ..sops_yaml import SopsYaml
 console = Console()
 
 
-def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
+def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
     """Initialize secrets for a new machine.
 
     Steps:
@@ -28,7 +28,18 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
     8. Update .sops.yaml with keys and creation rules
     9. Create empty YAML files (if missing)
     10. Stage all new files in git
+
+    Returns:
+        dict with keys:
+        - created_files: list of Path objects for files created
+        - created_dirs: list of Path objects for directories created
+        - modified_files: list of Path objects for files modified
     """
+    result: dict = {
+        "created_files": [],
+        "created_dirs": [],
+        "modified_files": [],
+    }
     console.print(Panel(f"Initializing secrets for machine: [bold]{name}[/bold]"))
 
     # Check external tools
@@ -54,6 +65,7 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
         console.print("  [yellow]Would create directory[/yellow]")
     else:
         machine_dir.mkdir(parents=True)
+        result["created_dirs"].append(machine_dir)
         console.print("  [green]Created directory[/green]")
 
     # Step 2: Check existing secrets
@@ -88,6 +100,14 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
         console.print("  [yellow]Would generate SSH host keys[/yellow]")
     else:
         external.ssh_keygen_generate_all(machine_dir)
+        # Track created SSH key files
+        for key_type in config.SSH_KEY_TYPES:
+            key_path = config.ssh_host_key_path(machine_dir, key_type)
+            pub_path = config.ssh_host_key_path(machine_dir, key_type, public=True)
+            if key_path.exists():
+                result["created_files"].append(key_path)
+            if pub_path.exists():
+                result["created_files"].append(pub_path)
         console.print("  [green]Generated SSH host keys[/green]")
 
     # Step 4: Encrypt SSH private keys
@@ -143,9 +163,11 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
             console.print("  [yellow]Would generate user age keypair[/yellow]")
         else:
             user_age_pub = external.age_keygen_generate(age_key_path)
+            result["created_files"].append(age_key_path)
             # Save public key to separate file
             age_pub_path.write_text(user_age_pub + "\n")
-            console.print(f"  [green]Generated user age keypair[/green]")
+            result["created_files"].append(age_pub_path)
+            console.print("  [green]Generated user age keypair[/green]")
             console.print(f"  [dim]Public key: {user_age_pub}[/dim]")
 
         console.print("\n[bold]Step 6:[/bold] Encrypting user age key")
@@ -185,7 +207,8 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
         console.print(f"    - Creation rule for secrets/{name}/user-binarin.yaml")
     else:
         if server_age_key:
-            sops = SopsYaml(config.get_sops_yaml_path(repo_root))
+            sops_path = config.get_sops_yaml_path(repo_root)
+            sops = SopsYaml(sops_path)
             sops.load()
             keys_added, rules_added = sops.update_machine_keys(
                 name,
@@ -193,6 +216,7 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
                 user_age_pub,
             )
             sops.save()
+            result["modified_files"].append(sops_path)
             if keys_added:
                 console.print("  [green]Added key anchors[/green]")
             else:
@@ -216,6 +240,7 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
             console.print(f"  [yellow]Would create {yaml_path.name}[/yellow]")
         else:
             yaml_path.write_text("{}\n")
+            result["created_files"].append(yaml_path)
             console.print(f"  [green]Created {yaml_path.name}[/green]")
 
     # Step 10: Stage files in git
@@ -237,7 +262,9 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> None:
 
     console.print("\n[bold green]Done![/bold green]")
     if not dry_run:
-        console.print(f"\nNext steps:")
-        console.print(f"  1. Review staged changes with: git status")
+        console.print("\nNext steps:")
+        console.print("  1. Review staged changes with: git status")
         console.print(f"  2. Edit secrets: sops secrets/{name}/secrets.yaml")
-        console.print(f"  3. Commit when ready: git commit")
+        console.print("  3. Commit when ready: git commit")
+
+    return result
