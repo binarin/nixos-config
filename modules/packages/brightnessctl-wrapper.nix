@@ -9,6 +9,7 @@
           ddcutil
           jq
           coreutils
+          gawk
           brightnessctl
           niri
           getopt
