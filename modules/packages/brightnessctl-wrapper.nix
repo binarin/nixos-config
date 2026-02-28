@@ -13,6 +13,7 @@
           brightnessctl
           niri
           getopt
+          gnused
         ];
         text = ''
           # brightnessctl wrapper that handles DDC monitors via ddcutil
