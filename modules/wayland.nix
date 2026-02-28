@@ -1,4 +1,5 @@
 {
+  self,
   ...
 }:
 {
@@ -12,12 +13,17 @@
 
   flake.homeModules.wayland =
     {
+      pkgs,
       ...
     }:
     {
       key = "nixos-config.modules.home.wayland";
 
       config = {
+        home.packages = [
+          self.packages.${pkgs.stdenv.hostPlatform.system}.brightnessctl-wrapper
+        ];
+
         home.sessionVariables = {
           MOZ_ENABLE_WAYLAND = "1";
           NIXOS_OZONE_WL = "1";
