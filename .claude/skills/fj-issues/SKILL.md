@@ -44,7 +44,7 @@ Use the `id` field with `fj issue edit` to update specific comments.
 
 # Creating PR
 
-    fj pr create --base master --head issue-29-git-credentials-symlink --body "markdown body" "title"
+See "Pushing and PRs" section below for the full workflow.
 
 # Adding a comment to an issue
 
@@ -90,17 +90,50 @@ Otherwise:
 - Check whether the branch starting `issue-ISSUE_NUMBER` already
   exists in origin, get the branch name from there.
 - If not, invent a branch name that starts with issue number and contains some
-  short name infejrred from the issue description,
+  short name inferred from the issue description,
   i.e. `issue-28-pkgs-system-deprecation`
 - Stash any local changes
 - Switch to / create the issue branch
 - Work on the issue, creating logically separate commits. Don't
   rewrite commit history, use fixup commits.
 - `nix fmt` should be always run before commit.
-- create PR (use issued ID in the PR title), so it'll be easy to find
-  using `fj pr search` in case if it already exists.
+- Push and create PR as described in "Pushing and PRs" section.
 - If there were some valuable learnings in the process of execution,
   add them as an separate issue comment.
+
+# Pushing and PRs
+
+Claude agent does not have write access to `origin` remote. Instead, push
+to `claude-staging` remote (fork repository at `claude-nixos-config/nixos-config`).
+
+## Pushing changes
+
+Push the branch to `claude-staging`:
+
+    git push claude-staging <branch-name>
+
+Or to update an existing PR branch:
+
+    git push claude-staging <local-branch>:<remote-branch>
+
+## Creating cross-fork PRs
+
+When creating PRs, use `-r` for the target repo and `--head` with the fork prefix:
+
+    fj pr create -r forgejo.lynx-lizard.ts.net/binarin/nixos-config \
+        --base master --head claude-nixos-config:<branch-name> \
+        --body "..." "PR title"
+
+The `-r` specifies the target repository (with full host), and `--head` must include
+the fork owner prefix (`claude-nixos-config:`) to indicate the source fork.
+
+## Updating existing PRs
+
+To update an existing PR, just push new commits to the same branch on `claude-staging`:
+
+    git push claude-staging <branch-name>
+
+The PR will automatically update with the new commits.
 
 # Passwords
 
