@@ -39,8 +39,8 @@ Example output:
 ]
 ```
 
-To identify the plan comment, look for body starting with "## Plan".
-Use the `id` field with `fj issue edit` to update specific comments.
+The plan comment is always the FIRST comment by `claude-nixos-config`.
+Use the `id` field with `fj issue edit` to update it.
 
 # Creating PR
 
@@ -52,23 +52,38 @@ See "Pushing and PRs" section below for the full workflow.
 
 # Planning phase
 
-Read issue and all comments. Carefully plan the implementation, and
-add the plan as a comment to the issue.
+Read issue and all comments. Carefully plan the implementation.
 
-There can already be a plan here, if there is no new comments after
-the latest plan - do nothing.
+## Plan location
 
-Otherwise update plan with the new inputs, update the plan comment using
+The plan is ALWAYS the first comment made by `claude-nixos-config` on the issue.
+When starting work on a new issue (no existing claude comments), immediately
+reserve a place for the plan:
+
+    fj issue comment <ISSUE_ID> "## Plan\n\n(placeholder)"
+
+This ensures the plan stays at the top of claude's comments. Then update it
+with the actual plan content.
+
+## Questions
+
+If you have questions during planning, add them as SEPARATE comments after
+the plan comment. Do not put questions in the plan comment itself.
+
+## Updating the plan
+
+If there's already a plan comment but new feedback comments exist after it,
+update the plan to incorporate the feedback:
 
     fj issue edit <ISSUE> comment <IDX> [NEW_BODY]
 
-IMPORTANT: Check that you are update the plan comment, and not any of
-the feedback comments!!!!!!
+IMPORTANT: Only edit the plan comment (first claude-nixos-config comment),
+never edit feedback comments!
 
-As I want to keep the plan near the beginning of the comment list, it
-shoud also keep the timestamp of the latest comment with feedback that
-was already incorporated, so it'll be possible to check whether the
-plan is up-to-date.
+The plan should include the timestamp of the latest feedback comment that
+was incorporated, so it's easy to check if the plan is up-to-date.
+
+## Plan scope
 
 The plan scope is only the implementation, no deployments at all - if
 you can't test something just from the confines of repository, skip
