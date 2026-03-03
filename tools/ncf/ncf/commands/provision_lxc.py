@@ -300,24 +300,8 @@ def run(
     # Get network-wide info (dns, gateway, etc)
     network_info = query_nixos_config(runner, machine, "config.inventory.networks.home")
 
-    # Check if docker/podman is enabled for nesting
-    try:
-        docker_enabled = query_nixos_config(
-            runner, machine, "config.virtualisation.docker.enable"
-        )
-    except Exception:
-        docker_enabled = False
-
-    try:
-        podman_enabled = query_nixos_config(
-            runner, machine, "config.virtualisation.podman.enable"
-        )
-    except Exception:
-        podman_enabled = False
-
-    needs_nesting = docker_enabled or podman_enabled
-    if needs_nesting:
-        console.print("  [dim]Nesting enabled (docker/podman detected)[/dim]")
+    # Note: nesting is always enabled for LXC containers as it's required
+    # for systemd 258+ credentials mechanism (sd-mkdcreds mounts ramfs)
 
     network_config = {
         "address": ip_alloc["address"],
@@ -326,7 +310,9 @@ def run(
         "dns": network_info.get("dns", []),
         "searchdomain": network_info.get("searchdomain"),
         "mac": ip_alloc.get("mac"),
-        "features": {"nesting": needs_nesting},
+        # Always enable nesting - required for systemd 258+ credentials mechanism
+        # (sd-mkdcreds needs to mount ramfs, which requires nesting privileges)
+        "features": {"nesting": True},
     }
 
     # Step 2: Check if container exists
