@@ -15,6 +15,13 @@ upstream tracking. When working on branches that track `claude-staging`
 
 Always use the full repo reference: `binarin/nixos-config#<ID>`
 
+# Git state
+
+IMPORTANT: Always run `git fetch origin` before making any decisions based on
+git state (branch comparisons, checking what's merged, deciding on fixup vs new
+commit, etc.). Local refs can be stale, leading to incorrect assumptions about
+what commits exist upstream.
+
 # Listing open issues
 
     fj -H forgejo.lynx-lizard.ts.net issue search binarin/nixos-config
