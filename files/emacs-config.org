@@ -1527,10 +1527,14 @@
        :defer t
        :config
        (add-hook 'dape-display-source-hook 'pulse-momentary-highlight-one-line)
+       (add-hook 'dape-start-hook 'binarin/save-some-buffers)
 
        ;; To not display info and/or buffers on startup
        ;; (remove-hook 'dape-start-hook 'dape-info)
        (remove-hook 'dape-start-hook 'dape-repl))
+
+     (defun binarin/save-some-buffers ()
+       (save-some-buffers t nil))
 
      (defun binarin/go-mode-hook ()
        (add-hook 'before-save-hook 'gofmt-before-save nil t))
