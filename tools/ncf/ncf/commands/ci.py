@@ -1,5 +1,6 @@
 """CI workflow generation for ncf."""
 
+import base64
 import io
 import json
 from pathlib import Path
@@ -11,6 +12,89 @@ from .. import config
 from ..external import run_command
 
 console = Console()
+
+
+def get_git_crypt_encrypted_files() -> list[Path]:
+    """Get list of git-crypt encrypted files."""
+    repo_root = config.find_repo_root()
+    result = run_command(["git", "crypt", "status", "-e"], cwd=repo_root)
+    files = []
+    for line in result.stdout.strip().split("\n"):
+        if line.strip():
+            # Format is "    encrypted: path/to/file"
+            parts = line.split(":", 1)
+            if len(parts) == 2:
+                filepath = parts[1].strip()
+                files.append(repo_root / filepath)
+    return files
+
+
+def generate_fake_jwe() -> str:
+    """Generate a valid-looking JWE compact serialization placeholder.
+
+    JWE format: header.encrypted_key.iv.ciphertext.tag
+    All parts are base64url encoded.
+    """
+    # Header: {"alg":"dir","enc":"A256GCM"} - direct encryption with AES-256-GCM
+    header = (
+        base64.urlsafe_b64encode(b'{"alg":"dir","enc":"A256GCM"}').decode().rstrip("=")
+    )
+    # For direct encryption, encrypted_key is empty
+    encrypted_key = ""
+    # IV: 12 bytes for AES-GCM, use zeros
+    iv = base64.urlsafe_b64encode(b"\x00" * 12).decode().rstrip("=")
+    # Ciphertext: some placeholder bytes
+    ciphertext = (
+        base64.urlsafe_b64encode(b"PLACEHOLDER_ENCRYPTED_DATA").decode().rstrip("=")
+    )
+    # Auth tag: 16 bytes for AES-GCM
+    tag = base64.urlsafe_b64encode(b"\x00" * 16).decode().rstrip("=")
+
+    return f"{header}.{encrypted_key}.{iv}.{ciphertext}.{tag}"
+
+
+def generate_fake_content_for_file(filepath: Path) -> str:
+    """Generate appropriate placeholder content based on file extension."""
+    suffix = filepath.suffix.lower()
+    name = filepath.name.lower()
+
+    if suffix == ".jwe":
+        return generate_fake_jwe()
+    elif suffix == ".json":
+        return "{}"
+    elif ".git-crypt" in name or suffix == ".git-crypt":
+        return "PLACEHOLDER_SECRET\n"
+    else:
+        return f"# Placeholder for {filepath.name}\n"
+
+
+def run_fake_unlock() -> None:
+    """Replace git-crypt encrypted files with placeholder content.
+
+    This allows CI builds to proceed without real secrets.
+    """
+    encrypted_files = get_git_crypt_encrypted_files()
+
+    if not encrypted_files:
+        console.print("[yellow]No git-crypt encrypted files found[/yellow]")
+        return
+
+    console.print(
+        f"[bold]Replacing {len(encrypted_files)} encrypted files with placeholders...[/bold]"
+    )
+
+    for filepath in encrypted_files:
+        if not filepath.exists():
+            console.print(f"[yellow]Skipping missing file: {filepath}[/yellow]")
+            continue
+
+        fake_content = generate_fake_content_for_file(filepath)
+        filepath.write_text(fake_content)
+        console.print(
+            f"[green]✓[/green] {filepath.relative_to(config.find_repo_root())}"
+        )
+
+    console.print("\n[bold green]Fake unlock complete![/bold green]")
 
 
 def get_nixos_configurations() -> list[str]:
@@ -78,6 +162,21 @@ def generate_checkout_and_unlock(ref: str | None = None) -> list[dict]:
     return [checkout_step, unlock_step]
 
 
+def generate_checkout_and_fake_unlock() -> list[dict]:
+    """Generate checkout and fake unlock steps for fork PRs."""
+    checkout_step = {
+        "uses": "actions/checkout@v4",
+        "with": {"ref": "${{ github.event.pull_request.head.sha }}"},
+    }
+
+    fake_unlock_step = {
+        "name": "fake git-crypt unlock",
+        "run": "nix run .#ncf -- ci fake-unlock",
+    }
+
+    return [checkout_step, fake_unlock_step]
+
+
 def generate_master_yaml(configurations: list[str]) -> dict:
     """Generate the master workflow YAML data."""
     return {
@@ -103,6 +202,40 @@ def generate_master_yaml(configurations: list[str]) -> dict:
                 "runs-on": "native",
                 "needs": ["nixos-configuration"],
                 "steps": generate_checkout_and_unlock() + [{"run": "nix flake check"}],
+            },
+        },
+    }
+
+
+def generate_fork_pr_yaml(configurations: list[str]) -> dict:
+    """Generate the fork PR workflow YAML data.
+
+    Uses pull_request_target to run on PRs from forks, with fake-unlock
+    instead of real git-crypt secrets.
+    """
+    return {
+        "on": {
+            "pull_request_target": {"types": ["opened", "synchronize", "reopened"]},
+        },
+        "jobs": {
+            "nixos-configuration": {
+                "runs-on": "native",
+                "strategy": {
+                    "fail-fast": False,
+                    "matrix": {"nixosConfiguration": configurations},
+                },
+                "steps": generate_checkout_and_fake_unlock()
+                + [
+                    {
+                        "run": "nix run .#ncf -- build nixos ${{ matrix.nixosConfiguration }} --no-nom"
+                    }
+                ],
+            },
+            "check": {
+                "runs-on": "native",
+                "needs": ["nixos-configuration"],
+                "steps": generate_checkout_and_fake_unlock()
+                + [{"run": "nix flake check"}],
             },
         },
     }
@@ -329,6 +462,7 @@ def run_generate(dry_run: bool = False) -> None:
 
     workflows = {
         "master.yaml": generate_master_yaml(configurations),
+        "fork-pr.yaml": generate_fork_pr_yaml(configurations),
         "docker-update.yaml": generate_docker_update_yaml(),
         "iso-wifi.yaml": generate_iso_wifi_yaml(),
         "flake-update.yaml": generate_flake_update_yaml(configurations),

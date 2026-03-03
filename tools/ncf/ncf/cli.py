@@ -346,6 +346,19 @@ def ci_generate_cmd(
     ci.run_generate(dry_run=dry_run)
 
 
+@ci_app.command("fake-unlock")
+def ci_fake_unlock_cmd():
+    """Replace git-crypt encrypted files with placeholder content.
+
+    Used for CI builds on fork PRs that don't have access to secrets.
+    Replaces encrypted files with appropriate placeholders:
+    - .jwe files: valid JWE format placeholder
+    - .json files: empty JSON object
+    - other files: simple text placeholder
+    """
+    ci.run_fake_unlock()
+
+
 @machine_app.command("add")
 def machine_add_cmd(
     name: str = typer.Argument(help="Name for the new machine"),

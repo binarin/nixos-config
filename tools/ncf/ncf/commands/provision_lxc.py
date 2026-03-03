@@ -93,7 +93,9 @@ def create_pct_command(
 
     # Additional mount points
     for i, mount in enumerate(lxc_config.get("mounts", [])):
-        mount_spec = f"{mount['pool']}:{normalize_size(mount['size'])},mp={mount['mountPoint']}"
+        mount_spec = (
+            f"{mount['pool']}:{normalize_size(mount['size'])},mp={mount['mountPoint']}"
+        )
         if not mount.get("backup", True):
             mount_spec += ",backup=0"
         if not mount.get("replicate", True):
@@ -167,12 +169,20 @@ def restore_ssh_host_keys(
 
                 # Copy private key to container
                 subprocess.run(
-                    ["scp", tmp_path, f"root@{proxmox_host}:{ssh_dir}/ssh_host_{key_type}_key"],
+                    [
+                        "scp",
+                        tmp_path,
+                        f"root@{proxmox_host}:{ssh_dir}/ssh_host_{key_type}_key",
+                    ],
                     check=True,
                 )
                 # Set correct permissions
                 subprocess.run(
-                    ["ssh", f"root@{proxmox_host}", f"chmod 600 {ssh_dir}/ssh_host_{key_type}_key"],
+                    [
+                        "ssh",
+                        f"root@{proxmox_host}",
+                        f"chmod 600 {ssh_dir}/ssh_host_{key_type}_key",
+                    ],
                     check=True,
                 )
             finally:
@@ -181,11 +191,19 @@ def restore_ssh_host_keys(
         if pub_file.exists():
             # Public keys are not encrypted
             subprocess.run(
-                ["scp", str(pub_file), f"root@{proxmox_host}:{ssh_dir}/ssh_host_{key_type}_key.pub"],
+                [
+                    "scp",
+                    str(pub_file),
+                    f"root@{proxmox_host}:{ssh_dir}/ssh_host_{key_type}_key.pub",
+                ],
                 check=True,
             )
             subprocess.run(
-                ["ssh", f"root@{proxmox_host}", f"chmod 644 {ssh_dir}/ssh_host_{key_type}_key.pub"],
+                [
+                    "ssh",
+                    f"root@{proxmox_host}",
+                    f"chmod 644 {ssh_dir}/ssh_host_{key_type}_key.pub",
+                ],
                 check=True,
             )
 

@@ -36,6 +36,8 @@ jobs:
       run: nix run .#ncf -- build nixos forgejo --no-nom -o temp-result/forgejo
     - name: Build nixosConfiguration.furfur
       run: nix run .#ncf -- build nixos furfur --no-nom -o temp-result/furfur
+    - name: Build nixosConfiguration.garage
+      run: nix run .#ncf -- build nixos garage --no-nom -o temp-result/garage
     - name: Build nixosConfiguration.ishamael
       run: nix run .#ncf -- build nixos ishamael --no-nom -o temp-result/ishamael
     - name: Build nixosConfiguration.iso
@@ -78,6 +80,10 @@ jobs:
       run: |-
         nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/furfur" \
           -r "$(readlink -f "temp-result/furfur")"
+    - name: Add nix-store GC root for nixosConfiguraion.garage
+      run: |-
+        nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/garage" \
+          -r "$(readlink -f "temp-result/garage")"
     - name: Add nix-store GC root for nixosConfiguraion.ishamael
       run: |-
         nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/ishamael" \
