@@ -1,9 +1,11 @@
 {
   self,
   lib,
+  config,
   ...
 }:
 let
+  flakeConfig = config;
   helper = import "${self}/lib/networks-lookup.nix" { inherit self lib; };
   rawNetworks = helper.readRawInventory;
   networksLookup = helper.buildHostLookupTable rawNetworks;
@@ -59,20 +61,26 @@ let
       })
     ]
   ) rawNetworks;
-
-  inventory = {
-    inherit ipAllocation networks usersGroups;
-  };
 in
 {
-  config = {
-    # Expose inventory data as flake-parts module argument
-    # All dendritic modules can access via: { inventory, ... }:
-    # Then use inventory.ipAllocation, inventory.networks, inventory.usersGroups
-    _module.args = {
-      inherit inventory;
+  # Flake-parts config options for inventory data
+  # All dendritic modules can access via: { config, ... }: config.inventory.*
+  options = {
+    inventory.ipAllocation = lib.mkOption {
+      type = lib.types.raw;
+      default = ipAllocation;
     };
+    inventory.networks = lib.mkOption {
+      type = lib.types.raw;
+      default = networks;
+    };
+    inventory.usersGroups = lib.mkOption {
+      type = lib.types.raw;
+      default = usersGroups;
+    };
+  };
 
+  config = {
     flake.nixosModules.inventory =
       { config, ... }:
       {
@@ -95,10 +103,10 @@ in
           networking.hostId =
             (builtins.fromTOML (builtins.readFile "${self}/inventory/host-id.toml"))
             ."${config.networking.hostName}";
-          networking.hosts = inventory.networks.home.hosts;
-          inventory.ipAllocation = inventory.ipAllocation;
-          inventory.hostIpAllocation = inventory.ipAllocation."${config.networking.hostName}";
-          inventory.networks = inventory.networks;
+          networking.hosts = flakeConfig.inventory.networks.home.hosts;
+          inventory.ipAllocation = flakeConfig.inventory.ipAllocation;
+          inventory.hostIpAllocation = flakeConfig.inventory.ipAllocation."${config.networking.hostName}";
+          inventory.networks = flakeConfig.inventory.networks;
         };
       };
   };

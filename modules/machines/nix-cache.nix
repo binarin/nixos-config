@@ -1,9 +1,12 @@
 {
   self,
   inputs,
-  inventory,
+  config,
   ...
 }:
+let
+  flakeConfig = config;
+in
 {
   flake.nixosConfigurations.nix-cache = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
@@ -88,7 +91,7 @@
           ];
 
           serverAliases = [
-            inventory.ipAllocation."${config.networking.hostName}".home.primary.address
+            flakeConfig.inventory.ipAllocation."${config.networking.hostName}".home.primary.address
           ];
 
           locations."/" = {
@@ -131,7 +134,7 @@
               # You'll probably want to remove this option if your network does support IPv6
               # or you use a different DNS server.
               # See: https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver
-              resolver ${lib.concatStringsSep " " config.inventory.networks.home.dns} ipv6=off;
+              resolver ${lib.concatStringsSep " " flakeConfig.inventory.networks.home.dns} ipv6=off;
 
               # When connecting to an upstream server, do use TLS SNI to indicate which server
               # to connect to. Without this option Nginx fails to connect to Cachix upstreams.

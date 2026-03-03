@@ -1,12 +1,12 @@
 {
   self,
   inputs,
-  inventory,
+  config,
   ...
 }:
 {
   flake.deploy.nodes.octopi = {
-    hostname = inventory.ipAllocation."octopi".guest.primary.address;
+    hostname = config.inventory.ipAllocation."octopi".guest.primary.address;
     profiles.system = {
       sshUser = "root";
       path = self.lib.deploy-nixos self.nixosConfigurations.octopi;

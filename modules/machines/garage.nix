@@ -1,7 +1,7 @@
 {
   self,
   inputs,
-  inventory,
+  config,
   ...
 }:
 let
@@ -10,7 +10,7 @@ let
 in
 {
   flake.deploy.nodes.garage = {
-    hostname = inventory.ipAllocation."${inventoryHostName}".home.primary.address;
+    hostname = config.inventory.ipAllocation."${inventoryHostName}".home.primary.address;
     profiles.system = {
       sshUser = "root";
       path = self.lib.deploy-nixos self.nixosConfigurations.garage;

@@ -1,9 +1,12 @@
 {
   self,
   inputs,
-  inventory,
+  config,
   ...
 }:
+let
+  flakeConfig = config;
+in
 {
   flake-file.inputs = {
     nix-index-database.url = "github:nix-community/nix-index-database";
@@ -102,7 +105,7 @@
             matchBlocks = {
               mail = {
                 match = ''
-                  host mail.lynx-lizard.ts.net,mail,${inventory.ipAllocation.mail.home.primary.address}
+                  host mail.lynx-lizard.ts.net,mail,${flakeConfig.inventory.ipAllocation.mail.home.primary.address}
                 '';
                 extraOptions = {
                   ControlMaster = "auto";
