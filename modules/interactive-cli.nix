@@ -246,6 +246,15 @@
             fi
           '';
         })
+        {
+          programs.zsh.initContent = ''
+            source ${
+              self.packages.${pkgs.stdenv.hostPlatform.system}.zsh-autoquoter
+            }/share/zsh/zsh-autoquoter/zsh-autoquoter.zsh
+            ZAQ_PREFIXES+=('git commit( [^ ]##)# -[^ -]#m')
+            ZSH_HIGHLIGHT_HIGHLIGHTERS+=(zaq)
+          '';
+        }
         (lib.mkIf (osConfig.services.graphical-desktop.enable && pkgs.stdenv.isLinux) {
           home.packages = with pkgs; [ gparted ];
         })
