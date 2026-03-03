@@ -2,7 +2,7 @@
 # Fetches issue comments with full metadata (id, timestamps, user)
 # Usage: fj-comments.sh <issue_id>
 #
-# Returns JSON array with: id, body, created_at, updated_at, user.login
+# Returns JSON array with: index, id, body, created_at, updated_at, user.login
 # This can be dropped when forgejo-cli adds structured output support.
 
 set -euo pipefail
@@ -51,7 +51,8 @@ fi
 # Fetch comments via API
 API_URL="https://${HOST}/api/v1/repos/${OWNER}/${REPO}/issues/${ISSUE_ID}/comments"
 
+# Include array index for use with `fj issue edit ... comment <IDX>`
 curl -sf \
     -H "Authorization: token ${TOKEN}" \
     -H "Accept: application/json" \
-    "$API_URL" | jq '[.[] | {id, body, created_at, updated_at, user: .user.login}]'
+    "$API_URL" | jq '[to_entries[] | {index: .key, id: .value.id, body: .value.body, created_at: .value.created_at, updated_at: .value.updated_at, user: .value.user.login}]'
