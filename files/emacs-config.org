@@ -2394,17 +2394,6 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
      (add-hook 'delete-frame-functions 'binarin/org-capture-kill-on-delete-frame)
    #+end_src
 * Test space
-** [[https://sr.ht/~niklaseklund/detached.el/][detached.el: An Emacs package to launch, and manage, detached processes]]
-   :PROPERTIES:
-   :ID:       973d5ad6-b736-4d32-90b6-dbebe839baa6
-   :CREATED:  [2026-01-07 Wed 18:06]
-   :END:
-** [[https://github.com/minad/cape][minad/cape: 🦸cape.el - Completion At Point Extensions]]
- :PROPERTIES:
-  :ID: 1117a737-2067-4c03-874b-72e8735f3894
-  :END:
-  [2025-11-18 Tue 17:35]
-** ~(setq load-path-filter-function #'load-path-filter-cache-directory-files)~ - after emacs 31 release
 ** [[https://github.com/abo-abo/org-download][abo-abo/org-download: Drag and drop images to Emacs org-mode]]
  :PROPERTIES:
   :ID: db3ae4d0-2bbf-4e3a-ba21-b0f27e454c5a
@@ -2430,15 +2419,15 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
   :ID: 47a0ce00-e3d1-4eb2-a613-31a1c35f1d4c
   :END:
   [2024-11-24 Sun 09:34]
+** Android - how to show keyboard
+   #+begin_src emacs-lisp
+     (defun tk () (interactive) (frame-toggle-on-screen-keyboard (selected-frame) nil))
+   #+end_src
 ** [[https://lmno.lol/alvaro/an-experimental-e-shell-pager][An experimental (e)shell pager]]
  :PROPERTIES:
   :ID: b81b7885-7138-4be2-b8e8-5d1ebbad9fa3
   :END:
   [2025-01-01 Wed 19:08]
-** Android - how to show keyboard
-   #+begin_src emacs-lisp
-     (defun tk () (interactive) (frame-toggle-on-screen-keyboard (selected-frame) nil))
-   #+end_src
 ** [[https://devdocs.io/ansible/][Ansible documentation — DevDocs]]
  :PROPERTIES:
   :ID: f6f93098-79e1-4a9e-a4d6-32260b225e71
@@ -2459,17 +2448,23 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
   :ID: 55a41bab-8d93-41a9-8407-c16201d0fcf5
   :END:
   [2024-11-24 Sun 09:33]
-** [[https://kapeli.com/dash][Dash for macOS - API Documentation Browser, Snippet Manager - Kapeli]]
- :PROPERTIES:
-  :ID: 2b1aa146-b08c-45ab-8b35-97eca3844f2f
-  :END:
-  [2024-11-24 Sun 09:15]
+** [[https://github.com/DamianB-BitFlipper/magit-pre-commit.el][DamianB-BitFlipper/magit-pre-commit.el: Emacs: pre-commit integration for Magit.]]
 ** [[https://github.com/dash-docs-el/helm-dash][dash-docs-el/helm-dash: Browse Dash docsets inside emacs]]
  :PROPERTIES:
   :ID: f1614be4-29ae-465a-a3bc-27ccda375d4e
   :END:
   [2024-11-26 Tue 13:15]
 
+** [[https://kapeli.com/dash][Dash for macOS - API Documentation Browser, Snippet Manager - Kapeli]]
+ :PROPERTIES:
+  :ID: 2b1aa146-b08c-45ab-8b35-97eca3844f2f
+  :END:
+  [2024-11-24 Sun 09:15]
+** [[https://sr.ht/~niklaseklund/detached.el/][detached.el: An Emacs package to launch, and manage, detached processes]]
+   :PROPERTIES:
+   :ID:       973d5ad6-b736-4d32-90b6-dbebe839baa6
+   :CREATED:  [2026-01-07 Wed 18:06]
+   :END:
 ** Devdocs
 ** [[https://github.com/dgutov/diff-hl][dgutov/diff-hl: Emacs package for highlighting uncommitted changes]]
  :PROPERTIES:
@@ -2481,26 +2476,26 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
   :ID: 7ecc4e7b-b378-4674-9be1-203741a88ec4
   :END:
   [2024-11-24 Sun 09:40]
-** [[https://github.com/emacs-eaf/emacs-application-framework?tab=readme-ov-file][emacs-eaf/emacs-application-framework: EAF, an extensible framework that revolutionizes the graphical capabilities of Emacs]]
- :PROPERTIES:
-  :ID: 29b8cbc7-088c-43b8-b90f-8175797e76dd
-  :END:
-  [2024-11-24 Sun 09:38]
 ** [[https://www.jamescherti.com/emacs-buffer-terminator/][Emacs: buffer-terminator.el – Safely Terminate Emacs Buffers Automatically | James Cherti]]
  :PROPERTIES:
   :ID: 1a279ff8-fce1-46ad-b86d-69b98dbdf851
   :END:
   [2025-01-01 Wed 19:07]
-** [[https://protesilaos.com/codelog/2023-06-03-emacs-spacious-padding/][Emacs: my new ‘spacious-padding’ package | Protesilaos Stavrou]]
- :PROPERTIES:
-  :ID: b33cde10-ebc7-4a1e-bcd0-ab26753a7d02
-  :END:
-  [2025-01-01 Wed 19:14]
 ** [[https://github.com/emacscollective/no-littering][emacscollective/no-littering: Help keeping ~/.config/emacs clean]]
  :PROPERTIES:
   :ID: e4ef1511-e2cb-4742-be91-08b1d8e1a6ab
   :END:
   [2024-11-24 Sun 09:40]
+** [[https://github.com/emacs-eaf/emacs-application-framework?tab=readme-ov-file][emacs-eaf/emacs-application-framework: EAF, an extensible framework that revolutionizes the graphical capabilities of Emacs]]
+ :PROPERTIES:
+  :ID: 29b8cbc7-088c-43b8-b90f-8175797e76dd
+  :END:
+  [2024-11-24 Sun 09:38]
+** [[https://protesilaos.com/codelog/2023-06-03-emacs-spacious-padding/][Emacs: my new ‘spacious-padding’ package | Protesilaos Stavrou]]
+ :PROPERTIES:
+  :ID: b33cde10-ebc7-4a1e-bcd0-ab26753a7d02
+  :END:
+  [2025-01-01 Wed 19:14]
 ** [[https://www.emacswiki.org/emacs/DiredPlus][EmacsWiki: Dired Plus]]
  :PROPERTIES:
   :ID: 78cc2e94-a4f1-4e03-9c50-25720e93a767
@@ -2583,6 +2578,11 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
   :ID: e115334f-d952-40ae-a8d9-18d223ff8ca2
   :END:
   [2025-01-01 Wed 18:35]
+** [[https://github.com/minad/cape][minad/cape: 🦸cape.el - Completion At Point Extensions]]
+ :PROPERTIES:
+  :ID: 1117a737-2067-4c03-874b-72e8735f3894
+  :END:
+  [2025-11-18 Tue 17:35]
 ** [[https://github.com/narendraj9/hledger-mode][narendraj9/hledger-mode: An Emacs major mode for Hledger]]
  :PROPERTIES:
   :ID: 414938d9-9e9c-46d4-a215-a2ab9578b656
@@ -2640,6 +2640,7 @@ From https://thanosapollo.org/posts/use-emacs-everywhere/
   :ID: d8f6a7d1-28fb-4b62-a8ed-46a01a12f308
   :END:
   [2024-11-24 Sun 09:33]
+** ~(setq load-path-filter-function #'load-path-filter-cache-directory-files)~ - after emacs 31 release
 ** [[https://github.com/sshaw/git-link][sshaw/git-link: Emacs package to get the GitHub/Bitbucket/GitLab/... URL for a buffer location]]
  :PROPERTIES:
   :ID: 6a38328f-9bb8-4df7-9824-889bacc2a8be
