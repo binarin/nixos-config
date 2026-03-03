@@ -71,6 +71,17 @@ See "Pushing and PRs" section below for the full workflow.
 
 Read issue and all comments. Carefully plan the implementation.
 
+## Git baseline for investigation
+
+Before investigating the codebase during planning, ensure you're on the latest
+master from origin (unless the issue specifies a different ref/branch):
+
+    git fetch origin
+    git checkout origin/master
+
+This ensures the plan is based on the current state of the codebase, not an
+outdated or feature branch state.
+
 ## Plan location
 
 The plan is ALWAYS the first comment made by `claude-nixos-config` on the issue.
