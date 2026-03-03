@@ -1,12 +1,9 @@
 {
   self,
   inputs,
-  config,
+  inventory,
   ...
 }:
-let
-  flakeConfig = config;
-in
 {
   flake.nixosConfigurations.nix-cache = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
@@ -91,7 +88,7 @@ in
           ];
 
           serverAliases = [
-            flakeConfig.inventory.ipAllocation."${config.networking.hostName}".home.primary.address
+            inventory.ipAllocation."${config.networking.hostName}".home.primary.address
           ];
 
           locations."/" = {

@@ -15,7 +15,6 @@
         self.nixosModules.eternal-terminal
         self.nixosModules.git
         self.nixosModules.interactive-cli
-        self.nixosModules.inventory-legacy
         self.nixosModules.nix
         self.nixosModules.security
         self.nixosModules.sops

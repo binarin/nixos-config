@@ -1,6 +1,7 @@
 {
   self,
   inputs,
+  inventory,
   ...
 }:
 {
@@ -53,7 +54,6 @@
       imports = [
         inputs.nix-index-database.homeModules.nix-index
         self.homeModules.direnv
-        self.modules.generic.inventory-legacy
       ];
 
       options = {
@@ -102,7 +102,7 @@
             matchBlocks = {
               mail = {
                 match = ''
-                  host mail.lynx-lizard.ts.net,mail,${config.inventory.ipAllocation.mail.home.primary.address}
+                  host mail.lynx-lizard.ts.net,mail,${inventory.ipAllocation.mail.home.primary.address}
                 '';
                 extraOptions = {
                   ControlMaster = "auto";

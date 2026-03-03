@@ -1,14 +1,10 @@
-{ config, ... }:
-let
-  flakeConfig = config;
-in
+{ inventory, ... }:
 {
   flake.nixosModules.lxc =
     {
       modulesPath,
       config,
       lib,
-      pkgs,
       ...
     }:
     {
@@ -118,11 +114,11 @@ in
 
         systemd.network.networks."40-lxc" = {
           matchConfig.Name = "eth0";
-          dns = flakeConfig.inventory.networks.home.dns;
+          dns = inventory.networks.home.dns;
           address = [
-            flakeConfig.inventory.ipAllocation."${config.networking.hostName}".home.primary.addressWithPrefix
+            inventory.ipAllocation."${config.networking.hostName}".home.primary.addressWithPrefix
           ];
-          routes = [ { Gateway = flakeConfig.inventory.networks.home.gateway; } ];
+          routes = [ { Gateway = inventory.networks.home.gateway; } ];
         };
 
         services.getty.autologinUser = "root";

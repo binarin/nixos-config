@@ -1,13 +1,13 @@
 {
   self,
   inputs,
-  config,
+  inventory,
   ...
 }:
 
 {
   flake.deploy.nodes.qdevice = {
-    hostname = config.inventory.ipAllocation."qdevice".home.primary.address;
+    hostname = inventory.ipAllocation."qdevice".home.primary.address;
     profiles.system = {
       sshUser = "root";
       path = self.lib.deploy-nixos self.nixosConfigurations.qdevice;

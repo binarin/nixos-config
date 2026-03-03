@@ -34,7 +34,6 @@
         self.nixosModules.niri
         self.nixosModules.bluetooth
         self.nixosModules.firefox
-        self.nixosModules.inventory-legacy
         self.nixosModules.impure-nix-setup
         self.nixosModules.large-console-fonts
       ];

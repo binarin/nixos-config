@@ -1,7 +1,7 @@
 {
   self,
   inputs,
-  config,
+  inventory,
   ...
 }:
 let
@@ -10,7 +10,7 @@ let
 in
 {
   flake.deploy.nodes.garage = {
-    hostname = config.inventory.ipAllocation."${inventoryHostName}".home.primary.address;
+    hostname = inventory.ipAllocation."${inventoryHostName}".home.primary.address;
     profiles.system = {
       sshUser = "root";
       path = self.lib.deploy-nixos self.nixosConfigurations.garage;
@@ -22,7 +22,7 @@ in
     specialArgs = {
       inherit inventoryHostName;
       flake = {
-        inherit self inputs config;
+        inherit self inputs;
       };
     };
     modules = [

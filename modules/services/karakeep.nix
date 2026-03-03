@@ -1,11 +1,10 @@
 {
   inputs,
   self,
-  config,
+  inventory,
   ...
 }:
 let
-  flakeConfig = config;
   karakeepTags = builtins.fromJSON (builtins.readFile ./karakeep.json);
 in
 {
@@ -27,13 +26,13 @@ in
       config = {
         # Create karakeep user with fixed UID/GID from inventory for Docker volume permissions
         users.groups.karakeep = {
-          gid = flakeConfig.inventory.usersGroups.systemUsers.karakeep.gid;
+          gid = inventory.usersGroups.systemUsers.karakeep.gid;
         };
 
         users.users.karakeep = {
           isSystemUser = true;
           group = "karakeep";
-          uid = flakeConfig.inventory.usersGroups.systemUsers.karakeep.uid;
+          uid = inventory.usersGroups.systemUsers.karakeep.uid;
         };
 
         # Sops secrets configuration
@@ -55,8 +54,8 @@ in
             CRAWLER_DOWNLOAD_BANNER_IMAGE=true
             CRAWLER_STORE_SCREENSHOT=true
             OPENAI_API_KEY=${config.sops.placeholder."karakeep/openai-api-key"}
-            PUID=${toString flakeConfig.inventory.usersGroups.systemUsers.karakeep.uid}
-            PGID=${toString flakeConfig.inventory.usersGroups.systemUsers.karakeep.gid}
+            PUID=${toString inventory.usersGroups.systemUsers.karakeep.uid}
+            PGID=${toString inventory.usersGroups.systemUsers.karakeep.gid}
           '';
           restartUnits = [ "karakeep-docker-compose.service" ];
         };
