@@ -26,13 +26,11 @@ commits exist upstream.
 
 ## Listing open issues
 
-    fj -H forgejo.lynx-lizard.ts.net issue search binarin/nixos-config
+    fj -H forgejo.lynx-lizard.ts.net issue search --repo binarin/nixos-config
 
 Or just use:
 
-    fj issue search
-
-(defaults to current repo context, but issues are in binarin/nixos-config)
+    fj issue search --repo binarin/nixos-config
 
 ## Showing issue
 
