@@ -1,5 +1,6 @@
 """External tool wrappers for ncf."""
 
+import json
 import subprocess
 import shutil
 from pathlib import Path
@@ -178,4 +179,6 @@ def sops_set_value(file_path: Path, key_path: str, value: str) -> None:
     sops_path = "".join(f'["{p}"]' for p in parts)
 
     # sops --set expects: '["key"]["subkey"] "value"'
-    run_command(["sops", "--set", f'{sops_path} "{value}"', str(file_path)])
+    # Use json.dumps to properly escape special characters in the value
+    json_value = json.dumps(value)
+    run_command(["sops", "--set", f"{sops_path} {json_value}", str(file_path)])

@@ -20,9 +20,13 @@ def normalize_size(size: str) -> str:
     """Normalize size string for Proxmox pct command.
 
     Proxmox pct expects sizes as plain numbers (in GB) for ZFS storage.
-    This function strips the 'G' suffix if present.
+    This function converts sizes to GB and strips any suffix.
     """
-    if size.upper().endswith("G"):
+    size_upper = size.upper()
+    if size_upper.endswith("T"):
+        # Convert terabytes to gigabytes
+        return str(int(size[:-1]) * 1024)
+    if size_upper.endswith("G"):
         return size[:-1]
     return size
 
