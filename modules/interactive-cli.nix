@@ -255,7 +255,21 @@ in
               self.packages.${pkgs.stdenv.hostPlatform.system}.zsh-autoquoter
             }/share/zsh/zsh-autoquoter/zsh-autoquoter.zsh
             ZAQ_PREFIXES+=('git commit( [^ ]##)# -[^ -]#m')
+            ZAQ_PREFIXES+=('fjc')
             ZSH_HIGHLIGHT_HIGHLIGHTERS+=(zaq)
+
+            fjc() {
+              local input="$1"
+              local title body
+              if [[ "$input" == *"|"* ]]; then
+                title="''${input%%|*}"
+                body="''${input#*|}"
+              else
+                title="$input"
+                body=""
+              fi
+              fj issue create "$title" --body "$body"
+            }
           '';
         }
         (lib.mkIf (osConfig.services.graphical-desktop.enable && pkgs.stdenv.isLinux) {
