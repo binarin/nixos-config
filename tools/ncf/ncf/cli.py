@@ -2,6 +2,7 @@
 
 import typer
 from rich.console import Console
+from typer.completion import show_callback
 
 from .commands import (
     add_machine,
@@ -21,6 +22,7 @@ app = typer.Typer(
     name="ncf",
     help="CLI tool for NixOS configuration management",
     no_args_is_help=True,
+    add_completion=False,
 )
 
 secrets_app = typer.Typer(
@@ -71,6 +73,24 @@ ipam_app = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(ipam_app, name="ipam")
+
+
+@app.callback(invoke_without_command=True)
+def app_callback(
+    ctx: typer.Context,
+    show_completion: bool = typer.Option(
+        None,
+        "--show-completion",
+        callback=show_callback,
+        expose_value=False,
+        is_eager=True,
+        help="Show completion for the current shell, to copy it or customize the installation.",
+    ),
+) -> None:
+    """CLI tool for NixOS configuration management."""
+    if ctx.invoked_subcommand is None:
+        raise typer.Exit(0)
+
 
 console = Console()
 
