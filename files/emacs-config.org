@@ -1747,10 +1747,26 @@
              (awhen (and (= 3 (org-current-level)) (org-up-heading-safe)
                          (org-entry-get nil "ITEM"))
                (set-text-properties 0 (length it) nil it)
-               (setf item (replace-regexp-in-string (rx (or "NEXT" "WAIT") (group anychar) (* anychar) eos)
-                                                    (propertize (s-concat " [" it "] ")
-                                                                'face 'org-agenda-dimmed-todo-face)
-                                                    item nil nil 1)))))
+               ;; Extract priority cookie with its face properties (if present)
+               (let ((priority-cookie nil)
+                     (priority-regexp (rx "[#" (any "A-D") "]")))
+                 ;; Find and extract priority cookie preserving text properties
+                 (when (string-match priority-regexp item)
+                   (setq priority-cookie (match-string 0 item))
+                   ;; Remove priority cookie from original position
+                   (setf item (replace-regexp-in-string
+                               (rx (+ space) "[#" (any "A-D") "]")
+                               ""
+                               item nil nil)))
+                 ;; Build the replacement string: priority + project name
+                 (let ((project-text (propertize (s-concat " [" it "] ")
+                                                 'face 'org-agenda-dimmed-todo-face)))
+                   (setf item (replace-regexp-in-string
+                               (rx (or "NEXT" "WAIT") (group anychar) (* anychar) eos)
+                               (if priority-cookie
+                                   (concat " " priority-cookie project-text)
+                                 project-text)
+                               item nil nil 1)))))))
          item))
 
      (defun binarin/org-agenda-finalize-prepend-parent (string)
