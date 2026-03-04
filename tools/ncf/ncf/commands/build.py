@@ -299,6 +299,8 @@ def _inject_secrets_into_tarball(
                 [
                     "tar",
                     "--append",
+                    "--owner=root",
+                    "--group=root",
                     "-f",
                     str(temp_tar_path),
                     "-C",
