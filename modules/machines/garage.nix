@@ -104,7 +104,7 @@ in
 
             s3_web = {
               bind_addr = "[::]:3902";
-              root_domain = ".web.garage.lynx-lizard.ts.net";
+              root_domain = ".garage.lynx-lizard.ts.net";
               index = "index.html";
             };
 
