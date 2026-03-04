@@ -104,7 +104,7 @@ in
 
             s3_web = {
               bind_addr = "[::]:3902";
-              root_domain = ".garage.lynx-lizard.ts.net";
+              root_domain = ".lynx-lizard.ts.net";
               index = "index.html";
             };
 
@@ -132,6 +132,16 @@ in
               serviceName = "s3";
               protocol = "https";
               target = "localhost:3900"; # S3 API
+            };
+            nix-cache-storage = {
+              serviceName = "nix-cache-storage";
+              protocol = "https";
+              target = "localhost:3902";
+            };
+            forgejo-artifacts = {
+              serviceName = "forgejo-artifacts";
+              protocol = "https";
+              target = "localhost:3902";
             };
           };
         };
