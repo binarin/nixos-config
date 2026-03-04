@@ -153,21 +153,12 @@ in
         sops.secrets."nixos-config-runner-token" = {
           restartUnits = [
             ''gitea-runner-nixos\x2dconfig.service''
-          ];
-        };
-
-        sops.secrets."nixos-config-runner-token-2" = {
-          restartUnits = [
             ''gitea-runner-nixos\x2dconfig\x2d2.service''
           ];
         };
 
         sops.templates.nixos-config-runner-token-env-file.content = ''
           TOKEN=${config.sops.placeholder."nixos-config-runner-token"}
-        '';
-
-        sops.templates.nixos-config-runner-token-2-env-file.content = ''
-          TOKEN=${config.sops.placeholder."nixos-config-runner-token-2"}
         '';
 
         services.gitea-actions-runner = {
@@ -207,7 +198,7 @@ in
               };
               nixos-config-2 = commonConfig // {
                 name = "${config.networking.hostName}-2";
-                tokenFile = config.sops.templates.nixos-config-runner-token-2-env-file.path;
+                tokenFile = config.sops.templates.nixos-config-runner-token-env-file.path;
               };
             };
         };
