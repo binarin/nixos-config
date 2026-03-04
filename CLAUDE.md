@@ -207,11 +207,11 @@ This fetches `docs/FJ.md` from origin/master and outputs it to stdout.
 
 # Secrets Management
 
-Use `scripts/sops-set-secret.sh` to create new secrets with randomly
-generated passwords. It uses `apg` to generate passwords and `sops
---set` to update encrypted files without ever printing the password:
+Use `ncf secrets set` to create new secrets with randomly generated
+passwords. It uses `apg` to generate passwords and `sops --set` to
+update encrypted files without ever printing the password:
 
-    scripts/sops-set-secret.sh secrets/machine/secrets.yaml service/password
+    ncf secrets set secrets/machine/secrets.yaml service/password
 
 # Ansible
 

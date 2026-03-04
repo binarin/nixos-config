@@ -13,6 +13,7 @@ from .commands import (
     iso,
     list_machines,
     provision_lxc,
+    set_secret,
     verify,
 )
 
@@ -530,6 +531,44 @@ def verify_cmd(
 ):
     """Verify secrets integrity for a machine or all machines."""
     verify.run(machine=machine, all_machines=all_machines)
+
+
+@secrets_app.command("set")
+def set_secret_cmd(
+    sops_file: str = typer.Argument(help="Path to the sops-encrypted YAML file"),
+    key_path: str = typer.Argument(
+        help="YAML path to the secret (e.g., 'service/password' or 'db.password')"
+    ),
+    length: int = typer.Option(24, "--length", "-l", help="Password length"),
+    mode: str = typer.Option(
+        "SNCL",
+        "--mode",
+        "-M",
+        help="apg mode: N=Numeric, C=Capital, L=Lowercase, S=Special",
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without making changes"
+    ),
+):
+    """Generate a random password and set it in a sops-encrypted file.
+
+    Uses apg to generate secure passwords and sops --set to update the file.
+    The generated password is never printed to stdout/stderr for security.
+
+    Examples:
+        ncf secrets set secrets/media/secrets.yaml jellyfin/api-key
+        ncf secrets set -l 32 secrets/forgejo/secrets.yaml runner-token
+        ncf secrets set -M NCL secrets/db/secrets.yaml postgres.password
+    """
+    from pathlib import Path
+
+    set_secret.run(
+        sops_file=Path(sops_file),
+        key_path=key_path,
+        length=length,
+        mode=mode,
+        dry_run=dry_run,
+    )
 
 
 @secrets_app.command("show-keys")

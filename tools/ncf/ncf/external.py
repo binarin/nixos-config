@@ -143,3 +143,39 @@ def yamlfmt(file_path: Path) -> None:
 def nix_fmt(cwd: Path) -> None:
     """Run nix fmt in the given directory."""
     run_command(["nix", "fmt"], cwd=cwd)
+
+
+def apg_generate_password(length: int = 24, mode: str = "SNCL") -> str:
+    """Generate a random password using apg.
+
+    Args:
+        length: Password length (default: 24)
+        mode: Character classes - N=Numeric, C=Capital, L=Lowercase, S=Special
+              (default: SNCL for all classes)
+
+    Returns:
+        The generated password (never printed to stdout/stderr)
+    """
+    result = run_command(
+        ["apg", "-M", mode, "-n", "1", "-m", str(length), "-x", str(length)]
+    )
+    return result.stdout.strip()
+
+
+def sops_set_value(file_path: Path, key_path: str, value: str) -> None:
+    """Set a value in a sops-encrypted YAML file using sops --set.
+
+    Args:
+        file_path: Path to the sops-encrypted YAML file
+        key_path: YAML path using '/' or '.' as separator (e.g., 'service/password')
+        value: The value to set
+    """
+    # Convert path separators to sops format: ["key1"]["key2"]
+    parts = [p for p in key_path.replace(".", "/").split("/") if p]
+    if not parts:
+        raise ExternalToolError("sops", f"Invalid key path: {key_path}")
+
+    sops_path = "".join(f'["{p}"]' for p in parts)
+
+    # sops --set expects: '["key"]["subkey"] "value"'
+    run_command(["sops", "--set", f'{sops_path} "{value}"', str(file_path)])
