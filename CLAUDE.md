@@ -196,6 +196,18 @@ main parts are SSH public keys and IP allocation. Ideally, it should
 be the only source of truth - but for now there are some IP addresses
 hardcoded here and there.
 
+# Forgejo Issues
+
+This repo uses Forgejo for issue tracking. When working on issues or PRs, use
+the `/fj-issues` skill (or variations like `/fj issue`, `/fj pr`). The skill
+fetches workflow documentation from `docs/FJ.md` in the repository.
+
+Key workflow points:
+
+- Plans and questions go in issue comments, not local files
+- Always use full repo reference: `binarin/nixos-config#<ID>`
+- Push to `claude-staging` remote (fork), not `origin`
+
 # Ansible
 
 # Terraform
