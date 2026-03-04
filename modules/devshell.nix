@@ -9,9 +9,12 @@
 
         src = ../tools/ncf;
 
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+
         build-system = [ pkgs.python3.pkgs.setuptools ];
 
         dependencies = with pkgs.python3.pkgs; [
+          pyyaml
           typer
           rich
           ruamel-yaml
@@ -22,6 +25,23 @@
           proxmoxer
           paramiko
         ];
+
+        postFixup = ''
+          wrapProgram $out/bin/ncf \
+            --prefix PATH : ${
+              pkgs.lib.makeBinPath [
+                pkgs.nix
+                pkgs.git
+                pkgs.git-crypt
+                pkgs.openssh # ssh-keygen
+                pkgs.age # age-keygen
+                pkgs.sops
+                pkgs.ssh-to-age
+                pkgs.yamlfmt
+                pkgs.apg
+              ]
+            }
+        '';
       };
     in
     {
