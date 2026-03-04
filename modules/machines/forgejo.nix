@@ -39,10 +39,26 @@
           ];
         };
 
-        environment.systemPackages = with pkgs; [
-          emacs-nox
-          git-crypt
-        ];
+        environment.systemPackages =
+          let
+            cfg = config.services.forgejo;
+            forgejo-cli = pkgs.writeScriptBin "forgejo-cli" ''
+              #!${pkgs.runtimeShell}
+              cd ${cfg.stateDir}
+              sudo=exec
+              if [[ "$USER" != ${cfg.user} ]]; then
+                sudo='exec /run/wrappers/bin/sudo -u ${cfg.user} -g ${cfg.group} --preserve-env=FORGEJO_WORK_DIR --preserve-env=FORGEJO_CUSTOM'
+              fi
+              export FORGEJO_WORK_DIR=${cfg.stateDir}
+              export FORGEJO_CUSTOM=${cfg.customDir}
+              $sudo ${lib.getExe cfg.package} "$@"
+            '';
+          in
+          [
+            forgejo-cli
+            pkgs.emacs-nox
+            pkgs.git-crypt
+          ];
 
         nix.gc = {
           automatic = true;
@@ -99,6 +115,31 @@
             };
           };
         };
+
+        systemd.services.forgejo-regenerate-keys =
+          let
+            cfg = config.services.forgejo;
+            exe = lib.getExe cfg.package;
+          in
+          {
+            description = "Regenerate Forgejo authorized_keys and principals";
+            after = [ "forgejo.service" ];
+            bindsTo = [ "forgejo.service" ];
+            wantedBy = [ "forgejo.service" ];
+            serviceConfig = {
+              Type = "oneshot";
+              User = cfg.user;
+              Group = cfg.group;
+              WorkingDirectory = cfg.stateDir;
+              ExecStart = "${exe} admin regenerate keys";
+            };
+            environment = {
+              USER = cfg.user;
+              HOME = cfg.stateDir;
+              FORGEJO_WORK_DIR = cfg.stateDir;
+              FORGEJO_CUSTOM = cfg.customDir;
+            };
+          };
 
         services.openssh.extraConfig = ''
           Match User git
