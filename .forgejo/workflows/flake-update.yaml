@@ -26,11 +26,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nixosConfiguration: ${{ fromJSON(needs.define-matrix.outputs.configurations) }}
+        config: ${{ fromJSON(needs.define-matrix.outputs.configurations) }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: master
+      - name: parse config
+        id: parse
+        run: |
+          echo 'name<<EOF' >> "$FORGEJO_OUTPUT"
+          echo '${{ matrix.config }}' | jq -r '.name' >> "$FORGEJO_OUTPUT"
+          echo 'EOF' >> "$FORGEJO_OUTPUT"
+          echo 'buildPath<<EOF' >> "$FORGEJO_OUTPUT"
+          echo '${{ matrix.config }}' | jq -r '.buildPath' >> "$FORGEJO_OUTPUT"
+          echo 'EOF' >> "$FORGEJO_OUTPUT"
       - name: unlock git-crypt
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
@@ -39,13 +48,13 @@ jobs:
         run: nix flake update
       - name: give autofollow a chance to mess with flake.lock
         run: nix run .#write-flake
-      - name: Build ${{ matrix.nixosConfiguration }}
-        run: nix run .#ncf -- build nixos ${{ matrix.nixosConfiguration }} --no-nom -o temp-result/${{ matrix.nixosConfiguration }}
-      - name: Add GC root for ${{ matrix.nixosConfiguration }}
+      - name: Build configuration
+        run: nix build '${{ steps.parse.outputs.buildPath }}' --no-link --print-out-paths -o temp-result/${{ steps.parse.outputs.name }}
+      - name: Add GC root
         run: |
           mkdir -p "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
-          nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/${{ matrix.nixosConfiguration }}" \
-            -r "$(readlink -f "temp-result/${{ matrix.nixosConfiguration }}")"
+          nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/${{ steps.parse.outputs.name }}" \
+            -r "$(readlink -f "temp-result/${{ steps.parse.outputs.name }}")"
 
   check-and-push:
     runs-on: native

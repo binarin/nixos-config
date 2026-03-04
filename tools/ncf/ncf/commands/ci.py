@@ -127,25 +127,60 @@ def get_ci_config(configuration: str) -> dict:
     return json.loads(result.stdout)
 
 
-def get_configurations_to_build() -> list[str]:
-    """Get list of configurations that should be built by CI."""
+def get_deploy_nodes() -> list[str]:
+    """Get list of machines that have deploy-rs nodes defined."""
+    repo_root = config.find_repo_root()
+    result = run_command(
+        [
+            "nix",
+            "eval",
+            "--json",
+            ".#deploy.nodes",
+            "--apply",
+            "builtins.attrNames",
+        ],
+        cwd=repo_root,
+    )
+    return json.loads(result.stdout)
+
+
+def get_configurations_to_build() -> list[dict]:
+    """Get list of configurations that should be built by CI with their build paths."""
     configs = get_nixos_configurations()
+    deploy_nodes = get_deploy_nodes()
     result = []
     for cfg in configs:
         try:
             ci_config = get_ci_config(cfg)
             if ci_config.get("doBuild", True):
-                result.append(cfg)
+                # Check if machine has deploy-rs node defined
+                if cfg in deploy_nodes:
+                    build_path = f".#deploy.nodes.{cfg}.profiles.system.path"
+                else:
+                    build_path = (
+                        f".#nixosConfigurations.{cfg}.config.system.build.toplevel"
+                    )
+                result.append({"name": cfg, "buildPath": build_path})
         except Exception as e:
             # If we can't get CI config, include it by default
             console.print(
                 f"[yellow]Warning: Could not get CI config for {cfg}: {e}[/yellow]"
             )
-            result.append(cfg)
+            if cfg in deploy_nodes:
+                build_path = f".#deploy.nodes.{cfg}.profiles.system.path"
+            else:
+                build_path = f".#nixosConfigurations.{cfg}.config.system.build.toplevel"
+            result.append({"name": cfg, "buildPath": build_path})
     return result
 
 
 def run_matrix() -> None:
-    """Output JSON array of configurations to build for CI dynamic matrix."""
+    """Output JSON array of JSON strings for CI dynamic matrix.
+
+    Each configuration is output as a JSON string to work around Forgejo's
+    lack of support for object property access in matrix expressions.
+    """
     configurations = get_configurations_to_build()
-    print(json.dumps(configurations))
+    # Output array of JSON strings - each config is stringified
+    json_strings = [json.dumps(c) for c in configurations]
+    print(json.dumps(json_strings))
