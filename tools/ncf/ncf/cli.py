@@ -6,6 +6,7 @@ from typer.completion import show_callback
 
 from .commands import (
     add_machine,
+    aws_env,
     build,
     ci,
     eval,
@@ -589,6 +590,30 @@ def set_secret_cmd(
         mode=mode,
         dry_run=dry_run,
     )
+
+
+@secrets_app.command("aws-env")
+def aws_env_cmd(
+    sops_file: str = typer.Option(
+        None,
+        "--file",
+        "-f",
+        help="Path to sops-encrypted YAML file (default: secrets/<hostname>/user-binarin.yaml)",
+    ),
+):
+    """Print Garage S3 credentials as AWS environment variable exports.
+
+    Outputs export statements for AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+    from the garage section of the sops-encrypted secrets file.
+
+    Usage:
+        eval $(ncf secrets aws-env)
+        eval $(ncf secrets aws-env -f secrets/other/user-binarin.yaml)
+    """
+    from pathlib import Path
+
+    sops_path = Path(sops_file) if sops_file else None
+    aws_env.run(sops_file=sops_path)
 
 
 @secrets_app.command("show-keys")

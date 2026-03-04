@@ -169,7 +169,7 @@
     };
 
   flake.homeModules.furfur-binarin =
-    { ... }:
+    { config, pkgs, ... }:
     {
       key = "nixos-config.modules.home.furfur-binarin";
 
