@@ -137,23 +137,30 @@ it is not.
 When being asked to work on a separate issue that exists in forgejo, you do it
 in the separate branch with predictable name.
 
-Otherwise:
+### Branch setup
 
-- Fetch the latest git changes `git fetch --all`
-- Get issue info via `fj -H forgejo.lynx-lizard.ts.net issue view binarin/nixos-config#ISSUE_NUMBER`
-- Check whether the branch starting `issue-ISSUE_NUMBER` already exists in
-  origin, get the branch name from there.
-- If not, invent a branch name that starts with issue number and contains some
-  short name inferred from the issue description,
-  i.e. `issue-28-pkgs-system-deprecation`
-- Stash any local changes
-- Switch to / create the issue branch
-- Work on the issue, creating logically separate commits. Don't rewrite commit
-  history, use fixup commits.
-- `nix fmt` should be always run before commit.
-- Push and create PR as described in "Pushing and PRs" section.
-- If there were some valuable learnings in the process of execution, add them
-  as an separate issue comment.
+1. Fetch the latest git changes: `git fetch --all`
+2. Get issue info via `fj -H forgejo.lynx-lizard.ts.net issue view binarin/nixos-config#ISSUE_NUMBER`
+3. Check whether a branch starting with `issue-ISSUE_NUMBER` already exists in
+   origin: `git branch -a | grep issue-ISSUE_NUMBER`
+4. If branch exists on origin:
+   - Check it out: `git checkout -b issue-XX-name origin/issue-XX-name`
+   - Rebase on latest master: `git rebase origin/master`
+   - Resolve any conflicts if needed
+5. If no branch exists:
+   - Invent a branch name starting with issue number and a short description,
+     e.g., `issue-28-pkgs-system-deprecation`
+   - Create from master: `git checkout -b issue-XX-name origin/master`
+
+### Implementation
+
+- Stash any unrelated local changes before switching branches
+- Work on the issue, creating logically separate commits
+- Don't rewrite commit history, use fixup commits
+- Run `nix fmt` before each commit
+- Push and create PR as described in "Pushing and PRs" section
+- If there were valuable learnings during execution, add them as a separate
+  issue comment
 
 ## Pushing and PRs
 
@@ -181,6 +188,16 @@ When creating PRs, use `-r` for the target repo and `--head` with the fork prefi
 The `-r` specifies the target repository (with full host), and `--head` must
 include the fork owner prefix (`claude-nixos-config:`) to indicate the source
 fork.
+
+**Enable maintainer edits:** After creating the PR, enable "Allow edits by
+maintainers" via the Forgejo web UI (edit PR settings), or use the API:
+
+    TOKEN=$(jq -r '.hosts["forgejo.lynx-lizard.ts.net"].token' ~/.local/share/forgejo-cli/keys.json)
+    curl -sf -X PATCH \
+        -H "Authorization: token ${TOKEN}" \
+        -H "Content-Type: application/json" \
+        -d '{"allow_maintainer_edit": true}' \
+        "https://forgejo.lynx-lizard.ts.net/api/v1/repos/binarin/nixos-config/pulls/<PR_NUMBER>"
 
 ### Updating existing PRs
 
