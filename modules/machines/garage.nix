@@ -31,7 +31,7 @@ in
   };
 
   flake.nixosModules.garage-configuration =
-    { ... }:
+    { pkgs, ... }:
     {
       key = "nixos-config.modules.nixos.garage-configuration";
       imports = [
@@ -48,6 +48,28 @@ in
         system.stateVersion = "25.11";
         nixos-config.export-metrics.enable = false;
 
+        proxmoxLXC.mounts = [
+          {
+            # /nix mount - uses default pool (local-zfs)
+            mountPoint = "/nix";
+            size = "32G";
+          }
+          {
+            # garage data mount - on spinning-zfs, 1TB
+            pool = "spinning-zfs";
+            mountPoint = "/var/lib/garage/data";
+            size = "1T";
+          }
+        ];
+
+        services.garage = {
+          enable = true;
+          package = pkgs.garage;
+          settings = {
+            metadata_dir = "/var/lib/garage/meta";
+            data_dir = "/var/lib/garage/data";
+          };
+        };
       };
     };
 }

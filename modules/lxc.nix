@@ -70,6 +70,7 @@ in
               options = {
                 pool = lib.mkOption {
                   type = lib.types.str;
+                  default = "local-zfs";
                   description = "Storage pool name";
                 };
                 mountPoint = lib.mkOption {
