@@ -256,6 +256,7 @@ in
             }/share/zsh/zsh-autoquoter/zsh-autoquoter.zsh
             ZAQ_PREFIXES+=('git commit( [^ ]##)# -[^ -]#m')
             ZAQ_PREFIXES+=('fjc')
+            ZAQ_PREFIXES+=('yolo')
             ZSH_HIGHLIGHT_HIGHLIGHTERS+=(zaq)
 
             fjc() {
