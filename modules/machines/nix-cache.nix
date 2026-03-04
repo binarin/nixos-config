@@ -156,41 +156,60 @@ in
           ];
         };
 
+        sops.secrets."nixos-config-runner-token-2" = {
+          restartUnits = [
+            ''gitea-runner-nixos\x2dconfig\x2d2.service''
+          ];
+        };
+
         sops.templates.nixos-config-runner-token-env-file.content = ''
           TOKEN=${config.sops.placeholder."nixos-config-runner-token"}
         '';
 
+        sops.templates.nixos-config-runner-token-2-env-file.content = ''
+          TOKEN=${config.sops.placeholder."nixos-config-runner-token-2"}
+        '';
+
         services.gitea-actions-runner = {
           package = pkgs.forgejo-runner;
-          instances = {
-            nixos-config = {
-              enable = true;
-              name = config.networking.hostName;
-              url = "https://forgejo.lynx-lizard.ts.net";
-              tokenFile = config.sops.templates.nixos-config-runner-token-env-file.path;
-              labels = [ "native:host" ];
-              hostPackages = with pkgs; [
-                bash
-                coreutils
-                curl
-                forgejo-cli
-                gawk
-                gitMinimal
-                git-crypt
-                gnused
-                jq
-                just
-                nix
-                nodejs
-                wget
-                # For inject-iso-wifi.sh script
-                libarchive # provides bsdtar
-                fakeroot
-                squashfsTools # provides unsquashfs/mksquashfs
-                xorriso
-              ];
+          instances =
+            let
+              commonConfig = {
+                enable = true;
+                url = "https://forgejo.lynx-lizard.ts.net";
+                labels = [ "native:host" ];
+                hostPackages = with pkgs; [
+                  bash
+                  coreutils
+                  curl
+                  forgejo-cli
+                  gawk
+                  gitMinimal
+                  git-crypt
+                  gnused
+                  jq
+                  just
+                  nix
+                  nodejs
+                  wget
+                  # For inject-iso-wifi.sh script
+                  libarchive # provides bsdtar
+                  fakeroot
+                  squashfsTools # provides unsquashfs/mksquashfs
+                  xorriso
+                ];
+              };
+            in
+            {
+              nixos-config = commonConfig // {
+                name = config.networking.hostName;
+                tokenFile = config.sops.templates.nixos-config-runner-token-env-file.path;
+              };
+              nixos-config-2 = commonConfig // {
+                name = "${config.networking.hostName}-2";
+                tokenFile = config.sops.templates.nixos-config-runner-token-2-env-file.path;
+              };
             };
-          };
         };
 
         services.nix-serve = {
