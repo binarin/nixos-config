@@ -27,7 +27,20 @@ jobs:
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
-      - run: nix run .#ncf -- build nixos ${{ matrix.nixosConfiguration }} --no-nom
+      - name: build nixos configuration
+        run: nix run .#ncf -- build nixos ${{ matrix.nixosConfiguration }} --no-nom
+      - name: sign and push to nix-cache-storage
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+          AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
+          GARAGE_STORE_PRIV_KEY_PEM: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
+        run: |
+          STORE_PATH=$(readlink -f ~/.cache/nixos-config/nixos-configuration/${{ matrix.nixosConfiguration }})
+          echo "Store path: $STORE_PATH"
+          nix store sign --recursive --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") "$STORE_PATH"
+          nix copy $(nix-store -qR "$STORE_PATH") --to "s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
 
   check:
     runs-on: native
