@@ -40,7 +40,7 @@ jobs:
           STORE_PATH=$(readlink -f ~/.cache/nixos-config/nixos-configuration/${{ matrix.nixosConfiguration }})
           echo "Store path: $STORE_PATH"
           nix store sign --recursive --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") "$STORE_PATH"
-          nix copy $(nix-store -qR "$STORE_PATH") --to "s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
+          nix --debug --verbose copy $(nix-store -qR "$STORE_PATH") --to "s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
 
   check:
     runs-on: native
