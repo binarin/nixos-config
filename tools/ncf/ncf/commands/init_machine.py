@@ -228,8 +228,8 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
         else:
             console.print("  [red]Skipping - no server age key[/red]")
 
-    # Step 9: Create empty YAML files
-    console.print("\n[bold]Step 9:[/bold] Creating empty secrets files")
+    # Step 9: Create empty YAML files and encrypt them
+    console.print("\n[bold]Step 9:[/bold] Creating and encrypting empty secrets files")
     secrets_yaml = config.secrets_yaml_path(machine_dir)
     user_yaml = config.user_binarin_yaml_path(machine_dir)
 
@@ -237,11 +237,14 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
         if yaml_path.exists():
             console.print(f"  [dim]{yaml_path.name} already exists[/dim]")
         elif dry_run:
-            console.print(f"  [yellow]Would create {yaml_path.name}[/yellow]")
+            console.print(
+                f"  [yellow]Would create and encrypt {yaml_path.name}[/yellow]"
+            )
         else:
             yaml_path.write_text("{}\n")
+            external.sops_encrypt_inplace(yaml_path)
             result["created_files"].append(yaml_path)
-            console.print(f"  [green]Created {yaml_path.name}[/green]")
+            console.print(f"  [green]Created and encrypted {yaml_path.name}[/green]")
 
     # Step 10: Stage files in git
     console.print("\n[bold]Step 10:[/bold] Staging files in git")
