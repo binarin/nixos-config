@@ -42,7 +42,7 @@ Or just use:
 
 Use the wrapper script to get comments with IDs and timestamps:
 
-    .claude/skills/fj-issues/fj-comments.sh <ISSUE_ID>
+    scripts/fj-comments.sh <ISSUE_ID>
 
 Returns JSON array with fields: index, id, body, created_at, updated_at, user.
 The `index` field is what you use with `fj issue edit ... comment <IDX>`.

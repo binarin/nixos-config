@@ -198,15 +198,12 @@ hardcoded here and there.
 
 # Forgejo Issues
 
-This repo uses Forgejo for issue tracking. When working on issues or PRs, use
-the `/fj-issues` skill (or variations like `/fj issue`, `/fj pr`). The skill
-fetches workflow documentation from `docs/FJ.md` in the repository.
+This repo uses Forgejo for issue tracking. Fetch the workflow documentation by
+running:
 
-Key workflow points:
+    scripts/fj-doc.sh
 
-- Plans and questions go in issue comments, not local files
-- Always use full repo reference: `binarin/nixos-config#<ID>`
-- Push to `claude-staging` remote (fork), not `origin`
+This fetches `docs/FJ.md` from origin/master and outputs it to stdout.
 
 # Ansible
 
