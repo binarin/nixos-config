@@ -332,18 +332,14 @@ def eval_query_cmd(
     )
 
 
-@ci_app.command("generate")
-def ci_generate_cmd(
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Show what would be done without making changes"
-    ),
-):
-    """Generate CI workflow YAML files.
+@ci_app.command("matrix")
+def ci_matrix_cmd():
+    """Output JSON array of configurations for CI dynamic matrix.
 
-    Reads ci.doBuild from each nixosConfiguration and generates
-    workflow files that only build configurations with doBuild=true.
+    Reads ci.doBuild from each nixosConfiguration and outputs
+    a JSON array of configuration names that should be built.
     """
-    ci.run_generate(dry_run=dry_run)
+    ci.run_matrix()
 
 
 @ci_app.command("fake-unlock")

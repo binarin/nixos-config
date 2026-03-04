@@ -1,4 +1,3 @@
-# auto-generated via: ncf ci generate
 on:
   schedule:
   - cron: 42 11 * * *

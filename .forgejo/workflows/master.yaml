@@ -1,44 +1,42 @@
-# auto-generated via: ncf ci generate
 on:
   push:
     branches:
-    - master
+      - master
+
 jobs:
+  define-matrix:
+    runs-on: native
+    outputs:
+      configurations: ${{ steps.define.outputs.configurations }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: define
+        run: |
+          echo "configurations=$(nix run .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
+
   nixos-configuration:
     runs-on: native
+    needs: define-matrix
     strategy:
       fail-fast: false
       matrix:
-        nixosConfiguration:
-        - claude-nixos-config
-        - demandred
-        - devcontainer
-        - docker-on-nixos
-        - forgejo
-        - furfur
-        - garage
-        - ishamael
-        - iso
-        - mail
-        - media
-        - monitor
-        - nix-cache
-        - qdevice
+        nixosConfiguration: ${{ fromJSON(needs.define-matrix.outputs.configurations) }}
     steps:
-    - uses: actions/checkout@v4
-    - name: unlock git-crypt
-      env:
-        GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-      run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
-    - run: nix run .#ncf -- build nixos ${{ matrix.nixosConfiguration }} --no-nom
+      - uses: actions/checkout@v4
+      - name: unlock git-crypt
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
+      - run: nix run .#ncf -- build nixos ${{ matrix.nixosConfiguration }} --no-nom
+
   check:
     runs-on: native
     needs:
-    - nixos-configuration
+      - nixos-configuration
     steps:
-    - uses: actions/checkout@v4
-    - name: unlock git-crypt
-      env:
-        GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-      run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
-    - run: nix flake check
+      - uses: actions/checkout@v4
+      - name: unlock git-crypt
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
+      - run: nix flake check
