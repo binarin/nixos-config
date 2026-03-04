@@ -46,6 +46,7 @@
           ssh-to-age
           ncf
           yamlfmt # For formatting .sops.yaml
+          apg # For generating random passwords (used by sops-set-secret.sh)
           nix-output-monitor # nom for nicer build output
           # For inject-iso-wifi.sh script
           libarchive # provides bsdtar
