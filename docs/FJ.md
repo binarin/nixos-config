@@ -32,6 +32,31 @@ Or just use:
 
     fj issue search --repo binarin/nixos-config
 
+### Filtering issues by label
+
+Issues with the `draft` label should be skipped during automated processing -
+these are incomplete or not ready for work.
+
+Use the helper script for filtered issue listing:
+
+    scripts/fj-issues.sh                           # All open issues
+    scripts/fj-issues.sh --exclude-label draft     # Exclude drafts
+    scripts/fj-issues.sh --include-label bug       # Only bugs
+
+Returns JSON array with: number, title, labels.
+
+Example output:
+
+```json
+[
+  {
+    "number": 119,
+    "title": "drop --install-completion from ncf",
+    "labels": []
+  }
+]
+```
+
 ## Showing issue
 
     fj -H forgejo.lynx-lizard.ts.net issue view binarin/nixos-config#ID
