@@ -68,6 +68,8 @@
 
         sops.secrets.smtp2go-username = { };
         sops.secrets.smtp2go-password = { };
+        sops.secrets."garage/key-id" = { };
+        sops.secrets."garage/secret-key" = { };
 
         users.users.git = {
           home = config.services.forgejo.stateDir;
@@ -107,8 +109,27 @@
             time = {
               DEFAULT_UI_LOCATION = "Europe/Amsterdam";
             };
+            storage = {
+              STORAGE_TYPE = "minio";
+              MINIO_USE_SSL = true;
+              MINIO_ENDPOINT = "s3.lynx-lizard.ts.net";
+              MINIO_BUCKET = "forgejo-artifacts";
+              MINIO_LOCATION = "garage";
+            };
+            attachment.MINIO_BASE_PATH = "attachments/";
+            lfs.MINIO_BASE_PATH = "lfs/";
+            avatar.MINIO_BASE_PATH = "avatars/users/";
+            repo-avatar.MINIO_BASE_PATH = "avatars/repositories/";
+            repo-archive.MINIO_BASE_PATH = "archives/";
+            packages.MINIO_BASE_PATH = "packages/";
+            "storage.actions_log".MINIO_BASE_PATH = "actions/logs/";
+            "actions.artifacts".MINIO_BASE_PATH = "actions/artifacts/";
           };
           secrets = {
+            storage = {
+              MINIO_ACCESS_KEY_ID = "${config.sops.secrets."garage/key-id".path}";
+              MINIO_SECRET_ACCESS_KEY = "${config.sops.secrets."garage/secret-key".path}";
+            };
             mailer = {
               USER = "${config.sops.secrets.smtp2go-username.path}";
               PASSWD = "${config.sops.secrets.smtp2go-password.path}";
