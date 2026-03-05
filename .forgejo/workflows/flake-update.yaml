@@ -21,7 +21,7 @@ jobs:
           echo "configurations=$(nix run .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
 
   update-and-build:
-    name: update ${{ matrix.config.name }}
+    name: update ${{ matrix.config }}
     runs-on: native
     needs: define-matrix
     strategy:
@@ -41,12 +41,14 @@ jobs:
       - name: give autofollow a chance to mess with flake.lock
         run: nix run .#write-flake
       - name: Build configuration
-        run: nix build '${{ matrix.config.buildPath }}' --no-link --print-out-paths -o temp-result/${{ matrix.config.name }}
+        run: |
+          BUILD_PATH=$(nix run .#ncf -- ci build-path '${{ matrix.config }}')
+          nix build "$BUILD_PATH" --no-link --print-out-paths -o temp-result/${{ matrix.config }}
       - name: Add GC root
         run: |
           mkdir -p "$HOME/.cache/nixos-config/proposed-update/nixos-configuration"
-          nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/${{ matrix.config.name }}" \
-            -r "$(readlink -f "temp-result/${{ matrix.config.name }}")"
+          nix-store --add-root "$HOME/.cache/nixos-config/proposed-update/nixos-configuration/${{ matrix.config }}" \
+            -r "$(readlink -f "temp-result/${{ matrix.config }}")"
 
   check-and-push:
     runs-on: native

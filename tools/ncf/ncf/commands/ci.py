@@ -144,42 +144,42 @@ def get_deploy_nodes() -> list[str]:
     return json.loads(result.stdout)
 
 
-def get_configurations_to_build() -> list[dict]:
-    """Get list of configurations that should be built by CI with their build paths."""
+def get_configurations_to_build() -> list[str]:
+    """Get list of configuration names that should be built by CI."""
     configs = get_nixos_configurations()
-    deploy_nodes = get_deploy_nodes()
     result = []
     for cfg in configs:
         try:
             ci_config = get_ci_config(cfg)
             if ci_config.get("doBuild", True):
-                # Check if machine has deploy-rs node defined
-                if cfg in deploy_nodes:
-                    build_path = f".#deploy.nodes.{cfg}.profiles.system.path"
-                else:
-                    build_path = (
-                        f".#nixosConfigurations.{cfg}.config.system.build.toplevel"
-                    )
-                result.append({"name": cfg, "buildPath": build_path})
+                result.append(cfg)
         except Exception as e:
             # If we can't get CI config, include it by default
             console.print(
                 f"[yellow]Warning: Could not get CI config for {cfg}: {e}[/yellow]"
             )
-            if cfg in deploy_nodes:
-                build_path = f".#deploy.nodes.{cfg}.profiles.system.path"
-            else:
-                build_path = f".#nixosConfigurations.{cfg}.config.system.build.toplevel"
-            result.append({"name": cfg, "buildPath": build_path})
+            result.append(cfg)
     return result
 
 
-def run_matrix() -> None:
-    """Output JSON array of configuration objects for CI dynamic matrix.
+def get_build_path(name: str) -> str:
+    """Get the nix build path for a configuration.
 
-    Each configuration has 'name' and 'buildPath' fields that can be
-    accessed in workflow expressions as matrix.config.name and
-    matrix.config.buildPath.
+    Returns deploy-rs path if available, otherwise nixosConfiguration toplevel.
     """
+    deploy_nodes = get_deploy_nodes()
+    if name in deploy_nodes:
+        return f".#deploy.nodes.{name}.profiles.system.path"
+    else:
+        return f".#nixosConfigurations.{name}.config.system.build.toplevel"
+
+
+def run_matrix() -> None:
+    """Output JSON array of configuration names for CI dynamic matrix."""
     configurations = get_configurations_to_build()
     print(json.dumps(configurations))
+
+
+def run_build_path(name: str) -> None:
+    """Output the nix build path for a configuration."""
+    print(get_build_path(name))

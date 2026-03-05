@@ -377,6 +377,17 @@ def ci_fake_unlock_cmd():
     ci.run_fake_unlock()
 
 
+@ci_app.command("build-path")
+def ci_build_path_cmd(
+    name: str = typer.Argument(help="Configuration name"),
+):
+    """Output the nix build path for a configuration.
+
+    Returns deploy-rs path if available, otherwise nixosConfiguration toplevel.
+    """
+    ci.run_build_path(name)
+
+
 @machine_app.command("add")
 def machine_add_cmd(
     name: str = typer.Argument(help="Name for the new machine"),

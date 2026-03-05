@@ -22,7 +22,7 @@ jobs:
           cat "$FORGEJO_OUTPUT"
 
   nixos-configuration:
-    name: build ${{ matrix.config.name }}
+    name: build ${{ matrix.config }}
     runs-on: native
     needs: define-matrix
     strategy:
@@ -35,4 +35,6 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: fake git-crypt unlock
         run: nix run .#ncf -- ci fake-unlock
-      - run: nix build '${{ matrix.config.buildPath }}' --no-link --print-out-paths
+      - run: |
+          BUILD_PATH=$(nix run .#ncf -- ci build-path '${{ matrix.config }}')
+          nix build "$BUILD_PATH" --no-link --print-out-paths
