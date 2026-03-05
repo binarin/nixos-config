@@ -42,13 +42,3 @@ jobs:
           echo "Store path: $STORE_PATH"
           nix store sign --recursive --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") "$STORE_PATH"
           nix copy $(nix-store -qR "$STORE_PATH") --to "s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
-
-  check:
-    runs-on: native
-    steps:
-      - uses: actions/checkout@v4
-      - name: unlock git-crypt
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
-      - run: nix flake check

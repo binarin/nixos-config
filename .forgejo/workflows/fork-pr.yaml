@@ -36,13 +36,3 @@ jobs:
       - name: fake git-crypt unlock
         run: nix run .#ncf -- ci fake-unlock
       - run: nix build '${{ matrix.config.buildPath }}' --no-link --print-out-paths
-
-  check:
-    runs-on: native
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: fake git-crypt unlock
-        run: nix run .#ncf -- ci fake-unlock
-      - run: nix flake check

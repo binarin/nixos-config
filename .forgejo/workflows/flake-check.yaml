@@ -1,0 +1,27 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  flake-check:
+    name: nix flake check
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: unlock git-crypt (master)
+        if: github.event_name == 'push'
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
+      - name: fake git-crypt unlock (PR)
+        if: github.event_name == 'pull_request_target'
+        run: nix run .#ncf -- ci fake-unlock
+      - run: nix flake check
