@@ -665,7 +665,7 @@
        (interactive)
        (when (use-region-p)
          (browse-url
-          (concat "https://duckduckgo.com/html/?q="
+          (concat "https://kagi.com/search?q="
         	     (url-hexify-string (buffer-substring (region-beginning) (region-end)))))))
 
      (general-define-key "M-s M-w" 'binarin/search-words)
