@@ -9,6 +9,7 @@ from .commands import (
     aws_env,
     build,
     ci,
+    deploy,
     eval,
     init_machine,
     ipam_cmd,
@@ -707,6 +708,135 @@ def show_keys_cmd(
                 console.print(f"[red]Could not extract user age key: {e}[/red]")
     else:
         console.print("[yellow]No user age key found[/yellow]")
+
+
+# Deploy commands
+@app.command("deploy")
+def deploy_cmd(
+    target: str = typer.Argument(help="Deploy target name"),
+    profile: str = typer.Option("system", "--profile", "-p", help="Profile to deploy"),
+    boot: bool = typer.Option(False, "--boot", help="Deploy to boot loader and reboot"),
+    no_rollback: bool = typer.Option(
+        False, "--no-rollback", help="Disable auto/magic rollback"
+    ),
+    skip_unchanged: bool = typer.Option(
+        True,
+        "--skip-if-unchanged/--no-skip-if-unchanged",
+        help="Skip if remote system already matches target",
+    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    builder: list[str] = typer.Option(
+        [], "--builder", "-b", help="Remote builder (repeatable)"
+    ),
+    jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Deploy a single machine.
+
+    Deploys a NixOS configuration to a remote machine using deploy-rs.
+    By default, skips deployment if the remote system is already up to date.
+
+    Note: --boot and --no-rollback are mutually exclusive.
+
+    Examples:
+        ncf deploy forgejo
+        ncf deploy media --boot
+        ncf deploy monitor --no-rollback
+    """
+    import sys
+
+    # Mutual exclusion check
+    if boot and no_rollback:
+        console.print(
+            "[red]Error: --boot and --no-rollback are mutually exclusive[/red]"
+        )
+        console.print("  --boot: deploys to boot loader, then reboots")
+        console.print("  --no-rollback: disables rollback for live switch")
+        sys.exit(1)
+
+    verbosity = 0 if quiet else (2 if verbose else 1)
+
+    success = deploy.run_single(
+        target=target,
+        profile=profile,
+        boot=boot,
+        no_rollback=no_rollback,
+        skip_if_unchanged=skip_unchanged,
+        verbosity=verbosity,
+        builders=builder if builder else None,
+        jobs=jobs,
+        dry_run=dry_run,
+    )
+
+    if not success:
+        sys.exit(1)
+
+
+@app.command("deploy-all")
+def deploy_all_cmd(
+    boot: bool = typer.Option(
+        False, "--boot", help="Deploy to boot loader and reboot each machine"
+    ),
+    no_rollback: bool = typer.Option(
+        False, "--no-rollback", help="Disable auto/magic rollback"
+    ),
+    skip_unchanged: bool = typer.Option(
+        True,
+        "--skip-if-unchanged/--no-skip-if-unchanged",
+        help="Skip machines that are already up to date",
+    ),
+    stop_on_failure: bool = typer.Option(
+        True,
+        "--stop-on-failure/--no-stop-on-failure",
+        help="Stop on first failure",
+    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    builder: list[str] = typer.Option(
+        [], "--builder", "-b", help="Remote builder (repeatable)"
+    ),
+    jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Deploy all deployable machines sequentially.
+
+    Deploys all machines that have deploy-rs nodes configured.
+    By default, stops on first failure and skips up-to-date machines.
+
+    Note: --boot and --no-rollback are mutually exclusive.
+
+    Examples:
+        ncf deploy-all
+        ncf deploy-all --boot
+        ncf deploy-all --no-rollback --no-stop-on-failure
+    """
+    import sys
+
+    # Mutual exclusion check
+    if boot and no_rollback:
+        console.print(
+            "[red]Error: --boot and --no-rollback are mutually exclusive[/red]"
+        )
+        console.print("  --boot: deploys to boot loader, then reboots")
+        console.print("  --no-rollback: disables rollback for live switch")
+        sys.exit(1)
+
+    verbosity = 0 if quiet else (2 if verbose else 1)
+
+    success = deploy.run_all(
+        boot=boot,
+        no_rollback=no_rollback,
+        skip_if_unchanged=skip_unchanged,
+        stop_on_failure=stop_on_failure,
+        verbosity=verbosity,
+        builders=builder if builder else None,
+        jobs=jobs,
+        dry_run=dry_run,
+    )
+
+    if not success:
+        sys.exit(1)
 
 
 def main():

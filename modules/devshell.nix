@@ -13,6 +13,7 @@
         ssh-to-age
         yamlfmt
         apg
+        deploy-rs # For ncf deploy commands
       ];
 
       ncf = pkgs.python3.pkgs.buildPythonApplication {
