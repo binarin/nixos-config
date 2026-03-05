@@ -911,7 +911,7 @@
 
    #+end_src
 ** Folding
-   #+begin_src emacs-lisp :tangle yes
+   #+begin_src emacs-lisp :tangle no
      (use-package kirigami
        :ensure t
        :bind
