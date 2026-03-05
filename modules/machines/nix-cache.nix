@@ -31,7 +31,7 @@ in
       imports = [
         "${inputs.srvos}/nixos/roles/nix-remote-builder.nix"
 
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.lxc
         self.nixosModules.impure-nix-setup
       ];

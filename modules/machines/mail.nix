@@ -20,7 +20,7 @@
     {
       key = "nixos-config.modules.nixos.mail-configuration";
       imports = [
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.lxc
       ];
 

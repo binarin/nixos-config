@@ -23,7 +23,7 @@
       key = "nixos-config.modules.nixos.ishamael-configuration";
       imports = [
         (modulesPath + "/profiles/qemu-guest.nix")
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.binarin-workstation
         self.nixosModules.hyprland
         self.nixosModules.impure-nix-setup

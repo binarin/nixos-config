@@ -27,7 +27,7 @@
         inputs.disko.nixosModules.default
         "${self}/machines/demandred/disko.nix"
 
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.binarin-workstation
         self.nixosModules.nix
         self.nixosModules.kanata

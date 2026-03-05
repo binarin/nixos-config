@@ -127,7 +127,7 @@ in
   flake.nixosModules.some-machine-configuration = {config, lib, pkgs, ...}: {
     key = "nixos-config.nixos.some-machine-configuration";
     imports = [
-      self.nixosModules.default
+      self.nixosModules.baseline
       ...
     ]
     ++ self.nixosSharedModules;

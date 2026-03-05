@@ -34,7 +34,7 @@
       key = "nixos-config.modules.nixos.qdevice-configuration";
 
       imports = [
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.systemd-boot
         self.nixosModules.disko
         inputs.arion.nixosModules.arion

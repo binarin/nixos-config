@@ -25,7 +25,7 @@ The simplest possible VM configuration:
       key = "nixos-config.modules.nixos.my-vm-configuration";
       imports = [
         (modulesPath + "/profiles/qemu-guest.nix")
-        self.nixosModules.default
+        self.nixosModules.baseline
       ];
 
       config = {
@@ -67,7 +67,7 @@ VM with inventory IP allocation:
       key = "nixos-config.modules.nixos.my-server-configuration";
       imports = [
         (modulesPath + "/profiles/qemu-guest.nix")
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.srvos-bits
         self.nixosModules.tailscale
       ];
@@ -118,7 +118,7 @@ VM configuration with Proxmox VM creation metadata:
       key = "nixos-config.modules.nixos.my-proxmox-vm-configuration";
       imports = [
         self.nixosModules.qemu-guest  # Includes qemu profile + proxmox metadata options
-        self.nixosModules.default
+        self.nixosModules.baseline
       ];
 
       config = {
@@ -249,7 +249,7 @@ Proxmox LXC container configuration:
     {
       key = "nixos-config.modules.nixos.my-lxc-configuration";
       imports = [
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.lxc
         self.nixosModules.binarin-baseline
       ];
@@ -291,7 +291,7 @@ Physical machine with full workstation setup:
         (modulesPath + "/installer/scan/not-detected.nix")
         "${self}/machines/my-workstation/hardware-configuration.nix"
 
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.binarin-workstation
         self.nixosModules.niri
         self.nixosModules.kanata
@@ -378,7 +378,7 @@ Format:
 ### Server (headless)
 ```nix
 imports = [
-  self.nixosModules.default
+  self.nixosModules.baseline
   self.nixosModules.srvos-bits
   self.nixosModules.tailscale
 ];
@@ -388,7 +388,7 @@ imports = [
 ```nix
 imports = [
   self.nixosModules.baseline
-  self.nixosModules.default
+  self.nixosModules.baseline
   self.nixosModules.binarin-workstation
   self.nixosModules.niri
   self.nixosModules.kanata
@@ -400,7 +400,7 @@ imports = [
 ### Container/VM with binarin user (minimal)
 ```nix
 imports = [
-  self.nixosModules.default
+  self.nixosModules.baseline
   self.nixosModules.lxc  # or qemu-guest profile
   self.nixosModules.binarin-baseline
 ];

@@ -38,7 +38,7 @@ Proxmox LXC container. Imports `self.nixosModules.lxc`.
 **Typical imports:**
 ```nix
 imports = [
-  self.nixosModules.default
+  self.nixosModules.baseline
   self.nixosModules.lxc
   self.nixosModules.binarin-baseline
 ];
@@ -131,7 +131,7 @@ home-manager.users.binarin = self.homeModules.machine-name-binarin;
 - Format: `nix fmt && just lint`
 
 **Common module imports:**
-- `self.nixosModules.default` - base configuration
+- `self.nixosModules.baseline` - base configuration
 - `self.nixosModules.baseline` - baseline for workstations/servers
 - `self.nixosModules.srvos-bits` - server-oriented configuration
 - `self.nixosModules.lxc` - LXC container support

@@ -9,17 +9,20 @@
         "${inputs.srvos}/nixos/common/update-diff.nix"
 
         self.nixosModules.ci
-        self.nixosModules.inventory
-        self.nixosModules.nix
-        self.nixosModules.sshd
-        self.nixosModules.security
-        self.nixosModules.monitored
-
+        self.nixosModules.emacs
         self.nixosModules.eternal-terminal
+        self.nixosModules.git
+        self.nixosModules.interactive-cli
+        self.nixosModules.inventory
+        self.nixosModules.monitored
+        self.nixosModules.nix
+        self.nixosModules.security
+        self.nixosModules.sops
+        self.nixosModules.sshd
+        self.nixosModules.tailscale
         self.nixosModules.use-nix-cache
 
         self.nixosModules.binarin-baseline
-
       ];
 
       environment.enableAllTerminfo = true;

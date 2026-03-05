@@ -22,7 +22,7 @@
     {
       key = "nixos-config.modules.nixos.forgejo-configuration";
       imports = [
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.lxc
       ];
 

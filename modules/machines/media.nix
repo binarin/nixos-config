@@ -35,9 +35,8 @@
     {
       key = "nixos-config.modules.nixos.media-configuration";
       imports = [
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.lxc
-        self.nixosModules.binarin-baseline
         inputs.arion.nixosModules.arion
 
         self.nixosModules.linkwarden

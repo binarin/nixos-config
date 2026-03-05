@@ -58,7 +58,7 @@
       key = "nixos-config.modules.nixos.docker-on-nixos-configuration";
 
       imports = [
-        self.nixosModules.default
+        self.nixosModules.baseline
         self.nixosModules.lxc
         self.nixosModules.impermanence
         self.nixosModules.expose-local-http
