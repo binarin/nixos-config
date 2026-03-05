@@ -16,6 +16,7 @@
         self.nixosModules.monitored
 
         self.nixosModules.eternal-terminal
+        self.nixosModules.use-nix-cache
 
         self.nixosModules.binarin-baseline
 
