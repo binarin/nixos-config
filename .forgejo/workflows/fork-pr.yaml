@@ -22,6 +22,7 @@ jobs:
           cat "$FORGEJO_OUTPUT"
 
   nixos-configuration:
+    name: build ${{ matrix.config.name }}
     runs-on: native
     needs: define-matrix
     strategy:
@@ -32,15 +33,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: parse config
-        id: parse
-        run: |
-          echo 'buildPath<<EOF' >> "$FORGEJO_OUTPUT"
-          echo '${{ matrix.config }}' | jq -r '.buildPath' >> "$FORGEJO_OUTPUT"
-          echo 'EOF' >> "$FORGEJO_OUTPUT"
       - name: fake git-crypt unlock
         run: nix run .#ncf -- ci fake-unlock
-      - run: nix build '${{ steps.parse.outputs.buildPath }}' --no-link --print-out-paths
+      - run: nix build '${{ matrix.config.buildPath }}' --no-link --print-out-paths
 
   check:
     runs-on: native

@@ -15,6 +15,7 @@ jobs:
           echo "configurations=$(nix run .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
 
   nixos-configuration:
+    name: build ${{ matrix.config.name }}
     runs-on: native
     needs: define-matrix
     strategy:
@@ -23,21 +24,12 @@ jobs:
         config: ${{ fromJSON(needs.define-matrix.outputs.configurations) }}
     steps:
       - uses: actions/checkout@v4
-      - name: parse config
-        id: parse
-        run: |
-          echo 'name<<EOF' >> "$FORGEJO_OUTPUT"
-          echo '${{ matrix.config }}' | jq -r '.name' >> "$FORGEJO_OUTPUT"
-          echo 'EOF' >> "$FORGEJO_OUTPUT"
-          echo 'buildPath<<EOF' >> "$FORGEJO_OUTPUT"
-          echo '${{ matrix.config }}' | jq -r '.buildPath' >> "$FORGEJO_OUTPUT"
-          echo 'EOF' >> "$FORGEJO_OUTPUT"
       - name: unlock git-crypt
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
       - name: build nixos configuration
-        run: nix build '${{ steps.parse.outputs.buildPath }}' --no-link --print-out-paths -o ~/.cache/nixos-config/nixos-configuration/${{ steps.parse.outputs.name }}
+        run: nix build '${{ matrix.config.buildPath }}' --no-link --print-out-paths -o ~/.cache/nixos-config/nixos-configuration/${{ matrix.config.name }}
       - name: sign and push to nix-cache-storage
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -46,7 +38,7 @@ jobs:
           AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
           GARAGE_STORE_PRIV_KEY_PEM: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
         run: |
-          STORE_PATH=$(readlink -f ~/.cache/nixos-config/nixos-configuration/${{ steps.parse.outputs.name }})
+          STORE_PATH=$(readlink -f ~/.cache/nixos-config/nixos-configuration/${{ matrix.config.name }})
           echo "Store path: $STORE_PATH"
           nix store sign --recursive --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") "$STORE_PATH"
           nix copy $(nix-store -qR "$STORE_PATH") --to "s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"

@@ -175,12 +175,11 @@ def get_configurations_to_build() -> list[dict]:
 
 
 def run_matrix() -> None:
-    """Output JSON array of JSON strings for CI dynamic matrix.
+    """Output JSON array of configuration objects for CI dynamic matrix.
 
-    Each configuration is output as a JSON string to work around Forgejo's
-    lack of support for object property access in matrix expressions.
+    Each configuration has 'name' and 'buildPath' fields that can be
+    accessed in workflow expressions as matrix.config.name and
+    matrix.config.buildPath.
     """
     configurations = get_configurations_to_build()
-    # Output array of JSON strings - each config is stringified
-    json_strings = [json.dumps(c) for c in configurations]
-    print(json.dumps(json_strings))
+    print(json.dumps(configurations))
