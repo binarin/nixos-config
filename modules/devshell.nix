@@ -43,9 +43,16 @@
             }
         '';
       };
+
+      # Script to run ncf tests with pytest
+      ncf-tests = pkgs.writeShellScriptBin "ncf-tests" ''
+        cd ${../tools/ncf}
+        exec ${pkgs.python3.withPackages (ps: ncf.dependencies ++ [ ps.pytest ])}/bin/pytest "$@"
+      '';
     in
     {
       packages.ncf = ncf;
+      packages.ncf-tests = ncf-tests;
 
       devShells.default = pkgs.mkShell {
         name = "nixos-unified-template-shell";

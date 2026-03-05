@@ -1,0 +1,21 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  ncf-tests:
+    name: ncf tests
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: run ncf tests
+        run: nix run --ignore-env .#ncf-tests -- -v
