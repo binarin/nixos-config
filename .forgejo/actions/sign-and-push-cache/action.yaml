@@ -33,6 +33,17 @@ runs:
         PATHS_FILE: ${{ inputs.paths-file }}
       run: |
         S3_DEST="s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
+        LOCK_FILE="/tmp/nix-cache-sign.lock"
+
+        # Use flock to prevent races when multiple CI jobs sign paths simultaneously
+        # Timeout after 30 minutes (1800 seconds) to prevent indefinite waiting
+        exec 9>"$LOCK_FILE"
+        echo "Acquiring exclusive lock for signing (may wait for other jobs)..."
+        if ! flock --exclusive --timeout 1800 9; then
+          echo "Error: Failed to acquire lock after 30 minutes"
+          exit 1
+        fi
+        echo "Lock acquired, proceeding with signing"
 
         if [[ -n "$PATHS_FILE" && -f "$PATHS_FILE" ]]; then
           # New mode: sign and push all paths from file
@@ -53,3 +64,5 @@ runs:
           echo "Error: Either paths-file or store-path must be provided"
           exit 1
         fi
+
+        # Lock is automatically released when file descriptor 9 is closed (script exit)
