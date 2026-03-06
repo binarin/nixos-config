@@ -73,6 +73,7 @@
                   bash
                   coreutils
                   curl
+                  util-linux
                   forgejo-cli
                   gawk
                   gitMinimal
