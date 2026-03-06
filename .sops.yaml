@@ -24,6 +24,8 @@ keys:
   - &user_garage_binarin age1l8ck4vwukr00qdfs68kpmuc044am3pka0yhd5n3ssnp06r6e8pzquh3ra9
   - &server_nix-builder-valak age1vlvzv6fqgtkp5w7crp90d7wzhmen3dahnxu4kpnyy09psqpw2vtqunn3ku
   - &user_nix-builder-valak_binarin age10l20ttrvz6nuueg4frq6v4uu2mg5rg0cchehxthddujwmcfwqazq0ju4ad
+  - &server_nix-builder-raum age19lqxtweyndat8q2gx3w2t477mfzhzu9kqrjswd6ep9wej8jufpkqwrn24m
+  - &user_nix-builder-raum_binarin age12erz4jsu2us6q3emxyrlm999rf27jvpw23lxga3ngceudl0equfshq335j
 creation_rules:
   - path_regex: secrets/demandred/(secrets.yaml|user-binarin.yaml)
     key_groups:
@@ -193,3 +195,17 @@ creation_rules:
         age:
           - *admin_demandred_binarin
           - *user_nix-builder-valak_binarin
+  - path_regex: secrets/nix-builder-raum/secrets.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_nix-builder-raum
+  - path_regex: secrets/nix-builder-raum/user-binarin.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *user_nix-builder-raum_binarin

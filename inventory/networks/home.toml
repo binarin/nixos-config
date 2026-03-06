@@ -32,7 +32,7 @@ searchdomain = "localdomain"
 "192.168.2.22" = "proxmox-test"
 "192.168.2.23" = "hass-vm"
 "192.168.2.24" = { hostname = "nix-builder-valak", mac = "02:00:91:B6:DF:82" }
-# "192.168.2.25" = # unallocated
+"192.168.2.25" = { hostname = "nix-builder-raum", mac = "02:00:B3:C3:3C:53" }
 "192.168.2.26" = "valak"
 # "192.168.2.27" = # unallocated
 # "192.168.2.28" = # unallocated
