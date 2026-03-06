@@ -124,7 +124,7 @@ in
           enable = true;
           services = {
             garage = {
-              serviceName = "garage";
+              serviceName = "garage-api";
               protocol = "https";
               target = "localhost:3903"; # Admin API
             };
