@@ -28,6 +28,8 @@ class SecretFile:
     target_path: str  # Path inside the tarball/system
     source_path: Path  # Path to the sops-encrypted source file
     mode: int = 0o600  # File permissions
+    owner: str = "root"  # File owner
+    group: str = "root"  # File group
 
 
 def get_ssh_host_keys(
@@ -128,10 +130,13 @@ def get_user_age_key(
         )
         return None
 
+    # User secrets should be owned by the user, not root
     return SecretFile(
         target_path=target_path,
         source_path=source_path,
         mode=0o600,
+        owner="binarin",
+        group="binarin",
     )
 
 

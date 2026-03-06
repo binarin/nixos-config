@@ -238,6 +238,26 @@ def _find_tarball_in_result(result_path: Path) -> Path:
     )
 
 
+def _group_secrets_by_owner(
+    secrets: list,
+) -> dict[tuple[str, str], list]:
+    """Group secrets by (owner, group) tuple.
+
+    Args:
+        secrets: List of SecretFile objects
+
+    Returns:
+        Dict mapping (owner, group) to list of secrets
+    """
+    from collections import defaultdict
+
+    groups: dict[tuple[str, str], list] = defaultdict(list)
+    for secret in secrets:
+        key = (secret.owner, secret.group)
+        groups[key].append(secret)
+    return dict(groups)
+
+
 def _inject_secrets_into_tarball(
     machine_name: str,
     source_tarball: Path,
@@ -249,10 +269,9 @@ def _inject_secrets_into_tarball(
 
     This function:
     1. Gathers secrets configuration from NixOS config
-    2. Decrypts secrets (or generates fakes) to a temp directory
-    3. Copies the tarball (decompressed)
-    4. Appends secrets files to the tarball
-    5. Re-compresses the tarball
+    2. Groups secrets by owner/group
+    3. For each group, decrypts secrets and appends with correct ownership
+    4. Re-compresses the tarball
 
     Args:
         machine_name: The NixOS configuration name
@@ -271,11 +290,12 @@ def _inject_secrets_into_tarball(
 
     console.print(f"  Found {len(secrets)} secret(s) to inject")
 
-    # Create secrets in temp directory (decrypt or generate fakes)
-    if fake_secrets:
-        secrets_dir = generate_fake_secrets_to_tempdir(secrets)
-    else:
-        secrets_dir = decrypt_secrets_to_tempdir(secrets)
+    # Group secrets by owner/group for separate tar appends
+    secret_groups = _group_secrets_by_owner(secrets)
+    console.print(f"  Ownership groups: {len(secret_groups)}")
+
+    # Track temp directories for cleanup
+    temp_dirs: list[Path] = []
 
     try:
         # Create a temp file for the decompressed tarball
@@ -293,22 +313,31 @@ def _inject_secrets_into_tarball(
                 check=True,
             )
 
-            # Append secrets to the tarball
+            # Append secrets for each ownership group
             console.print("  Appending secrets...")
-            subprocess.run(
-                [
-                    "tar",
-                    "--append",
-                    "--owner=root",
-                    "--group=root",
-                    "-f",
-                    str(temp_tar_path),
-                    "-C",
-                    str(secrets_dir),
-                    ".",
-                ],
-                check=True,
-            )
+            for (owner, group), group_secrets in secret_groups.items():
+                # Create secrets in temp directory for this group
+                if fake_secrets:
+                    secrets_dir = generate_fake_secrets_to_tempdir(group_secrets)
+                else:
+                    secrets_dir = decrypt_secrets_to_tempdir(group_secrets)
+                temp_dirs.append(secrets_dir)
+
+                # Append with correct ownership
+                subprocess.run(
+                    [
+                        "tar",
+                        "--append",
+                        f"--owner={owner}",
+                        f"--group={group}",
+                        "-f",
+                        str(temp_tar_path),
+                        "-C",
+                        str(secrets_dir),
+                        ".",
+                    ],
+                    check=True,
+                )
 
             # Re-compress the tarball (single-threaded for compatibility)
             console.print("  Compressing tarball...")
@@ -325,8 +354,9 @@ def _inject_secrets_into_tarball(
                 temp_tar_path.unlink()
 
     finally:
-        # Clean up secrets directory
-        shutil.rmtree(secrets_dir, ignore_errors=True)
+        # Clean up all secrets directories
+        for temp_dir in temp_dirs:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def run_iso(
