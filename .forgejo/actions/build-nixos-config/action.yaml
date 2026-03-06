@@ -30,7 +30,8 @@ runs:
           trap "rm -f $DEBUG_LOG" EXIT
 
           # Run eval with --debug to capture all source fetches during evaluation
-          nix eval --debug --raw "$BUILD_PATH" >"$DEBUG_LOG" 2>&1 || true
+          # Only capture stderr (debug output); discard stdout (eval result)
+          nix eval --debug --raw "$BUILD_PATH" 2>"$DEBUG_LOG" >/dev/null || true
 
           # Extract store paths from debug output, excluding build artifacts
           grep -oP "/nix/store/[a-z0-9]{32}-[^/'\"\s>]+" "$DEBUG_LOG" \
