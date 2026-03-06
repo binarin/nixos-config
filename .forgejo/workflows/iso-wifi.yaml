@@ -12,7 +12,7 @@ jobs:
       with:
         git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
     - name: Build WiFi-enabled ISO
-      run: nix run --ignore-env .#ncf -- iso build-wifi --password-file files/agares-guest.git-crypt
+      run: nix run .#env-aware-nix-run -- .#ncf -- iso build-wifi --password-file files/agares-guest.git-crypt
     - name: Upload ISO artifact
       uses: actions/upload-artifact@v4
       with:

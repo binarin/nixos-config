@@ -2,6 +2,53 @@
   perSystem =
     { pkgs, ... }:
     let
+      # Environment variables to preserve when using --ignore-env with nix
+      # Essential for nix operations in CI environments
+      envVarsToKeep = [
+        # Essential for nix operations
+        "HOME"
+        "USER"
+        "LANG"
+        "LOCALE_ARCHIVE"
+        "TZDIR"
+        "TERM"
+        "TMPDIR"
+        "TMP"
+        "TEMP"
+        "PATH"
+        "SSL_CERT_FILE"
+        "NIX_SSL_CERT_FILE"
+        # XDG Base Directory Specification
+        "XDG_CACHE_HOME"
+        "XDG_CONFIG_HOME"
+        "XDG_DATA_HOME"
+        "XDG_STATE_HOME"
+        "XDG_RUNTIME_DIR"
+        # XDG User Directories
+        "XDG_DESKTOP_DIR"
+        "XDG_DOCUMENTS_DIR"
+        "XDG_DOWNLOAD_DIR"
+        "XDG_MUSIC_DIR"
+        "XDG_PICTURES_DIR"
+        "XDG_PUBLICSHARE_DIR"
+        "XDG_TEMPLATES_DIR"
+        "XDG_VIDEOS_DIR"
+      ];
+
+      envKeepFlags = pkgs.lib.concatMapStringsSep " " (v: "-k ${v}") envVarsToKeep;
+
+      env-aware-nix-run = pkgs.writeShellScriptBin "env-aware-nix-run" ''
+        # Wrapper for 'nix run --ignore-env' that preserves essential environment variables
+        # Used in CI to get reproducible builds while keeping vars nix needs (HOME, XDG_*, etc.)
+        exec ${pkgs.nix}/bin/nix run --ignore-env ${envKeepFlags} "$@"
+      '';
+
+      env-aware-nix-develop = pkgs.writeShellScriptBin "env-aware-nix-develop" ''
+        # Wrapper for 'nix develop --ignore-environment' that preserves essential environment variables
+        # Used in CI to get reproducible builds while keeping vars nix needs (HOME, XDG_*, etc.)
+        exec ${pkgs.nix}/bin/nix develop --ignore-environment ${envKeepFlags} "$@"
+      '';
+
       ncfRuntimeDeps = with pkgs; [
         nix
         nix-output-monitor # nom for nicer build output
@@ -51,6 +98,8 @@
     in
     {
       packages.ncf = ncf;
+      packages.env-aware-nix-run = env-aware-nix-run;
+      packages.env-aware-nix-develop = env-aware-nix-develop;
 
       devShells.default = pkgs.mkShell {
         name = "nixos-unified-template-shell";

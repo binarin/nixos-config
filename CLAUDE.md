@@ -210,6 +210,41 @@ main parts are SSH public keys and IP allocation. Ideally, it should
 be the only source of truth - but for now there are some IP addresses
 hardcoded here and there.
 
+# CI and Nix Environment Isolation
+
+When running nix commands programmatically in CI, use the env-aware wrapper
+packages instead of raw `nix run --ignore-env` or `nix develop
+--ignore-environment`:
+
+```bash
+# Instead of: nix run --ignore-env .#ncf -- ci matrix
+nix run .#env-aware-nix-run -- .#ncf -- ci matrix
+
+# Instead of: nix develop --ignore-environment .#devShells.x86_64-linux.default --command ...
+nix run .#env-aware-nix-develop -- .#devShells.x86_64-linux.default --command ...
+```
+
+**Why?** The `--ignore-env` flag clears ALL environment variables for
+reproducibility, but this breaks nix itself when essential variables like
+`HOME` is missing (nix needs `$HOME/.cache/nix` for its cache). The wrapper
+packages preserve essential variables (HOME, XDG\_\*, LANG, SSL certs, etc.)
+while still providing environment isolation.
+
+**When to use:**
+
+- CI workflows (Forgejo Actions) - always use the wrapper packages
+- Scripts that need reproducible nix environments
+- Any programmatic nix invocation with `--ignore-env`
+
+**When NOT needed:**
+
+- Interactive shell usage (environment is already set)
+- `ncf` commands (inherits environment from caller, doesn't use --ignore-env)
+- Direct `nix build`, `nix flake check` without --ignore-env
+
+The list of preserved variables is defined in `modules/devshell.nix`
+(`envVarsToKeep`).
+
 # Forgejo Issues
 
 This repo uses Forgejo for issue tracking. Fetch the workflow documentation by

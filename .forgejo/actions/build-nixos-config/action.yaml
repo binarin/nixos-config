@@ -17,7 +17,7 @@ runs:
         CONFIG_NAME: ${{ inputs.config }}
         OUTPUT_LINK: ${{ inputs.output-link }}
       run: |
-        BUILD_PATH=$(nix run --ignore-env .#ncf -- ci build-path "$CONFIG_NAME")
+        BUILD_PATH=$(nix run .#env-aware-nix-run -- .#ncf -- ci build-path "$CONFIG_NAME")
         if [[ -n "$OUTPUT_LINK" ]]; then
           nix build "$BUILD_PATH" --no-link --print-out-paths -o "$OUTPUT_LINK"
         else

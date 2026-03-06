@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: define
         run: |
-          echo "configurations=$(nix run --ignore-env .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
+          echo "configurations=$(nix run .#env-aware-nix-run -- .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
 
   nixos-configuration:
     name: build ${{ matrix.config }}

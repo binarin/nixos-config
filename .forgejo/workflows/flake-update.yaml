@@ -17,7 +17,7 @@ jobs:
           git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
       - id: define
         run: |
-          echo "configurations=$(nix run --ignore-env .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
+          echo "configurations=$(nix run .#env-aware-nix-run -- .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
 
   update-and-build:
     name: update ${{ matrix.config }}

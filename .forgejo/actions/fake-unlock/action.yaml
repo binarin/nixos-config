@@ -5,4 +5,4 @@ runs:
   steps:
     - name: fake git-crypt unlock
       shell: bash
-      run: nix run --ignore-env .#ncf -- ci fake-unlock
+      run: nix run .#env-aware-nix-run -- .#ncf -- ci fake-unlock
