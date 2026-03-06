@@ -31,7 +31,7 @@ in
   };
 
   flake.nixosModules.nix-builder-valak-configuration =
-    { ... }:
+    { config, ... }:
     {
       key = "nixos-config.modules.nixos.nix-builder-valak-configuration";
       imports = [
@@ -45,6 +45,12 @@ in
       config = {
         networking.hostName = inventoryHostName;
         system.stateVersion = "25.11";
+
+        sops.secrets.tailscale-auth = { };
+        services.tailscale = {
+          enable = true;
+          authKeyFile = config.sops.secrets.tailscale-auth.path;
+        };
 
         nixos-config.nix-builder.runnerCount = 3;
 
