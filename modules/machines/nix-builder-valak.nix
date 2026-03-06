@@ -46,7 +46,7 @@ in
         networking.hostName = inventoryHostName;
         system.stateVersion = "25.11";
 
-        nixos-config.nix-builder.runnerCount = 4;
+        nixos-config.nix-builder.runnerCount = 3;
 
         proxmoxLXC = {
           cores = 16;

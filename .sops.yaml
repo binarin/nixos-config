@@ -119,7 +119,7 @@ creation_rules:
           - *user_demandred_binarin
           - *server_media
           - *server_docker-on-nixos
-  - path_regex: secrets/[^/]+/((ssh_host_(ed25519|rsa|ecdsa)_key|user-binarin-age|)|(.*-priv-key\.pem))
+  - path_regex: secrets/[^/]+/((ssh_host_(ed25519|rsa|ecdsa)_key|user-binarin-age)|(.*-priv-key\.pem))$
     key_groups:
       - pgp:
           - *admin_binarin_gpg
