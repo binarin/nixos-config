@@ -18,6 +18,7 @@
         self.nixosModules.nix
         self.nixosModules.security
         self.nixosModules.sops
+        self.nixosModules.ssh-known-hosts
         self.nixosModules.sshd
         self.nixosModules.tailscale
         self.nixosModules.use-nix-cache

@@ -129,13 +129,6 @@
         defaultSession = lib.mkForce "niri-uwsm";
       };
 
-      programs.ssh.knownHosts = {
-        furfur = {
-          extraHostNames = [ ];
-          publicKeyFile = config.lib.self.file' "secrets/furfur/ssh_host_ed25519_key.pub";
-        };
-      };
-
       networking.networkmanager.enable = true;
       networking.networkmanager.ensureProfiles = {
         environmentFiles = [
