@@ -382,7 +382,7 @@ env_file = [
 2. **Stage module**: `git add modules/services/service.nix`
    - Flakes require files to be staged or committed
 
-3. **Validate**: `just eval-nixos`
+3. **Validate**: `ncf eval nixos`
    - Ensures sops config is valid (doesn't check actual secrets)
 
 4. **Populate secrets**: After validation passes
@@ -668,7 +668,7 @@ Solution:
 
 ### Validation Failures
 
-**just eval-nixos fails with "module collision"**
+**ncf eval nixos fails with "module collision"**
 ```
 Error: The option `services.foo` is defined multiple times
 
@@ -682,7 +682,7 @@ Solution:
 - Run: just lint (checks module keys)
 ```
 
-**just eval-all passes but deploy fails**
+**ncf eval all passes but deploy fails**
 ```
 Possible causes:
 1. Secrets not populated on target machine

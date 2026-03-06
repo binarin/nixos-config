@@ -11,7 +11,7 @@ This skill guides you through adding a new NixOS machine configuration following
 
 Copy and complete this checklist when adding a new machine:
 
-- [ ] **1. Pre-check**: Run `nix fmt && just lint && just eval-all` to ensure the configuration is clean before making changes
+- [ ] **1. Pre-check**: Run `nix fmt && just lint && ncf eval all` to ensure the configuration is clean before making changes
 - [ ] **2. Determine machine type**: qemu-guest, lxc, or bare-metal
 - [ ] **3. Choose machine name**: Should be unique and follow existing naming conventions
 - [ ] **4. Generate hostId**: Run `./scripts/generate-hostid.sh` from skill directory
@@ -19,9 +19,9 @@ Copy and complete this checklist when adding a new machine:
 - [ ] **6. Allocate IP** (if needed): Edit `inventory/networks/home.nix` or skip for microvm/isolated machines
 - [ ] **7. Create machine module**: Create `modules/machines/<machine-name>.nix` using examples from REFERENCE.md
 - [ ] **8. Stage new file**: `git add modules/machines/<machine-name>.nix`
-- [ ] **9. Run validation**: `just nixOpts= eval-nixos` in a loop until clean
+- [ ] **9. Run validation**: `ncf eval nixos` in a loop until clean
 - [ ] **10. Get stateVersion**: Run the get-state-version script and add explicit value
-- [ ] **11. Run comprehensive validation**: `just eval-all`
+- [ ] **11. Run comprehensive validation**: `ncf eval all`
 - [ ] **12. Format and lint**: `nix fmt && just lint`
 - [ ] **13. Commit**: Follow git workflow in CLAUDE.md
 
@@ -126,8 +126,8 @@ home-manager.users.binarin = self.homeModules.machine-name-binarin;
 - Hardware configs: `machines/<name>/hardware-configuration.nix`
 
 **Validation commands:**
-- Fast: `just nixOpts= eval-nixos`
-- Comprehensive: `just eval-all`
+- Fast: `ncf eval nixos`
+- Comprehensive: `ncf eval all`
 - Format: `nix fmt && just lint`
 
 **Common module imports:**

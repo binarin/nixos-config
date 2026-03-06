@@ -29,9 +29,9 @@ Follow this checklist when converting a docker-compose.yaml:
 - [ ] **8. Convert services**: Map docker-compose to Arion configuration
 - [ ] **9. Add Tailscale serve** (optional): For external access
 - [ ] **10. Stage with git add**: Flakes only see committed/staged files
-- [ ] **11. Validate**: Run `just nixOpts= eval-nixos` in a loop until fixed
+- [ ] **11. Validate**: Run `ncf eval nixos` in a loop until fixed
 - [ ] **12. Add secrets**: Use `sops set` commands to populate secret values
-- [ ] **13. Run comprehensive validation**: `just eval-all`
+- [ ] **13. Run comprehensive validation**: `ncf eval all`
 - [ ] **14. Format**: `just lint` (may reformat, amend if needed)
 - [ ] **15. Commit changes**: Follow git workflow in CLAUDE.md
 
@@ -314,12 +314,12 @@ Find current versions:
 **Iterative validation:**
 ```bash
 # Fast iteration on current machine
-just nixOpts= eval-nixos
+ncf eval nixos
 
 # Fix errors, repeat until clean
 
-# Comprehensive validation (all 12 configs, ~45s)
-just eval-all
+# Comprehensive validation (all configs)
+ncf eval all
 
 # Format and fix any linting issues
 just lint
@@ -439,8 +439,8 @@ service = {
 - Secrets: `secrets/docker-on-nixos/secrets.yaml`
 
 **Validation commands:**
-- Fast: `just nixOpts= eval-nixos`
-- Comprehensive: `just eval-all`
+- Fast: `ncf eval nixos`
+- Comprehensive: `ncf eval all`
 - Lint: `just lint`
 
 **Secrets commands (use nested path for hierarchical structure):**

@@ -3,6 +3,7 @@
 import json
 import os
 import signal
+import socket
 import sys
 import tempfile
 import threading
@@ -15,6 +16,34 @@ from rich.console import Console
 
 from .. import config
 from ..nix import NixRunner, get_nixos_configurations
+
+
+def get_default_parallelism() -> int:
+    """Calculate default parallelism based on available memory.
+
+    Returns (system memory in GB) / 6, with a minimum of 1.
+    Special case: claude-nixos-config host is hardcoded to 32GB.
+    """
+    hostname = socket.gethostname()
+    if hostname == "claude-nixos-config":
+        memory_gb = 32
+    else:
+        try:
+            with open("/proc/meminfo") as f:
+                for line in f:
+                    if line.startswith("MemTotal:"):
+                        # MemTotal is in kB
+                        mem_kb = int(line.split()[1])
+                        memory_gb = mem_kb // (1024 * 1024)
+                        break
+                else:
+                    memory_gb = 8  # fallback
+        except (OSError, ValueError):
+            memory_gb = 8  # fallback
+
+    parallelism = max(1, memory_gb // 6)
+    return parallelism
+
 
 console = Console()
 
@@ -95,7 +124,7 @@ def run_all(
         return
 
     if max_parallel is None:
-        max_parallel = os.cpu_count() or 4
+        max_parallel = get_default_parallelism()
 
     console.print(
         f"Found {len(configurations)} configurations to evaluate (parallelism: {max_parallel})"

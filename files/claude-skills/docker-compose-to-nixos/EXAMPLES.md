@@ -514,7 +514,7 @@ in
 | **User/Group** | PUID/PGID env vars | System user with inventory UID/GID |
 | **Dependencies** | implicit (docker-compose.yaml) | Explicit imports |
 | **Network** | Exposed ports | Tailscale serve integration |
-| **Validation** | `docker-compose config` | `just eval-nixos` |
+| **Validation** | `docker-compose config` | `ncf eval nixos` |
 | **Version pinning** | Optional | Required (no `:latest`) |
 | **State** | Mutable (files on disk) | Declarative (module config) |
 | **Secrets storage** | `.env` file (plaintext) | Encrypted with sops |
