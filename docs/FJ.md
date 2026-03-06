@@ -9,6 +9,21 @@ requests in Forgejo.
 comments.** After plan update/create, this should be immediately reflected in
 fj issue comment.
 
+## Label-Based Workflow
+
+Use labels to control which phase of work the agent performs:
+
+- **`ai-plan`**: Perform the planning phase. Create or update the plan comment
+  based on the issue description and any feedback.
+- **`ai-execute`**: Perform the execution phase. Implement the plan, check PRs
+  for review feedback, and create/update the PR.
+
+When both labels are present, complete planning first, then proceed to
+execution.
+
+When neither label is present, the agent should ask for clarification or
+default to planning if the issue has no plan yet.
+
 ## Repository context
 
 The `fj` CLI determines repo context from the current branch's upstream
@@ -156,6 +171,29 @@ plan altogether. The ultimate checks are `eval-all` and `build-all`.
 
 Only check that plan is up-to-date (as described in 'Planning phase'), stop if
 it is not.
+
+### Checking PR feedback
+
+If a PR already exists for the issue, check for reviewer feedback before
+continuing implementation:
+
+1. Find the PR for the issue branch:
+
+   fj pr search --repo binarin/nixos-config --state open | grep issue-<NUMBER>
+
+2. View PR comments and reviews:
+
+   fj pr view binarin/nixos-config#<PR_NUMBER>
+
+3. Get detailed review comments via API:
+
+   TOKEN=$(jq -r '.hosts["forgejo.lynx-lizard.ts.net"].token' ~/.local/share/forgejo-cli/keys.json)
+   curl -sf -H "Authorization: token ${TOKEN}" \
+    "https://forgejo.lynx-lizard.ts.net/api/v1/repos/binarin/nixos-config/pulls/<PR_NUMBER>/reviews"
+
+Address any code review suggestions and respond to reviewer comments as part of
+the execution phase. If feedback requires plan changes, update the plan comment
+first.
 
 When being asked to work on a separate issue that exists in forgejo, you do it
 in the separate branch with predictable name.
