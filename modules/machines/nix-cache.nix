@@ -105,11 +105,6 @@
                   nix
                   nodejs
                   wget
-                  # For inject-iso-wifi.sh script
-                  libarchive # provides bsdtar
-                  fakeroot
-                  squashfsTools # provides unsquashfs/mksquashfs
-                  xorriso
                 ];
               };
             in
