@@ -18,7 +18,7 @@ jobs:
         run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
       - id: define
         run: |
-          echo "configurations=$(nix run .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
+          echo "configurations=$(nix run --ignore-env .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
 
   update-and-build:
     name: update ${{ matrix.config }}
@@ -42,7 +42,7 @@ jobs:
         run: nix run .#write-flake
       - name: Build configuration
         run: |
-          BUILD_PATH=$(nix run .#ncf -- ci build-path '${{ matrix.config }}')
+          BUILD_PATH=$(nix run --ignore-env .#ncf -- ci build-path '${{ matrix.config }}')
           nix build "$BUILD_PATH" --no-link --print-out-paths -o temp-result/${{ matrix.config }}
       - name: Add GC root
         run: |

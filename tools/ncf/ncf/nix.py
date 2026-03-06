@@ -11,9 +11,13 @@ from typing import Optional
 from rich.console import Console
 
 from . import config
-from .external import ExternalToolError
+from .external import ExternalToolError, register_tool
 
 console = Console()
+
+# Register nix tools
+register_tool("nix", "Build and evaluate NixOS configurations")
+register_tool("nom", "Nicer build output with progress display", required=False)
 
 
 @dataclass

@@ -1,46 +1,22 @@
 """Pytest configuration and fixtures for ncf tests."""
 
-import os
 import subprocess
 import sys
-from pathlib import Path
 
 import pytest
 
 
 @pytest.fixture
-def ncf_path():
-    """Return the path to the ncf executable."""
-    # When running under nix, ncf should be in PATH
-    # When running in development, use the module directly
-    return sys.executable
+def run_ncf():
+    """Fixture to run ncf commands.
 
-
-@pytest.fixture
-def clean_env():
-    """Return a minimal clean environment for subprocess calls.
-
-    This simulates running with `nix run --ignore-env` by providing
-    only essential environment variables.
+    Environment isolation is handled by nix (--ignore-env), not Python.
     """
-    return {
-        "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
-        "HOME": os.environ.get("HOME", "/tmp"),
-        "TERM": os.environ.get("TERM", "xterm"),
-    }
 
-
-@pytest.fixture
-def run_ncf(clean_env):
-    """Fixture to run ncf commands in a clean environment."""
-
-    def _run_ncf(*args, env=None, check=True, capture_output=True):
-        if env is None:
-            env = clean_env
+    def _run_ncf(*args, check=True, capture_output=True):
         cmd = [sys.executable, "-m", "ncf"] + list(args)
         return subprocess.run(
             cmd,
-            env=env,
             check=check,
             capture_output=capture_output,
             text=True,

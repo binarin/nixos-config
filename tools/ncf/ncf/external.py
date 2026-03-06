@@ -3,12 +3,98 @@
 import json
 import subprocess
 import shutil
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
 from rich.console import Console
 
 console = Console()
+
+
+@dataclass
+class ToolRegistration:
+    """A single registration of a tool by a module."""
+
+    module: str
+    purpose: str
+
+
+@dataclass
+class ExternalTool:
+    """Description of an external tool dependency."""
+
+    name: str
+    required: bool = True
+    registrations: list[ToolRegistration] = field(default_factory=list)
+
+    def add_registration(self, module: str, purpose: str) -> None:
+        """Add a registration from a module."""
+        self.registrations.append(ToolRegistration(module=module, purpose=purpose))
+
+
+# Global registry of external tool dependencies
+_tool_registry: dict[str, ExternalTool] = {}
+
+
+def register_tool(
+    name: str, purpose: str, module: str | None = None, required: bool = True
+) -> None:
+    """Register an external tool dependency.
+
+    Call this at module load time to declare tool dependencies.
+    The test suite will verify all registered tools are available.
+
+    Args:
+        name: The executable name (as it appears in PATH)
+        purpose: What the tool is used for in this module
+        module: The module registering the tool (auto-detected if None)
+        required: If True, ncf requires this tool; if False, it's optional
+    """
+    import inspect
+
+    if module is None:
+        # Auto-detect calling module
+        frame = inspect.currentframe()
+        if frame and frame.f_back:
+            module = frame.f_back.f_globals.get("__name__", "unknown")
+        else:
+            module = "unknown"
+
+    if name not in _tool_registry:
+        _tool_registry[name] = ExternalTool(name=name, required=required)
+    elif not required:
+        # Don't downgrade required to optional
+        pass
+    else:
+        # Upgrade optional to required if any registration requires it
+        _tool_registry[name].required = True
+
+    _tool_registry[name].add_registration(module, purpose)
+
+
+def get_registered_tools() -> dict[str, ExternalTool]:
+    """Get all registered external tools."""
+    return _tool_registry.copy()
+
+
+def get_required_tools() -> list[ExternalTool]:
+    """Get all required external tools."""
+    return [t for t in _tool_registry.values() if t.required]
+
+
+def get_optional_tools() -> list[ExternalTool]:
+    """Get all optional external tools."""
+    return [t for t in _tool_registry.values() if not t.required]
+
+
+# Register core tools used by external.py itself
+register_tool("ssh-keygen", "SSH host key generation")
+register_tool("age-keygen", "Age keypair generation")
+register_tool("sops", "Secrets encryption/decryption")
+register_tool("ssh-to-age", "Convert SSH keys to age keys")
+register_tool("yamlfmt", "YAML file formatting")
+register_tool("apg", "Password generation")
 
 
 class ExternalToolError(Exception):

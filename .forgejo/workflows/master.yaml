@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: define
         run: |
-          echo "configurations=$(nix run .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
+          echo "configurations=$(nix run --ignore-env .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
 
   nixos-configuration:
     name: build ${{ matrix.config }}
@@ -30,7 +30,7 @@ jobs:
         run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
       - name: build nixos configuration
         run: |
-          BUILD_PATH=$(nix run .#ncf -- ci build-path '${{ matrix.config }}')
+          BUILD_PATH=$(nix run --ignore-env .#ncf -- ci build-path '${{ matrix.config }}')
           nix build "$BUILD_PATH" --no-link --print-out-paths -o ~/.cache/nixos-config/nixos-configuration/${{ matrix.config }}
       - name: sign and push to nix-cache-storage
         env:

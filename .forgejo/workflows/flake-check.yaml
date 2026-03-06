@@ -23,5 +23,5 @@ jobs:
         run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
       - name: fake git-crypt unlock (PR)
         if: github.event_name == 'pull_request_target'
-        run: nix run .#ncf -- ci fake-unlock
+        run: nix run --ignore-env .#ncf -- ci fake-unlock
       - run: nix flake check

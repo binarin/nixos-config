@@ -6,10 +6,18 @@ from pathlib import Path
 
 from rich.console import Console
 
+import shutil
+
+from rich.table import Table
+
 from .. import config
-from ..external import run_command
+from ..external import run_command, register_tool, get_registered_tools
 
 console = Console()
+
+# Register tools used by CI commands
+register_tool("git", "Git operations for repository management")
+register_tool("git-crypt", "List encrypted files for CI secrets handling")
 
 
 def get_git_crypt_encrypted_files() -> list[Path]:
@@ -183,3 +191,70 @@ def run_matrix() -> None:
 def run_build_path(name: str) -> None:
     """Output the nix build path for a configuration."""
     print(get_build_path(name))
+
+
+def run_external_deps() -> None:
+    """Display all registered external tool dependencies."""
+    # Import all command modules to ensure their tool registrations are executed
+    from . import (  # noqa: F401
+        add_machine,
+        build,
+        eval,
+        init_machine,
+        ipam_cmd,
+        iso,
+        list_machines,
+        provision_lxc,
+        set_secret,
+        verify,
+    )
+    from .. import nix  # noqa: F401
+
+    tools = get_registered_tools()
+
+    if not tools:
+        console.print("[yellow]No external tools registered[/yellow]")
+        return
+
+    # Sort tools: required first, then alphabetically
+    sorted_tools = sorted(tools.values(), key=lambda t: (not t.required, t.name))
+
+    table = Table(title="External Tool Dependencies")
+    table.add_column("Tool", style="cyan")
+    table.add_column("Status", style="bold")
+    table.add_column("Required", style="magenta")
+    table.add_column("Module", style="blue")
+    table.add_column("Purpose", style="white")
+
+    for tool in sorted_tools:
+        # Check if tool is available
+        available = shutil.which(tool.name) is not None
+        status = "[green]✓[/green]" if available else "[red]✗[/red]"
+        required = "Yes" if tool.required else "No"
+
+        # Add a row for each registration
+        for i, reg in enumerate(tool.registrations):
+            if i == 0:
+                table.add_row(tool.name, status, required, reg.module, reg.purpose)
+            else:
+                table.add_row("", "", "", reg.module, reg.purpose)
+
+    console.print(table)
+
+    # Summary
+    required_tools = [t for t in tools.values() if t.required]
+    optional_tools = [t for t in tools.values() if not t.required]
+    missing_required = [t for t in required_tools if not shutil.which(t.name)]
+    missing_optional = [t for t in optional_tools if not shutil.which(t.name)]
+
+    console.print()
+    if missing_required:
+        console.print(
+            f"[red]Missing required tools: {', '.join(t.name for t in missing_required)}[/red]"
+        )
+    if missing_optional:
+        console.print(
+            f"[yellow]Missing optional tools: {', '.join(t.name for t in missing_optional)}[/yellow]"
+        )
+    if not missing_required and not missing_optional:
+        console.print("[green]All external tools are available![/green]")

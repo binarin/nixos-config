@@ -15,10 +15,10 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: fake git-crypt unlock
-        run: nix run .#ncf -- ci fake-unlock
+        run: nix run --ignore-env .#ncf -- ci fake-unlock
       - id: define
         run: |
-          echo "configurations=$(nix run .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
+          echo "configurations=$(nix run --ignore-env .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
           cat "$FORGEJO_OUTPUT"
 
   nixos-configuration:
@@ -34,7 +34,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: fake git-crypt unlock
-        run: nix run .#ncf -- ci fake-unlock
+        run: nix run --ignore-env .#ncf -- ci fake-unlock
       - run: |
-          BUILD_PATH=$(nix run .#ncf -- ci build-path '${{ matrix.config }}')
+          BUILD_PATH=$(nix run --ignore-env .#ncf -- ci build-path '${{ matrix.config }}')
           nix build "$BUILD_PATH" --no-link --print-out-paths

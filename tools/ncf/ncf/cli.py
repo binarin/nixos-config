@@ -388,6 +388,16 @@ def ci_build_path_cmd(
     ci.run_build_path(name)
 
 
+@ci_app.command("external-deps")
+def ci_external_deps_cmd():
+    """Display all registered external tool dependencies.
+
+    Shows which external tools ncf depends on, organized by tool and
+    showing which modules use each tool and for what purpose.
+    """
+    ci.run_external_deps()
+
+
 @machine_app.command("add")
 def machine_add_cmd(
     name: str = typer.Argument(help="Name for the new machine"),
