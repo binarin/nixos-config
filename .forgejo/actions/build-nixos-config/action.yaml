@@ -24,36 +24,24 @@ runs:
       run: |
         BUILD_PATH=$(nix run .#env-aware-nix-run -- .#ncf -- ci build-path "$CONFIG_NAME")
 
-        # If paths-file requested, run eval --debug first to capture source fetches
-        if [[ -n "$PATHS_FILE" ]]; then
-          DEBUG_LOG=$(mktemp)
-          trap "rm -f $DEBUG_LOG" EXIT
-
-          # Run eval with --debug to capture all source fetches during evaluation
-          # Only capture stderr (debug output); discard stdout (eval result)
-          nix eval --debug --raw "$BUILD_PATH" 2>"$DEBUG_LOG" >/dev/null || true
-
-          # Extract store paths from debug output, excluding build artifacts
-          grep -oP "/nix/store/[a-z0-9]{32}-[^/'\"\s>]+" "$DEBUG_LOG" \
-            | grep -v '\.drv$' \
-            | grep -v '\^' \
-            | grep -v '\.lock$' \
-            | grep -v '\.chroot$' \
-            | sort -u > "$PATHS_FILE"
-          echo "Extracted $(wc -l < "$PATHS_FILE") store paths from eval"
-        fi
-
         # Run the build
         if [[ -n "$OUTPUT_LINK" ]]; then
           nix build "$BUILD_PATH" -o "$OUTPUT_LINK"
-          STORE_PATH=$(readlink -f "$OUTPUT_LINK")
         else
-          STORE_PATH=$(nix build "$BUILD_PATH" --no-link --print-out-paths)
+          nix build "$BUILD_PATH" --no-link
         fi
 
-        # If paths-file requested, add build output closure
+        # If paths-file requested, extract build closure (includes build-time deps)
         if [[ -n "$PATHS_FILE" ]]; then
-          nix-store -qR "$STORE_PATH" >> "$PATHS_FILE"
-          sort -u -o "$PATHS_FILE" "$PATHS_FILE"
-          echo "Total $(wc -l < "$PATHS_FILE") store paths for caching (eval + build closure)"
+          # Get the derivation for this build
+          DRV=$(nix path-info --derivation "$BUILD_PATH")
+
+          # Get all outputs in the build closure (runtime + build-time deps)
+          # --include-outputs adds realized outputs of derivations in the closure
+          # Filter out .drv files - we only want actual store paths
+          nix-store -qR --include-outputs "$DRV" \
+            | grep -v '\.drv$' \
+            | sort -u > "$PATHS_FILE"
+
+          echo "Extracted $(wc -l < "$PATHS_FILE") store paths for caching (build closure)"
         fi
