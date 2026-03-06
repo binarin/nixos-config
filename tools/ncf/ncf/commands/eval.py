@@ -15,6 +15,7 @@ from typing import Optional
 from rich.console import Console
 
 from .. import config
+from ..external import ExternalToolError
 from ..nix import NixRunner, get_nixos_configurations
 
 
@@ -57,7 +58,7 @@ RESET = "\033[0m"
 
 
 def run_nixos(
-    configuration: str,
+    configuration: Optional[str] = None,
     verbosity: int = 1,
     dry_run: bool = False,
 ) -> str:
@@ -66,7 +67,8 @@ def run_nixos(
     Primary use case: Debugging infinite recursion and evaluation errors.
 
     Args:
-        configuration: The NixOS configuration name to evaluate
+        configuration: The NixOS configuration name to evaluate.
+                      If None, uses current machine's hostname.
         verbosity: 0=quiet, 1=normal, 2=verbose
         dry_run: Show what would be done without evaluating
 
@@ -74,6 +76,23 @@ def run_nixos(
         The derivation path (.drv)
     """
     repo_root = config.find_repo_root()
+
+    # Default to current hostname if no configuration specified
+    if configuration is None:
+        configuration = socket.gethostname()
+        if verbosity > 0:
+            console.print(f"[dim]Using current machine: {configuration}[/dim]")
+
+    # Validate that the configuration exists
+    runner = NixRunner(verbosity=0, repo_root=repo_root)
+    configurations = get_nixos_configurations(runner)
+    if configuration not in configurations:
+        raise ExternalToolError(
+            "nix",
+            f"Configuration '{configuration}' not found. "
+            f"Available configurations: {', '.join(sorted(configurations))}",
+        )
+
     flake_ref = f"{repo_root}#nixosConfigurations.{configuration}.config.system.build.toplevel.drvPath"
 
     if dry_run:

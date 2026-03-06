@@ -290,7 +290,9 @@ def build_all_cmd(
 # Eval commands
 @eval_app.command("nixos")
 def eval_nixos_cmd(
-    configuration: str = typer.Argument(help="NixOS configuration name to evaluate"),
+    configuration: str = typer.Argument(
+        None, help="NixOS configuration name to evaluate (default: current hostname)"
+    ),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
@@ -298,6 +300,7 @@ def eval_nixos_cmd(
     """Evaluate a NixOS configuration (get .drv path without building).
 
     Useful for debugging infinite recursion and evaluation errors.
+    If no configuration is specified, evaluates the current machine's configuration.
     """
     verbosity = 0 if quiet else (2 if verbose else 1)
     eval.run_nixos(
