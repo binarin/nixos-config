@@ -189,6 +189,20 @@ When making changes to dendritic modules:
 
 3. Run `nix fmt` and `just lint` before committing - they reformat changed files. When everything is clean, you can commit. If you already committed, amend the commit with formatting changes.
 
+## NCF Tool
+
+The `ncf` CLI tool is used throughout this repository for building,
+evaluating, managing secrets, and adding new machines. See
+`docs/NCF.md` for full documentation.
+
+Key points for external dependencies:
+
+- External tools are registered via `register_tool()` in `tools/ncf/ncf/external.py`
+- Runtime dependencies are listed in `ncfRuntimeDeps` in `modules/devshell.nix`
+- Use `ncf ci external-deps` to view all registered dependencies
+- When adding new external tool dependencies, update both the registration
+  and devshell.nix
+
 ## Inventory
 
 NixOS configuration is primary source of inventory, in inventory/ -
