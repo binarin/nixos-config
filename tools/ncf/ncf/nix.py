@@ -92,15 +92,17 @@ class NixRunner:
         impure: bool = False,
         extra_args: Optional[list[str]] = None,
         env: Optional[dict[str, str]] = None,
+        print_out_paths: bool = False,
     ) -> subprocess.CompletedProcess:
         """Execute nix build with common options.
 
         Args:
             flake_ref: The flake reference to build (e.g., ".#package")
-            output: Optional output path (-o)
+            output: Optional output path (-o). If None, uses --no-link.
             impure: Enable impure mode
             extra_args: Additional arguments to pass to nix build
             env: Additional environment variables
+            print_out_paths: Print store paths (only works when output is None)
 
         Returns:
             CompletedProcess result
@@ -110,6 +112,10 @@ class NixRunner:
 
         if output is not None:
             cmd.extend(["-o", str(output)])
+        else:
+            cmd.append("--no-link")
+            if print_out_paths:
+                cmd.append("--print-out-paths")
 
         if impure:
             cmd.append("--impure")

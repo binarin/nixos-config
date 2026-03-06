@@ -12,10 +12,10 @@ jobs:
       with:
         git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
     - name: Build WiFi-enabled ISO
-      run: nix run .#env-aware-nix-run -- .#ncf -- iso build-wifi --password-file files/agares-guest.git-crypt
+      run: nix run .#env-aware-nix-run -- .#ncf -- iso build-wifi --output "$RUNNER_TEMP/nixos-wifi.iso" --password-file files/agares-guest.git-crypt
     - name: Upload ISO artifact
       uses: https://code.forgejo.org/forgejo/upload-artifact@v4
       with:
         name: nixos-wifi-iso
-        path: ~/.cache/nixos-config/master/iso-wifi/nixos-wifi.iso
+        path: ${{ runner.temp }}/nixos-wifi.iso
         retention-days: 30

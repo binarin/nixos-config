@@ -31,12 +31,6 @@ def check_git_crypt_unlocked() -> bool:
     return result.returncode == 0 and bool(result.stdout.strip())
 
 
-def get_cache_dir() -> Path:
-    """Get the cache directory for deploy-rs."""
-    cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
-    return cache_dir / "nixos-config" / "deploy-rs"
-
-
 def get_deploy_hostname(target: str) -> str:
     """Get the hostname for a deploy target from the flake."""
     repo_root = config.find_repo_root()
@@ -73,16 +67,14 @@ def get_local_system_path(target: str, profile: str = "system") -> str:
     Builds the deploy-rs profile and returns the resulting store path.
     """
     repo_root = config.find_repo_root()
-    cache_dir = get_cache_dir()
-    output_link = cache_dir / f"{target}-{profile}"
 
-    # Build the deploy profile
+    # Build the deploy profile and get the store path directly
     runner = NixRunner(verbosity=0, repo_root=repo_root)
     flake_ref = f"{repo_root}#deploy.nodes.{target}.profiles.{profile}.path"
-    runner.run_build(flake_ref, output=output_link)
+    result = runner.run_build(flake_ref, output=None, print_out_paths=True)
 
-    # Read the symlink to get the store path
-    return str(output_link.resolve())
+    # Parse the store path from output
+    return result.stdout.strip()
 
 
 def wait_for_ssh_down(hostname: str, timeout: int = 60) -> bool:
@@ -208,15 +200,11 @@ def run_deploy_command(
     Returns True on success, False on failure.
     """
     repo_root = config.find_repo_root()
-    cache_dir = get_cache_dir()
 
     cmd = [
         "deploy",
         f"{repo_root}#{target}.{profile}",
         "-s",  # Skip flake checks
-        "-k",  # Keep result
-        "-r",
-        str(cache_dir),
     ]
 
     if boot:

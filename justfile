@@ -3,9 +3,7 @@
 # run `just` from this directory to see available commands
 
 jobs := "auto"
-topCacheDir := cache_directory() / "nixos-config"
 nixOpts := "-v"
-sshOpts := ""
 
 # Default command when 'just' is run without arguments
 default:
@@ -55,63 +53,9 @@ eval-nixos configuration=`hostname -s`:
 eval-all:
     ncf eval all
 
-# Check if git-crypt is unlocked (fails if repository is locked)
-[private]
-check-git-crypt-unlocked:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if [ -z "$(git config --local --get filter.git-crypt.smudge)" ]; then
-        echo "ERROR: Repository is locked with git-crypt." >&2
-        echo "Please unlock it first with: git-crypt unlock" >&2
-        exit 1
-    fi
-
-[group('Deploy')]
-deploy target profile="system": check-git-crypt-unlocked
-    deploy "$(pwd)#{{ target }}.{{ profile }}" -s -k -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
-
-[group('Deploy')]
-deploy-boot target profile="system": check-git-crypt-unlocked
-    deploy "$(pwd)#{{ target }}.{{ profile }}" --boot -s -k --ssh-opts="{{ sshOpts }}" -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
-    ssh "root@$(nix eval "$(pwd)#deploy.nodes.{{ target }}.hostname" --json | jq -r)" systemctl reload dbus-broker.service
-    ssh "root@$(nix eval "$(pwd)#deploy.nodes.{{ target }}.hostname" --json | jq -r)" systemctl reboot
-
-[group('Deploy')]
-deploy-no-rollback target profile="system": check-git-crypt-unlocked
-    deploy "$(pwd)#{{ target }}.{{ profile }}" --auto-rollback false --magic-rollback false -s -k --ssh-opts="{{ sshOpts }}" -r "{{ topCacheDir / 'deploy-rs' }}" -- {{ nixOpts }}
-
-[group('Deploy')]
-lxc-upload target host="raum":
-    ncf build lxc "{{ target }}"
-    rsync -vL proxmox-lxc-{{ target }}/tarball/nixos-system-x86_64-linux.tar.xz root@{{ host }}:/var/lib/vz/template/cache/proxmox-lxc-{{ target }}.tar.xz
-
-[group('Deploy')]
-lxc-create target id host="raum": (lxc-upload target)
-    nix eval "$(pwd)#nixosConfigurations.docker-on-nixos.config.lib.lxc.createCommand" --apply 'f: f "{{ id }}"' --json | jq -r . | ssh root@raum bash -xeu -
-
 [group('Main')]
 build-all: check
     ncf build all
-
-[group('Main')]
-deploy-all: check-git-crypt-unlocked build-all
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mapfile -t all < <(nix eval "$(pwd)#deploy.nodes" --apply builtins.attrNames --json | jq -r ".[]")
-    for cf in "${all[@]}"; do
-      echo "Deploying $cf"
-      just nixOpts="" deploy "$cf" || echo "Failed"
-    done
-
-[group('Main')]
-deploy-boot-all: check-git-crypt-unlocked build-all
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mapfile -t all < <(nix eval "$(pwd)#deploy.nodes" --apply builtins.attrNames --json | jq -r ".[]")
-    for cf in "${all[@]}"; do
-      echo "Deploying $cf"
-      just nixOpts="" deploy-boot "$cf" || echo "Failed"
-    done
 
 
 [group('Ansible')]

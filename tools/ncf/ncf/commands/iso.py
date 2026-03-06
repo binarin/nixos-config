@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import tempfile
 from pathlib import Path
 
 from rich.console import Console
@@ -10,10 +11,6 @@ from .. import config
 from ..external import run_command, ExternalToolError
 
 console = Console()
-
-# Default ISO output location
-DEFAULT_OUTPUT_DIR = Path.home() / ".cache" / "nixos-config" / "master" / "iso-wifi"
-DEFAULT_OUTPUT_FILE = "nixos-wifi.iso"
 
 # WiFi configuration defaults
 DEFAULT_SSID = "agares-guest"
@@ -49,42 +46,48 @@ def build_iso_with_wifi(
     """
     console.print("[bold]Building ISO image with WiFi credentials...[/bold]")
 
-    result_link = repo_root / "iso-result"
+    # Use current directory for the temp result link
+    result_link = Path.cwd() / "iso-result"
 
     # Set environment variables for impure nix build
     env = os.environ.copy()
     env["WIFI_SSID"] = ssid
     env["WIFI_PASSWORD"] = password
 
-    run_command(
-        [
-            "nix",
-            "build",
-            "--impure",
-            f"{repo_root}#nixosConfigurations.iso.config.system.build.isoImage",
-            "-j",
-            "auto",
-            "-o",
-            str(result_link),
-        ],
-        cwd=repo_root,
-        env=env,
-    )
+    try:
+        run_command(
+            [
+                "nix",
+                "build",
+                "--impure",
+                f"{repo_root}#nixosConfigurations.iso.config.system.build.isoImage",
+                "-j",
+                "auto",
+                "-o",
+                str(result_link),
+            ],
+            cwd=repo_root,
+            env=env,
+        )
 
-    # Find the ISO file in the result
-    iso_files = list(result_link.rglob("*.iso"))
-    if not iso_files:
-        raise ExternalToolError("nix build", "No ISO file found in build result")
+        # Find the ISO file in the result
+        iso_files = list(result_link.rglob("*.iso"))
+        if not iso_files:
+            raise ExternalToolError("nix build", "No ISO file found in build result")
 
-    iso_file = iso_files[0]
-    console.print(f"[green]✓[/green] ISO built: {iso_file}")
+        iso_file = iso_files[0]
+        console.print(f"[green]✓[/green] ISO built: {iso_file}")
 
-    # Copy to output location
-    output.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(iso_file, output)
-    console.print(f"[green]✓[/green] WiFi-enabled ISO copied to: {output}")
+        # Copy to output location
+        output.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(iso_file, output)
+        console.print(f"[green]✓[/green] WiFi-enabled ISO copied to: {output}")
 
-    return output
+        return output
+    finally:
+        # Clean up the result link
+        if result_link.is_symlink():
+            result_link.unlink()
 
 
 def read_password_file(password_file: Path) -> str:
@@ -105,7 +108,7 @@ def read_password_file(password_file: Path) -> str:
 
 
 def run_build_wifi(
-    output: Path | None = None,
+    output: Path,
     ssid: str = DEFAULT_SSID,
     password: str | None = None,
     password_file: Path | None = None,
@@ -120,10 +123,6 @@ def run_build_wifi(
     - default git-crypt file if neither is provided
     """
     repo_root = config.find_repo_root()
-
-    # Determine output path
-    if output is None:
-        output = DEFAULT_OUTPUT_DIR / DEFAULT_OUTPUT_FILE
 
     # Determine password source for display
     if password:

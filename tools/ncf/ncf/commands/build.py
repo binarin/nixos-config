@@ -34,12 +34,6 @@ BOLD = "\033[1m"
 RESET = "\033[0m"
 
 
-def get_cache_dir() -> Path:
-    """Get the cache directory for build outputs."""
-    cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
-    return cache_dir / "nixos-config"
-
-
 def run_nixos(
     configuration: str,
     output: Optional[Path] = None,
@@ -53,7 +47,7 @@ def run_nixos(
 
     Args:
         configuration: The NixOS configuration name to build
-        output: Output path for the result symlink (default: ~/.cache/nixos-config/nixos-configuration/<config>)
+        output: Output path for the result symlink (None = no output link)
         verbosity: 0=quiet, 1=normal, 2=verbose
         use_nom: Use nix-output-monitor (None=auto-detect)
         builders: List of remote builders
@@ -62,16 +56,14 @@ def run_nixos(
     """
     repo_root = config.find_repo_root()
 
-    if output is None:
-        output = get_cache_dir() / "nixos-configuration" / configuration
-
     flake_ref = (
         f"{repo_root}#nixosConfigurations.{configuration}.config.system.build.toplevel"
     )
 
     if dry_run:
         console.print(f"[bold]Would build:[/bold] {flake_ref}")
-        console.print(f"[bold]Output:[/bold] {output}")
+        if output:
+            console.print(f"[bold]Output:[/bold] {output}")
         if builders:
             console.print(f"[bold]Builders:[/bold] {', '.join(builders)}")
         return
@@ -88,7 +80,10 @@ def run_nixos(
     )
 
     runner.run_build(flake_ref, output=output)
-    console.print(f"[green]✓[/green] Built {configuration} -> {output}")
+    if output:
+        console.print(f"[green]✓[/green] Built {configuration} -> {output}")
+    else:
+        console.print(f"[green]✓[/green] Built {configuration}")
 
 
 def run_home(
@@ -106,7 +101,7 @@ def run_home(
     Args:
         host: The host name
         user: The user name
-        output: Output path for the result symlink
+        output: Output path for the result symlink (None = no output link)
         verbosity: 0=quiet, 1=normal, 2=verbose
         use_nom: Use nix-output-monitor (None=auto-detect)
         builders: List of remote builders
@@ -115,14 +110,12 @@ def run_home(
     """
     repo_root = config.find_repo_root()
 
-    if output is None:
-        output = get_cache_dir() / "home-configuration" / host / user
-
     flake_ref = f"{repo_root}#nixosConfigurations.{host}.config.home-manager.users.{user}.home.activationPackage"
 
     if dry_run:
         console.print(f"[bold]Would build:[/bold] {flake_ref}")
-        console.print(f"[bold]Output:[/bold] {output}")
+        if output:
+            console.print(f"[bold]Output:[/bold] {output}")
         return
 
     console.print(f"[bold]Building home-manager configuration:[/bold] {host}/{user}")
@@ -137,7 +130,10 @@ def run_home(
     )
 
     runner.run_build(flake_ref, output=output)
-    console.print(f"[green]✓[/green] Built {host}/{user} -> {output}")
+    if output:
+        console.print(f"[green]✓[/green] Built {host}/{user} -> {output}")
+    else:
+        console.print(f"[green]✓[/green] Built {host}/{user}")
 
 
 def run_lxc(
@@ -370,7 +366,7 @@ def run_iso(
     """Build ISO image.
 
     Args:
-        output: Output path for the result symlink
+        output: Output path for the result symlink (None = no output link)
         verbosity: 0=quiet, 1=normal, 2=verbose
         use_nom: Use nix-output-monitor (None=auto-detect)
         builders: List of remote builders
@@ -379,14 +375,12 @@ def run_iso(
     """
     repo_root = config.find_repo_root()
 
-    if output is None:
-        output = get_cache_dir() / "nixos-configuration" / "iso"
-
     flake_ref = f"{repo_root}#nixosConfigurations.iso.config.system.build.isoImage"
 
     if dry_run:
         console.print(f"[bold]Would build:[/bold] {flake_ref}")
-        console.print(f"[bold]Output:[/bold] {output}")
+        if output:
+            console.print(f"[bold]Output:[/bold] {output}")
         return
 
     console.print("[bold]Building ISO image[/bold]")
@@ -401,7 +395,10 @@ def run_iso(
     )
 
     runner.run_build(flake_ref, output=output)
-    console.print(f"[green]✓[/green] Built ISO -> {output}")
+    if output:
+        console.print(f"[green]✓[/green] Built ISO -> {output}")
+    else:
+        console.print(f"[green]✓[/green] Built ISO")
 
 
 def run_all(
@@ -423,7 +420,6 @@ def run_all(
         dry_run: Show what would be done without building
     """
     repo_root = config.find_repo_root()
-    cache_dir = get_cache_dir() / "nixos-configuration"
 
     # Get all configurations
     console.print("[bold]Discovering NixOS configurations...[/bold]")
@@ -465,7 +461,6 @@ def run_all(
         if interrupted:
             return (cfg, False, "Interrupted")
 
-        output = cache_dir / cfg
         flake_ref = (
             f"{repo_root}#nixosConfigurations.{cfg}.config.system.build.toplevel"
         )
@@ -480,7 +475,7 @@ def run_all(
         )
 
         try:
-            build_runner.run_build(flake_ref, output=output)
+            build_runner.run_build(flake_ref, output=None)
             return (cfg, True, "")
         except Exception as e:
             return (cfg, False, str(e))

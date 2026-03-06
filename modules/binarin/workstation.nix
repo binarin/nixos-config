@@ -86,7 +86,6 @@
       ];
 
       impermanence.local-directories = [
-        ".cache/nixos-config"
         ".cache/nix"
         ".local/state/home-manager"
         ".local/state/nix"

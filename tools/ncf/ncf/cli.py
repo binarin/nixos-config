@@ -515,7 +515,7 @@ def ipam_format_cmd(
 @iso_app.command("build-wifi")
 def iso_build_wifi_cmd(
     output: str = typer.Option(
-        None, "--output", "-o", help="Output path for the WiFi-enabled ISO"
+        ..., "--output", "-o", help="Output path for the WiFi-enabled ISO"
     ),
     ssid: str = typer.Option(iso.DEFAULT_SSID, "--ssid", help="WiFi network name"),
     password: str = typer.Option(
@@ -541,7 +541,7 @@ def iso_build_wifi_cmd(
     """
     from pathlib import Path
 
-    output_path = Path(output) if output else None
+    output_path = Path(output)
     password_file_path = Path(password_file) if password_file else None
     iso.run_build_wifi(
         output=output_path,
