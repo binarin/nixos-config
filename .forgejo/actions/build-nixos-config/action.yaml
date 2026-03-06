@@ -24,19 +24,22 @@ runs:
       run: |
         BUILD_PATH=$(nix run .#env-aware-nix-run -- .#ncf -- ci build-path "$CONFIG_NAME")
 
-        # Create temp file for debug output
-        DEBUG_LOG=$(mktemp)
-        trap "rm -f $DEBUG_LOG" EXIT
-
-        # Build with --debug to capture all store paths
+        # First, run normal build with clean output for the actions log
         if [[ -n "$OUTPUT_LINK" ]]; then
-          nix build --debug "$BUILD_PATH" -o "$OUTPUT_LINK" 2>"$DEBUG_LOG"
+          nix build "$BUILD_PATH" -o "$OUTPUT_LINK"
         else
-          nix build --debug "$BUILD_PATH" --no-link --print-out-paths 2>"$DEBUG_LOG"
+          nix build "$BUILD_PATH" --no-link --print-out-paths
         fi
 
-        # Extract store paths for caching if paths-file requested
+        # If paths-file requested, run debug build to collect store paths for caching
+        # This should be fast since all derivations are already built
         if [[ -n "$PATHS_FILE" ]]; then
+          DEBUG_LOG=$(mktemp)
+          trap "rm -f $DEBUG_LOG" EXIT
+
+          # Run with --debug to capture all store paths (suppress all output)
+          nix build --debug "$BUILD_PATH" --no-link >"$DEBUG_LOG" 2>&1
+
           # Extract top-level store paths, excluding artifacts
           grep -oP "/nix/store/[a-z0-9]{32}-[^/'\"\s>]+" "$DEBUG_LOG" \
             | grep -v '\.drv$' \
