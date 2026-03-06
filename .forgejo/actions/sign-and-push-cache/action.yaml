@@ -2,8 +2,13 @@ name: 'Sign and Push to Cache'
 description: 'Sign Nix store paths and push to S3 cache'
 inputs:
   store-path:
-    description: 'Store path to sign and push'
-    required: true
+    description: 'Store path to sign and push (legacy, use paths-file instead)'
+    required: false
+    default: ''
+  paths-file:
+    description: 'File containing store paths to sign and push (one per line)'
+    required: false
+    default: ''
   aws-access-key-id:
     description: 'AWS access key ID'
     required: true
@@ -25,7 +30,26 @@ runs:
         AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
         GARAGE_STORE_PRIV_KEY_PEM: ${{ inputs.signing-key-pem }}
         STORE_PATH: ${{ inputs.store-path }}
+        PATHS_FILE: ${{ inputs.paths-file }}
       run: |
-        echo "Store path: $STORE_PATH"
-        nix store sign --recursive --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") "$STORE_PATH"
-        nix copy $(nix-store -qR "$STORE_PATH") --to "s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
+        S3_DEST="s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
+
+        if [[ -n "$PATHS_FILE" && -f "$PATHS_FILE" ]]; then
+          # New mode: sign and push all paths from file
+          PATH_COUNT=$(wc -l < "$PATHS_FILE")
+          echo "Signing and pushing $PATH_COUNT store paths from $PATHS_FILE"
+
+          # Sign all paths
+          xargs nix store sign --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") < "$PATHS_FILE"
+
+          # Push to S3 (nix copy auto-skips existing)
+          xargs nix copy --to "$S3_DEST" < "$PATHS_FILE"
+        elif [[ -n "$STORE_PATH" ]]; then
+          # Legacy mode: single store path with closure
+          echo "Store path: $STORE_PATH"
+          nix store sign --recursive --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") "$STORE_PATH"
+          nix copy $(nix-store -qR "$STORE_PATH") --to "$S3_DEST"
+        else
+          echo "Error: Either paths-file or store-path must be provided"
+          exit 1
+        fi

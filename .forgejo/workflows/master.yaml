@@ -31,9 +31,10 @@ jobs:
         with:
           config: ${{ matrix.config }}
           output-link: ~/.cache/nixos-config/nixos-configuration/${{ matrix.config }}
+          paths-file: ~/.cache/nixos-config/nixos-configuration/${{ matrix.config }}.paths
       - uses: ./.forgejo/actions/sign-and-push-cache
         with:
-          store-path: ~/.cache/nixos-config/nixos-configuration/${{ matrix.config }}
+          paths-file: ~/.cache/nixos-config/nixos-configuration/${{ matrix.config }}.paths
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           signing-key-pem: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
