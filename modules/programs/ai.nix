@@ -9,6 +9,7 @@
       key = "nixos-config.modules.home.ai-tools";
       imports = [
         self.homeModules.impermanence
+        self.homeModules.claude-completion
       ];
 
       home.packages =
