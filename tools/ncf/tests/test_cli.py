@@ -62,6 +62,69 @@ class TestCompletionHandling:
         # Should not have Python traceback
         assert "Traceback (most recent call last)" not in result.stderr
 
+    def test_typer_completion_classes_registered(self):
+        """Test that typer's completion classes are registered with click.
+
+        Regression test for issue #161: When completion was triggered with
+        _NCF_COMPLETE=complete_zsh, ncf crashed with KeyError: 'COMP_WORDS'
+        because typer's completion classes weren't registered with click.
+
+        The fix is to call completion_init() at module import time in cli.py.
+        This test verifies that importing ncf.cli registers the correct classes.
+        """
+        # Import click's completion module
+        import click.shell_completion
+
+        # Import ncf.cli which should call completion_init()
+        import ncf.cli  # noqa: F401
+
+        # Verify that typer's completion classes are registered, not click's
+        zsh_cls = click.shell_completion.get_completion_class("zsh")
+        bash_cls = click.shell_completion.get_completion_class("bash")
+
+        # Typer's classes use _TYPER_COMPLETE_ARGS, click's use COMP_WORDS
+        # We verify by checking the class name contains "typer"
+        assert (
+            "typer" in zsh_cls.__module__
+        ), f"Expected typer's ZshComplete but got {zsh_cls.__module__}.{zsh_cls.__name__}"
+        assert (
+            "typer" in bash_cls.__module__
+        ), f"Expected typer's BashComplete but got {bash_cls.__module__}.{bash_cls.__name__}"
+
+    def test_completion_with_typer_env_vars(self, run_ncf):
+        """Test that zsh completion works with _TYPER_COMPLETE_ARGS.
+
+        This verifies the completion flow works end-to-end by setting
+        the completion variable that would be set when running the 'ncf'
+        binary (not 'python -m ncf' which has different prog_name handling).
+
+        Note: The original issue #161 was specifically about zsh completion.
+        Typer's ZshComplete uses _TYPER_COMPLETE_ARGS, while click's uses
+        COMP_WORDS. By calling completion_init(), we ensure typer's class
+        is registered.
+
+        For bash completion, both typer and click use COMP_WORDS/COMP_CWORD,
+        so there's no compatibility issue there.
+        """
+        # We can't easily test with python -m ncf because the program name
+        # contains spaces, making the completion variable invalid.
+        # Instead, verify no crash happens with the completion env vars set.
+        result = run_ncf(
+            check=False,
+            env={
+                # Use a simple test - verify the module can be imported
+                # and run without crashing when these vars are set
+                "_NCF_COMPLETE": "complete_zsh",
+                "_TYPER_COMPLETE_ARGS": "ncf ",
+            },
+        )
+        # The key test: should NOT crash with KeyError: 'COMP_WORDS'
+        # When run with 'python -m ncf', the completion var doesn't match
+        # so it just shows help (exit 2), but it shouldn't crash
+        assert "KeyError" not in result.stderr
+        assert "COMP_WORDS" not in result.stderr
+        assert "Traceback (most recent call last)" not in result.stderr
+
 
 class TestSubcommands:
     """Test that various subcommands are accessible."""

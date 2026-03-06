@@ -2,7 +2,15 @@
 
 import typer
 from rich.console import Console
+from typer._completion_classes import completion_init
 from typer.completion import show_callback
+
+# Initialize typer's completion classes with click early, before any shell
+# completion handling. This is needed because we use add_completion=False and
+# manually add --show-completion. Without this, when _NCF_COMPLETE is set,
+# typer's shell_complete() would use click's completion classes instead of
+# typer's, causing KeyError: 'COMP_WORDS' (click expects different env vars).
+completion_init()
 
 from .commands import (
     add_machine,
