@@ -1,0 +1,21 @@
+name: 'Forgejo API Auth'
+description: 'Authenticate with Forgejo API'
+inputs:
+  token:
+    description: 'Forgejo API token'
+    required: true
+  key-name:
+    description: 'Name for the auth key'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: API auth
+      shell: bash
+      env:
+        PR_TOKEN: ${{ inputs.token }}
+        KEY_NAME: ${{ inputs.key-name }}
+      run: |
+        set -x
+        fj -H forgejo.lynx-lizard.ts.net auth logout forgejo.lynx-lizard.ts.net || true
+        echo "$PR_TOKEN" | fj -H forgejo.lynx-lizard.ts.net auth add-key "$KEY_NAME"

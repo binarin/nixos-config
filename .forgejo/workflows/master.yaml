@@ -24,23 +24,16 @@ jobs:
         config: ${{ fromJSON(needs.define-matrix.outputs.configurations) }}
     steps:
       - uses: actions/checkout@v4
-      - name: unlock git-crypt
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
-      - name: build nixos configuration
-        run: |
-          BUILD_PATH=$(nix run --ignore-env .#ncf -- ci build-path '${{ matrix.config }}')
-          nix build "$BUILD_PATH" --no-link --print-out-paths -o ~/.cache/nixos-config/nixos-configuration/${{ matrix.config }}
-      - name: sign and push to nix-cache-storage
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
-          AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
-          GARAGE_STORE_PRIV_KEY_PEM: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
-        run: |
-          STORE_PATH=$(readlink -f ~/.cache/nixos-config/nixos-configuration/${{ matrix.config }})
-          echo "Store path: $STORE_PATH"
-          nix store sign --recursive --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") "$STORE_PATH"
-          nix copy $(nix-store -qR "$STORE_PATH") --to "s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
+      - uses: ./.forgejo/actions/git-crypt-unlock
+        with:
+          git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
+      - uses: ./.forgejo/actions/build-nixos-config
+        with:
+          config: ${{ matrix.config }}
+          output-link: ~/.cache/nixos-config/nixos-configuration/${{ matrix.config }}
+      - uses: ./.forgejo/actions/sign-and-push-cache
+        with:
+          store-path: ~/.cache/nixos-config/nixos-configuration/${{ matrix.config }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          signing-key-pem: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}

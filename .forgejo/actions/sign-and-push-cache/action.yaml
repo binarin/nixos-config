@@ -1,0 +1,31 @@
+name: 'Sign and Push to Cache'
+description: 'Sign Nix store paths and push to S3 cache'
+inputs:
+  store-path:
+    description: 'Store path to sign and push'
+    required: true
+  aws-access-key-id:
+    description: 'AWS access key ID'
+    required: true
+  aws-secret-access-key:
+    description: 'AWS secret access key'
+    required: true
+  signing-key-pem:
+    description: 'Private key for signing (PEM format)'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: sign and push to nix-cache-storage
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
+        AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+        AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
+        GARAGE_STORE_PRIV_KEY_PEM: ${{ inputs.signing-key-pem }}
+        STORE_PATH: ${{ inputs.store-path }}
+      run: |
+        echo "Store path: $STORE_PATH"
+        nix store sign --recursive --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") "$STORE_PATH"
+        nix copy $(nix-store -qR "$STORE_PATH") --to "s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"

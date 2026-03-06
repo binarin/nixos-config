@@ -1,0 +1,25 @@
+name: 'Build NixOS Configuration'
+description: 'Build a single NixOS configuration'
+inputs:
+  config:
+    description: 'Configuration name to build'
+    required: true
+  output-link:
+    description: 'Path to output link (optional)'
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: build nixos configuration
+      shell: bash
+      env:
+        CONFIG_NAME: ${{ inputs.config }}
+        OUTPUT_LINK: ${{ inputs.output-link }}
+      run: |
+        BUILD_PATH=$(nix run --ignore-env .#ncf -- ci build-path "$CONFIG_NAME")
+        if [[ -n "$OUTPUT_LINK" ]]; then
+          nix build "$BUILD_PATH" --no-link --print-out-paths -o "$OUTPUT_LINK"
+        else
+          nix build "$BUILD_PATH" --no-link --print-out-paths
+        fi

@@ -1,0 +1,8 @@
+name: 'Fake Git-crypt Unlock'
+description: 'Create fake secrets for untrusted PR builds'
+runs:
+  using: composite
+  steps:
+    - name: fake git-crypt unlock
+      shell: bash
+      run: nix run --ignore-env .#ncf -- ci fake-unlock

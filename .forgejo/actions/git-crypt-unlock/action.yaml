@@ -1,0 +1,14 @@
+name: 'Git-crypt Unlock'
+description: 'Unlock git-crypt encrypted files'
+inputs:
+  git-crypt-key:
+    description: 'Base64-encoded git-crypt key'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: unlock git-crypt
+      shell: bash
+      env:
+        GIT_CRYPT_KEY: ${{ inputs.git-crypt-key }}
+      run: git crypt unlock <(echo "$GIT_CRYPT_KEY"|base64 -d)
