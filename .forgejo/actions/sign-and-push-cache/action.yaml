@@ -1,14 +1,9 @@
 name: 'Sign and Push to Cache'
 description: 'Sign Nix store paths and push to S3 cache'
 inputs:
-  store-path:
-    description: 'Store path to sign and push (legacy, use paths-file instead)'
-    required: false
-    default: ''
   paths-file:
     description: 'File containing store paths to sign and push (one per line)'
-    required: false
-    default: ''
+    required: true
   aws-access-key-id:
     description: 'AWS access key ID'
     required: true
@@ -29,7 +24,6 @@ runs:
         AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
         AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
         GARAGE_STORE_PRIV_KEY_PEM: ${{ inputs.signing-key-pem }}
-        STORE_PATH: ${{ inputs.store-path }}
         PATHS_FILE: ${{ inputs.paths-file }}
       run: |
         S3_DEST="s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
@@ -45,24 +39,34 @@ runs:
         fi
         echo "Lock acquired, proceeding with signing"
 
-        if [[ -n "$PATHS_FILE" && -f "$PATHS_FILE" ]]; then
-          # New mode: sign and push all paths from file
-          PATH_COUNT=$(wc -l < "$PATHS_FILE")
-          echo "Signing and pushing $PATH_COUNT store paths from $PATHS_FILE"
+        # Write key to temp file (process substitution doesn't work with xargs
+        # because the pipe can only be read once, but xargs may invoke the
+        # command multiple times for large input)
+        KEY_FILE=$(mktemp)
+        trap 'rm -f "$KEY_FILE"' EXIT
+        echo "$GARAGE_STORE_PRIV_KEY_PEM" > "$KEY_FILE"
+        chmod 600 "$KEY_FILE"
 
-          # Sign all paths
-          xargs nix store sign --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") < "$PATHS_FILE"
-
-          # Push to S3 (nix copy auto-skips existing)
-          xargs nix copy --to "$S3_DEST" < "$PATHS_FILE"
-        elif [[ -n "$STORE_PATH" ]]; then
-          # Legacy mode: single store path with closure
-          echo "Store path: $STORE_PATH"
-          nix store sign --recursive --key-file <(echo "$GARAGE_STORE_PRIV_KEY_PEM") "$STORE_PATH"
-          nix copy $(nix-store -qR "$STORE_PATH") --to "$S3_DEST"
-        else
-          echo "Error: Either paths-file or store-path must be provided"
+        if [[ ! -f "$PATHS_FILE" ]]; then
+          echo "Error: paths-file does not exist: $PATHS_FILE"
           exit 1
         fi
+
+        PATH_COUNT=$(wc -l < "$PATHS_FILE")
+        echo "Signing and pushing $PATH_COUNT store paths from $PATHS_FILE"
+
+        # Sign all paths
+        echo "=== Starting nix store sign ==="
+        xargs nix store sign --key-file "$KEY_FILE" < "$PATHS_FILE"
+        echo "=== nix store sign completed ==="
+
+        # Push to S3 (nix copy auto-skips existing)
+        echo "=== Starting nix copy ==="
+        xargs nix copy --to "$S3_DEST" < "$PATHS_FILE" 2>&1 || {
+          echo "=== nix copy failed with exit code $? ==="
+          echo "Note: 'key is corrupt' errors typically indicate malformed signatures in the cache"
+          exit 1
+        }
+        echo "=== nix copy completed ==="
 
         # Lock is automatically released when file descriptor 9 is closed (script exit)
