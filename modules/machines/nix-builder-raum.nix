@@ -38,16 +38,28 @@ in
         "${self}/machines/nix-builder-raum/hardware-configuration.nix"
 
         self.nixosModules.lxc
-
         self.nixosModules.baseline
-
+        self.nixosModules.nix-builder
       ];
 
       config = {
         networking.hostName = inventoryHostName;
         system.stateVersion = "25.11";
-        nixos-config.export-metrics.enable = false;
 
+        proxmoxLXC = {
+          cores = 8;
+          memory = 16384;
+          mounts = [
+            {
+              mountPoint = "/nix";
+              size = "512G";
+            }
+            {
+              mountPoint = "/var/lib/private/gitea-runner";
+              size = "32G";
+            }
+          ];
+        };
       };
     };
 }
