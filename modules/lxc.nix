@@ -21,6 +21,12 @@ in
       ];
 
       options.proxmoxLXC = {
+        cores = lib.mkOption {
+          type = lib.types.int;
+          default = 2;
+          description = "Number of CPU cores";
+        };
+
         memory = lib.mkOption {
           type = lib.types.int;
           default = 2048;
