@@ -18,15 +18,7 @@ jobs:
         with:
           git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
       - name: Update flake inputs
-        run: |
-          # Update all inputs except nixpkgs-trezor-agent (handled by separate workflow)
-          nix flake update \
-            arion den deploy-rs determinate direnv-instant disko emacs-overlay \
-            flake-aspects flake-file flake-parts home-manager home-manager-master \
-            hyprland hyprland-contrib impermanence import-tree nix-ai-tools \
-            nix-auto-follow nix-index-database nixos-hardware nixos-raspberrypi \
-            nixos-wsl nixpkgs nixpkgs-unstable pre-commit-hooks sops-nix srvos \
-            stylix systems treefmt-nix waybar
+        run: nix flake update
       - name: Run autofollow
         run: nix run .#write-flake
       - name: Format code
