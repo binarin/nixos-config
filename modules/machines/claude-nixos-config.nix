@@ -2,9 +2,7 @@
 { self, inputs, ... }:
 {
   flake.deploy.nodes.claude-nixos-config = {
-    # hostname = "claude-nixos-config";
-    # hostname = "claude-nixos-config";
-    hostname = "192.168.3.192";
+    hostname = "claude-nixos-config";
     profiles.system = {
       sshUser = "root";
       path = self.lib.deploy-nixos self.nixosConfigurations.claude-nixos-config;
@@ -34,6 +32,7 @@
         self.nixosModules.qemu-guest
         self.nixosModules.impure-nix-setup
         self.nixosModules.binarin-workstation
+        self.nixosModules.binarin-podman
         self.nixosModules.tailscale
       ];
 
