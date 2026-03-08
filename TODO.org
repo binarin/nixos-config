@@ -35,7 +35,7 @@
   :ID: 8bde76c6-05cf-4c65-88ab-97c68d391e1f
   :CREATED: [2025-11-27 Thu 17:22]
   :END:
-* TODO Script to rolling upgrade all deploy_rs machines
+* DONE Script to rolling upgrade all deploy_rs machines
   :PROPERTIES:
   :ID: 25507817-4383-4a0d-8234-ecc01264c6be
   :CREATED: [2025-12-01 Mon 19:33]
@@ -43,7 +43,7 @@
   :CLOCK:
   CLOCK: [2025-12-01 Mon 19:33]--[2025-12-01 Mon 19:34] =>  0:01
   :END:
-* PROJ nixos-secrets - Python Secrets Manager
+* DONE nixos-secrets - Python Secrets Manager
 ** Overview
 
 Python CLI tool for managing NixOS secrets. Two types of secrets:
