@@ -27,24 +27,24 @@ jobs:
       - uses: ./.forgejo/actions/git-crypt-unlock
         with:
           git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
-      - uses: ./.forgejo/actions/build-nix
-        with:
-          config: ${{ matrix.config }}
-          paths-file: ${{ runner.temp }}/nixos-config-${{ matrix.config }}.paths
-      - uses: ./.forgejo/actions/sign-and-push-cache
-        with:
-          paths-file: ${{ runner.temp }}/nixos-config-${{ matrix.config }}.paths
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          signing-key-pem: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
       - name: get artifact name
         id: artifact
         run: |
           echo "name=$(nix run .#env-aware-nix-run -- .#ncf -- ci expand-matrix-entry '${{ matrix.config }}')" >> "$FORGEJO_OUTPUT"
+      - uses: ./.forgejo/actions/build-nix
+        with:
+          config: ${{ matrix.config }}
+          paths-file: ${{ runner.temp }}/${{ steps.artifact.outputs.name }}.paths
+      - uses: ./.forgejo/actions/sign-and-push-cache
+        with:
+          paths-file: ${{ runner.temp }}/${{ steps.artifact.outputs.name }}.paths
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          signing-key-pem: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
       - uses: actions/upload-artifact@v3
         with:
           name: cached-paths-${{ steps.artifact.outputs.name }}
-          path: ${{ runner.temp }}/nixos-config-${{ matrix.config }}.paths
+          path: ${{ runner.temp }}/${{ steps.artifact.outputs.name }}.paths
           retention-days: 7
 
   collect-cached-paths:
