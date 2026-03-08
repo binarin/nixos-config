@@ -1,9 +1,18 @@
 {
   self,
   inputs,
+  config,
   ...
 }:
 {
+  flake.deploy.nodes.mail = {
+    hostname = config.inventory.ipAllocation."mail".home.primary.address;
+    profiles.system = {
+      sshUser = "root";
+      path = self.lib.deploy-nixos self.nixosConfigurations.mail;
+    };
+  };
+
   flake.nixosConfigurations.mail = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     modules = [

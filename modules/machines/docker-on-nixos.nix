@@ -1,9 +1,18 @@
 {
   self,
   inputs,
+  config,
   ...
 }:
 {
+  flake.deploy.nodes.docker-on-nixos = {
+    hostname = config.inventory.ipAllocation."docker-on-nixos".home.primary.address;
+    profiles.system = {
+      sshUser = "root";
+      path = self.lib.deploy-nixos self.nixosConfigurations.docker-on-nixos;
+    };
+  };
+
   flake.nixosConfigurations.docker-on-nixos = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     modules = [

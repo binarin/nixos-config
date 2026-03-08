@@ -1,9 +1,18 @@
 {
   self,
   inputs,
+  config,
   ...
 }:
 {
+  flake.deploy.nodes.nix-cache = {
+    hostname = config.inventory.ipAllocation."nix-cache".home.primary.address;
+    profiles.system = {
+      sshUser = "root";
+      path = self.lib.deploy-nixos self.nixosConfigurations.nix-cache;
+    };
+  };
+
   flake.nixosConfigurations.nix-cache = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     modules = [

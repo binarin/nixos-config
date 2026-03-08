@@ -1,9 +1,18 @@
 {
   self,
   inputs,
+  config,
   ...
 }:
 {
+  flake.deploy.nodes.media = {
+    hostname = config.inventory.ipAllocation."media".home.primary.address;
+    profiles.system = {
+      sshUser = "root";
+      path = self.lib.deploy-nixos self.nixosConfigurations.media;
+    };
+  };
+
   flake.nixosConfigurations.media = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     modules = [

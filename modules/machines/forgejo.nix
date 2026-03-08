@@ -1,9 +1,18 @@
 {
   self,
   inputs,
+  config,
   ...
 }:
 {
+  flake.deploy.nodes.forgejo = {
+    hostname = config.inventory.ipAllocation."forgejo".home.primary.address;
+    profiles.system = {
+      sshUser = "root";
+      path = self.lib.deploy-nixos self.nixosConfigurations.forgejo;
+    };
+  };
+
   flake.nixosConfigurations.forgejo = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     modules = [

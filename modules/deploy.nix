@@ -16,29 +16,6 @@ let
       })
     ];
   };
-
-  # NOTE: can scrape nixosConfigurations, but computation is a bit too heavy
-  deployableSystems = [
-    "forgejo"
-    "monitor"
-    "media"
-    "nix-cache"
-    "mail"
-    "docker-on-nixos"
-  ];
-
-  deployNixosSystem =
-    hostName:
-    let
-      deployHostName = self.nixosConfigurations."${hostName}".config.networking.hostName;
-    in
-    {
-      hostname = deployHostName;
-      profiles.system = {
-        sshUser = "root";
-        path = deployPkgs.deploy-rs.lib.activate.nixos self.nixosConfigurations."${hostName}";
-      };
-    };
 in
 {
   flake = {
@@ -47,8 +24,6 @@ in
     };
     config = {
       lib.deploy-nixos = deployPkgs.deploy-rs.lib.activate.nixos;
-
-      deploy.nodes = lib.genAttrs deployableSystems deployNixosSystem;
 
       # This is highly advised, and will prevent many possible mistakes
       perSystem =
