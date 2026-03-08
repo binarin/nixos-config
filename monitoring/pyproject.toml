@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "monitoring"
+version = "0.1.0"
+description = "Grafana dashboard generation for NixOS monitoring"
+requires-python = ">=3.11"
+dependencies = ["grafana-foundation-sdk>=1.0.0"]
+
+[project.scripts]
+monitoring = "monitoring.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]

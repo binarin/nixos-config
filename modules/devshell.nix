@@ -95,9 +95,44 @@
 
       ncfPythonEnv = pkgs.python3.withPackages (ps: ncf.dependencies ++ [ ps.pytest ]);
 
+      # Grafana Foundation SDK for dashboard generation
+      grafana-foundation-sdk = pkgs.python3.pkgs.buildPythonPackage {
+        pname = "grafana-foundation-sdk";
+        version = "11.6.0";
+        format = "wheel";
+
+        src = pkgs.fetchurl {
+          url = "https://files.pythonhosted.org/packages/ef/82/16606327d24855f90a2fcbff735c8dd2cc9e3d7db71676cb65c3293a7083/grafana_foundation_sdk-1769699379%2111.6.0-py3-none-any.whl";
+          hash = "sha256-kteoFE66D6gC5yj7cOY9dLBW+xGV/xFtgSrXpMz6Xso=";
+          name = "grafana_foundation_sdk-11.6.0-py3-none-any.whl";
+        };
+
+        pythonImportsCheck = [ "grafana_foundation_sdk" ];
+      };
+
+      # Monitoring tool for generating Grafana dashboards
+      monitoring = pkgs.python3.pkgs.buildPythonApplication {
+        pname = "monitoring";
+        version = "0.1.0";
+        format = "pyproject";
+
+        src = ../monitoring;
+
+        build-system = [ pkgs.python3.pkgs.setuptools ];
+
+        dependencies = [
+          grafana-foundation-sdk
+        ];
+
+        pythonImportsCheck = [ "monitoring" ];
+      };
+
+      monitoringPythonEnv = pkgs.python3.withPackages (_ps: [ grafana-foundation-sdk ]);
+
     in
     {
       packages.ncf = ncf;
+      packages.monitoring = monitoring;
       packages.env-aware-nix-run = env-aware-nix-run;
       packages.env-aware-nix-develop = env-aware-nix-develop;
 
@@ -122,10 +157,14 @@
             # For ncf tool
             ncf
             ncfPythonEnv
+            # For monitoring dashboards
+            monitoring
+            monitoringPythonEnv
+            grafanactl
           ]
           ++ ncfRuntimeDeps;
         shellHook = ''
-          export PYTHONPATH="$PWD/tools/ncf:$PYTHONPATH"
+          export PYTHONPATH="$PWD/tools/ncf:$PWD/monitoring:$PYTHONPATH"
         '';
       };
     };
