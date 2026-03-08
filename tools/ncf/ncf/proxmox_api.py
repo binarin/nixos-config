@@ -6,7 +6,7 @@ from proxmoxer import ProxmoxAPI
 
 
 class ProxmoxClient:
-    """Wrapper around proxmoxer for LXC container operations."""
+    """Wrapper around proxmoxer for LXC container and VM operations."""
 
     def __init__(self, host: str, user: str = "root"):
         """Initialize Proxmox client with SSH paramiko backend.
@@ -49,3 +49,57 @@ class ProxmoxClient:
     def delete_container(self, vmid: int, purge: bool = True) -> None:
         """Delete a container."""
         self.api.nodes(self.node).lxc(vmid).delete(purge=1 if purge else 0)
+
+    # VM operations
+
+    def vm_exists(self, hostname: str) -> int | None:
+        """Check if VM with hostname exists. Returns VMID or None."""
+        for vm in self.api.nodes(self.node).qemu.get():
+            if vm.get("name") == hostname:
+                return int(vm["vmid"])
+        return None
+
+    def get_vm_config(self, vmid: int) -> dict[str, Any]:
+        """Get VM configuration."""
+        return dict(self.api.nodes(self.node).qemu(vmid).config.get())
+
+    def start_vm(self, vmid: int) -> None:
+        """Start a VM."""
+        self.api.nodes(self.node).qemu(vmid).status.start.post()
+
+    def stop_vm(self, vmid: int) -> None:
+        """Stop a VM."""
+        self.api.nodes(self.node).qemu(vmid).status.stop.post()
+
+    def delete_vm(self, vmid: int, purge: bool = True) -> None:
+        """Delete a VM."""
+        self.api.nodes(self.node).qemu(vmid).delete(purge=1 if purge else 0)
+
+    def upload_snippet(self, storage: str, filename: str, content: str) -> None:
+        """Upload content as a snippet file.
+
+        Args:
+            storage: Storage name (must have snippets content type enabled)
+            filename: Name of the snippet file
+            content: Content to write to the file
+        """
+        # Proxmox snippets are stored in the storage's snippets directory
+        # We use the storage API to write the file
+        import io
+        import paramiko
+
+        # Connect via SSH and write the file directly
+        # This is more reliable than the API for snippets
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(self.host, username="root")
+
+        try:
+            # Get the storage path for snippets
+            sftp = ssh.open_sftp()
+            snippet_path = f"/var/lib/vz/snippets/{filename}"
+            with sftp.file(snippet_path, "w") as f:
+                f.write(content)
+            sftp.close()
+        finally:
+            ssh.close()

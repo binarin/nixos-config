@@ -167,10 +167,73 @@
           default = null;
           description = "VM description for Proxmox UI.";
         };
+
+        tpm2 = {
+          enable = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = "Enable TPM2 emulation. Requires UEFI (bios=ovmf).";
+          };
+
+          version = lib.mkOption {
+            type = lib.types.enum [
+              "v1.2"
+              "v2.0"
+            ];
+            default = "v2.0";
+            description = "TPM version.";
+          };
+
+          storage = lib.mkOption {
+            type = lib.types.str;
+            default = "local-zfs";
+            description = "Storage for TPM state.";
+          };
+        };
+
+        efidisk = {
+          storage = lib.mkOption {
+            type = lib.types.str;
+            default = "local-zfs";
+            description = "Storage for EFI vars (used when bios=ovmf).";
+          };
+
+          efitype = lib.mkOption {
+            type = lib.types.enum [
+              "2m"
+              "4m"
+            ];
+            default = "4m";
+            description = "EFI disk size type (4m recommended for modern systems).";
+          };
+        };
+
+        cloudInit = {
+          enable = lib.mkOption {
+            type = lib.types.bool;
+            default = true;
+            description = "Enable cloud-init for initial configuration.";
+          };
+
+          storage = lib.mkOption {
+            type = lib.types.str;
+            default = "local";
+            description = "Storage with snippets feature for cloud-init data.";
+          };
+        };
       };
 
       config = {
         services.qemuGuest.enable = lib.mkDefault config.nixos-config.qemu-guest.proxmox.agent;
+
+        assertions = [
+          {
+            assertion =
+              config.nixos-config.qemu-guest.proxmox.tpm2.enable
+              -> config.nixos-config.qemu-guest.proxmox.bios == "ovmf";
+            message = "TPM2 requires UEFI boot (bios = ovmf)";
+          }
+        ];
       };
     };
 }

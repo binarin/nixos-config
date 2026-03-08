@@ -25,6 +25,7 @@ from .commands import (
     iso,
     list_machines,
     provision_lxc,
+    provision_vm,
     set_secret,
     verify,
 )
@@ -280,6 +281,54 @@ def build_lxc_cmd(
         inject_secrets=inject_secrets,
         fake_secrets=fake_secrets,
         compression=compression,
+        extra_nix_args=extra_nix_args,
+    )
+
+
+@build_app.command(
+    "vm",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
+def build_vm_cmd(
+    ctx: typer.Context,
+    target: str = typer.Argument(
+        help="VM target name (NixOS configuration with disko)"
+    ),
+    output: str = typer.Option(
+        None, "--output", "-o", help="Output path for result symlink"
+    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    no_nom: bool = typer.Option(False, "--no-nom", help="Disable nix-output-monitor"),
+    builder: list[str] = typer.Option(
+        [], "--builder", "-b", help="Remote builder (repeatable)"
+    ),
+    jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Build VM disk images using disko.
+
+    Builds the diskoImages output for a NixOS configuration that uses disko.
+    The result is a directory containing raw disk images ready for import
+    into Proxmox or other virtualization platforms.
+
+    Extra arguments after -- are passed directly to nix build.
+    """
+    from pathlib import Path
+
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    use_nom = None if not no_nom else False
+    output_path = Path(output) if output else None
+    extra_nix_args = list(ctx.args) if ctx.args else None
+
+    build.run_vm(
+        target=target,
+        output=output_path,
+        verbosity=verbosity,
+        use_nom=use_nom,
+        builders=builder if builder else None,
+        jobs=jobs,
+        dry_run=dry_run,
         extra_nix_args=extra_nix_args,
     )
 
@@ -642,6 +691,40 @@ def machine_provision_cmd(
         keep_local_tarball=keep_local_tarball,
         local_tarball=local_tarball_path,
         compression=compression,
+    )
+
+
+@machine_app.command("provision-vm")
+def machine_provision_vm_cmd(
+    machine: str = typer.Argument(help="Machine name to provision"),
+    proxmox_host: str = typer.Option(
+        ..., "--proxmox-host", "-p", help="Proxmox host to provision on"
+    ),
+    bridge: str = typer.Option("vmbr0", "--bridge", "-b", help="Network bridge name"),
+    start: bool = typer.Option(
+        False, "--start", "-s", help="Start the VM after provisioning"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without making changes"
+    ),
+):
+    """Provision a Proxmox VM.
+
+    Builds disko disk images, copies them to the Proxmox host,
+    creates the VM with the configuration from NixOS, and optionally
+    starts the VM.
+
+    Supports TPM2 emulation and cloud-init for initial configuration.
+
+    If the VM already exists, validates the configuration and
+    reports any mismatches without modifying the VM.
+    """
+    provision_vm.run(
+        machine=machine,
+        proxmox_host=proxmox_host,
+        bridge=bridge,
+        start=start,
+        dry_run=dry_run,
     )
 
 

@@ -455,6 +455,61 @@ def _inject_secrets_into_tarball(
             shutil.rmtree(temp_dir, ignore_errors=True)
 
 
+def run_vm(
+    target: str,
+    output: Optional[Path] = None,
+    verbosity: int = 1,
+    use_nom: Optional[bool] = None,
+    builders: Optional[list[str]] = None,
+    jobs: str = "auto",
+    dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
+) -> None:
+    """Build VM disk images using disko.
+
+    Args:
+        target: The NixOS configuration name
+        output: Output path for the result symlink (None = default path)
+        verbosity: 0=quiet, 1=normal, 2=verbose
+        use_nom: Use nix-output-monitor (None=auto-detect)
+        builders: List of remote builders
+        jobs: Number of parallel jobs
+        dry_run: Show what would be done without building
+        extra_nix_args: Extra arguments to pass to nix build
+    """
+    repo_root = config.find_repo_root()
+
+    flake_ref = (
+        f"{repo_root}#nixosConfigurations.{target}.config.system.build.diskoImages"
+    )
+
+    if output is None:
+        output = repo_root / "result"
+
+    if dry_run:
+        console.print(f"[bold]Would build:[/bold] {flake_ref}")
+        console.print(f"[bold]Output:[/bold] {output}")
+        if builders:
+            console.print(f"[bold]Builders:[/bold] {', '.join(builders)}")
+        if extra_nix_args:
+            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
+        return
+
+    console.print(f"[bold]Building VM disk images:[/bold] {target}")
+
+    runner = NixRunner(
+        verbosity=verbosity,
+        use_nom=use_nom,
+        builders=builders or [],
+        keep_going=True,
+        jobs=jobs,
+        repo_root=repo_root,
+    )
+
+    runner.run_build(flake_ref, output=output, extra_args=extra_nix_args)
+    console.print(f"[green]✓[/green] Built {target} VM images -> {output}")
+
+
 def run_iso(
     output: Optional[Path] = None,
     verbosity: int = 1,
