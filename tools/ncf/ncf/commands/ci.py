@@ -268,6 +268,31 @@ def get_build_path(entry: str) -> str:
             return f".#nixosConfigurations.{entry}.config.system.build.toplevel"
 
 
+def expand_matrix_entry(entry: str) -> str:
+    """Expand a matrix entry prefix to a human-readable name.
+
+    Expands prefixes to descriptive names:
+    - d:<name> -> deployable-<name>
+    - c:<name> -> nixos-config-<name>
+    - p:<name> -> package-<name>
+    - s:<name> -> devshell-<name>
+    """
+    if ":" in entry:
+        prefix, name = entry.split(":", 1)
+        if prefix == "d":
+            return f"deployable-{name}"
+        elif prefix == "c":
+            return f"nixos-config-{name}"
+        elif prefix == "p":
+            return f"package-{name}"
+        elif prefix == "s":
+            return f"devshell-{name}"
+        else:
+            raise ValueError(f"Unknown prefix: {prefix}")
+    else:
+        return entry
+
+
 def run_matrix() -> None:
     """Output JSON array of matrix entries for CI dynamic matrix."""
     entries = get_matrix_entries()
@@ -277,6 +302,11 @@ def run_matrix() -> None:
 def run_build_path(entry: str) -> None:
     """Output the nix build path for a matrix entry."""
     print(get_build_path(entry))
+
+
+def run_expand_matrix_entry(entry: str) -> None:
+    """Output the expanded name for a matrix entry."""
+    print(expand_matrix_entry(entry))
 
 
 def run_external_deps() -> None:

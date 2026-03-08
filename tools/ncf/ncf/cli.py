@@ -406,6 +406,23 @@ def ci_build_path_cmd(
     ci.run_build_path(entry)
 
 
+@ci_app.command("expand-matrix-entry")
+def ci_expand_matrix_entry_cmd(
+    entry: str = typer.Argument(
+        help="Matrix entry (e.g., d:media, c:furfur, p:ncf, s:default)"
+    ),
+):
+    """Expand a matrix entry prefix to a human-readable name.
+
+    Expands prefixed entries to descriptive names:
+    - d:<name> -> deployable-<name>
+    - c:<name> -> nixos-config-<name>
+    - p:<name> -> package-<name>
+    - s:<name> -> devshell-<name>
+    """
+    ci.run_expand_matrix_entry(entry)
+
+
 @ci_app.command("external-deps")
 def ci_external_deps_cmd():
     """Display all registered external tool dependencies.

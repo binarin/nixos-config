@@ -37,9 +37,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           signing-key-pem: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
+      - name: get artifact name
+        id: artifact
+        run: |
+          echo "name=$(nix run .#env-aware-nix-run -- .#ncf -- ci expand-matrix-entry '${{ matrix.config }}')" >> "$FORGEJO_OUTPUT"
       - uses: actions/upload-artifact@v3
         with:
-          name: cached-paths-${{ matrix.config }}
+          name: cached-paths-${{ steps.artifact.outputs.name }}
           path: ${{ runner.temp }}/nixos-config-${{ matrix.config }}.paths
           retention-days: 7
 
