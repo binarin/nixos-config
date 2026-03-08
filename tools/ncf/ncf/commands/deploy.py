@@ -194,6 +194,7 @@ def run_deploy_command(
     no_rollback: bool = False,
     verbosity: int = 1,
     ssh_opts: str = "",
+    extra_nix_args: Optional[list[str]] = None,
 ) -> bool:
     """Run the deploy-rs deploy command.
 
@@ -216,11 +217,19 @@ def run_deploy_command(
     if ssh_opts:
         cmd.extend(["--ssh-opts", ssh_opts])
 
-    # Add verbosity to nix build args
+    # Add verbosity and extra nix args after --
+    nix_args = []
     if verbosity >= 2:
-        cmd.extend(["--", "-v"])
+        nix_args.append("-v")
     elif verbosity == 0:
-        cmd.extend(["--", "--quiet"])
+        nix_args.append("--quiet")
+
+    if extra_nix_args:
+        nix_args.extend(extra_nix_args)
+
+    if nix_args:
+        cmd.append("--")
+        cmd.extend(nix_args)
 
     try:
         subprocess.run(cmd, cwd=repo_root, check=True)
@@ -239,6 +248,7 @@ def run_single(
     builders: Optional[list[str]] = None,
     jobs: str = "auto",
     dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
 ) -> bool:
     """Deploy a single machine.
 
@@ -295,6 +305,10 @@ def run_single(
         console.print(f"  [yellow]Would deploy {target}[/yellow]")
         if boot:
             console.print("  [yellow]Would reboot after deployment[/yellow]")
+        if extra_nix_args:
+            console.print(
+                f"  [yellow]Extra nix args: {' '.join(extra_nix_args)}[/yellow]"
+            )
         return True
 
     # Run deploy
@@ -307,6 +321,7 @@ def run_single(
         boot=boot,
         no_rollback=no_rollback,
         verbosity=verbosity,
+        extra_nix_args=extra_nix_args,
     )
 
     if not success:
@@ -353,6 +368,7 @@ def run_all(
     builders: Optional[list[str]] = None,
     jobs: str = "auto",
     dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
 ) -> bool:
     """Deploy all deployable machines.
 
@@ -391,6 +407,7 @@ def run_all(
             builders=builders,
             jobs=jobs,
             dry_run=dry_run,
+            extra_nix_args=extra_nix_args,
         )
         results[node] = success
 

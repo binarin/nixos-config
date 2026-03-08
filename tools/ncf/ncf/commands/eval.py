@@ -61,6 +61,7 @@ def run_nixos(
     configuration: Optional[str] = None,
     verbosity: int = 1,
     dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
 ) -> str:
     """Evaluate a NixOS configuration and return the derivation path.
 
@@ -71,6 +72,7 @@ def run_nixos(
                       If None, uses current machine's hostname.
         verbosity: 0=quiet, 1=normal, 2=verbose
         dry_run: Show what would be done without evaluating
+        extra_nix_args: Extra arguments to pass to nix eval
 
     Returns:
         The derivation path (.drv)
@@ -97,6 +99,8 @@ def run_nixos(
 
     if dry_run:
         console.print(f"[bold]Would evaluate:[/bold] {flake_ref}")
+        if extra_nix_args:
+            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
         return ""
 
     runner = NixRunner(
@@ -104,7 +108,7 @@ def run_nixos(
         repo_root=repo_root,
     )
 
-    result = runner.run_eval(flake_ref, raw=True)
+    result = runner.run_eval(flake_ref, raw=True, extra_args=extra_nix_args)
     drv_path = result.stdout.strip()
 
     if verbosity > 0:
@@ -117,6 +121,7 @@ def run_all(
     verbosity: int = 1,
     max_parallel: Optional[int] = None,
     dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
 ) -> None:
     """Evaluate all NixOS configurations in parallel.
 
@@ -130,6 +135,7 @@ def run_all(
         verbosity: 0=quiet, 1=normal, 2=verbose
         max_parallel: Max parallel evaluations (default: CPU count)
         dry_run: Show what would be done without evaluating
+        extra_nix_args: Extra arguments to pass to nix eval
     """
     repo_root = config.find_repo_root()
 
@@ -154,6 +160,8 @@ def run_all(
         console.print("[yellow]Dry run - would evaluate:[/yellow]")
         for cfg in configurations:
             console.print(f"  - {cfg}")
+        if extra_nix_args:
+            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
         return
 
     # Track results: config -> (success, time_seconds, error_msg)
@@ -186,7 +194,7 @@ def run_all(
         )
 
         try:
-            eval_runner.run_eval(flake_ref, raw=True)
+            eval_runner.run_eval(flake_ref, raw=True, extra_args=extra_nix_args)
             elapsed = time.time() - cfg_start
             return (cfg, True, elapsed, "")
         except Exception as e:
@@ -288,6 +296,7 @@ def run_query(
     apply: Optional[str] = None,
     verbosity: int = 1,
     dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
 ) -> str:
     """Evaluate an arbitrary attribute from a NixOS configuration.
 
@@ -301,6 +310,7 @@ def run_query(
         apply: Apply a function to the result
         verbosity: 0=quiet, 1=normal, 2=verbose
         dry_run: Show what would be done without evaluating
+        extra_nix_args: Extra arguments to pass to nix eval
 
     Returns:
         The evaluation result
@@ -312,6 +322,8 @@ def run_query(
         console.print(f"[bold]Would evaluate:[/bold] {flake_ref}")
         if apply:
             console.print(f"[bold]Apply:[/bold] {apply}")
+        if extra_nix_args:
+            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
         return ""
 
     runner = NixRunner(
@@ -324,6 +336,7 @@ def run_query(
         raw=raw,
         json_output=json_output,
         apply=apply,
+        extra_args=extra_nix_args,
     )
     output = result.stdout.strip()
 

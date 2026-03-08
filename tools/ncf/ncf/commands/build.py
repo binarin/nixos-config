@@ -42,6 +42,7 @@ def run_nixos(
     builders: Optional[list[str]] = None,
     jobs: str = "auto",
     dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
 ) -> None:
     """Build a NixOS configuration.
 
@@ -53,6 +54,7 @@ def run_nixos(
         builders: List of remote builders
         jobs: Number of parallel jobs
         dry_run: Show what would be done without building
+        extra_nix_args: Extra arguments to pass to nix build
     """
     repo_root = config.find_repo_root()
 
@@ -66,6 +68,8 @@ def run_nixos(
             console.print(f"[bold]Output:[/bold] {output}")
         if builders:
             console.print(f"[bold]Builders:[/bold] {', '.join(builders)}")
+        if extra_nix_args:
+            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
         return
 
     console.print(f"[bold]Building NixOS configuration:[/bold] {configuration}")
@@ -79,7 +83,7 @@ def run_nixos(
         repo_root=repo_root,
     )
 
-    runner.run_build(flake_ref, output=output)
+    runner.run_build(flake_ref, output=output, extra_args=extra_nix_args)
     if output:
         console.print(f"[green]✓[/green] Built {configuration} -> {output}")
     else:
@@ -95,6 +99,7 @@ def run_home(
     builders: Optional[list[str]] = None,
     jobs: str = "auto",
     dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
 ) -> None:
     """Build a home-manager configuration.
 
@@ -107,6 +112,7 @@ def run_home(
         builders: List of remote builders
         jobs: Number of parallel jobs
         dry_run: Show what would be done without building
+        extra_nix_args: Extra arguments to pass to nix build
     """
     repo_root = config.find_repo_root()
 
@@ -116,6 +122,8 @@ def run_home(
         console.print(f"[bold]Would build:[/bold] {flake_ref}")
         if output:
             console.print(f"[bold]Output:[/bold] {output}")
+        if extra_nix_args:
+            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
         return
 
     console.print(f"[bold]Building home-manager configuration:[/bold] {host}/{user}")
@@ -129,7 +137,7 @@ def run_home(
         repo_root=repo_root,
     )
 
-    runner.run_build(flake_ref, output=output)
+    runner.run_build(flake_ref, output=output, extra_args=extra_nix_args)
     if output:
         console.print(f"[green]✓[/green] Built {host}/{user} -> {output}")
     else:
@@ -146,6 +154,7 @@ def run_lxc(
     dry_run: bool = False,
     inject_secrets: bool = False,
     fake_secrets: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
 ) -> None:
     """Build an LXC tarball.
 
@@ -159,6 +168,7 @@ def run_lxc(
         dry_run: Show what would be done without building
         inject_secrets: Inject decrypted secrets into the tarball
         fake_secrets: Use placeholder content instead of decrypting secrets
+        extra_nix_args: Extra arguments to pass to nix build
     """
     repo_root = config.find_repo_root()
 
@@ -175,6 +185,8 @@ def run_lxc(
                 console.print("[bold]Would inject fake secrets (placeholders)[/bold]")
             else:
                 console.print("[bold]Would inject secrets[/bold]")
+        if extra_nix_args:
+            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
         return
 
     console.print(f"[bold]Building LXC tarball:[/bold] {target}")
@@ -192,7 +204,7 @@ def run_lxc(
         # Build to a temporary symlink first
         with tempfile.TemporaryDirectory(prefix="ncf-lxc-build-") as temp_build_dir:
             temp_output = Path(temp_build_dir) / "result"
-            runner.run_build(flake_ref, output=temp_output)
+            runner.run_build(flake_ref, output=temp_output, extra_args=extra_nix_args)
 
             # Find the actual tarball in the nix store result
             tarball_path = _find_tarball_in_result(temp_output)
@@ -210,7 +222,7 @@ def run_lxc(
             f"[green]✓[/green] Built {target} with secrets{suffix} -> {output}"
         )
     else:
-        runner.run_build(flake_ref, output=output)
+        runner.run_build(flake_ref, output=output, extra_args=extra_nix_args)
         console.print(f"[green]✓[/green] Built {target} -> {output}")
 
 
@@ -362,6 +374,7 @@ def run_iso(
     builders: Optional[list[str]] = None,
     jobs: str = "auto",
     dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
 ) -> None:
     """Build ISO image.
 
@@ -372,6 +385,7 @@ def run_iso(
         builders: List of remote builders
         jobs: Number of parallel jobs
         dry_run: Show what would be done without building
+        extra_nix_args: Extra arguments to pass to nix build
     """
     repo_root = config.find_repo_root()
 
@@ -381,6 +395,8 @@ def run_iso(
         console.print(f"[bold]Would build:[/bold] {flake_ref}")
         if output:
             console.print(f"[bold]Output:[/bold] {output}")
+        if extra_nix_args:
+            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
         return
 
     console.print("[bold]Building ISO image[/bold]")
@@ -394,7 +410,7 @@ def run_iso(
         repo_root=repo_root,
     )
 
-    runner.run_build(flake_ref, output=output)
+    runner.run_build(flake_ref, output=output, extra_args=extra_nix_args)
     if output:
         console.print(f"[green]✓[/green] Built ISO -> {output}")
     else:
@@ -408,6 +424,7 @@ def run_all(
     jobs: str = "auto",
     max_parallel: Optional[int] = None,
     dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
 ) -> None:
     """Build all NixOS configurations.
 
@@ -418,6 +435,7 @@ def run_all(
         jobs: Number of parallel jobs for nix
         max_parallel: Max parallel builds (default: CPU count)
         dry_run: Show what would be done without building
+        extra_nix_args: Extra arguments to pass to nix build
     """
     repo_root = config.find_repo_root()
 
@@ -436,6 +454,8 @@ def run_all(
         console.print("\n[yellow]Dry run - would build:[/yellow]")
         for cfg in configurations:
             console.print(f"  - {cfg}")
+        if extra_nix_args:
+            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
         return
 
     if max_parallel is None:
@@ -475,7 +495,7 @@ def run_all(
         )
 
         try:
-            build_runner.run_build(flake_ref, output=None)
+            build_runner.run_build(flake_ref, output=None, extra_args=extra_nix_args)
             return (cfg, True, "")
         except Exception as e:
             return (cfg, False, str(e))

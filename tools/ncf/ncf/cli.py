@@ -117,8 +117,12 @@ def builder_callback(value: list[str]) -> list[str]:
 
 
 # Build commands
-@build_app.command("nixos")
+@build_app.command(
+    "nixos",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
 def build_nixos_cmd(
+    ctx: typer.Context,
     configuration: str = typer.Argument(help="NixOS configuration name to build"),
     output: str = typer.Option(
         None, "--output", "-o", help="Output path for result symlink"
@@ -132,12 +136,17 @@ def build_nixos_cmd(
     jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
 ):
-    """Build a NixOS configuration."""
+    """Build a NixOS configuration.
+
+    Extra arguments after -- are passed directly to nix build.
+    Example: ncf build nixos myhost -- --show-trace
+    """
     from pathlib import Path
 
     verbosity = 0 if quiet else (2 if verbose else 1)
     use_nom = None if not no_nom else False
     output_path = Path(output) if output else None
+    extra_nix_args = list(ctx.args) if ctx.args else None
 
     build.run_nixos(
         configuration=configuration,
@@ -147,11 +156,16 @@ def build_nixos_cmd(
         builders=builder if builder else None,
         jobs=jobs,
         dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
     )
 
 
-@build_app.command("home")
+@build_app.command(
+    "home",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
 def build_home_cmd(
+    ctx: typer.Context,
     host: str = typer.Argument(help="Host name"),
     user: str = typer.Argument(help="User name"),
     output: str = typer.Option(
@@ -166,12 +180,16 @@ def build_home_cmd(
     jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
 ):
-    """Build a home-manager configuration."""
+    """Build a home-manager configuration.
+
+    Extra arguments after -- are passed directly to nix build.
+    """
     from pathlib import Path
 
     verbosity = 0 if quiet else (2 if verbose else 1)
     use_nom = None if not no_nom else False
     output_path = Path(output) if output else None
+    extra_nix_args = list(ctx.args) if ctx.args else None
 
     build.run_home(
         host=host,
@@ -182,11 +200,16 @@ def build_home_cmd(
         builders=builder if builder else None,
         jobs=jobs,
         dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
     )
 
 
-@build_app.command("lxc")
+@build_app.command(
+    "lxc",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
 def build_lxc_cmd(
+    ctx: typer.Context,
     target: str = typer.Argument(help="LXC target name"),
     output: str = typer.Option(
         None, "--output", "-o", help="Output path for result tarball"
@@ -210,12 +233,16 @@ def build_lxc_cmd(
         help="Use placeholder content instead of decrypting secrets (for testing)",
     ),
 ):
-    """Build an LXC tarball."""
+    """Build an LXC tarball.
+
+    Extra arguments after -- are passed directly to nix build.
+    """
     from pathlib import Path
 
     verbosity = 0 if quiet else (2 if verbose else 1)
     use_nom = None if not no_nom else False
     output_path = Path(output) if output else None
+    extra_nix_args = list(ctx.args) if ctx.args else None
 
     # --fake-secrets implies --inject-secrets
     if fake_secrets:
@@ -231,11 +258,16 @@ def build_lxc_cmd(
         dry_run=dry_run,
         inject_secrets=inject_secrets,
         fake_secrets=fake_secrets,
+        extra_nix_args=extra_nix_args,
     )
 
 
-@build_app.command("iso")
+@build_app.command(
+    "iso",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
 def build_iso_cmd(
+    ctx: typer.Context,
     output: str = typer.Option(
         None, "--output", "-o", help="Output path for result symlink"
     ),
@@ -248,12 +280,16 @@ def build_iso_cmd(
     jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
 ):
-    """Build ISO image."""
+    """Build ISO image.
+
+    Extra arguments after -- are passed directly to nix build.
+    """
     from pathlib import Path
 
     verbosity = 0 if quiet else (2 if verbose else 1)
     use_nom = None if not no_nom else False
     output_path = Path(output) if output else None
+    extra_nix_args = list(ctx.args) if ctx.args else None
 
     build.run_iso(
         output=output_path,
@@ -262,11 +298,16 @@ def build_iso_cmd(
         builders=builder if builder else None,
         jobs=jobs,
         dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
     )
 
 
-@build_app.command("all")
+@build_app.command(
+    "all",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
 def build_all_cmd(
+    ctx: typer.Context,
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     no_nom: bool = typer.Option(False, "--no-nom", help="Disable nix-output-monitor"),
@@ -281,9 +322,13 @@ def build_all_cmd(
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
 ):
-    """Build all NixOS configurations in parallel."""
+    """Build all NixOS configurations in parallel.
+
+    Extra arguments after -- are passed directly to nix build.
+    """
     verbosity = 0 if quiet else (2 if verbose else 1)
     use_nom = None if not no_nom else False
+    extra_nix_args = list(ctx.args) if ctx.args else None
 
     build.run_all(
         verbosity=verbosity,
@@ -292,12 +337,17 @@ def build_all_cmd(
         jobs=jobs,
         max_parallel=max_parallel,
         dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
     )
 
 
 # Eval commands
-@eval_app.command("nixos")
+@eval_app.command(
+    "nixos",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
 def eval_nixos_cmd(
+    ctx: typer.Context,
     configuration: str = typer.Argument(
         None, help="NixOS configuration name to evaluate (default: current hostname)"
     ),
@@ -309,17 +359,26 @@ def eval_nixos_cmd(
 
     Useful for debugging infinite recursion and evaluation errors.
     If no configuration is specified, evaluates the current machine's configuration.
+
+    Extra arguments after -- are passed directly to nix eval.
+    Example: ncf eval nixos myhost -- --debugger
     """
     verbosity = 0 if quiet else (2 if verbose else 1)
+    extra_nix_args = list(ctx.args) if ctx.args else None
     eval.run_nixos(
         configuration=configuration,
         verbosity=verbosity,
         dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
     )
 
 
-@eval_app.command("all")
+@eval_app.command(
+    "all",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
 def eval_all_cmd(
+    ctx: typer.Context,
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     max_parallel: int = typer.Option(
@@ -333,17 +392,25 @@ def eval_all_cmd(
     """Evaluate all NixOS configurations in parallel.
 
     Useful for debugging which configuration is causing evaluation errors.
+
+    Extra arguments after -- are passed directly to nix eval.
     """
     verbosity = 0 if quiet else (2 if verbose else 1)
+    extra_nix_args = list(ctx.args) if ctx.args else None
     eval.run_all(
         verbosity=verbosity,
         max_parallel=max_parallel,
         dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
     )
 
 
-@eval_app.command("query")
+@eval_app.command(
+    "query",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
 def eval_query_cmd(
+    ctx: typer.Context,
     configuration: str = typer.Argument(help="NixOS configuration name"),
     attribute: str = typer.Argument(help="Attribute path to evaluate"),
     json_output: bool = typer.Option(False, "--json", help="Output as JSON"),
@@ -353,8 +420,12 @@ def eval_query_cmd(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
 ):
-    """Evaluate an arbitrary attribute from a NixOS configuration."""
+    """Evaluate an arbitrary attribute from a NixOS configuration.
+
+    Extra arguments after -- are passed directly to nix eval.
+    """
     verbosity = 0 if quiet else (2 if verbose else 1)
+    extra_nix_args = list(ctx.args) if ctx.args else None
     eval.run_query(
         configuration=configuration,
         attribute=attribute,
@@ -363,6 +434,7 @@ def eval_query_cmd(
         apply=apply,
         verbosity=verbosity,
         dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
     )
 
 
@@ -745,8 +817,15 @@ def show_keys_cmd(
 
 
 # Deploy commands
-@app.command("deploy")
+@app.command(
+    "deploy",
+    context_settings={
+        "allow_extra_args": True,
+        "allow_interspersed_args": False,
+    },
+)
 def deploy_cmd(
+    ctx: typer.Context,
     target: str = typer.Argument(help="Deploy target name"),
     profile: str = typer.Option("system", "--profile", "-p", help="Profile to deploy"),
     boot: bool = typer.Option(False, "--boot", help="Deploy to boot loader and reboot"),
@@ -773,6 +852,9 @@ def deploy_cmd(
 
     Note: --boot and --no-rollback are mutually exclusive.
 
+    Extra arguments after -- are passed directly to nix/deploy-rs.
+    Example: ncf deploy forgejo -- --show-trace
+
     Examples:
         ncf deploy forgejo
         ncf deploy media --boot
@@ -790,6 +872,7 @@ def deploy_cmd(
         sys.exit(1)
 
     verbosity = 0 if quiet else (2 if verbose else 1)
+    extra_nix_args = list(ctx.args) if ctx.args else None
 
     success = deploy.run_single(
         target=target,
@@ -801,14 +884,22 @@ def deploy_cmd(
         builders=builder if builder else None,
         jobs=jobs,
         dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
     )
 
     if not success:
         sys.exit(1)
 
 
-@app.command("deploy-all")
+@app.command(
+    "deploy-all",
+    context_settings={
+        "allow_extra_args": True,
+        "allow_interspersed_args": False,
+    },
+)
 def deploy_all_cmd(
+    ctx: typer.Context,
     boot: bool = typer.Option(
         False, "--boot", help="Deploy to boot loader and reboot each machine"
     ),
@@ -840,6 +931,8 @@ def deploy_all_cmd(
 
     Note: --boot and --no-rollback are mutually exclusive.
 
+    Extra arguments after -- are passed directly to nix/deploy-rs.
+
     Examples:
         ncf deploy-all
         ncf deploy-all --boot
@@ -857,6 +950,7 @@ def deploy_all_cmd(
         sys.exit(1)
 
     verbosity = 0 if quiet else (2 if verbose else 1)
+    extra_nix_args = list(ctx.args) if ctx.args else None
 
     success = deploy.run_all(
         boot=boot,
@@ -867,6 +961,7 @@ def deploy_all_cmd(
         builders=builder if builder else None,
         jobs=jobs,
         dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
     )
 
     if not success:
