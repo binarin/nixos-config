@@ -14,6 +14,26 @@ jobs:
         run: |
           echo "configurations=$(nix run .#env-aware-nix-run -- .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
 
+  cache-flake-inputs:
+    name: cache flake inputs
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.forgejo/actions/cache-flake-inputs
+        with:
+          paths-file: ${{ runner.temp }}/flake-inputs.paths
+      - uses: ./.forgejo/actions/sign-and-push-cache
+        with:
+          paths-file: ${{ runner.temp }}/flake-inputs.paths
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          signing-key-pem: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: cached-paths-flake-inputs
+          path: ${{ runner.temp }}/flake-inputs.paths
+          retention-days: 7
+
   nix-build:
     name: build ${{ matrix.config }}
     runs-on: native

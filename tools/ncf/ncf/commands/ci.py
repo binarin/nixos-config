@@ -186,6 +186,23 @@ def get_devshells(system: str = "x86_64-linux") -> list[str]:
     return json.loads(result.stdout)
 
 
+def get_checks(system: str = "x86_64-linux") -> list[str]:
+    """Get list of all checks from the flake for a given system."""
+    repo_root = config.find_repo_root()
+    result = run_command(
+        [
+            "nix",
+            "eval",
+            "--json",
+            f".#checks.{system}",
+            "--apply",
+            "builtins.attrNames",
+        ],
+        cwd=repo_root,
+    )
+    return json.loads(result.stdout)
+
+
 def get_matrix_entries() -> list[str]:
     """Get list of prefixed matrix entries for CI.
 
@@ -234,6 +251,14 @@ def get_matrix_entries() -> list[str]:
     except Exception as e:
         console.print(f"[yellow]Warning: Could not get devShells: {e}[/yellow]")
 
+    # Get checks for x86_64-linux
+    try:
+        checks = get_checks("x86_64-linux")
+        for check in checks:
+            result.append(f"k:{check}")
+    except Exception as e:
+        console.print(f"[yellow]Warning: Could not get checks: {e}[/yellow]")
+
     return result
 
 
@@ -257,6 +282,8 @@ def get_build_path(entry: str) -> str:
             return f".#packages.x86_64-linux.{name}"
         elif prefix == "s":
             return f".#devShells.x86_64-linux.{name}"
+        elif prefix == "k":
+            return f".#checks.x86_64-linux.{name}"
         else:
             raise ValueError(f"Unknown prefix: {prefix}")
     else:
@@ -287,6 +314,8 @@ def expand_matrix_entry(entry: str) -> str:
             return f"package-{name}"
         elif prefix == "s":
             return f"devshell-{name}"
+        elif prefix == "k":
+            return f"check-{name}"
         else:
             raise ValueError(f"Unknown prefix: {prefix}")
     else:

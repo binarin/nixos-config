@@ -36,6 +36,7 @@
           "files/*"
           "justfile"
           "**/config"
+          "**/Dockerfile"
         ];
       };
     };

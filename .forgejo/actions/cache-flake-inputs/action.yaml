@@ -1,0 +1,19 @@
+name: 'Cache Flake Inputs'
+description: 'Capture flake input store paths for caching'
+inputs:
+  paths-file:
+    description: 'Path to write extracted store paths'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: capture flake inputs
+      shell: bash
+      env:
+        PATHS_FILE: ${{ inputs.paths-file }}
+      run: |
+        # Use nix flake archive to copy inputs to store and get paths
+        # This recursively fetches all inputs and outputs their store paths
+        nix flake archive --json | jq -r '.. | .path? // empty' | sort -u > "$PATHS_FILE"
+
+        echo "Captured $(wc -l < "$PATHS_FILE") flake input paths"

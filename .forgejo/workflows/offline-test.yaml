@@ -1,0 +1,32 @@
+name: Offline Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip_container_build:
+        description: 'Skip container build (use cached image)'
+        required: false
+        default: 'false'
+
+jobs:
+  offline-test:
+    name: test offline operation
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build offline test container
+        if: ${{ inputs.skip_container_build != 'true' }}
+        run: |
+          podman build -f tests/offline/Dockerfile -t nixos-config-offline-test .
+      - name: Run offline tests
+        run: |
+          podman run --rm --network=none nixos-config-offline-test /bin/sh -c '
+            set -e
+            echo "=== Testing nix develop ==="
+            nix develop --command echo "nix develop works"
+
+            echo "=== Testing nix flake check ==="
+            nix flake check
+
+            echo "=== All offline tests passed! ==="
+          '
