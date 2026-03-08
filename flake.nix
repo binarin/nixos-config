@@ -156,6 +156,9 @@
     nixpkgs-lib = {
       follows = "nixpkgs";
     };
+    nixpkgs-trezor-agent = {
+      url = "github:nixos/nixpkgs?rev=41e216c0ca66c83b12ab7a98cc326b5db01db646";
+    };
     nixpkgs-unstable = {
       url = "github:nixos/nixpkgs";
     };

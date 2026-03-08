@@ -57,6 +57,7 @@ in
       imports = [
         inputs.nix-index-database.homeModules.nix-index
         self.homeModules.direnv
+        self.homeModules.trezor-agent
       ];
 
       options = {
@@ -203,7 +204,6 @@ in
             ssh-to-age
             sshfs
             tcpdump
-            trezor-agent
             unrar
             unzip
             viddy
