@@ -22,6 +22,15 @@ in
       ];
 
       options.proxmoxLXC = {
+        tarballCompression = lib.mkOption {
+          type = lib.types.enum [
+            "xz"
+            "zstd"
+          ];
+          default = "zstd";
+          description = "Compression format for LXC tarball (zstd is ~12x faster, xz for PVE < 7.1)";
+        };
+
         cores = lib.mkOption {
           type = lib.types.int;
           default = 2;
@@ -123,6 +132,34 @@ in
         networking.useHostResolvConf = false;
         networking.useDHCP = false;
 
+        # Override tarball building based on compression format
+        image.extension = lib.mkForce (
+          if config.proxmoxLXC.tarballCompression == "zstd" then "tar.zst" else "tar.xz"
+        );
+
+        system.build.tarball = lib.mkForce (
+          pkgs.callPackage "${modulesPath}/../lib/make-system-tarball.nix" {
+            fileName = config.image.baseName;
+            storeContents = [
+              {
+                object = config.system.build.toplevel;
+                symlink = "none";
+              }
+            ];
+            contents = [
+              {
+                source = config.system.build.toplevel + "/init";
+                target = "/sbin/init";
+              }
+            ];
+            extraCommands = "mkdir -p root etc/systemd/network";
+            compressCommand = if config.proxmoxLXC.tarballCompression == "zstd" then "zstd -T0" else "pixz -t";
+            compressionExtension = if config.proxmoxLXC.tarballCompression == "zstd" then ".zst" else ".xz";
+            extraInputs =
+              if config.proxmoxLXC.tarballCompression == "zstd" then [ pkgs.zstd ] else [ pkgs.pixz ];
+          }
+        );
+
         systemd.network.networks."40-lxc" = {
           matchConfig.Name = "eth0";
           dns = flakeConfig.inventory.networks.home.dns;
@@ -134,13 +171,19 @@ in
 
         services.getty.autologinUser = "root";
 
-        # XXX this creates /sbin/init with /bin/sh shebang, not compatible with impermanence
+        # Disable upstream initScript which creates /sbin/init as a shell script wrapper.
+        # We use direct symlinks instead for simplicity and impermanence compatibility.
         boot.loader.initScript.enable = lib.mkForce false;
-        # XXX so copy it from regular lxc-container.nix for the time being
+
+        # For nixos-rebuild switch: update /sbin/init to point to the new system's init.
+        # The tarball already includes /sbin/init (via contents above), but this is
+        # needed when upgrading the system after initial deployment.
         system.build.installBootLoader = pkgs.writeScript "install-lxc-sbin-init.sh" ''
           #!${pkgs.runtimeShell}
           ${pkgs.coreutils}/bin/ln -fs "$1/init" /sbin/init
         '';
+
+        # Create /init symlink during activation (some tools expect this path)
         system.activationScripts.installInitScript = lib.mkForce ''
           ln -fs $systemConfig/init /init
         '';

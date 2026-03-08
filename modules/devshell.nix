@@ -61,6 +61,8 @@
         yamlfmt
         apg
         deploy-rs # For ncf deploy commands
+        libarchive # bsdtar for efficient tarball manipulation
+        zstd # Fast compression for LXC tarballs
       ];
 
       ncf = pkgs.python3.pkgs.buildPythonApplication {

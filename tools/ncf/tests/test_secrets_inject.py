@@ -52,15 +52,18 @@ class TestGroupSecretsByOwner:
 class TestSecretsInjectionOwnership:
     """Test that secrets are injected with correct ownership."""
 
-    def test_ownership_in_tarball(self, tmp_path):
+    @pytest.mark.parametrize("compression", ["zstd", "xz"])
+    def test_ownership_in_tarball(self, tmp_path, compression):
         """Test that injected secrets have correct ownership in tarball.
 
         This test:
         1. Creates an empty tarball
         2. Injects fake secrets with different owners
         3. Verifies ownership in the resulting tarball
+
+        Tests both zstd and xz compression formats.
         """
-        # Create empty source tarball
+        # Create empty source tarball (xz format as that's what nix produces by default)
         source_tarball = tmp_path / "source.tar.xz"
         empty_dir = tmp_path / "empty"
         empty_dir.mkdir()
@@ -87,7 +90,8 @@ class TestSecretsInjectionOwnership:
             ),
         ]
 
-        output_tarball = tmp_path / "output.tar.xz"
+        ext = ".tar.zst" if compression == "zstd" else ".tar.xz"
+        output_tarball = tmp_path / f"output{ext}"
 
         # Mock gather_secrets_for_machine to return our test secrets
         with patch("ncf.commands.build.gather_secrets_for_machine") as mock_gather:
@@ -100,14 +104,17 @@ class TestSecretsInjectionOwnership:
                 output_path=output_tarball,
                 runner=None,  # Not used with mocked gather
                 fake_secrets=True,
+                compression=compression,
             )
 
         # Verify tarball was created
         assert output_tarball.exists()
 
         # List tarball contents and check ownership
+        # Use appropriate decompression flag
+        decomp_flag = "--zstd" if compression == "zstd" else "-J"
         result = subprocess.run(
-            ["tar", "-tvf", str(output_tarball)],
+            ["tar", decomp_flag, "-tvf", str(output_tarball)],
             capture_output=True,
             text=True,
             check=True,
@@ -139,3 +146,55 @@ class TestSecretsInjectionOwnership:
             ownership_map.get("home/binarin/.config/age/nixos-config-keys.txt")
             == "binarin/binarin"
         )
+
+    def test_zstd_source_tarball(self, tmp_path):
+        """Test injection from zstd-compressed source tarball."""
+        # Create empty source tarball with zstd compression
+        source_tarball = tmp_path / "source.tar.zst"
+        empty_dir = tmp_path / "empty"
+        empty_dir.mkdir()
+        subprocess.run(
+            ["tar", "--zstd", "-cf", str(source_tarball), "-C", str(empty_dir), "."],
+            check=True,
+        )
+
+        # Define test secrets
+        test_secrets = [
+            SecretFile(
+                target_path="/etc/ssh/ssh_host_ed25519_key",
+                source_path=Path("/fake/ssh_key"),
+                mode=0o600,
+                owner="root",
+                group="root",
+            ),
+        ]
+
+        output_tarball = tmp_path / "output.tar.zst"
+
+        # Mock gather_secrets_for_machine to return our test secrets
+        with patch("ncf.commands.build.gather_secrets_for_machine") as mock_gather:
+            mock_gather.return_value = test_secrets
+
+            # Run injection with fake secrets
+            _inject_secrets_into_tarball(
+                machine_name="test-machine",
+                source_tarball=source_tarball,
+                output_path=output_tarball,
+                runner=None,
+                fake_secrets=True,
+                compression="zstd",
+            )
+
+        # Verify tarball was created
+        assert output_tarball.exists()
+
+        # List tarball contents
+        result = subprocess.run(
+            ["tar", "--zstd", "-tvf", str(output_tarball)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        # Should contain the secret file
+        assert "ssh_host_ed25519_key" in result.stdout

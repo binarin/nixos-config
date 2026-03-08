@@ -232,6 +232,12 @@ def build_lxc_cmd(
         "--fake-secrets",
         help="Use placeholder content instead of decrypting secrets (for testing)",
     ),
+    compression: str = typer.Option(
+        "zstd",
+        "--compression",
+        "-c",
+        help="Output compression format: zstd (fast, default) or xz (for PVE < 7.1)",
+    ),
 ):
     """Build an LXC tarball.
 
@@ -248,6 +254,13 @@ def build_lxc_cmd(
     if fake_secrets:
         inject_secrets = True
 
+    # Validate compression option
+    if compression not in ("zstd", "xz"):
+        console.print(
+            f"[red]Error: Invalid compression format '{compression}'. Use 'zstd' or 'xz'.[/red]"
+        )
+        raise typer.Exit(1)
+
     build.run_lxc(
         target=target,
         output=output_path,
@@ -258,6 +271,7 @@ def build_lxc_cmd(
         dry_run=dry_run,
         inject_secrets=inject_secrets,
         fake_secrets=fake_secrets,
+        compression=compression,
         extra_nix_args=extra_nix_args,
     )
 
@@ -572,21 +586,54 @@ def machine_provision_cmd(
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Show what would be done without making changes"
     ),
+    keep_local_tarball: bool = typer.Option(
+        False,
+        "--keep-local-tarball",
+        help="Keep local tarball after provisioning (useful for debugging)",
+    ),
+    local_tarball: str = typer.Option(
+        None,
+        "--local-tarball",
+        help="Use existing tarball instead of building (skip build and secrets injection)",
+    ),
+    compression: str = typer.Option(
+        "zstd",
+        "--compression",
+        "-c",
+        help="Output compression format: zstd (fast, default) or xz (for PVE < 7.1)",
+    ),
 ):
     """Provision a Proxmox LXC container.
 
-    Builds an LXC tarball with secrets, copies it to the Proxmox host,
+    Builds an LXC tarball with secrets, streams it to the Proxmox host,
     and creates the container with the configuration from NixOS.
 
     If the container already exists, validates the configuration and
     reports any mismatches without modifying the container.
+
+    Use --local-tarball to skip building and use an existing tarball.
+    Use --keep-local-tarball to preserve the local tarball for debugging.
     """
+    from pathlib import Path
+
+    # Validate compression option
+    if compression not in ("zstd", "xz"):
+        console.print(
+            f"[red]Error: Invalid compression format '{compression}'. Use 'zstd' or 'xz'.[/red]"
+        )
+        raise typer.Exit(1)
+
+    local_tarball_path = Path(local_tarball) if local_tarball else None
+
     provision_lxc.run(
         machine=machine,
         proxmox_host=proxmox_host,
         bridge=bridge,
         reuse_remote_tarball=reuse_remote_tarball,
         dry_run=dry_run,
+        keep_local_tarball=keep_local_tarball,
+        local_tarball=local_tarball_path,
+        compression=compression,
     )
 
 

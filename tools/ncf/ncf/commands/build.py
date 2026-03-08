@@ -154,6 +154,7 @@ def run_lxc(
     dry_run: bool = False,
     inject_secrets: bool = False,
     fake_secrets: bool = False,
+    compression: str = "zstd",
     extra_nix_args: Optional[list[str]] = None,
 ) -> None:
     """Build an LXC tarball.
@@ -168,18 +169,22 @@ def run_lxc(
         dry_run: Show what would be done without building
         inject_secrets: Inject decrypted secrets into the tarball
         fake_secrets: Use placeholder content instead of decrypting secrets
+        compression: Output compression format ('zstd' or 'xz')
         extra_nix_args: Extra arguments to pass to nix build
     """
     repo_root = config.find_repo_root()
 
+    # Determine output path with correct extension
     if output is None:
-        output = repo_root / f"proxmox-lxc-{target}.tar.xz"
+        ext = _get_output_extension(compression)
+        output = repo_root / f"proxmox-lxc-{target}{ext}"
 
     flake_ref = f"{repo_root}#nixosConfigurations.{target}.config.system.build.tarball"
 
     if dry_run:
         console.print(f"[bold]Would build:[/bold] {flake_ref}")
         console.print(f"[bold]Output:[/bold] {output}")
+        console.print(f"[bold]Compression:[/bold] {compression}")
         if inject_secrets:
             if fake_secrets:
                 console.print("[bold]Would inject fake secrets (placeholders)[/bold]")
@@ -214,7 +219,7 @@ def run_lxc(
             else:
                 console.print("[bold]Injecting secrets into tarball...[/bold]")
             _inject_secrets_into_tarball(
-                target, tarball_path, output, runner, fake_secrets
+                target, tarball_path, output, runner, fake_secrets, compression
             )
 
         suffix = " (fake)" if fake_secrets else ""
@@ -227,7 +232,7 @@ def run_lxc(
 
 
 def _find_tarball_in_result(result_path: Path) -> Path:
-    """Find the .tar.xz tarball in a nix build result.
+    """Find the tarball (.tar.xz or .tar.zst) in a nix build result.
 
     The nix build result for system.build.tarball is a directory
     containing the tarball, possibly in a nested subdirectory.
@@ -235,15 +240,49 @@ def _find_tarball_in_result(result_path: Path) -> Path:
     if result_path.is_symlink():
         result_path = result_path.resolve()
 
-    # Look for .tar.xz file recursively in the result directory
+    # Look for .tar.zst or .tar.xz file recursively in the result directory
     if result_path.is_dir():
-        tarballs = list(result_path.glob("**/*.tar.xz"))
-        if tarballs:
-            return tarballs[0]
+        # Try zstd first (preferred), then xz
+        for ext in ["*.tar.zst", "*.tar.xz"]:
+            tarballs = list(result_path.glob(f"**/{ext}"))
+            if tarballs:
+                return tarballs[0]
 
     raise ExternalToolError(
-        "tarball", f"Could not find .tar.xz tarball in {result_path}"
+        "tarball", f"Could not find .tar.xz or .tar.zst tarball in {result_path}"
     )
+
+
+def _detect_compression(tarball_path: Path) -> str:
+    """Detect compression format from tarball extension.
+
+    Returns:
+        'zstd' or 'xz'
+    """
+    if tarball_path.suffix == ".zst" or str(tarball_path).endswith(".tar.zst"):
+        return "zstd"
+    return "xz"
+
+
+def _get_decompress_command(compression: str) -> list[str]:
+    """Get the decompression command for a given format."""
+    if compression == "zstd":
+        return ["zstd", "-dc"]
+    return ["xz", "-dc"]
+
+
+def _get_compress_command(compression: str) -> list[str]:
+    """Get the compression command for a given format."""
+    if compression == "zstd":
+        return ["zstd", "-T0"]
+    return ["xz", "-T0"]
+
+
+def _get_output_extension(compression: str) -> str:
+    """Get the file extension for a given compression format."""
+    if compression == "zstd":
+        return ".tar.zst"
+    return ".tar.xz"
 
 
 def _group_secrets_by_owner(
@@ -272,21 +311,25 @@ def _inject_secrets_into_tarball(
     output_path: Path,
     runner: NixRunner,
     fake_secrets: bool = False,
+    compression: str = "zstd",
 ) -> None:
-    """Inject decrypted secrets into a tarball.
+    """Inject decrypted secrets into a tarball using streaming.
 
-    This function:
+    This function uses bsdtar for efficient streaming:
     1. Gathers secrets configuration from NixOS config
     2. Groups secrets by owner/group
-    3. For each group, decrypts secrets and appends with correct ownership
-    4. Re-compresses the tarball
+    3. Creates small temp tar archives for each ownership group using GNU tar
+    4. Streams: decompress source | bsdtar (combine archives) | compress to output
+
+    This avoids writing the large decompressed tarball to disk.
 
     Args:
         machine_name: The NixOS configuration name
-        source_tarball: Path to the source .tar.xz tarball
+        source_tarball: Path to the source .tar.xz or .tar.zst tarball
         output_path: Path for the output tarball with secrets
         runner: NixRunner instance for nix eval
         fake_secrets: Use placeholder content instead of decrypting
+        compression: Output compression format ('zstd' or 'xz')
     """
     # Gather secrets
     secrets = gather_secrets_for_machine(machine_name, runner)
@@ -298,70 +341,115 @@ def _inject_secrets_into_tarball(
 
     console.print(f"  Found {len(secrets)} secret(s) to inject")
 
-    # Group secrets by owner/group for separate tar appends
+    # Group secrets by owner/group for separate tar archives
     secret_groups = _group_secrets_by_owner(secrets)
     console.print(f"  Ownership groups: {len(secret_groups)}")
 
-    # Track temp directories for cleanup
+    # Track temp directories and files for cleanup
     temp_dirs: list[Path] = []
+    temp_tar_files: list[Path] = []
 
     try:
-        # Create a temp file for the decompressed tarball
-        with tempfile.NamedTemporaryFile(
-            prefix="ncf-lxc-", suffix=".tar", delete=False
-        ) as temp_tar:
-            temp_tar_path = Path(temp_tar.name)
+        # Create small tar archives for each ownership group
+        console.print("  Preparing secrets archives...")
+        for (owner, group), group_secrets in secret_groups.items():
+            # Create secrets in temp directory for this group
+            if fake_secrets:
+                secrets_dir = generate_fake_secrets_to_tempdir(group_secrets)
+            else:
+                secrets_dir = decrypt_secrets_to_tempdir(group_secrets)
+            temp_dirs.append(secrets_dir)
 
-        try:
-            # Decompress the source tarball
-            console.print("  Decompressing tarball...")
+            # Create a small tar archive with correct ownership using GNU tar
+            with tempfile.NamedTemporaryFile(
+                prefix=f"ncf-secrets-{owner}-", suffix=".tar", delete=False
+            ) as temp_tar:
+                temp_tar_path = Path(temp_tar.name)
+                temp_tar_files.append(temp_tar_path)
+
             subprocess.run(
-                ["xz", "-d", "-c", str(source_tarball)],
-                stdout=open(temp_tar_path, "wb"),
+                [
+                    "tar",
+                    "cf",
+                    str(temp_tar_path),
+                    f"--owner={owner}",
+                    f"--group={group}",
+                    "-C",
+                    str(secrets_dir),
+                    ".",
+                ],
                 check=True,
             )
 
-            # Append secrets for each ownership group
-            console.print("  Appending secrets...")
-            for (owner, group), group_secrets in secret_groups.items():
-                # Create secrets in temp directory for this group
-                if fake_secrets:
-                    secrets_dir = generate_fake_secrets_to_tempdir(group_secrets)
-                else:
-                    secrets_dir = decrypt_secrets_to_tempdir(group_secrets)
-                temp_dirs.append(secrets_dir)
+        # Build the streaming pipeline:
+        # decompress | bsdtar cf - @- @secrets1.tar @secrets2.tar | compress > output
+        console.print("  Streaming injection pipeline...")
 
-                # Append with correct ownership
-                subprocess.run(
-                    [
-                        "tar",
-                        "--append",
-                        f"--owner={owner}",
-                        f"--group={group}",
-                        "-f",
-                        str(temp_tar_path),
-                        "-C",
-                        str(secrets_dir),
-                        ".",
-                    ],
-                    check=True,
+        # Detect source compression
+        source_compression = _detect_compression(source_tarball)
+        decompress_cmd = _get_decompress_command(source_compression)
+        compress_cmd = _get_compress_command(compression)
+
+        # Build bsdtar command with @- (stdin) and @file for each secrets archive
+        bsdtar_cmd = ["bsdtar", "cf", "-", "@-"]
+        for tar_file in temp_tar_files:
+            bsdtar_cmd.append(f"@{tar_file}")
+
+        # Run the pipeline: decompress | bsdtar | compress > output
+        with open(output_path, "wb") as out_file:
+            # Start decompressor
+            decompress_proc = subprocess.Popen(
+                decompress_cmd + [str(source_tarball)],
+                stdout=subprocess.PIPE,
+            )
+
+            # Start bsdtar, reading from decompressor
+            bsdtar_proc = subprocess.Popen(
+                bsdtar_cmd,
+                stdin=decompress_proc.stdout,
+                stdout=subprocess.PIPE,
+            )
+            # Allow decompress_proc to receive SIGPIPE if bsdtar exits
+            if decompress_proc.stdout:
+                decompress_proc.stdout.close()
+
+            # Start compressor, reading from bsdtar
+            compress_proc = subprocess.Popen(
+                compress_cmd,
+                stdin=bsdtar_proc.stdout,
+                stdout=out_file,
+            )
+            # Allow bsdtar_proc to receive SIGPIPE if compress exits
+            if bsdtar_proc.stdout:
+                bsdtar_proc.stdout.close()
+
+            # Wait for all processes
+            compress_rc = compress_proc.wait()
+            bsdtar_rc = bsdtar_proc.wait()
+            decompress_rc = decompress_proc.wait()
+
+            if decompress_rc != 0:
+                raise ExternalToolError(
+                    decompress_cmd[0],
+                    f"Decompression failed with exit code {decompress_rc}",
+                    decompress_rc,
                 )
-
-            # Re-compress the tarball (single-threaded for compatibility)
-            console.print("  Compressing tarball...")
-            with open(output_path, "wb") as out_file:
-                subprocess.run(
-                    ["xz", "-c", str(temp_tar_path)],
-                    stdout=out_file,
-                    check=True,
+            if bsdtar_rc != 0:
+                raise ExternalToolError(
+                    "bsdtar", f"bsdtar failed with exit code {bsdtar_rc}", bsdtar_rc
                 )
-
-        finally:
-            # Clean up temp tar file
-            if temp_tar_path.exists():
-                temp_tar_path.unlink()
+            if compress_rc != 0:
+                raise ExternalToolError(
+                    compress_cmd[0],
+                    f"Compression failed with exit code {compress_rc}",
+                    compress_rc,
+                )
 
     finally:
+        # Clean up temp tar files
+        for tar_file in temp_tar_files:
+            if tar_file.exists():
+                tar_file.unlink()
         # Clean up all secrets directories
         for temp_dir in temp_dirs:
             shutil.rmtree(temp_dir, ignore_errors=True)

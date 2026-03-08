@@ -1,17 +1,31 @@
 """Provision Proxmox LXC containers."""
 
 import json
+import shutil
 import subprocess
+import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from rich.console import Console
 from rich.panel import Panel
 
 from .. import config
+from ..external import ExternalToolError
 from ..nix import NixRunner
 from ..proxmox_api import ProxmoxClient
+from ..secrets_inject import (
+    gather_secrets_for_machine,
+    decrypt_secrets_to_tempdir,
+)
 from . import build
+from .build import (
+    _find_tarball_in_result,
+    _detect_compression,
+    _get_decompress_command,
+    _get_compress_command,
+    _group_secrets_by_owner,
+)
 
 console = Console()
 
@@ -40,16 +54,201 @@ def query_nixos_config(runner: NixRunner, machine: str, attribute: str) -> Any:
 
 
 def copy_tarball_to_proxmox(
-    local_tarball: Path, proxmox_host: str, machine: str
+    local_tarball: Path, proxmox_host: str, machine: str, compression: str = "zstd"
 ) -> str:
     """Copy tarball to Proxmox host. Returns the remote path."""
-    remote_path = f"/var/lib/vz/template/cache/proxmox-lxc-{machine}.tar.xz"
+    ext = ".tar.zst" if compression == "zstd" else ".tar.xz"
+    remote_path = f"/var/lib/vz/template/cache/proxmox-lxc-{machine}{ext}"
     console.print(f"  Copying tarball to {proxmox_host}:{remote_path}")
 
     cmd = ["rsync", "-avP", str(local_tarball), f"root@{proxmox_host}:{remote_path}"]
     subprocess.run(cmd, check=True)
 
     return remote_path
+
+
+def stream_tarball_to_remote(
+    source_tarball: Path,
+    machine_name: str,
+    proxmox_host: str,
+    runner: NixRunner,
+    compression: str = "zstd",
+) -> str:
+    """Stream tarball with injected secrets directly to remote.
+
+    This avoids creating a local copy of the secrets-injected tarball.
+    The pipeline is:
+    decompress source | bsdtar (add secrets) | compress | ssh cat > remote
+
+    Args:
+        source_tarball: Path to the source tarball from nix build
+        machine_name: NixOS configuration name for gathering secrets
+        proxmox_host: Remote Proxmox host
+        runner: NixRunner instance for nix eval
+        compression: Output compression format
+
+    Returns:
+        Remote path where tarball was written
+    """
+    ext = ".tar.zst" if compression == "zstd" else ".tar.xz"
+    remote_path = f"/var/lib/vz/template/cache/proxmox-lxc-{machine_name}{ext}"
+
+    console.print(f"  Streaming tarball to {proxmox_host}:{remote_path}")
+
+    # Gather secrets
+    secrets = gather_secrets_for_machine(machine_name, runner)
+    if not secrets:
+        console.print("  [yellow]No secrets to inject, copying directly[/yellow]")
+        # Stream source directly
+        source_compression = _detect_compression(source_tarball)
+        if source_compression == compression:
+            # Same format, just copy
+            cmd = [
+                "rsync",
+                "-avP",
+                str(source_tarball),
+                f"root@{proxmox_host}:{remote_path}",
+            ]
+            subprocess.run(cmd, check=True)
+        else:
+            # Need to recompress
+            decompress_cmd = _get_decompress_command(source_compression)
+            compress_cmd = _get_compress_command(compression)
+            with subprocess.Popen(
+                decompress_cmd + [str(source_tarball)], stdout=subprocess.PIPE
+            ) as decomp:
+                with subprocess.Popen(
+                    compress_cmd, stdin=decomp.stdout, stdout=subprocess.PIPE
+                ) as comp:
+                    if decomp.stdout:
+                        decomp.stdout.close()
+                    ssh_cmd = [
+                        "ssh",
+                        f"root@{proxmox_host}",
+                        f"cat > {remote_path}",
+                    ]
+                    subprocess.run(ssh_cmd, stdin=comp.stdout, check=True)
+        return remote_path
+
+    console.print(f"  Found {len(secrets)} secret(s) to inject")
+
+    # Group secrets by owner/group
+    secret_groups = _group_secrets_by_owner(secrets)
+    console.print(f"  Ownership groups: {len(secret_groups)}")
+
+    # Track temp directories and files for cleanup
+    temp_dirs: list[Path] = []
+    temp_tar_files: list[Path] = []
+
+    try:
+        # Create small tar archives for each ownership group
+        console.print("  Preparing secrets archives...")
+        for (owner, group), group_secrets in secret_groups.items():
+            # Decrypt secrets to temp directory
+            secrets_dir = decrypt_secrets_to_tempdir(group_secrets)
+            temp_dirs.append(secrets_dir)
+
+            # Create a small tar archive with correct ownership using GNU tar
+            with tempfile.NamedTemporaryFile(
+                prefix=f"ncf-secrets-{owner}-", suffix=".tar", delete=False
+            ) as temp_tar:
+                temp_tar_path = Path(temp_tar.name)
+                temp_tar_files.append(temp_tar_path)
+
+            subprocess.run(
+                [
+                    "tar",
+                    "cf",
+                    str(temp_tar_path),
+                    f"--owner={owner}",
+                    f"--group={group}",
+                    "-C",
+                    str(secrets_dir),
+                    ".",
+                ],
+                check=True,
+            )
+
+        # Build the streaming pipeline
+        console.print("  Streaming to remote...")
+
+        source_compression = _detect_compression(source_tarball)
+        decompress_cmd = _get_decompress_command(source_compression)
+        compress_cmd = _get_compress_command(compression)
+
+        # Build bsdtar command
+        bsdtar_cmd = ["bsdtar", "cf", "-", "@-"]
+        for tar_file in temp_tar_files:
+            bsdtar_cmd.append(f"@{tar_file}")
+
+        # Run the pipeline: decompress | bsdtar | compress | ssh cat > remote
+        decompress_proc = subprocess.Popen(
+            decompress_cmd + [str(source_tarball)],
+            stdout=subprocess.PIPE,
+        )
+
+        bsdtar_proc = subprocess.Popen(
+            bsdtar_cmd,
+            stdin=decompress_proc.stdout,
+            stdout=subprocess.PIPE,
+        )
+        if decompress_proc.stdout:
+            decompress_proc.stdout.close()
+
+        compress_proc = subprocess.Popen(
+            compress_cmd,
+            stdin=bsdtar_proc.stdout,
+            stdout=subprocess.PIPE,
+        )
+        if bsdtar_proc.stdout:
+            bsdtar_proc.stdout.close()
+
+        ssh_cmd = ["ssh", f"root@{proxmox_host}", f"cat > {remote_path}"]
+        ssh_proc = subprocess.Popen(
+            ssh_cmd,
+            stdin=compress_proc.stdout,
+        )
+        if compress_proc.stdout:
+            compress_proc.stdout.close()
+
+        # Wait for all processes
+        ssh_rc = ssh_proc.wait()
+        compress_rc = compress_proc.wait()
+        bsdtar_rc = bsdtar_proc.wait()
+        decompress_rc = decompress_proc.wait()
+
+        if decompress_rc != 0:
+            raise ExternalToolError(
+                decompress_cmd[0],
+                f"Decompression failed with exit code {decompress_rc}",
+                decompress_rc,
+            )
+        if bsdtar_rc != 0:
+            raise ExternalToolError(
+                "bsdtar", f"bsdtar failed with exit code {bsdtar_rc}", bsdtar_rc
+            )
+        if compress_rc != 0:
+            raise ExternalToolError(
+                compress_cmd[0],
+                f"Compression failed with exit code {compress_rc}",
+                compress_rc,
+            )
+        if ssh_rc != 0:
+            raise ExternalToolError(
+                "ssh", f"SSH copy failed with exit code {ssh_rc}", ssh_rc
+            )
+
+        console.print("  [green]Streaming complete[/green]")
+        return remote_path
+
+    finally:
+        # Clean up temp tar files
+        for tar_file in temp_tar_files:
+            if tar_file.exists():
+                tar_file.unlink()
+        # Clean up all secrets directories
+        for temp_dir in temp_dirs:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def create_pct_command(
@@ -272,6 +471,9 @@ def run(
     bridge: str = "vmbr0",
     reuse_remote_tarball: bool = False,
     dry_run: bool = False,
+    keep_local_tarball: bool = False,
+    local_tarball: Optional[Path] = None,
+    compression: str = "zstd",
 ) -> None:
     """Provision a Proxmox LXC container.
 
@@ -281,6 +483,9 @@ def run(
         bridge: Network bridge name (default: vmbr0)
         reuse_remote_tarball: Skip tarball build/copy if remote exists
         dry_run: Show what would be done without executing
+        keep_local_tarball: Keep local tarball after provisioning
+        local_tarball: Use existing tarball instead of building
+        compression: Output compression format ('zstd' or 'xz')
     """
     console.print(
         Panel(f"Provisioning LXC container: [bold]{machine}[/bold] on {proxmox_host}")
@@ -375,51 +580,89 @@ def run(
 
     console.print(f"  [green]Container '{hostname}' does not exist[/green]")
 
-    # Step 3: Build tarball
-    local_tarball = repo_root / f"proxmox-lxc-{machine}.tar.xz"
-    remote_tarball = f"/var/lib/vz/template/cache/proxmox-lxc-{machine}.tar.xz"
+    # Determine remote tarball path
+    ext = ".tar.zst" if compression == "zstd" else ".tar.xz"
+    remote_tarball = f"/var/lib/vz/template/cache/proxmox-lxc-{machine}{ext}"
 
+    # Step 3: Build/stream tarball
     should_build = True
-    if reuse_remote_tarball:
+    use_provided_tarball = local_tarball is not None
+    created_local_tarball: Optional[Path] = None
+
+    if use_provided_tarball:
+        # User provided a local tarball, just copy it
+        assert local_tarball is not None
+        console.print("\n[bold]Step 3:[/bold] Using provided local tarball")
+        console.print(f"  Tarball: {local_tarball}")
+        if not local_tarball.exists():
+            console.print(f"  [red]Error: Tarball not found: {local_tarball}[/red]")
+            return
+        should_build = False
+    elif reuse_remote_tarball:
         console.print("\n[bold]Step 3:[/bold] Checking for existing remote tarball")
         if dry_run:
             console.print(
                 f"  [yellow]Would check for {remote_tarball} on {proxmox_host}[/yellow]"
             )
         else:
-            check_cmd = [
-                "ssh",
-                f"root@{proxmox_host}",
-                f"test -f {remote_tarball} && echo exists",
-            ]
-            result = subprocess.run(check_cmd, capture_output=True, text=True)
-            if "exists" in result.stdout:
-                console.print(f"  [green]Remote tarball exists, skipping build[/green]")
-                should_build = False
+            # Check for both .tar.zst and .tar.xz
+            for check_ext in [".tar.zst", ".tar.xz"]:
+                check_path = (
+                    f"/var/lib/vz/template/cache/proxmox-lxc-{machine}{check_ext}"
+                )
+                check_cmd = [
+                    "ssh",
+                    f"root@{proxmox_host}",
+                    f"test -f {check_path} && echo exists",
+                ]
+                result = subprocess.run(check_cmd, capture_output=True, text=True)
+                if "exists" in result.stdout:
+                    console.print(
+                        f"  [green]Remote tarball exists ({check_ext}), skipping build[/green]"
+                    )
+                    remote_tarball = check_path
+                    should_build = False
+                    break
 
     if should_build:
-        console.print("\n[bold]Step 3:[/bold] Building LXC tarball with secrets")
+        console.print(
+            "\n[bold]Step 3:[/bold] Building LXC tarball and streaming to remote"
+        )
         if dry_run:
+            console.print(f"  [yellow]Would build: ncf build lxc {machine}[/yellow]")
             console.print(
-                f"  [yellow]Would build: ncf build lxc {machine} --inject-secrets[/yellow]"
+                f"  [yellow]Would stream with secrets to {proxmox_host}:{remote_tarball}[/yellow]"
             )
         else:
-            build.run_lxc(
-                target=machine,
-                output=local_tarball,
-                verbosity=1,
-                inject_secrets=True,
+            # Build the base tarball (without secrets) to temp location
+            flake_ref = (
+                f"{repo_root}#nixosConfigurations.{machine}.config.system.build.tarball"
             )
+            with tempfile.TemporaryDirectory(prefix="ncf-lxc-build-") as temp_build_dir:
+                temp_output = Path(temp_build_dir) / "result"
+                build_runner = NixRunner(verbosity=1, repo_root=repo_root)
+                build_runner.run_build(flake_ref, output=temp_output)
 
-    # Step 4: Copy tarball to Proxmox
-    if should_build:
+                # Find the actual tarball in the nix store result
+                tarball_path = _find_tarball_in_result(temp_output)
+
+                console.print(
+                    "[bold]Streaming tarball with secrets to remote...[/bold]"
+                )
+                remote_tarball = stream_tarball_to_remote(
+                    tarball_path, machine, proxmox_host, runner, compression
+                )
+
+    # Step 4: Copy tarball to Proxmox (if using provided tarball)
+    if use_provided_tarball and not should_build:
+        assert local_tarball is not None
         console.print("\n[bold]Step 4:[/bold] Copying tarball to Proxmox")
         if dry_run:
             console.print(
                 f"  [yellow]Would copy {local_tarball} to {proxmox_host}:{remote_tarball}[/yellow]"
             )
         else:
-            copy_tarball_to_proxmox(local_tarball, proxmox_host, machine)
+            copy_tarball_to_proxmox(local_tarball, proxmox_host, machine, compression)
 
     # Step 5: Get next VMID and create container
     console.print("\n[bold]Step 5:[/bold] Creating container")
@@ -469,23 +712,36 @@ def run(
             console.print("  [green]Extra config appended[/green]")
 
     # Step 7: Cleanup
-    if should_build and not reuse_remote_tarball:
+    should_cleanup_remote = should_build and not reuse_remote_tarball
+    should_cleanup_local = (
+        created_local_tarball is not None
+        and not keep_local_tarball
+        and not use_provided_tarball
+    )
+
+    if should_cleanup_remote or should_cleanup_local:
         console.print("\n[bold]Step 7:[/bold] Cleanup")
         if dry_run:
-            console.print(f"  [yellow]Would remove {local_tarball}[/yellow]")
-            console.print(
-                f"  [yellow]Would remove {remote_tarball} on {proxmox_host}[/yellow]"
-            )
+            if should_cleanup_local and created_local_tarball:
+                console.print(
+                    f"  [yellow]Would remove {created_local_tarball}[/yellow]"
+                )
+            if should_cleanup_remote:
+                console.print(
+                    f"  [yellow]Would remove {remote_tarball} on {proxmox_host}[/yellow]"
+                )
         else:
-            # Remove local tarball
-            if local_tarball.exists():
-                local_tarball.unlink()
-                console.print(f"  Removed local tarball: {local_tarball}")
+            # Remove local tarball if created and not keeping
+            if should_cleanup_local and created_local_tarball:
+                if created_local_tarball.exists():
+                    created_local_tarball.unlink()
+                    console.print(f"  Removed local tarball: {created_local_tarball}")
 
             # Remove remote tarball
-            rm_cmd = ["ssh", f"root@{proxmox_host}", f"rm -f {remote_tarball}"]
-            subprocess.run(rm_cmd, check=True)
-            console.print(f"  Removed remote tarball: {remote_tarball}")
+            if should_cleanup_remote:
+                rm_cmd = ["ssh", f"root@{proxmox_host}", f"rm -f {remote_tarball}"]
+                subprocess.run(rm_cmd, check=True)
+                console.print(f"  Removed remote tarball: {remote_tarball}")
 
     console.print("\n[bold green]Done![/bold green]")
     if not dry_run:

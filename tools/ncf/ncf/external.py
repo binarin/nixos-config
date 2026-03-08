@@ -96,6 +96,10 @@ register_tool("ssh-to-age", "Convert SSH keys to age keys")
 register_tool("yamlfmt", "YAML file formatting")
 register_tool("apg", "Password generation")
 register_tool("deploy", "Deploy NixOS configurations via deploy-rs")
+register_tool(
+    "bsdtar", "Efficient streaming tarball manipulation for secrets injection"
+)
+register_tool("zstd", "Fast compression for LXC tarballs")
 
 
 class ExternalToolError(Exception):
