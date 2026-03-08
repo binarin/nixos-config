@@ -1,8 +1,8 @@
-name: 'Build NixOS Configuration'
-description: 'Build a single NixOS configuration and extract store paths for caching'
+name: 'Build Nix'
+description: 'Build a nix flake output and extract store paths for caching'
 inputs:
   config:
-    description: 'Configuration name to build'
+    description: 'Matrix entry to build (e.g., d:media, c:furfur, p:ncf, s:default)'
     required: true
   output-link:
     description: 'Path to output link (optional)'
@@ -15,7 +15,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: build nixos configuration
+    - name: build nix output
       shell: bash
       env:
         CONFIG_NAME: ${{ inputs.config }}

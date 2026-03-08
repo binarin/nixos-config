@@ -152,45 +152,131 @@ def get_deploy_nodes() -> list[str]:
     return json.loads(result.stdout)
 
 
-def get_configurations_to_build() -> list[str]:
-    """Get list of configuration names that should be built by CI."""
-    configs = get_nixos_configurations()
+def get_packages(system: str = "x86_64-linux") -> list[str]:
+    """Get list of all packages from the flake for a given system."""
+    repo_root = config.find_repo_root()
+    result = run_command(
+        [
+            "nix",
+            "eval",
+            "--json",
+            f".#packages.{system}",
+            "--apply",
+            "builtins.attrNames",
+        ],
+        cwd=repo_root,
+    )
+    return json.loads(result.stdout)
+
+
+def get_devshells(system: str = "x86_64-linux") -> list[str]:
+    """Get list of all devShells from the flake for a given system."""
+    repo_root = config.find_repo_root()
+    result = run_command(
+        [
+            "nix",
+            "eval",
+            "--json",
+            f".#devShells.{system}",
+            "--apply",
+            "builtins.attrNames",
+        ],
+        cwd=repo_root,
+    )
+    return json.loads(result.stdout)
+
+
+def get_matrix_entries() -> list[str]:
+    """Get list of prefixed matrix entries for CI.
+
+    Returns entries with prefixes:
+    - d:<name> for deployable configurations (have deploy-rs nodes)
+    - c:<name> for regular configurations (no deploy-rs nodes)
+    - p:<name> for x86_64-linux packages
+    - s:<name> for x86_64-linux devshells
+    """
     result = []
+    deploy_nodes = get_deploy_nodes()
+
+    # Get NixOS configurations
+    configs = get_nixos_configurations()
     for cfg in configs:
         try:
             ci_config = get_ci_config(cfg)
             if ci_config.get("doBuild", True):
-                result.append(cfg)
+                if cfg in deploy_nodes:
+                    result.append(f"d:{cfg}")
+                else:
+                    result.append(f"c:{cfg}")
         except Exception as e:
             # If we can't get CI config, include it by default
             console.print(
                 f"[yellow]Warning: Could not get CI config for {cfg}: {e}[/yellow]"
             )
-            result.append(cfg)
+            if cfg in deploy_nodes:
+                result.append(f"d:{cfg}")
+            else:
+                result.append(f"c:{cfg}")
+
+    # Get packages for x86_64-linux
+    try:
+        packages = get_packages("x86_64-linux")
+        for pkg in packages:
+            result.append(f"p:{pkg}")
+    except Exception as e:
+        console.print(f"[yellow]Warning: Could not get packages: {e}[/yellow]")
+
+    # Get devShells for x86_64-linux
+    try:
+        devshells = get_devshells("x86_64-linux")
+        for shell in devshells:
+            result.append(f"s:{shell}")
+    except Exception as e:
+        console.print(f"[yellow]Warning: Could not get devShells: {e}[/yellow]")
+
     return result
 
 
-def get_build_path(name: str) -> str:
-    """Get the nix build path for a configuration.
+def get_build_path(entry: str) -> str:
+    """Get the nix build path for a matrix entry.
 
-    Returns deploy-rs path if available, otherwise nixosConfiguration toplevel.
+    Handles prefixed entries:
+    - d:<name> -> deploy-rs path
+    - c:<name> -> nixosConfiguration toplevel
+    - p:<name> -> package for x86_64-linux
+    - s:<name> -> devShell for x86_64-linux
+    - <name> (no prefix) -> legacy behavior, check deploy nodes
     """
-    deploy_nodes = get_deploy_nodes()
-    if name in deploy_nodes:
-        return f".#deploy.nodes.{name}.profiles.system.path"
+    if ":" in entry:
+        prefix, name = entry.split(":", 1)
+        if prefix == "d":
+            return f".#deploy.nodes.{name}.profiles.system.path"
+        elif prefix == "c":
+            return f".#nixosConfigurations.{name}.config.system.build.toplevel"
+        elif prefix == "p":
+            return f".#packages.x86_64-linux.{name}"
+        elif prefix == "s":
+            return f".#devShells.x86_64-linux.{name}"
+        else:
+            raise ValueError(f"Unknown prefix: {prefix}")
     else:
-        return f".#nixosConfigurations.{name}.config.system.build.toplevel"
+        # Legacy behavior for backwards compatibility
+        deploy_nodes = get_deploy_nodes()
+        if entry in deploy_nodes:
+            return f".#deploy.nodes.{entry}.profiles.system.path"
+        else:
+            return f".#nixosConfigurations.{entry}.config.system.build.toplevel"
 
 
 def run_matrix() -> None:
-    """Output JSON array of configuration names for CI dynamic matrix."""
-    configurations = get_configurations_to_build()
-    print(json.dumps(configurations))
+    """Output JSON array of matrix entries for CI dynamic matrix."""
+    entries = get_matrix_entries()
+    print(json.dumps(entries))
 
 
-def run_build_path(name: str) -> None:
-    """Output the nix build path for a configuration."""
-    print(get_build_path(name))
+def run_build_path(entry: str) -> None:
+    """Output the nix build path for a matrix entry."""
+    print(get_build_path(entry))
 
 
 def run_external_deps() -> None:

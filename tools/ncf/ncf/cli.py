@@ -391,13 +391,19 @@ def ci_fake_unlock_cmd():
 
 @ci_app.command("build-path")
 def ci_build_path_cmd(
-    name: str = typer.Argument(help="Configuration name"),
+    entry: str = typer.Argument(
+        help="Matrix entry (e.g., d:media, c:furfur, p:ncf, s:default)"
+    ),
 ):
-    """Output the nix build path for a configuration.
+    """Output the nix build path for a matrix entry.
 
-    Returns deploy-rs path if available, otherwise nixosConfiguration toplevel.
+    Handles prefixed entries from 'ncf ci matrix':
+    - d:<name> -> deploy-rs path
+    - c:<name> -> nixosConfiguration toplevel
+    - p:<name> -> package for x86_64-linux
+    - s:<name> -> devShell for x86_64-linux
     """
-    ci.run_build_path(name)
+    ci.run_build_path(entry)
 
 
 @ci_app.command("external-deps")

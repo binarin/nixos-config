@@ -14,7 +14,7 @@ jobs:
         run: |
           echo "configurations=$(nix run .#env-aware-nix-run -- .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
 
-  nixos-configuration:
+  nix-build:
     name: build ${{ matrix.config }}
     runs-on: native
     needs: define-matrix
@@ -27,7 +27,7 @@ jobs:
       - uses: ./.forgejo/actions/git-crypt-unlock
         with:
           git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
-      - uses: ./.forgejo/actions/build-nixos-config
+      - uses: ./.forgejo/actions/build-nix
         with:
           config: ${{ matrix.config }}
           paths-file: ${{ runner.temp }}/nixos-config-${{ matrix.config }}.paths
@@ -37,3 +37,28 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           signing-key-pem: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: cached-paths-${{ matrix.config }}
+          path: ${{ runner.temp }}/nixos-config-${{ matrix.config }}.paths
+          retention-days: 7
+
+  collect-cached-paths:
+    name: collect all cached paths
+    runs-on: native
+    needs: nix-build
+    if: always()
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      - name: dedupe and combine paths
+        run: |
+          mkdir -p combined
+          find artifacts -name '*.paths' -exec cat {} \; | sort -u > combined/all-cached-paths.txt
+          echo "Total unique paths: $(wc -l < combined/all-cached-paths.txt)"
+      - uses: actions/upload-artifact@v3
+        with:
+          name: all-cached-paths
+          path: combined/all-cached-paths.txt
+          retention-days: 30

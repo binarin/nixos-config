@@ -20,7 +20,7 @@ jobs:
           echo "configurations=$(nix run .#env-aware-nix-run -- .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
           cat "$FORGEJO_OUTPUT"
 
-  nixos-configuration:
+  nix-build:
     name: build ${{ matrix.config }}
     runs-on: native
     needs: define-matrix
@@ -33,6 +33,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: ./.forgejo/actions/fake-unlock
-      - uses: ./.forgejo/actions/build-nixos-config
+      - uses: ./.forgejo/actions/build-nix
         with:
           config: ${{ matrix.config }}
