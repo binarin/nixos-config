@@ -26,6 +26,7 @@
         self.nixosModules.binarin-baseline
       ];
 
+      services.dbus.implementation = lib.mkDefault "broker";
       environment.enableAllTerminfo = true;
 
       time.timeZone = lib.mkDefault "Europe/Amsterdam";
