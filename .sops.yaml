@@ -225,7 +225,6 @@ creation_rules:
         age:
           - *admin_demandred_binarin
           - *user_paperless-nixos_binarin
-
   - path_regex: secrets/furfur/user-binarin-age
     key_groups:
       - pgp:
