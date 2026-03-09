@@ -112,6 +112,7 @@
       secure = false;
       force_install_on = {
         paperless = [ "paperless" ];
+        paperless-nixos = [ "paperless" ];
       };
     };
 

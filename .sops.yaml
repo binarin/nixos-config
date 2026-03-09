@@ -26,6 +26,8 @@ keys:
   - &user_nix-builder-valak_binarin age10l20ttrvz6nuueg4frq6v4uu2mg5rg0cchehxthddujwmcfwqazq0ju4ad
   - &server_nix-builder-raum age19lqxtweyndat8q2gx3w2t477mfzhzu9kqrjswd6ep9wej8jufpkqwrn24m
   - &user_nix-builder-raum_binarin age12erz4jsu2us6q3emxyrlm999rf27jvpw23lxga3ngceudl0equfshq335j
+  - &server_paperless-nixos age177kwd5w7ugj0n0cjyslgz470r6qpv5zdpska563q47jeu5fjaccsrzvakj
+  - &user_paperless-nixos_binarin age1060ltfpahffk9l8glr654cvg99gnrszvpeflckcjsw9339utuumqe4awpg
 creation_rules:
   - path_regex: secrets/demandred/(secrets.yaml|user-binarin.yaml)
     key_groups:
@@ -209,3 +211,17 @@ creation_rules:
         age:
           - *admin_demandred_binarin
           - *user_nix-builder-raum_binarin
+  - path_regex: secrets/paperless-nixos/secrets.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_paperless-nixos
+  - path_regex: secrets/paperless-nixos/user-binarin.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *user_paperless-nixos_binarin

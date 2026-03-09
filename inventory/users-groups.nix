@@ -10,5 +10,11 @@
       uid = 2002;
       gid = 2002;
     };
+    # UID 1026 matches the existing paperless host for easier volume migration
+    # GID 100 is the standard "users" group - use that instead of creating a new group
+    paperless = {
+      uid = 1026;
+      gid = 100; # uses "users" group
+    };
   };
 }
