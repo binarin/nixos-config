@@ -8,6 +8,10 @@ on:
       - synchronize
       - reopened
 
+concurrency:
+  group: flake-check-exclusive
+  cancel-in-progress: false
+
 jobs:
   flake-check:
     name: nix flake check

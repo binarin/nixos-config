@@ -54,7 +54,7 @@ in
 
         proxmoxLXC = {
           cores = 8;
-          memory = 16384;
+          memory = 24576;
           mounts = [
             {
               mountPoint = "/nix";
