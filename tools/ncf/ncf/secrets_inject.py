@@ -145,24 +145,20 @@ def gather_secrets_for_machine(
 ) -> list[SecretFile]:
     """Gather all secrets that should be injected for a machine.
 
+    Only SSH host keys are injected during provisioning. The user age key
+    (user-binarin-age) is now decrypted at runtime by sops-nix using the
+    SSH host key, eliminating the need to pre-provision it with different
+    ownership/permissions.
+
     Args:
         machine_name: The NixOS configuration name
         runner: Optional NixRunner instance
 
     Returns:
-        List of all SecretFile objects to inject
+        List of all SecretFile objects to inject (SSH host keys only)
     """
-    secrets = []
-
-    # SSH host keys
-    secrets.extend(get_ssh_host_keys(machine_name, runner))
-
-    # User age key
-    age_key = get_user_age_key(machine_name, runner)
-    if age_key:
-        secrets.append(age_key)
-
-    return secrets
+    # Only inject SSH host keys - user age key is decrypted by sops-nix at runtime
+    return get_ssh_host_keys(machine_name, runner)
 
 
 def decrypt_secrets_to_tempdir(

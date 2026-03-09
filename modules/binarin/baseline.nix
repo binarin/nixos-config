@@ -1,15 +1,29 @@
 { self, ... }:
 {
   flake.nixosModules.binarin-baseline =
-    { config, ... }:
+    { config, lib, ... }:
     {
       key = "nixos-config.modules.nixos.binarin-baseline";
 
       imports = [
         self.nixosModules.home-manager
         self.nixosModules.impermanence
+        self.nixosModules.sops
         self.modules.generic.public-keys
       ];
+
+      # Define sops secret for user-binarin-age
+      # This gets decrypted using SSH host key (configured by sops module)
+      # and made available to home-manager sops module
+      sops.secrets.user-binarin-age =
+        lib.mkIf (builtins.pathExists "${self}/secrets/${config.networking.hostName}/user-binarin-age")
+          {
+            sopsFile = "${self}/secrets/${config.networking.hostName}/user-binarin-age";
+            format = "binary";
+            owner = "binarin";
+            group = "binarin";
+            mode = "0400";
+          };
 
       programs.zsh.enable = true;
 

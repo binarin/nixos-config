@@ -225,3 +225,53 @@ creation_rules:
         age:
           - *admin_demandred_binarin
           - *user_paperless-nixos_binarin
+  # user-binarin-age rules: allow server to decrypt so sops-nix can provide at runtime
+  - path_regex: secrets/furfur/user-binarin-age
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_furfur
+  - path_regex: secrets/claude-nixos-config/user-binarin-age
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_claude-nixos-config
+  - path_regex: secrets/octopi/user-binarin-age
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_octopi
+  - path_regex: secrets/garage/user-binarin-age
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_garage
+  - path_regex: secrets/nix-builder-valak/user-binarin-age
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_nix-builder-valak
+  - path_regex: secrets/nix-builder-raum/user-binarin-age
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_nix-builder-raum
+  - path_regex: secrets/paperless-nixos/user-binarin-age
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_paperless-nixos

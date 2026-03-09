@@ -374,18 +374,28 @@ def run(
         efidisk = vm_config.get("efidisk", {})
         storage = efidisk.get("storage", "local-zfs")
         efitype = efidisk.get("efitype", "4m")
+        secure_boot = efidisk.get("secureBoot", False)
+
+        # pre-enrolled-keys=1 enables Secure Boot by pre-loading MS/distro keys
+        # pre-enrolled-keys=0 disables Secure Boot (default for easier custom setups)
+        pre_enrolled = "1" if secure_boot else "0"
+        efi_spec = f"{storage}:1,efitype={efitype},pre-enrolled-keys={pre_enrolled}"
 
         efi_cmd = [
             "qm",
             "set",
             str(vmid),
             "--efidisk0",
-            f"{storage}:1,efitype={efitype}",
+            efi_spec,
         ]
 
         if dry_run:
+            console.print(
+                f"  [yellow]Secure Boot: {'enabled' if secure_boot else 'disabled'}[/yellow]"
+            )
             console.print(f"  [yellow]Would run: {' '.join(efi_cmd)}[/yellow]")
         else:
+            console.print(f"  Secure Boot: {'enabled' if secure_boot else 'disabled'}")
             ssh_cmd = ["ssh", f"root@{proxmox_host}"] + efi_cmd
             subprocess.run(ssh_cmd, check=True)
             console.print(f"  [green]EFI disk configured[/green]")

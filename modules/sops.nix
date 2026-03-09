@@ -39,8 +39,16 @@
 
       config = {
         sops = {
+          # Use the sops-nix decrypted user age key from NixOS module
+          # This is decrypted using the SSH host key, so no need to pre-provision the age key
           age.keyFile =
-            if osConfig.impermanence.enable then
+            let
+              # Check if the NixOS sops secret is defined for this user's age key
+              sopsSecretPath = osConfig.sops.secrets.user-binarin-age.path or null;
+            in
+            if sopsSecretPath != null then
+              sopsSecretPath
+            else if osConfig.impermanence.enable then
               "/persist/${config.home.homeDirectory}/.config/age/nixos-config-keys.txt"
             else
               "${config.home.homeDirectory}/.config/age/nixos-config-keys.txt";

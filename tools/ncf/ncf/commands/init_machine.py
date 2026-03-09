@@ -205,6 +205,9 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
             console.print(f"    - Key anchor: user_{name}_binarin")
         console.print(f"    - Creation rule for secrets/{name}/secrets.yaml")
         console.print(f"    - Creation rule for secrets/{name}/user-binarin.yaml")
+        console.print(
+            f"    - Creation rule for secrets/{name}/user-binarin-age (server can decrypt)"
+        )
     else:
         if server_age_key:
             sops_path = config.get_sops_yaml_path(repo_root)
@@ -215,6 +218,10 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
                 server_age_key,
                 user_age_pub,
             )
+            # Also add rule for user-binarin-age that allows server to decrypt
+            # This enables sops-nix to decrypt the user age key using SSH host key
+            server_anchor = f"server_{name}"
+            age_rule_added = sops.add_user_binarin_age_rule(name, server_anchor)
             sops.save()
             result["modified_files"].append(sops_path)
             if keys_added:
@@ -225,6 +232,12 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
                 console.print("  [green]Added creation rules[/green]")
             else:
                 console.print("  [dim]Creation rules already exist[/dim]")
+            if age_rule_added:
+                console.print(
+                    "  [green]Added user-binarin-age rule (server can decrypt)[/green]"
+                )
+            else:
+                console.print("  [dim]user-binarin-age rule already exists[/dim]")
         else:
             console.print("  [red]Skipping - no server age key[/red]")
 

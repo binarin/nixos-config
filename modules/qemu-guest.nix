@@ -206,6 +206,16 @@
             default = "4m";
             description = "EFI disk size type (4m recommended for modern systems).";
           };
+
+          secureBoot = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = ''
+              Enable Secure Boot by pre-enrolling Microsoft and distribution keys.
+              When false (default), the EFI disk is created without pre-enrolled keys,
+              which disables Secure Boot and simplifies custom kernel/bootloader setups.
+            '';
+          };
         };
 
         cloudInit = {

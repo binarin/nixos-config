@@ -214,3 +214,35 @@ class SopsYaml:
         """Check if a machine's keys are configured in .sops.yaml."""
         server_anchor = f"server_{machine}"
         return self.find_key_anchor(server_anchor) is not None
+
+    def add_user_binarin_age_rule(
+        self,
+        machine: str,
+        server_anchor: str,
+        admin_key: str = "admin_demandred_binarin",
+    ) -> bool:
+        """Add creation rule for user-binarin-age that includes server key.
+
+        This allows the server to decrypt the user's age key using its SSH host key,
+        enabling sops-nix to provide the key at runtime without pre-provisioning.
+
+        Args:
+            machine: Machine name
+            server_anchor: Server age key anchor name (e.g., "server_furfur")
+            admin_key: Admin key anchor name
+
+        Returns:
+            True if rule was added, False if it already exists
+        """
+        # The path pattern for user-binarin-age files
+        path_regex = f"secrets/{machine}/user-binarin-age"
+
+        # Check if rule already exists
+        if self.find_creation_rule(path_regex) is not None:
+            return False
+
+        return self.add_creation_rule(
+            path_regex,
+            pgp_keys=["admin_binarin_gpg"],
+            age_keys=[admin_key, server_anchor],
+        )
