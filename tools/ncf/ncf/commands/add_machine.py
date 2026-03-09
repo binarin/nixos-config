@@ -366,14 +366,21 @@ def _run_dry(
     console.print("\n[bold]Step 5:[/bold] Creating machine directory")
     console.print(f"  [yellow]Would create: machines/{name}/[/yellow]")
 
-    # Step 6: Create empty files
-    console.print("\n[bold]Step 6:[/bold] Creating empty Nix files")
+    # Step 6: Create Nix files
+    console.print("\n[bold]Step 6:[/bold] Creating Nix files")
     hw_config = machine_dir / "hardware-configuration.nix"
     disko_config = machine_dir / "disko.nix"
 
-    for nix_file in [hw_config, disko_config]:
+    console.print(
+        f"  [yellow]Would create: {hw_config.relative_to(repo_root)}[/yellow]"
+    )
+    if machine_type == "lxc":
         console.print(
-            f"  [yellow]Would create: {nix_file.relative_to(repo_root)}[/yellow]"
+            f"  [yellow]Would create: {disko_config.relative_to(repo_root)} (empty for LXC)[/yellow]"
+        )
+    else:
+        console.print(
+            f"  [yellow]Would create: {disko_config.relative_to(repo_root)} (ZFS template for VM)[/yellow]"
         )
 
     # Step 7: Get stateVersion
@@ -473,15 +480,31 @@ def _run_atomic(
         machine_dir.mkdir(parents=True)
         console.print(f"  [green]Created machines/{name}/[/green]")
 
-        # Step 6: Create empty files
-        console.print("\n[bold]Step 6:[/bold] Creating empty Nix files")
+        # Step 6: Create Nix files
+        console.print("\n[bold]Step 6:[/bold] Creating Nix files")
         hw_config = machine_dir / "hardware-configuration.nix"
         disko_config = machine_dir / "disko.nix"
 
-        for nix_file in [hw_config, disko_config]:
-            op.track_create_file(nix_file)
-            nix_file.write_text("{}\n")
-            console.print(f"  [green]Created {nix_file.relative_to(repo_root)}[/green]")
+        # Hardware configuration is always empty (filled by nixos-generate-config)
+        op.track_create_file(hw_config)
+        hw_config.write_text("{}\n")
+        console.print(f"  [green]Created {hw_config.relative_to(repo_root)}[/green]")
+
+        # Disko config: use template for VMs, empty for LXC
+        op.track_create_file(disko_config)
+        if machine_type == "lxc":
+            disko_config.write_text("{}\n")
+            console.print(
+                f"  [green]Created {disko_config.relative_to(repo_root)} (empty for LXC)[/green]"
+            )
+        else:
+            env = Environment(loader=PackageLoader("ncf", "templates"))
+            disko_template = env.get_template("disko.nix.j2")
+            disko_content = disko_template.render(machine_name=name)
+            disko_config.write_text(disko_content)
+            console.print(
+                f"  [green]Created {disko_config.relative_to(repo_root)} (ZFS template for VM)[/green]"
+            )
 
         # Step 7: Get stateVersion
         console.print("\n[bold]Step 7:[/bold] Getting current NixOS state version")
