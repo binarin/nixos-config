@@ -19,3 +19,13 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: run ncf tests
         run: nix run .#env-aware-nix-develop -- .#devShells.x86_64-linux.default --command pytest tools/ncf -v
+
+  monitoring-tests:
+    name: monitoring tests
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: run monitoring tests
+        run: nix run .#env-aware-nix-develop -- .#devShells.x86_64-linux.default --command pytest monitoring/tests -v

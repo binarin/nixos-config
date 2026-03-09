@@ -19,6 +19,7 @@ from .commands import (
     ci,
     deploy,
     eval,
+    generate,
     init_machine,
     ipam_cmd,
     iso,
@@ -83,6 +84,13 @@ ipam_app = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(ipam_app, name="ipam")
+
+generate_app = typer.Typer(
+    name="generate",
+    help="Generate files from nix configuration",
+    no_args_is_help=True,
+)
+app.add_typer(generate_app, name="generate")
 
 
 @app.callback(invoke_without_command=True)
@@ -652,6 +660,23 @@ def ipam_format_cmd(
     and adds unallocated IPs as comments for /24 networks.
     """
     ipam_cmd.run_format(network=network, dry_run=dry_run)
+
+
+@generate_app.command("ansible-inventory")
+def generate_ansible_inventory_cmd(
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without making changes"
+    ),
+):
+    """Generate ansible inventory files from nix configuration.
+
+    Generates two files:
+    - ansible/ssh-public-keys.yaml: SSH public keys from inventory
+    - ansible/ip-allocation.yaml: IP allocations from network configuration
+
+    Must be run from the repository root.
+    """
+    generate.run_ansible_inventory(dry_run=dry_run)
 
 
 @iso_app.command("build-wifi")

@@ -1,0 +1,85 @@
+name: Materialization
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  ansible-inventory:
+    name: materialize ansible inventory
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.forgejo/actions/forgejo-api-auth
+        with:
+          token: ${{ secrets.FORGEJO_TOKEN }}
+          key-name: ci-materialization
+      - name: generate ansible inventory
+        run: just ansible-inventory
+      - name: check for changes
+        id: changes
+        run: |
+          if git diff --quiet ansible/; then
+            echo "changed=false" >> "$FORGEJO_OUTPUT"
+          else
+            echo "changed=true" >> "$FORGEJO_OUTPUT"
+            git diff ansible/
+          fi
+      - name: create or update PR
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          set -x
+          BRANCH="auto/materialize-ansible-inventory"
+          git config user.name "CI Bot"
+          git config user.email "ci@forgejo.lynx-lizard.ts.net"
+          git checkout -B "$BRANCH"
+          git add ansible/
+          git commit -m "chore: regenerate ansible inventory"
+          git push -f origin "$BRANCH"
+          # Create PR if it doesn't exist
+          if ! fj -H forgejo.lynx-lizard.ts.net pr search --repo binarin/nixos-config --state open 2>&1 | grep -q "$BRANCH"; then
+            fj -H forgejo.lynx-lizard.ts.net pr create -r forgejo.lynx-lizard.ts.net/binarin/nixos-config \
+              --base master --head "$BRANCH" \
+              --body "Automated PR: ansible inventory files were out of sync with their source definitions." \
+              "chore: regenerate ansible inventory"
+          fi
+
+  grafana-dashboards:
+    name: materialize grafana dashboards
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.forgejo/actions/forgejo-api-auth
+        with:
+          token: ${{ secrets.FORGEJO_TOKEN }}
+          key-name: ci-materialization
+      - name: generate dashboards
+        run: nix run .#monitoring -- generate
+      - name: check for changes
+        id: changes
+        run: |
+          if git diff --quiet monitoring/generated/; then
+            echo "changed=false" >> "$FORGEJO_OUTPUT"
+          else
+            echo "changed=true" >> "$FORGEJO_OUTPUT"
+            git diff monitoring/generated/
+          fi
+      - name: create or update PR
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          set -x
+          BRANCH="auto/materialize-grafana-dashboards"
+          git config user.name "CI Bot"
+          git config user.email "ci@forgejo.lynx-lizard.ts.net"
+          git checkout -B "$BRANCH"
+          git add monitoring/generated/
+          git commit -m "chore: regenerate grafana dashboards"
+          git push -f origin "$BRANCH"
+          # Create PR if it doesn't exist
+          if ! fj -H forgejo.lynx-lizard.ts.net pr search --repo binarin/nixos-config --state open 2>&1 | grep -q "$BRANCH"; then
+            fj -H forgejo.lynx-lizard.ts.net pr create -r forgejo.lynx-lizard.ts.net/binarin/nixos-config \
+              --base master --head "$BRANCH" \
+              --body "Automated PR: grafana dashboard files were out of sync with their source definitions." \
+              "chore: regenerate grafana dashboards"
+          fi

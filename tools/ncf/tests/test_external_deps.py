@@ -19,6 +19,7 @@ def get_all_tools():
         build,
         ci,
         eval,
+        generate,
         init_machine,
         ipam_cmd,
         iso,

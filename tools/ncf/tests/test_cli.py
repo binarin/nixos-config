@@ -139,6 +139,7 @@ class TestSubcommands:
             "eval",
             "machine",
             "ipam",
+            "generate",
         ],
     )
     def test_subcommand_accessible(self, run_ncf, subcommand):

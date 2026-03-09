@@ -60,14 +60,7 @@ build-all: check
 
 [group('Ansible')]
 ansible-inventory:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    # Build ssh-public-keys.yaml
-    outpath=$(nix build --impure --print-out-paths --no-link --expr 'let pkgs = import <nixpkgs> {}; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (import ./inventory/public-keys.nix)')
-    cp -f "$outpath" ansible/ssh-public-keys.yaml
-    # Build ip-allocation.yaml
-    outpath=$(nix build --impure --print-out-paths --no-link --expr 'let pkgs = import <nixpkgs> {}; fl = builtins.getFlake "'$(pwd)'"; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (let networks-lookup = import ./lib/networks-lookup.nix { self = fl; lib = pkgs.lib; }; in { ip_allocation = networks-lookup.buildHostLookupTable (networks-lookup.readRawInventory);})')
-    cp -f "$outpath" ansible/ip-allocation.yaml
+    ncf generate ansible-inventory
 
 [group('Ansible')]
 [working-directory: 'ansible']
