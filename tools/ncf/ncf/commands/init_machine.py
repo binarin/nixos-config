@@ -21,13 +21,15 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
     1. Create secrets/<machine>/ directory
     2. Check for existing secrets - handle migration gracefully
     3. Generate SSH host keys (if missing)
+    3b. Derive server age key from SSH ed25519 public key
+    3c. Add server key anchor and user-binarin-age rule to .sops.yaml
+        (This must happen before step 6 so sops can find the rule)
     4. Encrypt SSH private keys with sops
     5. Generate user age keypair (if missing and not --no-user-key)
     6. Encrypt user age key
-    7. Derive server age key from SSH public key
-    8. Update .sops.yaml with keys and creation rules
-    9. Create empty YAML files (if missing)
-    10. Stage all new files in git
+    7. Update .sops.yaml with remaining keys and creation rules
+    8. Create empty YAML files (if missing)
+    9. Stage all new files in git
 
     Returns:
         dict with keys:
@@ -110,6 +112,54 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
                 result["created_files"].append(pub_path)
         console.print("  [green]Generated SSH host keys[/green]")
 
+    # Step 3b: Derive server age key from SSH ed25519 public key (needed for .sops.yaml)
+    # We derive this early so we can add the user-binarin-age rule before encrypting
+    console.print(
+        "\n[bold]Step 3b:[/bold] Deriving server age key from SSH ed25519 key"
+    )
+    ed25519_pub = config.ssh_host_key_path(machine_dir, "ed25519", public=True)
+    server_age_key = None
+
+    if ed25519_pub.exists():
+        if dry_run:
+            console.print("  [yellow]Would derive server age key[/yellow]")
+        else:
+            server_age_key = external.ssh_to_age(ed25519_pub)
+            console.print("  [green]Derived server age key[/green]")
+            console.print(f"  [dim]{server_age_key}[/dim]")
+    else:
+        console.print("  [red]No SSH ed25519 public key found![/red]")
+
+    # Step 3c: Add server key anchor and user-binarin-age rule to .sops.yaml
+    # This must happen before Step 6 (encrypting user age key) so sops can find the rule
+    console.print("\n[bold]Step 3c:[/bold] Adding user-binarin-age rule to .sops.yaml")
+    sops_path = config.get_sops_yaml_path(repo_root)
+    if dry_run:
+        console.print(
+            f"  [yellow]Would add server_{name} key anchor and user-binarin-age rule[/yellow]"
+        )
+    elif server_age_key:
+        sops = SopsYaml(sops_path)
+        sops.load()
+        server_anchor = f"server_{name}"
+        key_added = sops.add_key_anchor(server_anchor, server_age_key)
+        age_rule_added = sops.add_user_binarin_age_rule(name, server_anchor)
+        if key_added or age_rule_added:
+            sops.save()
+            result["modified_files"].append(sops_path)
+        if key_added:
+            console.print(f"  [green]Added server_{name} key anchor[/green]")
+        else:
+            console.print(f"  [dim]server_{name} key anchor already exists[/dim]")
+        if age_rule_added:
+            console.print(
+                "  [green]Added user-binarin-age rule (server can decrypt)[/green]"
+            )
+        else:
+            console.print("  [dim]user-binarin-age rule already exists[/dim]")
+    else:
+        console.print("  [red]Skipping - no server age key[/red]")
+
     # Step 4: Encrypt SSH private keys
     console.print("\n[bold]Step 4:[/bold] Encrypting SSH private keys")
     for key_type in config.SSH_KEY_TYPES:
@@ -181,36 +231,22 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
             external.sops_encrypt_inplace(age_key_path)
             console.print("  [green]Encrypted user age key[/green]")
 
-    # Step 7: Derive server age key from SSH public key
-    console.print("\n[bold]Step 7:[/bold] Deriving server age key from SSH ed25519 key")
-    ed25519_pub = config.ssh_host_key_path(machine_dir, "ed25519", public=True)
-    server_age_key = None
-
-    if ed25519_pub.exists():
-        if dry_run:
-            console.print("  [yellow]Would derive server age key[/yellow]")
-        else:
-            server_age_key = external.ssh_to_age(ed25519_pub)
-            console.print(f"  [green]Derived server age key[/green]")
-            console.print(f"  [dim]{server_age_key}[/dim]")
-    else:
-        console.print("  [red]No SSH ed25519 public key found![/red]")
-
-    # Step 8: Update .sops.yaml
-    console.print("\n[bold]Step 8:[/bold] Updating .sops.yaml")
+    # Step 7: Update .sops.yaml with remaining rules
+    # Note: Server key anchor and user-binarin-age rule were added in Step 3c
+    # Here we add the user key anchor and rules for secrets.yaml and user-binarin.yaml
+    console.print("\n[bold]Step 7:[/bold] Updating .sops.yaml with remaining rules")
     if dry_run:
         console.print("  [yellow]Would update .sops.yaml with:[/yellow]")
-        console.print(f"    - Key anchor: server_{name}")
         if user_age_pub:
             console.print(f"    - Key anchor: user_{name}_binarin")
         console.print(f"    - Creation rule for secrets/{name}/secrets.yaml")
         console.print(f"    - Creation rule for secrets/{name}/user-binarin.yaml")
         console.print(
-            f"    - Creation rule for secrets/{name}/user-binarin-age (server can decrypt)"
+            "  [dim](server key anchor and user-binarin-age rule added in Step 3c)[/dim]"
         )
     else:
         if server_age_key:
-            sops_path = config.get_sops_yaml_path(repo_root)
+            # Reload .sops.yaml (may have been modified in Step 3c)
             sops = SopsYaml(sops_path)
             sops.load()
             keys_added, rules_added = sops.update_machine_keys(
@@ -218,12 +254,13 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
                 server_age_key,
                 user_age_pub,
             )
-            # Also add rule for user-binarin-age that allows server to decrypt
-            # This enables sops-nix to decrypt the user age key using SSH host key
+            # add_user_binarin_age_rule will return False since it was added in Step 3c
             server_anchor = f"server_{name}"
             age_rule_added = sops.add_user_binarin_age_rule(name, server_anchor)
-            sops.save()
-            result["modified_files"].append(sops_path)
+            if keys_added or rules_added or age_rule_added:
+                sops.save()
+                if sops_path not in result["modified_files"]:
+                    result["modified_files"].append(sops_path)
             if keys_added:
                 console.print("  [green]Added key anchors[/green]")
             else:
@@ -241,8 +278,8 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
         else:
             console.print("  [red]Skipping - no server age key[/red]")
 
-    # Step 9: Create empty YAML files and encrypt them
-    console.print("\n[bold]Step 9:[/bold] Creating and encrypting empty secrets files")
+    # Step 8: Create empty YAML files and encrypt them
+    console.print("\n[bold]Step 8:[/bold] Creating and encrypting empty secrets files")
     secrets_yaml = config.secrets_yaml_path(machine_dir)
     user_yaml = config.user_binarin_yaml_path(machine_dir)
 
@@ -259,8 +296,8 @@ def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:
             result["created_files"].append(yaml_path)
             console.print(f"  [green]Created and encrypted {yaml_path.name}[/green]")
 
-    # Step 10: Stage files in git
-    console.print("\n[bold]Step 10:[/bold] Staging files in git")
+    # Step 9: Stage files in git
+    console.print("\n[bold]Step 9:[/bold] Staging files in git")
     if dry_run:
         console.print("  [yellow]Would stage all new files[/yellow]")
     else:
