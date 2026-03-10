@@ -1,5 +1,7 @@
 """Main CLI entry point for ncf."""
 
+import sys
+
 import typer
 from rich.console import Console
 from typer._completion_classes import completion_init
@@ -29,12 +31,14 @@ from .commands import (
     set_secret,
     verify,
 )
+from .external import ExternalToolError
 
 app = typer.Typer(
     name="ncf",
     help="CLI tool for NixOS configuration management",
     no_args_is_help=True,
     add_completion=False,
+    pretty_exceptions_enable=False,
 )
 
 secrets_app = typer.Typer(
@@ -1125,7 +1129,12 @@ def deploy_all_cmd(
 
 def main():
     """Entry point for the CLI."""
-    app()
+    try:
+        app()
+    except ExternalToolError as e:
+        # Display clean error message without Python traceback
+        console.print(f"[red]Error: {e}[/red]", highlight=False)
+        sys.exit(e.returncode)
 
 
 if __name__ == "__main__":
