@@ -32,8 +32,10 @@ def run_ansible_inventory(dry_run: bool = False) -> None:
         raise SystemExit(1)
 
     # Build ssh-public-keys.yaml
+    # Use flake's nixpkgs input instead of <nixpkgs> to avoid relying on NIX_PATH
+    # which is not available in CI environments
     console.print("[blue]Generating ansible/ssh-public-keys.yaml...[/blue]")
-    expr1 = 'let pkgs = import <nixpkgs> {}; in (pkgs.formats.yaml {}).generate "public-keys.yaml" (import ./inventory/public-keys.nix)'
+    expr1 = f'let fl = builtins.getFlake (toString {repo_root}); pkgs = fl.inputs.nixpkgs.legacyPackages.${{builtins.currentSystem}}; in (pkgs.formats.yaml {{}}).generate "public-keys.yaml" (import ./inventory/public-keys.nix)'
     cmd1 = [
         "nix",
         "build",
@@ -56,8 +58,9 @@ def run_ansible_inventory(dry_run: bool = False) -> None:
         console.print(f"[green]Generated {dest}[/green]")
 
     # Build ip-allocation.yaml
+    # Use flake's nixpkgs input instead of <nixpkgs> to avoid relying on NIX_PATH
     console.print("[blue]Generating ansible/ip-allocation.yaml...[/blue]")
-    expr2 = f"""let pkgs = import <nixpkgs> {{}}; fl = builtins.getFlake "{repo_root}"; in (pkgs.formats.yaml {{}}).generate "ip-allocation.yaml" (let networks-lookup = import ./lib/networks-lookup.nix {{ self = fl; lib = pkgs.lib; }}; in {{ ip_allocation = networks-lookup.buildHostLookupTable (networks-lookup.readRawInventory);}})"""
+    expr2 = f"""let fl = builtins.getFlake "{repo_root}"; pkgs = fl.inputs.nixpkgs.legacyPackages.${{builtins.currentSystem}}; in (pkgs.formats.yaml {{}}).generate "ip-allocation.yaml" (let networks-lookup = import ./lib/networks-lookup.nix {{ self = fl; lib = pkgs.lib; }}; in {{ ip_allocation = networks-lookup.buildHostLookupTable (networks-lookup.readRawInventory);}})"""
     cmd2 = [
         "nix",
         "build",
