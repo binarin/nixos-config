@@ -1,5 +1,6 @@
 """Proxmox API client using proxmoxer with SSH backend."""
 
+import os
 from typing import Any
 
 from proxmoxer import ProxmoxAPI
@@ -11,10 +12,20 @@ class ProxmoxClient:
     def __init__(self, host: str, user: str = "root"):
         """Initialize Proxmox client with SSH paramiko backend.
 
-        Uses SSH agent or ~/.ssh/ keys for authentication.
+        Uses ~/.ssh/ keys for authentication. SSH agent is explicitly disabled
+        to work around paramiko bugs that can cause connection failures when
+        SSH_AUTH_SOCK is set.
+
         The user parameter is the SSH user (typically 'root'), not the
         Proxmox API user (like 'root@pam').
         """
+        # Clear SSH agent env vars to work around paramiko bugs.
+        # Paramiko has known issues with SSH agent integration that can cause
+        # connection failures or unexpected behavior. By clearing these vars,
+        # paramiko falls back to key-file-based authentication.
+        os.environ.pop("SSH_AUTH_SOCK", None)
+        os.environ.pop("SSH_AGENT_PID", None)
+
         self.api = ProxmoxAPI(host, user=user, backend="ssh_paramiko")
         # Get the first (usually only) node
         nodes = self.api.nodes.get()
@@ -85,14 +96,14 @@ class ProxmoxClient:
         """
         # Proxmox snippets are stored in the storage's snippets directory
         # We use the storage API to write the file
-        import io
         import paramiko
 
         # Connect via SSH and write the file directly
         # This is more reliable than the API for snippets
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(self.host, username="root")
+        # Explicitly disable SSH agent to work around paramiko bugs
+        ssh.connect(self.host, username="root", allow_agent=False)
 
         try:
             # Get the storage path for snippets
