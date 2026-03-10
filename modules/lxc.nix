@@ -127,6 +127,25 @@ in
       config = {
         proxmoxLXC.enable = true;
 
+        # Automatically add /persist and /local mounts for impermanence
+        proxmoxLXC.mounts = lib.mkIf config.impermanence.enable [
+          {
+            mountPoint = "/nix";
+            size = "32G";
+            backup = true;
+          }
+          {
+            mountPoint = "/persist";
+            size = "8G";
+            backup = true;
+          }
+          {
+            mountPoint = "/local";
+            size = "8G";
+            backup = false;
+          }
+        ];
+
         proxmoxLXC.manageNetwork = true;
         networking.useNetworkd = true;
         networking.useHostResolvConf = false;

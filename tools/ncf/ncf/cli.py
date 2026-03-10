@@ -605,6 +605,11 @@ def machine_add_cmd(
         "-f",
         help="Proceed even if working directory has uncommitted changes",
     ),
+    impermanence: bool = typer.Option(
+        False,
+        "--impermanence",
+        help="Enable impermanence (ephemeral root, persistent /persist and /local)",
+    ),
 ):
     """Add a new NixOS machine configuration.
 
@@ -629,6 +634,7 @@ def machine_add_cmd(
         machine_type=machine_type,
         dry_run=dry_run,
         force=force,
+        impermanence=impermanence,
     )
 
 

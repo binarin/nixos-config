@@ -222,6 +222,7 @@ def run(
     machine_type: str = "default",
     dry_run: bool = False,
     force: bool = False,
+    impermanence: bool = False,
 ) -> None:
     """Add a new NixOS machine configuration.
 
@@ -242,7 +243,10 @@ def run(
     If any step fails, all changes are rolled back automatically.
     """
     type_label = f" (type: {machine_type})" if machine_type != "default" else ""
-    console.print(Panel(f"Adding new machine: [bold]{name}[/bold]{type_label}"))
+    imp_label = " \\[impermanence]" if impermanence else ""
+    console.print(
+        Panel(f"Adding new machine: [bold]{name}[/bold]{type_label}{imp_label}")
+    )
 
     repo_root = ncf_config.find_repo_root()
 
@@ -296,6 +300,7 @@ def run(
             host_id_path=host_id_path,
             machine_module=machine_module,
             machine_dir=machine_dir,
+            impermanence=impermanence,
         )
     else:
         _run_atomic(
@@ -309,6 +314,7 @@ def run(
             host_id_path=host_id_path,
             machine_module=machine_module,
             machine_dir=machine_dir,
+            impermanence=impermanence,
         )
 
 
@@ -322,6 +328,7 @@ def _run_dry(
     host_id_path: Path,
     machine_module: Path,
     machine_dir: Path,
+    impermanence: bool = False,
 ) -> None:
     """Run in dry-run mode (no changes made)."""
     # Step 3: Update host-id.toml
@@ -390,6 +397,12 @@ def _run_dry(
     # Step 8: Create machine module from template
     console.print("\n[bold]Step 8:[/bold] Creating machine module from template")
     console.print(f"  [yellow]Would create: modules/machines/{name}.nix[/yellow]")
+    if impermanence:
+        console.print("  [yellow]With impermanence enabled:[/yellow]")
+        console.print("    - import self.nixosModules.impermanence")
+        console.print("    - impermanence.enable = true")
+        console.print('    - fileSystems."/persist".neededForBoot = true')
+        console.print('    - fileSystems."/local".neededForBoot = true')
 
     # Step 9: Run secrets init-machine
     console.print("\n[bold]Step 9:[/bold] Initializing machine secrets")
@@ -417,6 +430,7 @@ def _run_atomic(
     host_id_path: Path,
     machine_module: Path,
     machine_dir: Path,
+    impermanence: bool = False,
 ) -> None:
     """Run with atomic rollback on error."""
     from . import init_machine
@@ -535,6 +549,10 @@ def _run_atomic(
                 "self.nixosModules.baseline",
             ]
 
+        # Add impermanence if requested
+        if impermanence:
+            extra_imports.append("self.nixosModules.impermanence")
+
         module_content = template.render(
             machine_name=name,
             system=system,
@@ -543,6 +561,7 @@ def _run_atomic(
             network=network or "home",
             extra_imports=extra_imports,
             extra_config=extra_config,
+            impermanence=impermanence,
         )
 
         op.track_create_file(machine_module)

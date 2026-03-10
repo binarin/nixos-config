@@ -488,6 +488,77 @@ def append_extra_config(proxmox_host: str, vmid: int, extra_config: str) -> None
     subprocess.run(cmd, check=True)
 
 
+def setup_impermanence_hook(
+    proxmox_host: str,
+    vmid: int,
+    repo_root: Path,
+) -> None:
+    """Upload the impermanence hook script and configure it for the container.
+
+    The hook script performs ZFS rollback on container pre-start, ensuring
+    the root filesystem is reset to its blank state.
+    """
+    hook_script_path = repo_root / "files" / "pve-impermanence-hook.pl"
+    remote_snippet_path = "/var/lib/vz/snippets/pve-impermanence-hook.pl"
+
+    # Check if the hook script already exists on the Proxmox host
+    check_cmd = [
+        "ssh",
+        f"root@{proxmox_host}",
+        f"test -f {remote_snippet_path} && echo exists",
+    ]
+    result = subprocess.run(check_cmd, capture_output=True, text=True)
+
+    if "exists" not in result.stdout:
+        # Upload the hook script
+        console.print(f"  Uploading hook script to {remote_snippet_path}")
+        subprocess.run(
+            [
+                "scp",
+                str(hook_script_path),
+                f"root@{proxmox_host}:{remote_snippet_path}",
+            ],
+            check=True,
+        )
+        # Make it executable
+        subprocess.run(
+            ["ssh", f"root@{proxmox_host}", f"chmod +x {remote_snippet_path}"],
+            check=True,
+        )
+    else:
+        console.print("  Hook script already exists on Proxmox host")
+
+    # Configure the hookscript for this container
+    console.print(f"  Configuring hookscript for container {vmid}")
+    pct_set_cmd = [
+        "ssh",
+        f"root@{proxmox_host}",
+        f"pct set {vmid} --hookscript local:snippets/pve-impermanence-hook.pl",
+    ]
+    subprocess.run(pct_set_cmd, check=True)
+
+
+def create_rootfs_snapshot(
+    proxmox_host: str,
+    vmid: int,
+) -> None:
+    """Create a blank ZFS snapshot of the container's rootfs for impermanence rollback.
+
+    This snapshot is used by the hookscript to reset the rootfs on each boot.
+    """
+    # The ZFS volume name is typically rpool/data/subvol-{vmid}-disk-0
+    zfs_volume = f"rpool/data/subvol-{vmid}-disk-0"
+    snapshot_name = f"{zfs_volume}@blank"
+
+    console.print(f"  Creating ZFS snapshot: {snapshot_name}")
+    snapshot_cmd = [
+        "ssh",
+        f"root@{proxmox_host}",
+        f"zfs snapshot {snapshot_name}",
+    ]
+    subprocess.run(snapshot_cmd, check=True)
+
+
 def validate_existing_container(
     current_config: dict[str, Any],
     hostname: str,
@@ -574,6 +645,14 @@ def run(
     )
     if lxc_config.get("mounts"):
         console.print(f"  Mounts: {len(lxc_config['mounts'])} additional mount(s)")
+
+    # Check if impermanence is enabled
+    impermanence_enabled = query_nixos_config(
+        runner, machine, "config.impermanence.enable"
+    )
+    console.print(
+        f"  Impermanence: {'enabled' if impermanence_enabled else 'disabled'}"
+    )
 
     # Get network info
     ip_alloc = query_nixos_config(
@@ -757,6 +836,20 @@ def run(
         console.print("\n[bold]Step 5b:[/bold] Restoring SSH host keys")
         restore_ssh_host_keys(proxmox_host, vmid, machine, repo_root)
         console.print("  [green]SSH host keys restored[/green]")
+
+    # Step 5c: Set up impermanence (if enabled)
+    if impermanence_enabled:
+        console.print("\n[bold]Step 5c:[/bold] Setting up impermanence")
+        if dry_run:
+            console.print("  [yellow]Would create ZFS snapshot for rollback[/yellow]")
+            console.print(
+                "  [yellow]Would upload and configure impermanence hook[/yellow]"
+            )
+        else:
+            create_rootfs_snapshot(proxmox_host, vmid)
+            console.print("  [green]ZFS snapshot created[/green]")
+            setup_impermanence_hook(proxmox_host, vmid, repo_root)
+            console.print("  [green]Impermanence hook configured[/green]")
 
     # Step 6: Append extra config
     extra_config = lxc_config.get("extraConfig", "")

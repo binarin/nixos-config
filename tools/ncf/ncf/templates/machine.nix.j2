@@ -44,6 +44,11 @@ in
         networking.hostName = inventoryHostName;
         system.stateVersion = "{{ state_version }}";
         nixos-config.export-metrics.enable = false;
+        {% if impermanence %}
+        impermanence.enable = true;
+        fileSystems."/persist".neededForBoot = true;
+        fileSystems."/local".neededForBoot = true;
+        {% endif %}
         {{ extra_config }}
       };
     };
