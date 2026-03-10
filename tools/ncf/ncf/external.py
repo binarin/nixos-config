@@ -100,6 +100,7 @@ register_tool(
     "bsdtar", "Efficient streaming tarball manipulation for secrets injection"
 )
 register_tool("zstd", "Fast compression for LXC tarballs")
+register_tool("pv", "Progress monitoring for data pipelines")
 
 
 class ExternalToolError(Exception):

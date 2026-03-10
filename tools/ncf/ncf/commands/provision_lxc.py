@@ -30,6 +30,15 @@ from .build import (
 console = Console()
 
 
+def _format_size(size_bytes: int) -> str:
+    """Format a size in bytes as a human-readable string."""
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if size_bytes < 1024:
+            return f"{size_bytes:.1f} {unit}"
+        size_bytes /= 1024
+    return f"{size_bytes:.1f} PB"
+
+
 def normalize_size(size: str) -> str:
     """Normalize size string for Proxmox pct command.
 
@@ -111,23 +120,60 @@ def stream_tarball_to_remote(
             ]
             subprocess.run(cmd, check=True)
         else:
-            # Need to recompress
+            # Need to recompress - use pv for progress
+            source_size = source_tarball.stat().st_size
+            console.print(f"  Source size: {_format_size(source_size)}")
+
             decompress_cmd = _get_decompress_command(source_compression)
             compress_cmd = _get_compress_command(compression)
-            with subprocess.Popen(
+            pv_cmd = ["pv", "-s", str(source_size), "-N", "Streaming"]
+            ssh_cmd = ["ssh", f"root@{proxmox_host}", f"cat > {remote_path}"]
+
+            # Pipeline: decompress | compress | pv | ssh
+            decompress_proc = subprocess.Popen(
                 decompress_cmd + [str(source_tarball)], stdout=subprocess.PIPE
-            ) as decomp:
-                with subprocess.Popen(
-                    compress_cmd, stdin=decomp.stdout, stdout=subprocess.PIPE
-                ) as comp:
-                    if decomp.stdout:
-                        decomp.stdout.close()
-                    ssh_cmd = [
-                        "ssh",
-                        f"root@{proxmox_host}",
-                        f"cat > {remote_path}",
-                    ]
-                    subprocess.run(ssh_cmd, stdin=comp.stdout, check=True)
+            )
+            compress_proc = subprocess.Popen(
+                compress_cmd, stdin=decompress_proc.stdout, stdout=subprocess.PIPE
+            )
+            if decompress_proc.stdout:
+                decompress_proc.stdout.close()
+            pv_proc = subprocess.Popen(
+                pv_cmd, stdin=compress_proc.stdout, stdout=subprocess.PIPE
+            )
+            if compress_proc.stdout:
+                compress_proc.stdout.close()
+            ssh_proc = subprocess.Popen(ssh_cmd, stdin=pv_proc.stdout)
+            if pv_proc.stdout:
+                pv_proc.stdout.close()
+
+            # Wait for all processes
+            ssh_rc = ssh_proc.wait()
+            pv_rc = pv_proc.wait()
+            compress_rc = compress_proc.wait()
+            decompress_rc = decompress_proc.wait()
+
+            if decompress_rc != 0:
+                raise ExternalToolError(
+                    decompress_cmd[0],
+                    f"Decompression failed with exit code {decompress_rc}",
+                    decompress_rc,
+                )
+            if compress_rc != 0:
+                raise ExternalToolError(
+                    compress_cmd[0],
+                    f"Compression failed with exit code {compress_rc}",
+                    compress_rc,
+                )
+            if pv_rc != 0:
+                raise ExternalToolError(
+                    "pv", f"pv failed with exit code {pv_rc}", pv_rc
+                )
+            if ssh_rc != 0:
+                raise ExternalToolError(
+                    "ssh", f"SSH copy failed with exit code {ssh_rc}", ssh_rc
+                )
+            console.print("  [green]Streaming complete[/green]")
         return remote_path
 
     console.print(f"  Found {len(secrets)} secret(s) to inject")
@@ -169,19 +215,22 @@ def stream_tarball_to_remote(
                 check=True,
             )
 
-        # Build the streaming pipeline
-        console.print("  Streaming to remote...")
+        # Build the streaming pipeline with progress monitoring
+        source_size = source_tarball.stat().st_size
+        console.print(f"  Source size: {_format_size(source_size)}")
 
         source_compression = _detect_compression(source_tarball)
         decompress_cmd = _get_decompress_command(source_compression)
         compress_cmd = _get_compress_command(compression)
+        pv_cmd = ["pv", "-s", str(source_size), "-N", "Streaming"]
+        ssh_cmd = ["ssh", f"root@{proxmox_host}", f"cat > {remote_path}"]
 
         # Build bsdtar command
         bsdtar_cmd = ["bsdtar", "cf", "-", "@-"]
         for tar_file in temp_tar_files:
             bsdtar_cmd.append(f"@{tar_file}")
 
-        # Run the pipeline: decompress | bsdtar | compress | ssh cat > remote
+        # Run the pipeline: decompress | bsdtar | compress | pv | ssh
         decompress_proc = subprocess.Popen(
             decompress_cmd + [str(source_tarball)],
             stdout=subprocess.PIPE,
@@ -203,16 +252,24 @@ def stream_tarball_to_remote(
         if bsdtar_proc.stdout:
             bsdtar_proc.stdout.close()
 
-        ssh_cmd = ["ssh", f"root@{proxmox_host}", f"cat > {remote_path}"]
-        ssh_proc = subprocess.Popen(
-            ssh_cmd,
+        pv_proc = subprocess.Popen(
+            pv_cmd,
             stdin=compress_proc.stdout,
+            stdout=subprocess.PIPE,
         )
         if compress_proc.stdout:
             compress_proc.stdout.close()
 
+        ssh_proc = subprocess.Popen(
+            ssh_cmd,
+            stdin=pv_proc.stdout,
+        )
+        if pv_proc.stdout:
+            pv_proc.stdout.close()
+
         # Wait for all processes
         ssh_rc = ssh_proc.wait()
+        pv_rc = pv_proc.wait()
         compress_rc = compress_proc.wait()
         bsdtar_rc = bsdtar_proc.wait()
         decompress_rc = decompress_proc.wait()
@@ -233,6 +290,8 @@ def stream_tarball_to_remote(
                 f"Compression failed with exit code {compress_rc}",
                 compress_rc,
             )
+        if pv_rc != 0:
+            raise ExternalToolError("pv", f"pv failed with exit code {pv_rc}", pv_rc)
         if ssh_rc != 0:
             raise ExternalToolError(
                 "ssh", f"SSH copy failed with exit code {ssh_rc}", ssh_rc

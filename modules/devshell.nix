@@ -63,6 +63,7 @@
         deploy-rs # For ncf deploy commands
         libarchive # bsdtar for efficient tarball manipulation
         zstd # Fast compression for LXC tarballs
+        pv # Progress monitoring for data pipelines
       ];
 
       ncf = pkgs.python3.pkgs.buildPythonApplication {
