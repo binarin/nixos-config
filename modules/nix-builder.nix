@@ -61,6 +61,8 @@
           TOKEN=${config.sops.placeholder."nixos-config-runner-token"}
         '';
 
+        virtualisation.podman.enable = true;
+
         services.gitea-actions-runner = {
           package = pkgs.forgejo-runner;
           instances =
@@ -84,6 +86,7 @@
                   nix
                   nodejs
                   wget
+                  podman
                 ];
               };
               mkRunner = n: {
