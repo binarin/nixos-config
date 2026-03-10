@@ -16,7 +16,7 @@ jobs:
           token: ${{ secrets.FORGEJO_TOKEN }}
           key-name: ci-materialization
       - name: generate ansible inventory
-        run: just ansible-inventory
+        run: nix run .#ncf -- generate ansible-inventory
       - name: check for changes
         id: changes
         run: |
