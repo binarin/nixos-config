@@ -64,6 +64,7 @@
         libarchive # bsdtar for efficient tarball manipulation
         zstd # Fast compression for LXC tarballs
         pv # Progress monitoring for data pipelines
+        fzf # Interactive selection for ncf ts auth-key
       ];
 
       ncf = pkgs.python3.pkgs.buildPythonApplication {
