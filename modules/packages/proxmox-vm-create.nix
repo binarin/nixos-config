@@ -76,6 +76,8 @@
 
           HOSTNAME=$(nix eval ".#nixosConfigurations.$CONFIG_NAME.config.networking.hostName" --raw 2>/dev/null)
           MEMORY=$(echo "$METADATA" | jq -r '.memory')
+          BALLOON=$(echo "$METADATA" | jq -r '.balloon // empty')
+          SHARES=$(echo "$METADATA" | jq -r '.shares // 1000')
           CORES=$(echo "$METADATA" | jq -r '.cores')
           SOCKETS=$(echo "$METADATA" | jq -r '.sockets // 1')
           BIOS=$(echo "$METADATA" | jq -r '.bios // "seabios"')
@@ -103,6 +105,15 @@
 
           if [ "$AGENT" = "true" ]; then
             CREATE_CMD+=" --agent 1"
+          fi
+
+          # Balloon memory configuration
+          if [ -n "$BALLOON" ]; then
+            CREATE_CMD+=" --balloon $BALLOON"
+          fi
+
+          if [ "$SHARES" != "1000" ]; then
+            CREATE_CMD+=" --shares $SHARES"
           fi
 
           if [ -n "$DESCRIPTION" ]; then

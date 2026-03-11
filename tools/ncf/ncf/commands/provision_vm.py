@@ -117,6 +117,15 @@ def build_qm_create_command(
     if vm_config.get("agent", True):
         cmd.extend(["--agent", "1"])
 
+    # Balloon memory configuration
+    balloon = vm_config.get("balloon")
+    if balloon is not None:
+        cmd.extend(["--balloon", str(balloon)])
+
+    shares = vm_config.get("shares", 1000)
+    if shares != 1000:  # Only include if non-default
+        cmd.extend(["--shares", str(shares)])
+
     description = vm_config.get("description")
     if description:
         cmd.extend(["--description", description])
@@ -189,6 +198,11 @@ def run(
         runner, machine, "config.nixos-config.qemu-guest.proxmox"
     )
     console.print(f"  Memory: {vm_config['memory']} MB")
+    balloon = vm_config.get("balloon")
+    if balloon is not None:
+        console.print(f"  Balloon (min memory): {balloon} MB")
+        shares = vm_config.get("shares", 1000)
+        console.print(f"  Shares: {shares}")
     console.print(f"  Cores: {vm_config['cores']}")
     console.print(f"  BIOS: {vm_config.get('bios', 'seabios')}")
 
@@ -536,6 +550,23 @@ def validate_existing_vm(
     current_name = current_config.get("name")
     if current_name != hostname:
         mismatches.append(f"name: expected {hostname}, got {current_name}")
+
+    # Check balloon memory
+    expected_balloon = vm_config.get("balloon")
+    current_balloon = current_config.get("balloon")
+    if expected_balloon is not None and current_balloon != expected_balloon:
+        mismatches.append(
+            f"balloon: expected {expected_balloon}, got {current_balloon}"
+        )
+
+    # Check shares (only if balloon is configured)
+    if expected_balloon is not None:
+        expected_shares = vm_config.get("shares", 1000)
+        current_shares = current_config.get("shares", 1000)
+        if current_shares != expected_shares:
+            mismatches.append(
+                f"shares: expected {expected_shares}, got {current_shares}"
+            )
 
     return mismatches
 

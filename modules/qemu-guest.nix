@@ -25,7 +25,27 @@
         memory = lib.mkOption {
           type = lib.types.int;
           default = 2048;
-          description = "Memory allocation in MB.";
+          description = "Maximum memory allocation in MB.";
+        };
+
+        balloon = lib.mkOption {
+          type = lib.types.nullOr lib.types.int;
+          default = null;
+          description = ''
+            Minimum memory in MB for balloon device. When set lower than memory,
+            enables dynamic memory ballooning. Setting to 0 disables the balloon driver.
+            When null (default), Proxmox uses its default behavior.
+          '';
+        };
+
+        shares = lib.mkOption {
+          type = lib.types.int;
+          default = 1000;
+          description = ''
+            Memory shares for auto-ballooning priority (0-50000).
+            Higher values give the VM higher priority when host memory is constrained.
+            Default is 1000 (Proxmox default).
+          '';
         };
 
         cores = lib.mkOption {
@@ -242,6 +262,15 @@
               config.nixos-config.qemu-guest.proxmox.tpm2.enable
               -> config.nixos-config.qemu-guest.proxmox.bios == "ovmf";
             message = "TPM2 requires UEFI boot (bios = ovmf)";
+          }
+          {
+            assertion =
+              let
+                balloon = config.nixos-config.qemu-guest.proxmox.balloon;
+                memory = config.nixos-config.qemu-guest.proxmox.memory;
+              in
+              balloon == null || balloon <= memory;
+            message = "Balloon memory must be less than or equal to maximum memory";
           }
         ];
       };

@@ -182,7 +182,9 @@ VM configuration with Proxmox VM creation metadata:
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `vmId` | int | null | Proxmox VM ID (can override with --vmid) |
-| `memory` | int | 2048 | Memory in MB |
+| `memory` | int | 2048 | Maximum memory in MB |
+| `balloon` | int | null | Minimum memory in MB for ballooning (enables dynamic memory when < memory) |
+| `shares` | int | 1000 | Memory shares for auto-ballooning priority (0-50000) |
 | `cores` | int | 2 | CPU cores |
 | `sockets` | int | 1 | CPU sockets |
 | `bios` | enum | "seabios" | BIOS type (seabios/ovmf) |
