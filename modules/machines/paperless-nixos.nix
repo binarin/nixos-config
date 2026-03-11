@@ -91,6 +91,11 @@ in
           ];
         };
 
+        # Brother scanner is really old
+        services.openssh.settings.HostKeyAlgorithms = "+ssh-rsa";
+        services.openssh.settings.PubkeyAcceptedAlgorithms = "+ssh-rsa";
+        services.openssh.settings.Macs = [ "+hmac-sha2-256" ];
+
         # SFTP chroot configuration for Brother scanner
         # The scanner uploads to /consume within the chroot (/mnt/paperless/sftp-chroot)
         # ChrootDirectory must be owned by root with no write permission for others
@@ -151,6 +156,8 @@ in
           "d /mnt/paperless/sftp-chroot 0755 root root -"
           # Consume directory inside chroot - writable by paperless user
           "d /mnt/paperless/sftp-chroot/consume 0755 paperless users -"
+          "d /mnt/paperless/sftp-chroot/consume/government 0755 paperless users -"
+          "d /mnt/paperless/sftp-chroot/consume/purchases 0755 paperless users -"
 
           # Paperless application directories
           "d /mnt/paperless/data 0755 paperless users -"
