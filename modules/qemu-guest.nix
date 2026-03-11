@@ -1,5 +1,5 @@
 # modules/qemu-guest.nix
-{ ... }:
+{ self, ... }:
 {
   flake.nixosModules.qemu-guest =
     {
@@ -13,6 +13,7 @@
 
       imports = [
         (modulesPath + "/profiles/qemu-guest.nix")
+        self.nixosModules.systemd-boot
       ];
 
       options.nixos-config.qemu-guest.proxmox = {
