@@ -16,3 +16,6 @@ result
 __pycache__/
 *.pyc
 .venv/
+/.playwright-mcp/
+/.mcp.json
+/mcp-config.nix
