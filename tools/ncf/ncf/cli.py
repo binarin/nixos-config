@@ -25,9 +25,11 @@ from .commands import (
     init_machine,
     ipam_cmd,
     iso,
+    iso_installer,
     list_machines,
     provision_lxc,
     provision_vm,
+    provision_vm_anywhere,
     set_secret,
     tailscale,
     verify,
@@ -375,6 +377,47 @@ def build_iso_cmd(
     extra_nix_args = list(ctx.args) if ctx.args else None
 
     build.run_iso(
+        output=output_path,
+        verbosity=verbosity,
+        use_nom=use_nom,
+        builders=builder if builder else None,
+        jobs=jobs,
+        dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
+    )
+
+
+@build_app.command(
+    "iso-installer",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
+def build_iso_installer_cmd(
+    ctx: typer.Context,
+    output: str = typer.Option(None, "--output", "-o", help="Output path for ISO file"),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    no_nom: bool = typer.Option(False, "--no-nom", help="Disable nix-output-monitor"),
+    builder: list[str] = typer.Option(
+        [], "--builder", "-b", help="Remote builder (repeatable)"
+    ),
+    jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Build minimal installer ISO for nixos-anywhere.
+
+    Builds a minimal NixOS ISO image with SSH enabled, suitable for
+    use with nixos-anywhere VM provisioning.
+
+    Extra arguments after -- are passed directly to nix build.
+    """
+    from pathlib import Path
+
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    use_nom = None if not no_nom else False
+    output_path = Path(output) if output else None
+    extra_nix_args = list(ctx.args) if ctx.args else None
+
+    iso_installer.run_build(
         output=output_path,
         verbosity=verbosity,
         use_nom=use_nom,
@@ -746,6 +789,56 @@ def machine_provision_vm_cmd(
     )
 
 
+@machine_app.command("provision-vm-anywhere")
+def machine_provision_vm_anywhere_cmd(
+    machine: str = typer.Argument(help="Machine name to provision"),
+    proxmox_host: str = typer.Option(
+        ..., "--proxmox-host", "-p", help="Proxmox host to provision on"
+    ),
+    bridge: str = typer.Option("vmbr0", "--bridge", "-b", help="Network bridge name"),
+    ssh_timeout: int = typer.Option(
+        300, "--ssh-timeout", help="Timeout for SSH connectivity in seconds"
+    ),
+    no_generate_hardware_config: bool = typer.Option(
+        False,
+        "--no-generate-hardware-config",
+        help="Skip hardware config generation (use existing)",
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without making changes"
+    ),
+):
+    """Provision a Proxmox VM using nixos-anywhere.
+
+    Creates a VM, boots from installer ISO, and uses nixos-anywhere
+    to install the NixOS configuration. This is the recommended method
+    for new VMs as it:
+
+    - Automatically detects hardware configuration
+    - Properly partitions disks using disko
+    - Injects secrets during installation
+
+    The workflow:
+    1. Creates VM with resources from NixOS config
+    2. Ensures installer ISO is available on Proxmox
+    3. Boots VM from ISO
+    4. Waits for SSH connectivity
+    5. Runs nixos-anywhere to install
+    6. Reboots into installed system
+
+    If the VM already exists, validates the configuration and
+    reports any mismatches without modifying the VM.
+    """
+    provision_vm_anywhere.run(
+        machine=machine,
+        proxmox_host=proxmox_host,
+        bridge=bridge,
+        ssh_timeout=ssh_timeout,
+        generate_hardware_config=not no_generate_hardware_config,
+        dry_run=dry_run,
+    )
+
+
 @ipam_app.command("format")
 def ipam_format_cmd(
     network: str = typer.Argument(
@@ -816,6 +909,41 @@ def iso_build_wifi_cmd(
         ssid=ssid,
         password=password,
         password_file=password_file_path,
+        dry_run=dry_run,
+    )
+
+
+@iso_app.command("upload-installer")
+def iso_upload_installer_cmd(
+    proxmox_host: str = typer.Option(
+        ..., "--proxmox-host", "-p", help="Proxmox host to upload to"
+    ),
+    storage: str = typer.Option("local", "--storage", "-s", help="Storage name"),
+    iso_path: str = typer.Option(
+        None,
+        "--iso-path",
+        help="Path to local ISO (default: nixos-installer.iso in repo root)",
+    ),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Upload even if ISO already exists"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without executing"
+    ),
+):
+    """Upload installer ISO to Proxmox.
+
+    Uploads the minimal installer ISO to a Proxmox host's storage.
+    Skips upload if ISO already exists (use --force to override).
+    """
+    from pathlib import Path
+
+    iso_path_obj = Path(iso_path) if iso_path else None
+    iso_installer.run_upload(
+        proxmox_host=proxmox_host,
+        storage=storage,
+        iso_path=iso_path_obj,
+        force=force,
         dry_run=dry_run,
     )
 

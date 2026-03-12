@@ -1,6 +1,7 @@
 """Proxmox API client using proxmoxer with SSH backend."""
 
 import os
+from pathlib import Path
 from typing import Any
 
 from proxmoxer import ProxmoxAPI
@@ -114,3 +115,91 @@ class ProxmoxClient:
             sftp.close()
         finally:
             ssh.close()
+
+    # ISO operations
+
+    def list_isos(self, storage: str = "local") -> list[str]:
+        """List ISO files in storage.
+
+        Args:
+            storage: Storage name (must have iso content type enabled)
+
+        Returns:
+            List of ISO filenames (just the filename, not the full path)
+        """
+        content = self.api.nodes(self.node).storage(storage).content.get(content="iso")
+        return [item["volid"].split("/")[-1] for item in content]
+
+    def iso_exists(self, storage: str, filename: str) -> bool:
+        """Check if ISO exists in storage.
+
+        Args:
+            storage: Storage name
+            filename: ISO filename to check
+
+        Returns:
+            True if ISO exists, False otherwise
+        """
+        isos = self.list_isos(storage)
+        return filename in isos
+
+    def upload_iso(self, storage: str, local_path: Path) -> None:
+        """Upload ISO to Proxmox storage via SSH/SCP.
+
+        Args:
+            storage: Storage name (must have iso content type enabled)
+            local_path: Path to local ISO file
+        """
+        import paramiko
+
+        filename = local_path.name
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(self.host, username="root", allow_agent=False)
+
+        try:
+            # ISO storage path in Proxmox
+            # Default local storage puts ISOs in /var/lib/vz/template/iso/
+            remote_path = f"/var/lib/vz/template/iso/{filename}"
+
+            sftp = ssh.open_sftp()
+            sftp.put(str(local_path), remote_path)
+            sftp.close()
+        finally:
+            ssh.close()
+
+    def attach_iso(self, vmid: int, iso_path: str) -> None:
+        """Attach ISO to VM's cdrom drive.
+
+        Args:
+            vmid: VM ID
+            iso_path: ISO path in format "storage:iso/filename.iso"
+                      e.g., "local:iso/nixos-installer.iso"
+        """
+        self.api.nodes(self.node).qemu(vmid).config.put(ide2=f"{iso_path},media=cdrom")
+
+    def detach_iso(self, vmid: int) -> None:
+        """Detach ISO from VM's cdrom drive.
+
+        Args:
+            vmid: VM ID
+        """
+        self.api.nodes(self.node).qemu(vmid).config.put(ide2="none,media=cdrom")
+
+    def set_boot_order(self, vmid: int, order: str) -> None:
+        """Set VM boot order.
+
+        Args:
+            vmid: VM ID
+            order: Boot order string, e.g., "order=ide2;scsi0" or "order=scsi0"
+        """
+        self.api.nodes(self.node).qemu(vmid).config.put(boot=order)
+
+    def reboot_vm(self, vmid: int) -> None:
+        """Reboot a VM.
+
+        Args:
+            vmid: VM ID
+        """
+        self.api.nodes(self.node).qemu(vmid).status.reboot.post()
