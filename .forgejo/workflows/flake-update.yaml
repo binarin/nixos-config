@@ -65,7 +65,7 @@ jobs:
       - uses: ./.forgejo/actions/git-crypt-unlock
         with:
           git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
-      - uses: ./.forgejo/actions/build-nixos-config
+      - uses: ./.forgejo/actions/build-nix
         with:
           config: ${{ matrix.config }}
           output-link: temp-result/${{ matrix.config }}
