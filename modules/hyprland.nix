@@ -7,10 +7,7 @@
 {
   flake-file.inputs = {
     hyprland = {
-      url = "https://github.com/hyprwm/Hyprland";
-      type = "git";
-      submodules = true;
-      ref = "refs/tags/v0.51.1";
+      url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
       inputs.pre-commit-hooks.follows = "pre-commit-hooks";
     };

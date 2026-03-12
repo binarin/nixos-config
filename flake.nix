@@ -88,10 +88,7 @@
           follows = "pre-commit-hooks";
         };
       };
-      ref = "refs/tags/v0.51.1";
-      submodules = true;
-      type = "git";
-      url = "https://github.com/hyprwm/Hyprland";
+      url = "github:hyprwm/Hyprland";
     };
     hyprland-contrib = {
       inputs = {

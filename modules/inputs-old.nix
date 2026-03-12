@@ -27,10 +27,7 @@
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
 
     hyprland = {
-      url = "https://github.com/hyprwm/Hyprland";
-      ref = "refs/tags/v0.51.1";
-      type = "git";
-      submodules = true;
+      url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
       inputs.pre-commit-hooks.follows = "pre-commit-hooks";
     };
