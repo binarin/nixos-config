@@ -5,7 +5,7 @@
   };
 
   flake.nixosModules.microsoft-surface =
-    { config, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.nixos.microsoft-surface";
       imports = [
