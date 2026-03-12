@@ -24,7 +24,7 @@ jobs:
             echo "changed=false" >> "$FORGEJO_OUTPUT"
           else
             echo "changed=true" >> "$FORGEJO_OUTPUT"
-            git diff ansible/
+            git --no-pager diff ansible/
           fi
       - name: create or update PR
         if: steps.changes.outputs.changed == 'true'
@@ -63,7 +63,7 @@ jobs:
             echo "changed=false" >> "$FORGEJO_OUTPUT"
           else
             echo "changed=true" >> "$FORGEJO_OUTPUT"
-            git diff monitoring/generated/
+            git --no-pager diff monitoring/generated/
           fi
       - name: create or update PR
         if: steps.changes.outputs.changed == 'true'
