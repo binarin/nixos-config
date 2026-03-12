@@ -52,11 +52,11 @@ in
           authKeyFile = config.sops.secrets.tailscale-auth.path;
         };
 
-        nixos-config.nix-builder.runnerCount = 3;
+        nixos-config.nix-builder.runnerCount = 1;
 
         proxmoxLXC = {
           cores = 16;
-          memory = 24576; # 24GB
+          memory = 16384;
           mounts = [
             {
               mountPoint = "/nix";

@@ -46,6 +46,8 @@ in
         networking.hostName = inventoryHostName;
         system.stateVersion = "25.11";
 
+        nixos-config.nix-builder.runnerCount = 1;
+
         sops.secrets.tailscale-auth = { };
         services.tailscale = {
           enable = true;
@@ -54,7 +56,7 @@ in
 
         proxmoxLXC = {
           cores = 8;
-          memory = 24576;
+          memory = 16384;
           mounts = [
             {
               mountPoint = "/nix";
