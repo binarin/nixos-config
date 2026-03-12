@@ -75,9 +75,57 @@ jobs:
             echo "$BUILD_OUTPUT"
           fi
 
-  define-matrix:
+  update-trezor-nixpkgs:
     runs-on: native
     needs: update-caddy-hash
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: flake-bump
+      - uses: ./.forgejo/actions/git-crypt-unlock
+        with:
+          git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
+      - name: Update nixpkgs-trezor-agent to match main nixpkgs
+        run: |
+          # Get the new nixpkgs rev from flake.lock
+          NEW_REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+          echo "New nixpkgs rev: $NEW_REV"
+
+          # Get the current trezor-agent nixpkgs rev from the module
+          TREZOR_FILE="modules/trezor-agent.nix"
+          OLD_REV=$(grep -oP '(?<=\?rev=)[a-f0-9]+' "$TREZOR_FILE")
+          echo "Current trezor nixpkgs rev: $OLD_REV"
+
+          if [ "$NEW_REV" = "$OLD_REV" ]; then
+            echo "Revisions match, nothing to do"
+            exit 0
+          fi
+
+          # Update the rev in modules/trezor-agent.nix
+          sed -i "s|?rev=$OLD_REV|?rev=$NEW_REV|" "$TREZOR_FILE"
+          echo "Updated $TREZOR_FILE with new rev"
+
+          # Regenerate flake.nix
+          nix run .#write-flake
+      - name: Try building trezor-agent
+        run: nix build .#homeModules-test-trezor-agent --no-link
+      - name: Commit and push if build succeeded
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "Automatic Flake Updater"
+          git config user.email "flake-updater@binarin.info"
+          git add -A
+          git commit -m "Bump nixpkgs-trezor-agent to match nixpkgs"
+          git push --force origin HEAD:flake-bump
+
+  define-matrix:
+    runs-on: native
+    needs: update-trezor-nixpkgs
+    if: always()
     outputs:
       configurations: ${{ steps.define.outputs.configurations }}
     steps:
