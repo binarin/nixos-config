@@ -80,6 +80,7 @@
         dos2unix
         sox
         forgejo-cli
+        devenv
       ];
 
       impermanence.local-files = [
