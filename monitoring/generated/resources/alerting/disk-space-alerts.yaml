@@ -1,0 +1,123 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: disk-space-alerts
+    folder: Disk Monitoring
+    interval: 1m
+    rules:
+      - annotations:
+          description: Filesystem {{ $labels.mountpoint }} on {{ $labels.bhost }} has only {{ printf "%.1f" $values.B.Value }}% free space remaining.
+          summary: "{{ $labels.bhost }}:{{ $labels.mountpoint }} has less than 5% free space"
+        condition: C
+        data:
+          - datasourceUid: P4169E866C3094E38
+            model:
+              expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|nsfs|fuse|devtmpfs|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|nsfs|fuse|devtmpfs|squashfs"}) * 100
+              instant: true
+              range: false
+              refId: A
+            queryType: ""
+            refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+          - datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+            queryType: ""
+            refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+          - datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 5.0
+                    type: lt
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              refId: C
+              type: threshold
+            queryType: ""
+            refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+        execErrState: Error
+        folderUID: disk-monitoring
+        for: 5m
+        labels:
+          severity: critical
+        noDataState: OK
+        orgID: 0
+        ruleGroup: disk-space-alerts
+        title: Disk Space Critical - Less than 5% Free
+        uid: disk-space-critical
+      - annotations:
+          description: Filesystem {{ $labels.mountpoint }} on {{ $labels.bhost }} has only {{ printf "%.1f" $values.B.Value }}% free space remaining.
+          summary: "{{ $labels.bhost }}:{{ $labels.mountpoint }} has less than 20% free space"
+        condition: C
+        data:
+          - datasourceUid: P4169E866C3094E38
+            model:
+              expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|nsfs|fuse|devtmpfs|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|nsfs|fuse|devtmpfs|squashfs"}) * 100
+              instant: true
+              range: false
+              refId: A
+            queryType: ""
+            refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+          - datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+            queryType: ""
+            refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+          - datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 20.0
+                    type: lt
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              refId: C
+              type: threshold
+            queryType: ""
+            refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+        execErrState: Error
+        folderUID: disk-monitoring
+        for: 15m
+        labels:
+          severity: warning
+        noDataState: OK
+        orgID: 0
+        ruleGroup: disk-space-alerts
+        title: Disk Space Warning - Less than 20% Free
+        uid: disk-space-warning
