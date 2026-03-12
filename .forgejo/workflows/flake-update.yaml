@@ -34,9 +34,50 @@ jobs:
       - name: Push to flake-bump branch
         run: git push --force origin HEAD:flake-bump
 
-  define-matrix:
+  update-caddy-hash:
     runs-on: native
     needs: update-flake
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: flake-bump
+      - uses: ./.forgejo/actions/git-crypt-unlock
+        with:
+          git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
+      - name: Build caddy-with-cloudflare-dns and update hash if needed
+        run: |
+          # Try building caddy-with-cloudflare-dns with --rebuild to force hash verification
+          BUILD_OUTPUT=$(nix build .#caddy-with-cloudflare-dns --no-link --rebuild 2>&1) || true
+
+          if echo "$BUILD_OUTPUT" | grep -q "hash mismatch in fixed-output derivation"; then
+            echo "Hash mismatch detected, extracting new hash..."
+            NEW_HASH=$(echo "$BUILD_OUTPUT" | grep "got:" | sed 's/.*got: *//' | tr -d ' ')
+
+            if [ -n "$NEW_HASH" ]; then
+              echo "New hash: $NEW_HASH"
+
+              # Update the hash in the source file
+              CADDY_FILE="modules/packages/caddy-with-cloudflare-dns.nix"
+              sed -i "s|hash = \"sha256-[^\"]*\"|hash = \"$NEW_HASH\"|" "$CADDY_FILE"
+
+              # Verify the change
+              grep "hash = " "$CADDY_FILE"
+
+              # Commit the change
+              git config user.name "Automatic Flake Updater"
+              git config user.email "flake-updater@binarin.info"
+              git add "$CADDY_FILE"
+              git commit -m "Update caddy-with-cloudflare-dns hash" || echo "No changes to commit"
+              git push --force origin HEAD:flake-bump
+            fi
+          else
+            echo "Caddy build succeeded or failed for other reasons"
+            echo "$BUILD_OUTPUT"
+          fi
+
+  define-matrix:
+    runs-on: native
+    needs: update-caddy-hash
     outputs:
       configurations: ${{ steps.define.outputs.configurations }}
     steps:
