@@ -23,6 +23,13 @@ in
     url = "github:nixos/nixpkgs?rev=41e216c0ca66c83b12ab7a98cc326b5db01db646";
   };
 
+  # Expose trezor-agent as a package so CI can test building it
+  perSystem =
+    { system, ... }:
+    {
+      packages.trezor-agent = (mkTrezorAgentPkgs system).trezor-agent;
+    };
+
   flake.homeModules.trezor-agent =
     { pkgs, ... }:
     {

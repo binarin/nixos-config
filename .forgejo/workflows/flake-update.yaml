@@ -109,7 +109,7 @@ jobs:
           # Regenerate flake.nix
           nix run .#write-flake
       - name: Try building trezor-agent
-        run: nix build .#homeModules-test-trezor-agent --no-link
+        run: nix build .#trezor-agent --no-link
       - name: Commit and push if build succeeded
         run: |
           if git diff --quiet; then
