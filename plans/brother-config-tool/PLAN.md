@@ -147,6 +147,7 @@ SFTP profiles are configured across two pages:
 2. **Profile details** (`/scan/profile_sftp.html?val=N`): Configures individual profile
 
 SFTP profile fields (mapped from obfuscated form names based on order/context):
+
 - Profile name
 - Host address
 - Username
@@ -161,6 +162,7 @@ SFTP profile fields (mapped from obfuscated form names based on order/context):
 ### SMTP Settings
 
 SMTP configuration at `/net/net/email.html`:
+
 - Server address
 - Port
 - Authentication method (None or SMTP-AUTH)
@@ -172,11 +174,13 @@ SMTP configuration at `/net/net/email.html`:
 ### Public Key Management
 
 Server public keys (for SFTP host verification) are managed at:
+
 - List: `/net/security/certificate/pubkey.html`
 - Import: `/net/security/certificate/import_pubkey.html` (file upload)
 - Delete: `/net/security/certificate/delete_pubkey.html?idx=N`
 
 Client key pairs (scanner's SSH key) are managed at:
+
 - List: `/net/security/certificate/keypair.html`
 - Create: `/net/security/certificate/create_keypair.html`
 - Export public key: `/net/security/certificate/export_pubkey.html?idx=N`
@@ -189,12 +193,14 @@ Client key pairs (scanner's SSH key) are managed at:
 Create the Python project structure and implement authenticated HTTP session management.
 
 Create `tools/brother-config/` directory with:
+
 - `pyproject.toml` - Project configuration with dependencies (requests, click, pyyaml, lxml)
 - `brother_config/__init__.py` - Package init
 - `brother_config/session.py` - HTTP session with login/logout and CSRF handling
 - `brother_config/cli.py` - CLI entry point
 
 The session manager must:
+
 1. Login by POSTing password to root URL
 2. Extract and maintain CSRF tokens from page responses
 3. Include CSRF token in all form submissions
@@ -205,6 +211,7 @@ The session manager must:
 Implement address book operations using XML import/export.
 
 Create `brother_config/address_book.py` with:
+
 - `export_addresses()` - Download current address.xml and group.xml
 - `import_addresses()` - Upload address.xml and group.xml
 - `parse_addresses()` - Parse XML to Python data structures
@@ -212,6 +219,7 @@ Create `brother_config/address_book.py` with:
 - `sync_addresses()` - Compare and sync from YAML configuration
 
 CLI commands:
+
 - `brother-config address-book export [--output-dir DIR]`
 - `brother-config address-book import [--address-file FILE] [--group-file FILE]`
 - `brother-config address-book sync CONFIG_FILE`
@@ -221,11 +229,13 @@ CLI commands:
 Implement SMTP configuration.
 
 Create `brother_config/smtp.py` with:
+
 - `get_smtp_settings()` - Parse current SMTP config from web page
 - `set_smtp_settings()` - Submit SMTP configuration form
 - `sync_smtp()` - Compare and sync from YAML configuration
 
 CLI commands:
+
 - `brother-config smtp get`
 - `brother-config smtp set --server HOST --port PORT --auth-method METHOD ...`
 - `brother-config smtp sync CONFIG_FILE`
@@ -241,12 +251,14 @@ Create `brother_config/scan_email.py` with similar get/set/sync pattern.
 Implement SFTP profile configuration including key management.
 
 Create `brother_config/sftp.py` with:
+
 - `list_profiles()` - Get all profile names and types
 - `get_profile()` - Get specific profile configuration
 - `set_profile()` - Configure a profile
 - `set_profile_type()` - Change profile type (FTP/SFTP/Network/SharePoint)
 
 Create `brother_config/keys.py` with:
+
 - `list_server_keys()` - List imported server public keys
 - `import_server_key()` - Upload a server public key file
 - `delete_server_key()` - Remove a server public key
@@ -256,6 +268,7 @@ Create `brother_config/keys.py` with:
 - `delete_client_keypair()` - Remove a keypair
 
 CLI commands:
+
 - `brother-config sftp list`
 - `brother-config sftp get PROFILE_NUMBER`
 - `brother-config sftp set PROFILE_NUMBER [OPTIONS]`
@@ -270,6 +283,7 @@ CLI commands:
 Add YAML configuration file support for full declarative management.
 
 Create `brother_config/declarative.py` with:
+
 - `load_config()` - Load YAML configuration
 - `sync_all()` - Apply full configuration to scanner
 
@@ -355,18 +369,21 @@ Continue with remaining milestones following the same pattern.
 ## Validation and Acceptance
 
 ### Address Book
+
 1. Export current address book: `brother-config address-book export`
 2. Modify exported YAML/XML
 3. Re-import: `brother-config address-book import`
 4. Verify via web UI that changes are reflected
 
 ### SMTP Settings
+
 1. Get current settings: `brother-config smtp get`
 2. Verify output matches web UI
 3. Modify setting: `brother-config smtp set --port 465`
 4. Verify via web UI
 
 ### SFTP Profiles
+
 1. List profiles: `brother-config sftp list`
 2. Verify matches web UI profile list
 3. Import a server key: `brother-config keys server-keys import /path/to/key.pub`
@@ -377,6 +394,7 @@ Continue with remaining milestones following the same pattern.
 ## Idempotence and Recovery
 
 All operations are idempotent:
+
 - Setting values to their current values is a no-op
 - Address book sync only modifies changed entries
 - Failed operations can be retried safely
@@ -421,6 +439,7 @@ The scanner maintains its own persistent storage; tool operations only affect co
 ### Form field name samples (may vary by firmware)
 
 SFTP Profile form (`/scan/profile_sftp.html`):
+
 - `Bec4` - Profile name
 - `Bedd` - Host address
 - `Bef6` - Username
@@ -517,5 +536,6 @@ In `brother_config/sftp.py`:
         """Configure SFTP profile."""
 
 ---
-*Plan created: 2026-03-11*
-*Last updated: 2026-03-11 - Initial investigation complete*
+
+_Plan created: 2026-03-11_
+_Last updated: 2026-03-11 - Initial investigation complete_
