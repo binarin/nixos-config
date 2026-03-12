@@ -23,7 +23,7 @@ dependencies = [
 test = ["pytest>=7.0.0"]
 
 [project.scripts]
-ncf = "ncf.cli:app"
+ncf = "ncf.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
