@@ -332,17 +332,6 @@ def run_single(
     if boot:
         console.print("  Triggering reboot...")
         try:
-            # Reload dbus-broker first (as in justfile)
-            subprocess.run(
-                [
-                    "ssh",
-                    f"root@{hostname}",
-                    "systemctl",
-                    "reload",
-                    "dbus-broker.service",
-                ],
-                check=False,
-            )
             # Trigger reboot
             subprocess.run(
                 ["ssh", f"root@{hostname}", "systemctl", "reboot"],
