@@ -27,6 +27,7 @@ runs:
         PATHS_FILE: ${{ inputs.paths-file }}
       run: |
         S3_DEST="s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
+        S3_BUCKET="s3://nix-cache-storage/"
         LOCK_FILE="/tmp/nix-cache-sign.lock"
 
         # Use flock to prevent races when multiple CI jobs sign paths simultaneously
@@ -53,20 +54,66 @@ runs:
         fi
 
         PATH_COUNT=$(wc -l < "$PATHS_FILE")
-        echo "Signing and pushing $PATH_COUNT store paths from $PATHS_FILE"
+        echo "Processing $PATH_COUNT store paths from $PATHS_FILE"
 
-        # Sign all paths
+        # Fetch existing narinfo hashes from S3 to avoid redundant uploads
+        # This works around nix copy silently failing on some paths (NixOS/nix#1659)
+        # and stale positive cache entries causing skipped uploads
+        echo "=== Fetching existing cache contents ==="
+        EXISTING_HASHES=$(mktemp)
+        s3cmd ls \
+          --access_key="$AWS_ACCESS_KEY_ID" \
+          --secret_key="$AWS_SECRET_ACCESS_KEY" \
+          --host=s3.lynx-lizard.ts.net \
+          --host-bucket=s3.lynx-lizard.ts.net \
+          "$S3_BUCKET" 2>/dev/null \
+          | awk '{print $4}' \
+          | grep '\.narinfo$' \
+          | sed 's|.*/||; s|\.narinfo$||' \
+          | sort -u > "$EXISTING_HASHES"
+        echo "Found $(wc -l < "$EXISTING_HASHES") paths already in cache"
+
+        # Filter to only paths missing from cache using awk for O(n) performance
+        MISSING_PATHS=$(mktemp)
+        awk -v hashfile="$EXISTING_HASHES" '
+          BEGIN {
+            while ((getline h < hashfile) > 0) existing[h] = 1
+          }
+          {
+            path = $0
+            n = split(path, parts, "/")
+            basename = parts[n]
+            split(basename, hashpart, "-")
+            hash = hashpart[1]
+            if (!(hash in existing)) print path
+          }
+        ' "$PATHS_FILE" > "$MISSING_PATHS"
+        rm -f "$EXISTING_HASHES"
+
+        MISSING_COUNT=$(wc -l < "$MISSING_PATHS")
+        echo "Need to upload $MISSING_COUNT new paths ($(( PATH_COUNT - MISSING_COUNT )) already cached)"
+
+        if [[ "$MISSING_COUNT" -eq 0 ]]; then
+          echo "=== All paths already in cache, nothing to do ==="
+          exit 0
+        fi
+
+        # Sign only missing paths
         echo "=== Starting nix store sign ==="
-        xargs nix store sign --key-file "$KEY_FILE" < "$PATHS_FILE"
+        xargs nix store sign --key-file "$KEY_FILE" < "$MISSING_PATHS"
         echo "=== nix store sign completed ==="
 
-        # Push to S3 (nix copy auto-skips existing)
+        # Push to S3 with cache disabled to ensure fresh checks
+        # narinfo-cache-positive-ttl=0 prevents stale cache from causing skipped uploads
         echo "=== Starting nix copy ==="
-        xargs nix copy --to "$S3_DEST" < "$PATHS_FILE" 2>&1 || {
+        xargs nix copy \
+          --option narinfo-cache-positive-ttl 0 \
+          --to "$S3_DEST" < "$MISSING_PATHS" 2>&1 || {
           echo "=== nix copy failed with exit code $? ==="
           echo "Note: 'key is corrupt' errors typically indicate malformed signatures in the cache"
           exit 1
         }
         echo "=== nix copy completed ==="
 
+        rm -f "$MISSING_PATHS"
         # Lock is automatically released when file descriptor 9 is closed (script exit)
