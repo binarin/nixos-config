@@ -13,6 +13,7 @@ let
           # used by trezor-agent, but vulnerability is about leaking
           # generated keys - so doesn't matter, as keys do not leave
           # trezor
+          "python3.12-ecdsa-0.19.1"
           "python3.13-ecdsa-0.19.1"
         ];
       };
