@@ -7,7 +7,7 @@ groups:
     rules:
       - annotations:
           description: Filesystem {{ $labels.mountpoint }} on {{ $labels.bhost }} has only {{ printf "%.1f" $values.B.Value }}% free space remaining.
-          summary: "{{ $labels.bhost }}:{{ $labels.mountpoint }} has less than 5% free space"
+          summary: '{{ $labels.bhost }}:{{ $labels.mountpoint }} has less than 5% free space'
         condition: C
         data:
           - datasourceUid: P4169E866C3094E38
@@ -16,7 +16,7 @@ groups:
               instant: true
               range: false
               refId: A
-            queryType: ""
+            queryType: ''
             refId: A
             relativeTimeRange:
               from: 600
@@ -30,7 +30,7 @@ groups:
               reducer: last
               refId: B
               type: reduce
-            queryType: ""
+            queryType: ''
             refId: B
             relativeTimeRange:
               from: 600
@@ -48,7 +48,7 @@ groups:
               expression: B
               refId: C
               type: threshold
-            queryType: ""
+            queryType: ''
             refId: C
             relativeTimeRange:
               from: 600
@@ -65,7 +65,7 @@ groups:
         uid: disk-space-critical
       - annotations:
           description: Filesystem {{ $labels.mountpoint }} on {{ $labels.bhost }} has only {{ printf "%.1f" $values.B.Value }}% free space remaining.
-          summary: "{{ $labels.bhost }}:{{ $labels.mountpoint }} has less than 20% free space"
+          summary: '{{ $labels.bhost }}:{{ $labels.mountpoint }} has less than 20% free space'
         condition: C
         data:
           - datasourceUid: P4169E866C3094E38
@@ -74,7 +74,7 @@ groups:
               instant: true
               range: false
               refId: A
-            queryType: ""
+            queryType: ''
             refId: A
             relativeTimeRange:
               from: 600
@@ -88,7 +88,7 @@ groups:
               reducer: last
               refId: B
               type: reduce
-            queryType: ""
+            queryType: ''
             refId: B
             relativeTimeRange:
               from: 600
@@ -106,7 +106,7 @@ groups:
               expression: B
               refId: C
               type: threshold
-            queryType: ""
+            queryType: ''
             refId: C
             relativeTimeRange:
               from: 600
