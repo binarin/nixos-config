@@ -1298,7 +1298,10 @@ def ts_auth_key_cmd(
         help="Path to OAuth secrets file (default: secrets/tailscale/oauth.yaml)",
     ),
     machine: str = typer.Option(
-        None, "--machine", "-m", help="Save key to secrets/<machine>/tailscale-auth instead of printing"
+        None,
+        "--machine",
+        "-m",
+        help="Save key to secrets/<machine>/tailscale-auth instead of printing",
     ),
     description: str = typer.Option(
         "ncf-generated", "--description", "-d", help="Human-readable key description"

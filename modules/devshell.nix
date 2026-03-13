@@ -126,12 +126,13 @@
 
         dependencies = [
           grafana-foundation-sdk
+          pkgs.python3.pkgs.pyyaml
         ];
 
         pythonImportsCheck = [ "monitoring" ];
       };
 
-      monitoringPythonEnv = pkgs.python3.withPackages (_ps: [ grafana-foundation-sdk ]);
+      monitoringPythonEnv = pkgs.python3.withPackages (ps: [ grafana-foundation-sdk ps.pyyaml ]);
 
     in
     {
