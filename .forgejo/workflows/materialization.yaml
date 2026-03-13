@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.forgejo/actions/forgejo-api-auth
         with:
-          token: ${{ secrets.FORGEJO_TOKEN }}
+          token: ${{ secrets.PR_TOKEN }}
           key-name: ci-materialization
       - name: generate ansible inventory
         run: nix run .#ncf -- generate ansible-inventory
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.forgejo/actions/forgejo-api-auth
         with:
-          token: ${{ secrets.FORGEJO_TOKEN }}
+          token: ${{ secrets.PR_TOKEN }}
           key-name: ci-materialization
       - name: generate dashboards
         run: nix run .#monitoring -- generate
