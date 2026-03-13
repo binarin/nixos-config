@@ -53,6 +53,9 @@
         zoom-us
       ];
 
+      nixos-config.nix.accessTokens = {
+        "github.com" = "extra-access-tokens/github.com";
+      };
       system.stateVersion = "25.11";
       hardware.microsoft-surface.kernelVersion = "stable";
       networking.hostName = "furfur";

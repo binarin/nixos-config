@@ -36,6 +36,10 @@
       };
 
       config = {
+        nixos-config.nix.accessTokens = {
+          "github.com" = "extra-access-tokens/github.com";
+        };
+
         nixos-config.export-metrics.enable = true;
 
         nix.settings.system-features = [
@@ -60,6 +64,13 @@
         sops.templates.nixos-config-runner-token-env-file.content = ''
           TOKEN=${config.sops.placeholder."nixos-config-runner-token"}
         '';
+
+        systemd.services = builtins.listToAttrs (map (n: {
+          name = "gitea-runner-${runnerName n}";
+          value = {
+            serviceConfig.SupplementaryGroups = [ "nix-access-tokens" ];
+          };
+        }) runnerIndices);
 
         virtualisation.podman.enable = true;
 

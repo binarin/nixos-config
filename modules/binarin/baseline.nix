@@ -9,6 +9,7 @@
         self.nixosModules.home-manager
         self.nixosModules.impermanence
         self.nixosModules.sops
+        self.nixosModules.nix
         self.modules.generic.public-keys
       ];
 
@@ -49,6 +50,7 @@
             "users"
             "wheel"
             "pcap"
+            "nix-access-tokens"
           ];
           openssh = {
             authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser "binarin";
