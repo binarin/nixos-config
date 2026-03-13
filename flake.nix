@@ -1,210 +1,94 @@
 # DO-NOT-EDIT. This file was auto-generated using github:vic/flake-file.
 # Use `nix run .#write-flake` to regenerate it.
 {
-
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 
   inputs = {
     arion = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:hercules-ci/arion";
-    };
-    den = {
-      url = "github:vic/den";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     deploy-rs = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:serokell/deploy-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
-    determinate = {
-      url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
-    };
-    direnv-instant = {
-      url = "github:Mic92/direnv-instant";
-    };
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+    direnv-instant.url = "github:Mic92/direnv-instant";
     disko = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs-unstable";
-        };
-      };
       url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     emacs-overlay = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-        nixpkgs-stable = {
-          follows = "nixpkgs";
-        };
-      };
       url = "emacs-overlay";
-    };
-    flake-aspects = {
-      url = "github:vic/flake-aspects";
-    };
-    flake-file = {
-      url = "github:binarin/flake-file";
-    };
-    flake-parts = {
       inputs = {
-        nixpkgs-lib = {
-          follows = "nixpkgs";
-        };
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-stable.follows = "nixpkgs";
       };
+    };
+    flake-file.url = "github:vic/flake-file";
+    flake-parts = {
       url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
     };
     home-manager = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:nix-community/home-manager/release-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager-master = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs-unstable";
-        };
-        pre-commit-hooks = {
-          follows = "pre-commit-hooks";
-        };
-      };
       url = "github:hyprwm/Hyprland";
+      inputs = {
+        nixpkgs.follows = "nixpkgs-unstable";
+        pre-commit-hooks.follows = "pre-commit-hooks";
+      };
     };
     hyprland-contrib = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:hyprwm/contrib";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
-    impermanence = {
-      url = "github:nix-community/impermanence";
-    };
-    import-tree = {
-      url = "github:vic/import-tree";
-    };
+    impermanence.url = "github:nix-community/impermanence";
+    import-tree.url = "github:vic/import-tree";
     nix-ai-tools = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:numtide/llm-agents.nix";
-    };
-    nix-auto-follow = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
-      url = "github:fzakaria/nix-auto-follow";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-index-database = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixos-hardware = {
-      url = "github:NixOS/nixos-hardware/master";
-    };
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     nixos-raspberrypi = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:nvmd/nixos-raspberrypi/develop";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     nixos-wsl = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:nix-community/NixOS-WSL/main";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixpkgs = {
-      url = "github:nixos/nixpkgs/nixos-25.11";
-    };
-    nixpkgs-lib = {
-      follows = "nixpkgs";
-    };
-    nixpkgs-trezor-agent = {
-      url = "github:nixos/nixpkgs?rev=41e216c0ca66c83b12ab7a98cc326b5db01db646";
-    };
-    nixpkgs-unstable = {
-      url = "github:nixos/nixpkgs";
-    };
-    pre-commit-hooks = {
-      url = "github:cachix/git-hooks.nix";
-    };
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs-lib.follows = "nixpkgs";
+    nixpkgs-trezor-agent.url = "github:nixos/nixpkgs?rev=41e216c0ca66c83b12ab7a98cc326b5db01db646";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs";
+    pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     sops-nix = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     srvos = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:nix-community/srvos";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     stylix = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
       url = "github:danth/stylix/release-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
-    systems = {
-      url = "github:nix-systems/default";
-    };
-    treefmt-nix = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs";
-        };
-      };
-      url = "github:numtide/treefmt-nix";
-    };
+    treefmt-nix.url = "github:numtide/treefmt-nix";
     waybar = {
-      inputs = {
-        nixpkgs = {
-          follows = "nixpkgs-unstable";
-        };
-      };
       url = "github:Alexays/Waybar";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
   };
-
 }

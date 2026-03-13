@@ -11,7 +11,7 @@
   '';
 
   flake-file.inputs = {
-    flake-file.url = lib.mkForce "github:binarin/flake-file";
+    flake-file.url = lib.mkForce "github:vic/flake-file";
 
     # nixpkgs.url = "path:/home/binarin/personal-workspace/nixpkgs";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
