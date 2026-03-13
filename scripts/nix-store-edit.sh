@@ -149,8 +149,9 @@ create_link_farm() {
         rm "$final_dst"
     fi
 
-    # Copy the actual file
+    # Copy the actual file and make it writable
     cp -a "$final_src" "$final_dst"
+    chmod u+w "$final_dst"
 
     # Replace the original symlink with our link farm
     rm "$symlink_path"
@@ -187,6 +188,7 @@ main() {
             # Remove symlink and copy contents
             rm "$abs_path"
             cp -a "$resolved" "$abs_path"
+            chmod u+w "$abs_path"
             echo "Replaced symlink with copy: $abs_path"
             exit 0
         fi
