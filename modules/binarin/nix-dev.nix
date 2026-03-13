@@ -34,10 +34,6 @@
     }:
     {
       key = "nixos-config.modules.home.binarin-nix-dev";
-      imports = [
-        inputs.direnv-instant.homeModules.direnv-instant
-      ];
-      programs.direnv-instant.enable = true;
 
       programs.nix-search-tv.enable = true;
       home.packages = [
