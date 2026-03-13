@@ -42,7 +42,7 @@ def run_build(
     repo_root = config.find_repo_root()
 
     flake_ref = (
-        f"{repo_root}#nixosConfigurations.iso-installer.config.system.build.isoImage"
+        f"{repo_root}#nixosConfigurations.iso.config.system.build.isoImage"
     )
 
     # Default output path
@@ -70,7 +70,7 @@ def run_build(
     )
 
     # Build to a result symlink first
-    result_link = repo_root / "iso-installer-result"
+    result_link = repo_root / "iso-result"
     runner.run_build(flake_ref, output=result_link, extra_args=extra_nix_args)
 
     # Find the actual ISO in the result
@@ -117,7 +117,7 @@ def run_upload(
 
     if not iso_path.exists():
         console.print(f"[red]Error: ISO not found at {iso_path}[/red]")
-        console.print("Build it first with: ncf build iso-installer")
+        console.print("Build it first with: ncf build iso")
         raise SystemExit(1)
 
     filename = iso_path.name
