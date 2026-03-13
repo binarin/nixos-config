@@ -2,14 +2,12 @@
 
 import json
 
-from rich.console import Console
 from rich.table import Table
 
 from .. import config
 from ..models import MachineSecrets
+from ..output import console
 from ..sops_yaml import SopsYaml
-
-console = Console()
 
 
 def run(json_output: bool = False) -> None:
@@ -50,7 +48,7 @@ def run(json_output: bool = False) -> None:
                     "is_complete": m.is_complete,
                 }
             )
-        console.print(json.dumps(output, indent=2))
+        print(json.dumps(output, indent=2))
         return
 
     # Create a nice table

@@ -2,15 +2,13 @@
 
 from pathlib import Path
 
-from rich.console import Console
 from rich.panel import Panel
 
 from .. import config
 from .. import external
 from ..models import MachineSecrets
+from ..output import console
 from ..sops_yaml import SopsYaml
-
-console = Console()
 
 
 def verify_machine(machine: MachineSecrets, sops: SopsYaml) -> list[str]:

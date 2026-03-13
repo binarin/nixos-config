@@ -5,12 +5,9 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from rich.console import Console
-
 from .. import config
 from ..external import run_command, ExternalToolError
-
-console = Console()
+from ..output import console
 
 # WiFi configuration defaults
 DEFAULT_SSID = "agares-guest"

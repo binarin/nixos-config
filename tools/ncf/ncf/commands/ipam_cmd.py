@@ -2,12 +2,9 @@
 
 from pathlib import Path
 
-from rich.console import Console
-
 from .. import config as ncf_config
 from .. import ipam
-
-console = Console()
+from ..output import console
 
 
 def run_format(

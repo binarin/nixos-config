@@ -12,11 +12,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional
 
-from rich.console import Console
-
 from .. import config
 from ..external import ExternalToolError
 from ..nix import NixRunner, get_nixos_configurations
+from ..output import console
 
 
 def get_default_parallelism() -> int:
@@ -45,8 +44,6 @@ def get_default_parallelism() -> int:
     parallelism = max(1, memory_gb // 6)
     return parallelism
 
-
-console = Console()
 
 # ANSI colors for terminal output
 GREEN = "\033[0;32m"

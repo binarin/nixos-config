@@ -3,7 +3,6 @@
 import sys
 
 import typer
-from rich.console import Console
 from typer._completion_classes import completion_init
 from typer.completion import show_callback
 
@@ -35,6 +34,7 @@ from .commands import (
     verify,
 )
 from .external import ExternalToolError
+from .output import console
 
 app = typer.Typer(
     name="ncf",
@@ -123,9 +123,6 @@ def app_callback(
     """CLI tool for NixOS configuration management."""
     if ctx.invoked_subcommand is None:
         raise typer.Exit(0)
-
-
-console = Console()
 
 
 # Common CLI options

@@ -6,12 +6,9 @@ from typing import Optional
 
 import typer
 import yaml
-from rich.console import Console
-
 from ..config import find_repo_root, get_machine_secrets_dir, user_binarin_yaml_path
 from ..external import sops_decrypt_to_stdout, ExternalToolError
-
-console = Console()
+from ..output import console
 
 
 def run(

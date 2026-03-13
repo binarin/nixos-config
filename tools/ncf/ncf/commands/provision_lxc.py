@@ -7,7 +7,6 @@ import tempfile
 from pathlib import Path
 from typing import Any, Optional
 
-from rich.console import Console
 from rich.panel import Panel
 
 from .. import config
@@ -27,7 +26,7 @@ from .build import (
     _group_secrets_by_owner,
 )
 
-console = Console()
+from ..output import console
 
 
 def _format_size(size_bytes: int) -> str:

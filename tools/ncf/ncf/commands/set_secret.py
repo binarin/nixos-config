@@ -2,11 +2,8 @@
 
 from pathlib import Path
 
-from rich.console import Console
-
 from ..external import apg_generate_password, sops_set_value, ExternalToolError
-
-console = Console()
+from ..output import console
 
 
 def run(

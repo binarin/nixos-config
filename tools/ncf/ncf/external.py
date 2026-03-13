@@ -7,9 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-from rich.console import Console
-
-console = Console()
+from .output import console
 
 
 @dataclass

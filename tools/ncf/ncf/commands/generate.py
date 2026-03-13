@@ -4,11 +4,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from rich.console import Console
-
 from ..external import register_tool
-
-console = Console()
+from ..output import console
 
 register_tool(
     "nix", "ncf.commands.generate", "nix build for generating ansible inventory"

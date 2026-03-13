@@ -12,13 +12,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from rich.console import Console
-
 from . import config
 from .external import sops_decrypt_to_stdout, ExternalToolError
 from .nix import NixRunner
-
-console = Console()
+from .output import console
 
 
 @dataclass

@@ -4,14 +4,12 @@ import tempfile
 from pathlib import Path
 
 import git
-from rich.console import Console
 from rich.panel import Panel
 
 from .. import config
 from .. import external
+from ..output import console
 from ..sops_yaml import SopsYaml
-
-console = Console()
 
 
 def run(name: str, no_user_key: bool = False, dry_run: bool = False) -> dict:

@@ -12,11 +12,8 @@ import urllib.error
 from pathlib import Path
 from typing import Optional
 
-from rich.console import Console
-
 from ..external import register_tool, sops_decrypt_to_stdout, ExternalToolError
-
-console = Console()
+from ..output import console
 
 # Register fzf as an external tool dependency
 register_tool("fzf", "Interactive tag selection for auth key creation")

@@ -15,7 +15,6 @@ import time
 from pathlib import Path
 from typing import Any, Optional
 
-from rich.console import Console
 from rich.panel import Panel
 
 from .. import config
@@ -30,7 +29,7 @@ from .provision_vm import (
     validate_existing_vm,
 )
 
-console = Console()
+from ..output import console
 
 
 def wait_for_ssh(

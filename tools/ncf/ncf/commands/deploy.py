@@ -6,14 +6,11 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from rich.console import Console
-
 from .. import config
 from ..external import ExternalToolError, run_command
 from ..nix import NixRunner
+from ..output import console
 from . import ci
-
-console = Console()
 
 
 def check_git_crypt_unlocked() -> bool:

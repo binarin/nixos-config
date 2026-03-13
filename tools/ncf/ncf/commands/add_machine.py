@@ -11,14 +11,12 @@ from typing import Generator
 import git
 import tomlkit
 from jinja2 import Environment, PackageLoader
-from rich.console import Console
 from rich.panel import Panel
 
 from .. import config as ncf_config
 from .. import external
 from .. import ipam as ipam_utils
-
-console = Console()
+from ..output import console
 
 
 @dataclass

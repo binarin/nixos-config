@@ -12,8 +12,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional
 
-from rich.console import Console
-
 from .. import config
 from ..external import ExternalToolError
 from ..nix import NixRunner, get_nixos_configurations
@@ -23,7 +21,7 @@ from ..secrets_inject import (
     generate_fake_secrets_to_tempdir,
 )
 
-console = Console()
+from ..output import console
 
 # ANSI colors for terminal output
 GREEN = "\033[0;32m"

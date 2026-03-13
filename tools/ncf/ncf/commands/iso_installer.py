@@ -7,13 +7,10 @@ NixOS installer ISO used with nixos-anywhere for VM provisioning.
 from pathlib import Path
 from typing import Optional
 
-from rich.console import Console
-
 from .. import config
 from ..nix import NixRunner
+from ..output import console
 from ..proxmox_api import ProxmoxClient
-
-console = Console()
 
 # Default ISO filename - no dates or commit refs for caching
 ISO_FILENAME = "nixos-installer.iso"

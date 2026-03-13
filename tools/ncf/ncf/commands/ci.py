@@ -4,16 +4,13 @@ import base64
 import json
 from pathlib import Path
 
-from rich.console import Console
-
 import shutil
 
 from rich.table import Table
 
 from .. import config
 from ..external import run_command, register_tool, get_registered_tools
-
-console = Console()
+from ..output import console
 
 # Register tools used by CI commands
 register_tool("git", "Git operations for repository management")

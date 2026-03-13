@@ -7,16 +7,14 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from rich.console import Console
 from rich.panel import Panel
 
 from .. import config
 from ..nix import NixRunner
+from ..output import console
 from ..proxmox_api import ProxmoxClient
 from ..secrets_inject import gather_secrets_for_machine, decrypt_secrets_to_tempdir
 from . import build
-
-console = Console()
 
 
 def query_nixos_config(runner: NixRunner, machine: str, attribute: str) -> Any:
