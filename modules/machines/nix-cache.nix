@@ -75,12 +75,6 @@
         ] (k: ''restrict,command="nix-daemon --stdio" ${k}'');
         roles.nix-remote-builder.schedulerPublicKeys = [ ];
 
-        sops.secrets.tailscale-auth = { };
-        services.tailscale = {
-          enable = true;
-          authKeyFile = config.sops.secrets.tailscale-auth.path;
-        };
-
         sops.secrets."nixos-config-runner-token" = {
           restartUnits = [
             ''gitea-runner-nixos\x2dconfig.service''

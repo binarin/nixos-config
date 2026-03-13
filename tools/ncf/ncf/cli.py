@@ -1288,17 +1288,17 @@ def ts_auth_key_cmd(
     expiry: int = typer.Option(
         3600, "--expiry", "-e", help="Key expiry time in seconds (0 for no expiry)"
     ),
-    no_interactive: bool = typer.Option(
-        False, "--no-interactive", help="Skip fzf tag selection, require --tags"
-    ),
     tags: list[str] = typer.Option(
-        [], "--tags", "-t", help="Tags to apply (repeatable, e.g., -t tag:server)"
+        [], "--tags", "-t", help="Additional tags (tag:server is always included)"
     ),
     secrets_file: str = typer.Option(
         None,
         "--secrets-file",
         "-s",
         help="Path to OAuth secrets file (default: secrets/tailscale/oauth.yaml)",
+    ),
+    machine: str = typer.Option(
+        None, "--machine", "-m", help="Save key to secrets/<machine>/tailscale-auth instead of printing"
     ),
     description: str = typer.Option(
         "ncf-generated", "--description", "-d", help="Human-readable key description"
@@ -1310,14 +1310,12 @@ def ts_auth_key_cmd(
     """Create a Tailscale auth key.
 
     Authenticates using OAuth credentials from sops-encrypted secrets,
-    then creates an auth key with the specified options.
-
-    By default, shows an fzf-based tag selector. Use --no-interactive with
-    --tags to skip interactive selection.
+    then creates an auth key with the specified options. tag:server is
+    always included.
 
     The auth key is printed to stdout for easy capture:
 
-        export TS_AUTHKEY=$(ncf ts auth-key --no-interactive -t tag:server)
+        export TS_AUTHKEY=$(ncf ts auth-key)
 
     Before using this command, set up OAuth credentials:
 
@@ -1337,10 +1335,10 @@ def ts_auth_key_cmd(
         ephemeral=ephemeral,
         preauthorized=preauthorized,
         expiry_seconds=expiry,
-        no_interactive=no_interactive,
         tags=list(tags) if tags else None,
         secrets_file=secrets_path,
         description=description,
+        machine=machine,
         dry_run=dry_run,
     )
 

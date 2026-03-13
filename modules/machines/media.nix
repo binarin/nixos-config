@@ -95,12 +95,6 @@
           ];
         };
 
-        sops.secrets.tailscale-auth = { };
-        services.tailscale = {
-          enable = true;
-          authKeyFile = config.sops.secrets.tailscale-auth.path;
-        };
-
         sops.secrets."samba-passwords/binarin" = {
           restartUnits = [ "update-samba-passwords.service" ];
         };

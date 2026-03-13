@@ -12,7 +12,12 @@ import urllib.error
 from pathlib import Path
 from typing import Optional
 
-from ..external import register_tool, sops_decrypt_to_stdout, ExternalToolError
+from ..external import (
+    register_tool,
+    sops_decrypt_to_stdout,
+    sops_encrypt_inplace,
+    ExternalToolError,
+)
 from ..output import console
 
 # Register fzf as an external tool dependency
@@ -260,7 +265,7 @@ def load_oauth_credentials(secrets_file: Optional[Path] = None) -> tuple[str, st
     from .. import config  # Import here to avoid circular imports
 
     if secrets_file is None:
-        secrets_file = config.get_secrets_root() / "tailscale" / "oauth.yaml"
+        secrets_file = config.get_secrets_dir() / "tailscale" / "oauth.yaml"
 
     if not secrets_file.exists():
         raise ExternalToolError(
@@ -300,10 +305,10 @@ def run_auth_key(
     ephemeral: bool = True,
     preauthorized: bool = True,
     expiry_seconds: int = 3600,
-    no_interactive: bool = False,
     tags: Optional[list[str]] = None,
     secrets_file: Optional[Path] = None,
     description: str = "ncf-generated",
+    machine: Optional[str] = None,
     dry_run: bool = False,
 ) -> None:
     """Create a Tailscale auth key.
@@ -319,19 +324,11 @@ def run_auth_key(
         ephemeral: If True, devices using this key are ephemeral
         preauthorized: If True, devices are pre-authorized
         expiry_seconds: Key expiry time in seconds (0 for no expiry)
-        no_interactive: Skip fzf selection, require --tags
-        tags: Tags to apply (required if --no-interactive)
+        tags: Additional tags to apply (tag:server is always included)
         secrets_file: Path to OAuth secrets file
         description: Human-readable description for the key
         dry_run: Show what would be done without making changes
     """
-    # Validate arguments
-    if no_interactive and not tags:
-        console.print(
-            "[red]Error: --tags is required when using --no-interactive[/red]"
-        )
-        raise SystemExit(1)
-
     # Load credentials
     if dry_run:
         console.print(
@@ -349,61 +346,17 @@ def run_auth_key(
         )
         token = "dry-run-token"
     else:
-        console.print("[dim]Authenticating with Tailscale API...[/dim]", stderr=True)
+        console.print("[dim]Authenticating with Tailscale API...[/dim]")
         try:
             token = get_oauth_token(client_id, client_secret)
         except TailscaleAPIError as e:
             console.print(f"[red]Error: {e}[/red]")
             raise SystemExit(1)
 
-    # Get or select tags
-    if tags:
-        # Use provided tags
-        selected_tags = list(tags)
-    elif no_interactive:
-        console.print(
-            "[red]Error: --tags is required when using --no-interactive[/red]"
-        )
-        raise SystemExit(1)
-    else:
-        # Interactive tag selection
-        if dry_run:
-            console.print(
-                "[yellow]Would fetch available tags and show fzf selector[/yellow]"
-            )
-            console.print("[yellow]Would use selected tags: ['tag:server'][/yellow]")
-            selected_tags = ["tag:server"]
-        else:
-            console.print("[dim]Fetching available tags...[/dim]", stderr=True)
-            available_tags = get_available_tags(token)
-
-            if not available_tags:
-                console.print(
-                    "[yellow]Warning: No existing tags found. You may need to specify tags manually.[/yellow]",
-                    stderr=True,
-                )
-                console.print(
-                    "[yellow]Use --tags tag:yourtag to specify tags explicitly.[/yellow]",
-                    stderr=True,
-                )
-                # Allow user to input tags manually via fzf with custom input
-                # For now, just fail gracefully
-                console.print("[red]Error: No tags available for selection[/red]")
-                raise SystemExit(1)
-
-            console.print(
-                f"[dim]Found {len(available_tags)} tag(s). Opening selector...[/dim]",
-                stderr=True,
-            )
-            try:
-                selected_tags = select_tags_with_fzf(available_tags)
-            except ExternalToolError as e:
-                console.print(f"[red]Error: {e}[/red]")
-                raise SystemExit(1)
-
-            if not selected_tags:
-                console.print("[red]Error: No tags selected[/red]")
-                raise SystemExit(1)
+    # Build tag list: start with provided tags, always include tag:server
+    selected_tags = list(tags or [])
+    if "tag:server" not in selected_tags:
+        selected_tags.append("tag:server")
 
     # Create auth key
     if dry_run:
@@ -414,12 +367,17 @@ def run_auth_key(
         console.print(f"[yellow]  - Preauthorized: {preauthorized}[/yellow]")
         console.print(f"[yellow]  - Expiry: {expiry_seconds}s[/yellow]")
         console.print(f"[yellow]  - Description: {description}[/yellow]")
-        console.print("[yellow]tskey-auth-XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXX[/yellow]")
+        if machine:
+            console.print(
+                f"[yellow]  - Target: secrets/{machine}/tailscale-auth[/yellow]"
+            )
+        else:
+            console.print(
+                "[yellow]tskey-auth-XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXX[/yellow]"
+            )
         return
 
-    console.print(
-        f"[dim]Creating auth key with tags: {selected_tags}[/dim]", stderr=True
-    )
+    console.print(f"[dim]Creating auth key with tags: {selected_tags}[/dim]")
     try:
         key = create_auth_key(
             token=token,
@@ -434,5 +392,16 @@ def run_auth_key(
         console.print(f"[red]Error: {e}[/red]")
         raise SystemExit(1)
 
-    # Output the key (to stdout, not stderr, so it can be captured)
-    print(key)
+    if machine:
+        # Write to separate sops-encrypted file
+        machine_dir = Path(f"secrets/{machine}")
+        if not machine_dir.exists():
+            console.print(f"[red]Error: {machine_dir} does not exist[/red]")
+            raise SystemExit(1)
+        tailscale_auth_file = machine_dir / "tailscale-auth"
+        tailscale_auth_file.write_text(key)
+        sops_encrypt_inplace(tailscale_auth_file)
+        console.print(f"[green]Auth key saved to {tailscale_auth_file}[/green]")
+    else:
+        # Output the key (to stdout, not stderr, so it can be captured)
+        print(key)

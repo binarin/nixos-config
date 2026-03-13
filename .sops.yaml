@@ -31,6 +31,12 @@ keys:
   - &server_llm-runner age178x9rjyjfznxxfkshkyltzg3tqjpvgch4d684wajxdvwfp0p6ffsz6wh7j
   - &user_llm-runner_binarin age1sykl9pmp3hvlrx0axmt6dz902smr4g2q773n6lk80hjzwurm0g9swl5u8r
 creation_rules:
+  - path_regex: secrets/tailscale/oauth.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_binarin
   - path_regex: secrets/demandred/(secrets.yaml|user-binarin.yaml)
     key_groups:
       - pgp:
@@ -47,7 +53,7 @@ creation_rules:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_docker-on-nixos
-  - path_regex: secrets/forgejo/(secrets.yaml|user-binarin.yaml)
+  - path_regex: secrets/forgejo/(secrets.yaml|user-binarin.yaml|tailscale-auth)
     key_groups:
       - pgp:
           - *admin_binarin_gpg
@@ -71,7 +77,7 @@ creation_rules:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_mail
-  - path_regex: secrets/media/(secrets.yaml|user-binarin.yaml)
+  - path_regex: secrets/media/(secrets.yaml|user-binarin.yaml|tailscale-auth)
     key_groups:
       - pgp:
           - *admin_binarin_gpg
@@ -79,7 +85,7 @@ creation_rules:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_media
-  - path_regex: secrets/monitor/(secrets.yaml|user-binarin.yaml)
+  - path_regex: secrets/monitor/(secrets.yaml|user-binarin.yaml|tailscale-auth)
     key_groups:
       - pgp:
           - *admin_binarin_gpg
@@ -87,7 +93,7 @@ creation_rules:
           - *admin_binarin
           - *user_demandred_binarin
           - *server_monitor
-  - path_regex: secrets/nix-cache/(secrets.yaml|user-binarin.yaml)
+  - path_regex: secrets/nix-cache/(secrets.yaml|user-binarin.yaml|tailscale-auth)
     key_groups:
       - pgp:
           - *admin_binarin_gpg
@@ -130,6 +136,13 @@ creation_rules:
         age:
           - *user_demandred_binarin
   - path_regex: secrets/furfur/secrets.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_furfur
+  - path_regex: secrets/furfur/tailscale-auth
     key_groups:
       - pgp:
           - *admin_binarin_gpg
@@ -192,6 +205,13 @@ creation_rules:
         age:
           - *admin_demandred_binarin
           - *server_nix-builder-valak
+  - path_regex: secrets/nix-builder-valak/tailscale-auth
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_nix-builder-valak
   - path_regex: secrets/nix-builder-valak/user-binarin.yaml
     key_groups:
       - pgp:
@@ -206,6 +226,13 @@ creation_rules:
         age:
           - *admin_demandred_binarin
           - *server_nix-builder-raum
+  - path_regex: secrets/nix-builder-raum/tailscale-auth
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_nix-builder-raum
   - path_regex: secrets/nix-builder-raum/user-binarin.yaml
     key_groups:
       - pgp:
@@ -214,6 +241,13 @@ creation_rules:
           - *admin_demandred_binarin
           - *user_nix-builder-raum_binarin
   - path_regex: secrets/paperless-nixos/secrets.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_paperless-nixos
+  - path_regex: secrets/paperless-nixos/tailscale-auth
     key_groups:
       - pgp:
           - *admin_binarin_gpg
@@ -284,6 +318,13 @@ creation_rules:
           - *admin_demandred_binarin
           - *server_llm-runner
   - path_regex: secrets/llm-runner/secrets.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_demandred_binarin
+          - *server_llm-runner
+  - path_regex: secrets/llm-runner/tailscale-auth
     key_groups:
       - pgp:
           - *admin_binarin_gpg

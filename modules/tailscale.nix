@@ -1,4 +1,4 @@
-{ ... }:
+{ self, ... }:
 {
   flake.nixosModules.tailscale =
     {
@@ -10,6 +10,8 @@
     let
       cfg = config.services.tailscale;
       serveCfg = cfg.serve;
+      hostname = config.networking.hostName;
+      hasTailscaleAuth = builtins.pathExists "${self}/secrets/${hostname}/tailscale-auth";
     in
     {
       key = "nixos-config.modules.nixos.tailscale";
@@ -166,8 +168,16 @@
             ];
             useRoutingFeatures = "both";
           };
-
         }
+
+        # Auto-detect tailscale auth key from secrets
+        (lib.mkIf hasTailscaleAuth {
+          sops.secrets.tailscale-auth = {
+            sopsFile = "${self}/secrets/${hostname}/tailscale-auth";
+            format = "binary";
+          };
+          services.tailscale.authKeyFile = config.sops.secrets.tailscale-auth.path;
+        })
 
         # New serve configuration service
         (lib.mkIf (serveCfg.enable && (serveCfg.configs != { } || serveCfg.services != { })) {

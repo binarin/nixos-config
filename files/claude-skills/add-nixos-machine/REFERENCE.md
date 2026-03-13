@@ -83,12 +83,8 @@ VM with inventory IP allocation:
           fsType = "ext4";
         };
 
-        # Tailscale for remote access
-        sops.secrets.tailscale-auth = { };
-        services.tailscale = {
-          enable = true;
-          authKeyFile = config.sops.secrets.tailscale-auth.path;
-        };
+        # Tailscale is auto-configured when secrets/<machine>/tailscale-auth exists
+        # Generate with: ncf ts auth-key --machine <machine-name>
       };
     };
 }
@@ -440,10 +436,5 @@ sops.secrets.secret-name = { };
 ```
 
 ### For Tailscale
-```nix
-sops.secrets.tailscale-auth = { };
-services.tailscale = {
-  enable = true;
-  authKeyFile = config.sops.secrets.tailscale-auth.path;
-};
-```
+Tailscale auth is auto-configured when `secrets/<machine>/tailscale-auth` exists.
+Generate with: `ncf ts auth-key --machine <machine-name>`

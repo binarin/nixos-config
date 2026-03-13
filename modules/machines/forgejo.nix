@@ -38,16 +38,6 @@
       config = {
         networking.hostName = "forgejo";
 
-        sops.secrets.tailscale-auth = { };
-        services.tailscale = {
-          enable = true;
-          authKeyFile = "${config.sops.secrets.tailscale-auth.path}";
-          extraUpFlags = [
-            "--hostname"
-            "${config.networking.hostName}"
-          ];
-        };
-
         environment.systemPackages =
           let
             cfg = config.services.forgejo;

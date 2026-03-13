@@ -196,6 +196,15 @@ class SopsYaml:
         ):
             rules_added = True
 
+        # Add creation rule for tailscale-auth
+        tailscale_regex = f"secrets/{machine}/tailscale-auth"
+        if self.add_creation_rule(
+            tailscale_regex,
+            pgp_keys=["admin_binarin_gpg"],
+            age_keys=age_refs,
+        ):
+            rules_added = True
+
         # Add creation rule for user-binarin.yaml
         user_regex = f"secrets/{machine}/user-binarin.yaml"
         user_age_refs = [admin_key]

@@ -46,12 +46,6 @@ in
         networking.hostName = inventoryHostName;
         system.stateVersion = "25.11";
 
-        sops.secrets.tailscale-auth = { };
-        services.tailscale = {
-          enable = true;
-          authKeyFile = config.sops.secrets.tailscale-auth.path;
-        };
-
         nixos-config.nix-builder.runnerCount = 1;
 
         proxmoxLXC = {

@@ -40,17 +40,6 @@
         services.openssh.enable = true;
         services.openssh.settings.PermitRootLogin = "yes";
 
-        sops.secrets.tailscale-auth = { };
-
-        services.tailscale = {
-          enable = true;
-          authKeyFile = "/run/secrets/tailscale-auth";
-          extraUpFlags = [
-            "--hostname"
-            "${config.networking.hostName}"
-          ];
-        };
-
         environment.systemPackages = with pkgs; [ emacs-nox ];
 
         users.users."root".openssh.authorizedKeys.keys = [

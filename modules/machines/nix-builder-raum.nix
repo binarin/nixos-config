@@ -48,12 +48,6 @@ in
 
         nixos-config.nix-builder.runnerCount = 1;
 
-        sops.secrets.tailscale-auth = { };
-        services.tailscale = {
-          enable = true;
-          authKeyFile = config.sops.secrets.tailscale-auth.path;
-        };
-
         proxmoxLXC = {
           cores = 8;
           memory = 16384;

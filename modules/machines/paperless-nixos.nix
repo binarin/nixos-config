@@ -260,11 +260,6 @@ in
           };
         };
 
-        sops.secrets.tailscale-auth = { };
-        services.tailscale = {
-          authKeyFile = "${config.sops.secrets.tailscale-auth.path}";
-        };
-
         # Expose Paperless as a Tailscale service
         services.tailscale.serve = {
           enable = mkDefault true;
