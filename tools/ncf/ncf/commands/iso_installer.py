@@ -41,9 +41,7 @@ def run_build(
     """
     repo_root = config.find_repo_root()
 
-    flake_ref = (
-        f"{repo_root}#nixosConfigurations.iso.config.system.build.isoImage"
-    )
+    flake_ref = f"{repo_root}#nixosConfigurations.iso.config.system.build.isoImage"
 
     # Default output path
     if output is None:

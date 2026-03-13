@@ -91,6 +91,10 @@ def run_nixos_anywhere(
         f"{repo_root}#{machine}",
         "--target-host",
         target_host,
+        "--ssh-option",
+        "StrictHostKeyChecking=no",
+        "--ssh-option",
+        "UserKnownHostsFile=/dev/null",
     ]
 
     if extra_files_dir:
@@ -147,6 +151,27 @@ def run(
 
     repo_root = config.find_repo_root()
     runner = NixRunner(verbosity=1, repo_root=repo_root)
+
+    # Preflight: verify sops decryption works before doing anything
+    console.print("\n[bold]Preflight:[/bold] Verifying sops decryption")
+    secrets = gather_secrets_for_machine(machine, runner)
+    if secrets:
+        try:
+            from ..external import sops_decrypt_to_stdout
+
+            # Test-decrypt the first secret to trigger gpg-agent initialization
+            sops_decrypt_to_stdout(secrets[0].source_path)
+            console.print(
+                f"  [green]sops decryption OK ({len(secrets)} secret(s) found)[/green]"
+            )
+        except Exception as e:
+            console.print(f"  [red]sops decryption failed: {e}[/red]")
+            console.print(
+                "  [yellow]Hint: try running 'sops decrypt' manually to initialize gpg-agent[/yellow]"
+            )
+            raise RuntimeError("sops preflight check failed")
+    else:
+        console.print("  No secrets to inject, skipping check")
 
     # Initialize Proxmox client
     client: Optional[ProxmoxClient] = None
@@ -286,6 +311,7 @@ def run(
     # Step 6: Configure disks from NixOS config
     console.print("\n[bold]Step 5b:[/bold] Configuring disks")
     disks = vm_config.get("disks", [])
+    boot_disk_key = "scsi0"  # default
     if not disks:
         # Default disk if none specified
         console.print("  No disks specified, creating default 32G disk")
@@ -301,6 +327,10 @@ def run(
             bus = disk.get("bus", "scsi")
             index = disk.get("index", 0)
             disk_key = f"{bus}{index}"
+
+            # Track first disk as boot disk
+            if boot_disk_key == "scsi0" or index == 0:
+                boot_disk_key = disk_key
 
             if disk_type == "passthrough":
                 device = disk.get("device")
@@ -331,11 +361,11 @@ def run(
 
     if dry_run:
         console.print(f"  [yellow]Would attach ISO: {iso_ref}[/yellow]")
-        console.print("  [yellow]Would set boot order: ide2[/yellow]")
+        console.print(f"  [yellow]Would set boot order: ide2;{boot_disk_key}[/yellow]")
     else:
         assert client is not None
         client.attach_iso(vmid, iso_ref)
-        client.set_boot_order(vmid, "order=ide2;scsi0")
+        client.set_boot_order(vmid, f"order=ide2;{boot_disk_key}")
         console.print(f"  [green]ISO attached, boot order set[/green]")
 
     # Step 8: Start VM
@@ -348,29 +378,42 @@ def run(
         client.start_vm(vmid)
         console.print(f"  [green]VM {vmid} started[/green]")
 
-    # Step 9: Wait for SSH
-    console.print(f"\n[bold]Step 8:[/bold] Waiting for SSH ({ip_alloc['address']})")
+    # The installer ISO gets a DHCP address, not the final static IP.
+    # Get the actual IP from the QEMU guest agent.
+    console.print(f"\n[bold]Step 8:[/bold] Waiting for VM to get an IP address")
 
     if dry_run:
         console.print(
-            f"  [yellow]Would wait for SSH on {ip_alloc['address']} (timeout: {ssh_timeout}s)[/yellow]"
+            f"  [yellow]Would wait for guest agent IP (timeout: {ssh_timeout}s)[/yellow]"
         )
+        installer_host = "installer"
     else:
-        console.print(f"  Waiting up to {ssh_timeout}s for SSH...")
-        if not wait_for_ssh(ip_alloc["address"], timeout=ssh_timeout):
+        assert client is not None
+        console.print(f"  Polling guest agent for IP...")
+        installer_host = None
+        start_time = time.time()
+        while time.time() - start_time < ssh_timeout:
+            installer_host = client.get_vm_ip(vmid)
+            if installer_host:
+                break
+            time.sleep(5)
+        if not installer_host:
+            console.print(f"  [red]Timeout waiting for guest agent IP[/red]")
             console.print(
-                f"  [red]Timeout waiting for SSH on {ip_alloc['address']}[/red]"
+                f"  Check VM console: ssh root@{proxmox_host} qm terminal {vmid}"
             )
-            console.print(
-                "  Check VM console: ssh root@{proxmox_host} qm terminal {vmid}"
-            )
+            raise RuntimeError("Guest agent IP timeout")
+        console.print(f"  [green]Got IP: {installer_host}[/green]")
+
+        console.print(f"  Waiting for SSH on {installer_host}...")
+        if not wait_for_ssh(installer_host, timeout=ssh_timeout):
+            console.print(f"  [red]Timeout waiting for SSH on {installer_host}[/red]")
             raise RuntimeError("SSH timeout")
         console.print(f"  [green]SSH accessible[/green]")
 
-    # Step 10: Prepare extra files (secrets)
+    # Step 10: Prepare extra files (secrets) - secrets already gathered in preflight
     console.print("\n[bold]Step 9:[/bold] Preparing secrets for injection")
 
-    secrets = gather_secrets_for_machine(machine, runner)
     extra_files_dir: Optional[Path] = None
 
     if secrets:
@@ -384,7 +427,7 @@ def run(
     # Step 11: Run nixos-anywhere
     console.print("\n[bold]Step 10:[/bold] Running nixos-anywhere")
 
-    target_host = f"root@{ip_alloc['address']}"
+    target_host = f"root@{installer_host}"
 
     try:
         run_nixos_anywhere(
@@ -411,7 +454,7 @@ def run(
     else:
         assert client is not None
         client.detach_iso(vmid)
-        client.set_boot_order(vmid, "order=scsi0")
+        client.set_boot_order(vmid, f"order={boot_disk_key}")
         console.print(f"  [green]ISO detached, boot order set to disk[/green]")
 
         # nixos-anywhere should handle reboot, but let's be safe

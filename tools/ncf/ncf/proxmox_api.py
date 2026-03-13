@@ -28,11 +28,16 @@ class ProxmoxClient:
         os.environ.pop("SSH_AGENT_PID", None)
 
         self.api = ProxmoxAPI(host, user=user, backend="ssh_paramiko")
-        # Get the first (usually only) node
+        # Find the node matching the host we connected to
         nodes = self.api.nodes.get()
         if not nodes:
             raise RuntimeError(f"No nodes found on Proxmox host {host}")
+        # Try to match host to a node name; fall back to first node
         self.node = nodes[0]["node"]
+        for n in nodes:
+            if n["node"] == host or host.startswith(n["node"]):
+                self.node = n["node"]
+                break
         self.host = host
 
     def container_exists(self, hostname: str) -> int | None:
@@ -86,6 +91,49 @@ class ProxmoxClient:
     def delete_vm(self, vmid: int, purge: bool = True) -> None:
         """Delete a VM."""
         self.api.nodes(self.node).qemu(vmid).delete(purge=1 if purge else 0)
+
+    def get_vm_ip(self, vmid: int) -> str | None:
+        """Get VM IPv4 address from QEMU guest agent.
+
+        Uses qm guest cmd via SSH to query the guest agent for network
+        interfaces. Returns the first non-loopback IPv4 address found.
+
+        Args:
+            vmid: VM ID
+
+        Returns:
+            IPv4 address or None if not available yet
+        """
+        import json
+        import subprocess
+
+        try:
+            result = subprocess.run(
+                [
+                    "ssh",
+                    f"root@{self.host}",
+                    "qm",
+                    "guest",
+                    "cmd",
+                    str(vmid),
+                    "network-get-interfaces",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode != 0:
+                return None
+            ifaces = json.loads(result.stdout)
+            for iface in ifaces:
+                if iface.get("name") == "lo":
+                    continue
+                for addr in iface.get("ip-addresses", []):
+                    if addr.get("ip-address-type") == "ipv4":
+                        return addr["ip-address"]
+        except (subprocess.TimeoutExpired, json.JSONDecodeError, KeyError):
+            return None
+        return None
 
     def upload_snippet(self, storage: str, filename: str, content: str) -> None:
         """Upload content as a snippet file.
@@ -144,30 +192,34 @@ class ProxmoxClient:
         return filename in isos
 
     def upload_iso(self, storage: str, local_path: Path) -> None:
-        """Upload ISO to Proxmox storage via SSH/SCP.
+        """Upload ISO to Proxmox storage via pv + SSH with progress.
 
         Args:
             storage: Storage name (must have iso content type enabled)
             local_path: Path to local ISO file
         """
-        import paramiko
+        import subprocess
 
         filename = local_path.name
+        remote_path = f"/var/lib/vz/template/iso/{filename}"
+        source_size = local_path.stat().st_size
 
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(self.host, username="root", allow_agent=False)
+        pv_cmd = ["pv", "-s", str(source_size), "-N", "Uploading ISO"]
+        ssh_cmd = ["ssh", f"root@{self.host}", f"cat > {remote_path}"]
 
-        try:
-            # ISO storage path in Proxmox
-            # Default local storage puts ISOs in /var/lib/vz/template/iso/
-            remote_path = f"/var/lib/vz/template/iso/{filename}"
+        with open(local_path, "rb") as f:
+            pv_proc = subprocess.Popen(pv_cmd, stdin=f, stdout=subprocess.PIPE)
+            ssh_proc = subprocess.Popen(ssh_cmd, stdin=pv_proc.stdout)
+            if pv_proc.stdout:
+                pv_proc.stdout.close()
 
-            sftp = ssh.open_sftp()
-            sftp.put(str(local_path), remote_path)
-            sftp.close()
-        finally:
-            ssh.close()
+            ssh_rc = ssh_proc.wait()
+            pv_rc = pv_proc.wait()
+
+        if ssh_rc != 0:
+            raise RuntimeError(f"SSH upload failed with exit code {ssh_rc}")
+        if pv_rc != 0:
+            raise RuntimeError(f"pv failed with exit code {pv_rc}")
 
     def attach_iso(self, vmid: int, iso_path: str) -> None:
         """Attach ISO to VM's cdrom drive.

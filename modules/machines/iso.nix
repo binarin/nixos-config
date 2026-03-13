@@ -62,7 +62,11 @@ in
             "zfs"
             "exfat"
           ];
+          kernelParams = [ "console=tty0" "console=ttyS0,115200n8" ];
         };
+
+        # Serial console login
+        systemd.services."serial-getty@ttyS0".enable = true;
 
         services.openssh.enable = true;
         services.openssh.settings.PermitRootLogin = lib.mkForce "yes";

@@ -257,23 +257,63 @@
       config = {
         services.qemuGuest.enable = lib.mkDefault config.nixos-config.qemu-guest.proxmox.agent;
 
-        assertions = [
-          {
-            assertion =
-              config.nixos-config.qemu-guest.proxmox.tpm2.enable
-              -> config.nixos-config.qemu-guest.proxmox.bios == "ovmf";
-            message = "TPM2 requires UEFI boot (bios = ovmf)";
-          }
-          {
-            assertion =
+        boot.kernelParams = [ "console=tty0" "console=ttyS0,115200n8" ];
+        systemd.services."serial-getty@ttyS0".enable = true;
+
+        assertions =
+          let
+            proxmox = config.nixos-config.qemu-guest.proxmox;
+            diskoDisks = config.disko.devices.disk or { };
+            # Check that disko device paths match the configured disk bus types.
+            # virtio disks appear as /dev/vdX (no by-id entry), while scsi/sata
+            # disks appear as /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-<bus><index>
+            virtioLetters = [ "a" "b" "c" "d" "e" "f" ];
+            diskoBusAssertions = lib.concatMap (
+              disk:
               let
-                balloon = config.nixos-config.qemu-guest.proxmox.balloon;
-                memory = config.nixos-config.qemu-guest.proxmox.memory;
+                busKey = "${disk.bus}${toString disk.index}";
+                isVirtio = disk.bus == "virtio";
+                expectedVirtioDevice = "/dev/vd${builtins.elemAt virtioLetters disk.index}";
+                expectedSuffix = "drive-${busKey}";
               in
-              balloon == null || balloon <= memory;
-            message = "Balloon memory must be less than or equal to maximum memory";
-          }
-        ];
+              lib.mapAttrsToList (
+                name: diskoCfg:
+                let
+                  device = diskoCfg.device or "";
+                in
+                {
+                  assertion =
+                    if isVirtio then
+                      device == expectedVirtioDevice
+                    else
+                      !(lib.hasInfix "QEMU_HARDDISK" device) || lib.hasSuffix expectedSuffix device;
+                  message =
+                    if isVirtio then
+                      "Disko disk '${name}' device '${device}' doesn't match proxmox virtio disk. Expected '${expectedVirtioDevice}'."
+                    else
+                      "Disko disk '${name}' device '${device}' doesn't match proxmox disk bus '${busKey}'. Expected path ending in '${expectedSuffix}'.";
+                }
+              ) diskoDisks
+            ) proxmox.disks;
+          in
+          [
+            {
+              assertion =
+                proxmox.tpm2.enable
+                -> proxmox.bios == "ovmf";
+              message = "TPM2 requires UEFI boot (bios = ovmf)";
+            }
+            {
+              assertion =
+                let
+                  balloon = proxmox.balloon;
+                  memory = proxmox.memory;
+                in
+                balloon == null || balloon <= memory;
+              message = "Balloon memory must be less than or equal to maximum memory";
+            }
+          ]
+          ++ diskoBusAssertions;
       };
     };
 }
