@@ -116,6 +116,12 @@ ip_allocation:
         _type: leaf
         address: 192.168.2.4
         mac: null
+  llm-runner:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.28
+        mac: null
   mail:
     home:
       primary:
@@ -134,6 +140,18 @@ ip_allocation:
         _type: leaf
         address: 192.168.2.2
         mac: null
+  nix-builder-raum:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.25
+        mac: 02:00:B3:C3:3C:53
+  nix-builder-valak:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.24
+        mac: 02:00:91:B6:DF:82
   nix-cache:
     home:
       primary:
@@ -146,6 +164,12 @@ ip_allocation:
         _type: leaf
         address: 192.168.3.2
         mac: null
+  paperless-nixos:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.27
+        mac: 02:00:94:AA:85:8C
   proxmox-test:
     home:
       primary:
