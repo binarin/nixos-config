@@ -1,6 +1,9 @@
 ;;; -*- mode: emacs-lisp; lexical-binding: t -*-
 (setf inhibit-startup-screen t)
 
+;; Mostly do not want to track down which sensitive files should be excluded from backups
+(setf make-backup-file nil)
+
 (use-package zenburn-theme
   :ensure t)
 (load-theme 'zenburn t)
@@ -62,8 +65,8 @@
 (setf remote-file-name-access-timeout 3)
 
 
+(require 'recentf)
 (setf recentf-max-saved-items 200
-      recentf-save-file (expand-file-name "~/.local/state/emacs/recentf.eld")
       recentf-auto-cleanup 300)
 (setopt recentf-autosave-interval 60)
 (unless (file-exists-p (file-name-directory recentf-save-file)) (make-directory (file-name-directory recentf-save-file)))
