@@ -31,7 +31,7 @@ in
   };
 
   flake.nixosModules.llm-runner-configuration =
-    { ... }:
+    { config, ... }:
     {
       key = "nixos-config.modules.nixos.llm-runner-configuration";
       imports = [
@@ -46,6 +46,20 @@ in
 
       config = {
         networking.hostName = inventoryHostName;
+        networking.useDHCP = false;
+        systemd.network = {
+          enable = true;
+          networks."40-ens18" = let
+            inherit (config.inventory.hostIpAllocation.home.primary) addressWithPrefix;
+            inherit (config.inventory.networks.home) gateway dns;
+          in {
+            matchConfig.Name = "ens18";
+            address = [ addressWithPrefix ];
+            routes = [ { Gateway = gateway; } ];
+            dns = dns;
+            linkConfig.RequiredForOnline = "routable";
+          };
+        };
         system.stateVersion = "25.11";
         nixos-config.export-metrics.enable = false;
 
@@ -60,7 +74,7 @@ in
               type = "image";
               storage = "local-zfs";
               size = "256G";
-              bus = "virtio";
+              bus = "scsi";
               bootOrder = 1;
             }
           ];
