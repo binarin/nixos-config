@@ -34,6 +34,7 @@
         # Our modules for SSH keys and basic configuration
         self.nixosModules.public-keys
         self.nixosModules.nix
+        self.nixosModules.ci
       ];
 
       config = {
