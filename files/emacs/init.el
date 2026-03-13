@@ -1,11 +1,13 @@
 ;;; -*- mode: emacs-lisp; lexical-binding: t -*-
 (setf inhibit-startup-screen t)
 
-(require 'zenburn-theme)
+(use-package zenburn-theme
+  :ensure t)
 (load-theme 'zenburn t)
 (add-to-list 'default-frame-alist '(font . "IosevkaTerm Nerd Font-16"))
 
 (winner-mode t)
+
 (use-package direnv
   :ensure t)
 (direnv-mode t)
@@ -16,15 +18,46 @@
 
 (advice-add 'direnv--summarise-changes :filter-args #'binarin/direnv--summarise-changes)
 
+
 (require 'which-key)
 (which-key-mode t)
 
-(icomplete-vertical-mode t)
-(setf icomplete-in-buffer t
-      read-buffer-completion-ignore-case t
-      read-file-name-completion-ignore-case t)
-(advice-add 'completion-at-point :after #'minibuffer-hide-completions)
-(add-to-list 'completion-styles 'flex)
+(use-package emacs
+  :custom
+  ;; Enable context menu. `vertico-multiform-mode' adds a menu in the minibuffer
+  ;; to switch display modes.
+  (context-menu-mode t)
+  ;; Support opening new minibuffers from inside existing minibuffers.
+  (enable-recursive-minibuffers t)
+  ;; Hide commands in M-x which do not work in the current mode.  Vertico
+  ;; commands are hidden in normal buffers. This setting is useful beyond
+  ;; Vertico.
+  (read-extended-command-predicate #'command-completion-default-include-p)
+  ;; Do not allow the cursor in the minibuffer prompt
+  (minibuffer-prompt-properties
+   '(read-only t cursor-intangible t face minibuffer-prompt)))
+
+(savehist-mode t)
+
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode))
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles partial-completion))))
+  (completion-category-defaults nil) ;; Disable defaults, use our settings
+  (completion-pcm-leading-wildcard t)) ;; Emacs 31: partial-completion behaves like substring
+
+
+;; (icomplete-vertical-mode t)
+;; (setf icomplete-in-buffer t
+;;       read-buffer-completion-ignore-case t
+;;       read-file-name-completion-ignore-case t)
+;; (advice-add 'completion-at-point :after #'minibuffer-hide-completions)
+;; (add-to-list 'completion-styles 'flex)
 
 (setf remote-file-name-access-timeout 3)
 
@@ -36,11 +69,9 @@
 (unless (file-exists-p (file-name-directory recentf-save-file)) (make-directory (file-name-directory recentf-save-file)))
 (recentf-mode t)
 
-(add-hook 'buffer-list-update-hook #'recentf-track-opened-file)
+;; (add-hook 'buffer-list-update-hook #'recentf-track-opened-file)
 
 (put 'set-goal-column 'disabled nil)
-
-(keymap-set minibuffer-mode-map "C-l" 'backward-kill-word)
 
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
