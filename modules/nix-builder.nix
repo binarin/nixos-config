@@ -87,6 +87,7 @@
                   nodejs
                   wget
                   podman
+                  s3cmd
                 ];
               };
               mkRunner = n: {
