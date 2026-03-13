@@ -39,7 +39,7 @@ jobs:
           git push -f origin "$BRANCH"
           # Create PR if it doesn't exist
           if ! fj -H forgejo.lynx-lizard.ts.net pr search --repo binarin/nixos-config --state open 2>&1 | grep -q "$BRANCH"; then
-            fj -H forgejo.lynx-lizard.ts.net pr create -r forgejo.lynx-lizard.ts.net/binarin/nixos-config \
+            fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config \
               --base master --head "$BRANCH" \
               --body "Automated PR: ansible inventory files were out of sync with their source definitions." \
               "chore: regenerate ansible inventory"
@@ -78,7 +78,7 @@ jobs:
           git push -f origin "$BRANCH"
           # Create PR if it doesn't exist
           if ! fj -H forgejo.lynx-lizard.ts.net pr search --repo binarin/nixos-config --state open 2>&1 | grep -q "$BRANCH"; then
-            fj -H forgejo.lynx-lizard.ts.net pr create -r forgejo.lynx-lizard.ts.net/binarin/nixos-config \
+            fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config \
               --base master --head "$BRANCH" \
               --body "Automated PR: grafana dashboard files were out of sync with their source definitions." \
               "chore: regenerate grafana dashboards"
