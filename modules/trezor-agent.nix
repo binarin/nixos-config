@@ -97,8 +97,9 @@ in
           echo "$BUILD_OUTPUT" >&2
 
           # Extract insecure ecdsa package names from error output
-          # Nix error format: Package 'python3.14-ecdsa-0.19.1' in ... is marked as insecure
-          INSECURE_PKGS=$(echo "$BUILD_OUTPUT" | grep -o "Package '[^']*ecdsa[^']*'" | sed "s/Package '//;s/'$//" || true)
+          # Nix uses Unicode quotes in error lines, so match the double-quoted
+          # names from the permittedInsecurePackages suggestion block instead
+          INSECURE_PKGS=$(echo "$BUILD_OUTPUT" | grep -o '"[^"]*ecdsa[^"]*"' | tr -d '"' | sort -u || true)
 
           if [[ -z "$INSECURE_PKGS" ]]; then
             echo "Build failed for reasons other than insecure ecdsa packages" >&2
@@ -109,16 +110,22 @@ in
           echo "$INSECURE_PKGS" >&2
 
           # Add each insecure package to permittedInsecurePackages list
+          # Note: patterns use "= [" to match only the actual nix config block,
+          # not references in the script text (which is embedded in the same file)
           while IFS= read -r pkg; do
-            # Check if already in the list
-            if grep -qF "\"$pkg\"" "$TREZOR_FILE"; then
+            # Check if already in the list (only within permittedInsecurePackages section)
+            if sed -n '/permittedInsecurePackages = \[/,/\];/p' "$TREZOR_FILE" | grep -qF "\"$pkg\""; then
               echo "Package $pkg already in exceptions list, skipping" >&2
               continue
             fi
             # Insert before the closing ]; of permittedInsecurePackages
-            # Uses a line number approach: find ]; line within the block, insert before it
-            LINE_NUM=$(sed -n '/permittedInsecurePackages/,/];/{ /];/= }' "$TREZOR_FILE")
-            sed -i "$LINE_NUM i\\          \"$pkg\"" "$TREZOR_FILE"
+            LINE_NUM=$(sed -n '/permittedInsecurePackages = \[/,/\];/{ /\];/= }' "$TREZOR_FILE" | head -1)
+            {
+              head -n "$((LINE_NUM - 1))" "$TREZOR_FILE"
+              echo "          \"$pkg\""
+              tail -n "+$LINE_NUM" "$TREZOR_FILE"
+            } > "$TREZOR_FILE.tmp"
+            mv "$TREZOR_FILE.tmp" "$TREZOR_FILE"
             echo "Added $pkg to insecure exceptions" >&2
           done <<< "$INSECURE_PKGS"
 

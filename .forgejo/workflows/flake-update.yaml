@@ -87,29 +87,7 @@ jobs:
         with:
           git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
       - name: Update nixpkgs-trezor-agent to match main nixpkgs
-        run: |
-          # Get the new nixpkgs rev from flake.lock
-          NEW_REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
-          echo "New nixpkgs rev: $NEW_REV"
-
-          # Get the current trezor-agent nixpkgs rev from the module
-          TREZOR_FILE="modules/trezor-agent.nix"
-          OLD_REV=$(grep -oP '(?<=\?rev=)[a-f0-9]+' "$TREZOR_FILE")
-          echo "Current trezor nixpkgs rev: $OLD_REV"
-
-          if [ "$NEW_REV" = "$OLD_REV" ]; then
-            echo "Revisions match, nothing to do"
-            exit 0
-          fi
-
-          # Update the rev in modules/trezor-agent.nix
-          sed -i "s|?rev=$OLD_REV|?rev=$NEW_REV|" "$TREZOR_FILE"
-          echo "Updated $TREZOR_FILE with new rev"
-
-          # Regenerate flake.nix
-          nix run .#write-flake
-      - name: Try building trezor-agent
-        run: nix build .#trezor-agent --no-link
+        run: nix run .#update-trezor-agent
       - name: Commit and push if build succeeded
         run: |
           if git diff --quiet; then
