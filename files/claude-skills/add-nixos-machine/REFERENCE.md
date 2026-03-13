@@ -62,11 +62,13 @@ VM with inventory IP allocation:
   };
 
   flake.nixosModules.my-server-configuration =
-    { modulesPath, config, lib, ... }:
+    { config, lib, ... }:
     {
       key = "nixos-config.modules.nixos.my-server-configuration";
       imports = [
-        (modulesPath + "/profiles/qemu-guest.nix")
+        "${self}/machines/my-server/hardware-configuration.nix"
+        self.nixosModules.qemu-guest
+        self.nixosModules.disko
         self.nixosModules.baseline
         self.nixosModules.srvos-bits
         self.nixosModules.tailscale
@@ -373,9 +375,11 @@ Format:
 
 ## Common Import Combinations
 
-### Server (headless)
+### Server (headless qemu-guest)
 ```nix
 imports = [
+  self.nixosModules.qemu-guest
+  self.nixosModules.disko
   self.nixosModules.baseline
   self.nixosModules.srvos-bits
   self.nixosModules.tailscale

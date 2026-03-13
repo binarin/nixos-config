@@ -26,7 +26,7 @@ in
   };
 
   flake.nixosModules.{{ machine_name }}-configuration =
-    { ... }:
+    { config, ... }:
     {
       key = "nixos-config.modules.nixos.{{ machine_name }}-configuration";
       imports = [

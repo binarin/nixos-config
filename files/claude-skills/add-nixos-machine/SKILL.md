@@ -23,7 +23,8 @@ Copy and complete this checklist when adding a new machine:
 - [ ] **10. Get stateVersion**: Run the get-state-version script and add explicit value
 - [ ] **11. Run comprehensive validation**: `ncf eval all`
 - [ ] **12. Format and lint**: `nix fmt && just lint`
-- [ ] **13. Commit**: Follow git workflow in CLAUDE.md
+- [ ] **13. Generate Tailscale auth key** (if needed): `ncf ts auth-key --machine <machine-name>` then add `secrets/<machine>/tailscale-auth` to git
+- [ ] **14. Commit**: Follow git workflow in CLAUDE.md
 
 ## Machine Types
 

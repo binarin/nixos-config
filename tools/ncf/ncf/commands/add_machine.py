@@ -539,12 +539,15 @@ def _run_atomic(
             extra_imports = [
                 "self.nixosModules.lxc",
                 "self.nixosModules.baseline",
+                "self.nixosModules.tailscale",
             ]
             extra_config = ""  # proxmoxLXC options have sensible defaults
         else:
             extra_imports = [
+                "self.nixosModules.qemu-guest",
                 "self.nixosModules.disko",
                 "self.nixosModules.baseline",
+                "self.nixosModules.tailscale",
             ]
 
         # Add impermanence if requested
