@@ -70,7 +70,7 @@
     };
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-lib.follows = "nixpkgs";
-    nixpkgs-trezor-agent.url = "github:nixos/nixpkgs?rev=41e216c0ca66c83b12ab7a98cc326b5db01db646";
+    nixpkgs-trezor-agent.url = "github:nixos/nixpkgs?rev=daf6dc47aa4b44791372d6139ab7b25269184d55";
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     sops-nix = {
