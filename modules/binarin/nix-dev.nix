@@ -1,4 +1,4 @@
-{ self, inputs, ... }:
+{ self, ... }:
 {
   flake-file.inputs.direnv-instant.url = "github:Mic92/direnv-instant";
   flake.nixosModules.binarin-nix-dev =
