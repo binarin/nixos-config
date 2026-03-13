@@ -178,15 +178,13 @@ main() {
     local abs_path
     abs_path=$(cd "$(dirname "$target_file")" && pwd)/$(basename "$target_file")
 
-    # Case 1: Direct symlink to nix store
+    # Case 1: Symlink to nix store (direct or through intermediate symlinks)
     if [[ -L "$abs_path" ]]; then
-        local link_target
-        link_target=$(readlink "$abs_path")
-        if [[ "$link_target" == /nix/store/* ]]; then
-            echo "File is a direct symlink to nix store"
+        local resolved
+        resolved=$(realpath "$abs_path")
+        if [[ "$resolved" == /nix/store/* ]]; then
+            echo "File is a symlink resolving to nix store"
             # Remove symlink and copy contents
-            local resolved
-            resolved=$(realpath "$abs_path")
             rm "$abs_path"
             cp -a "$resolved" "$abs_path"
             echo "Replaced symlink with copy: $abs_path"
@@ -195,6 +193,8 @@ main() {
     fi
 
     # Case 2: File inside a directory symlinked to nix store
+    # Also check the fully-resolved path, as intermediate symlinks (e.g.
+    # /etc/static -> /nix/store/...) may hide nix store directories
     local symlink_info
     if symlink_info=$(find_nix_store_symlink "$abs_path"); then
         local symlink_path symlink_target

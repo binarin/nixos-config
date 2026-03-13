@@ -41,6 +41,7 @@
         apg
         net-tools # netstat
         dysk
+        self.packages."${pkgs.stdenv.hostPlatform.system}".nix-store-edit
       ];
 
       programs.bat.enable = true;
