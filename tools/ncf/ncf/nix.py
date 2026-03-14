@@ -120,7 +120,9 @@ class NixRunner:
         if extra_args:
             cmd.extend(extra_args)
 
-        return self._run_nix_command(cmd, env=env)
+        # When capturing store paths from stdout, bypass nom which swallows output
+        use_nom = False if print_out_paths else None
+        return self._run_nix_command(cmd, env=env, use_nom=use_nom)
 
     def run_eval(
         self,
