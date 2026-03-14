@@ -74,56 +74,31 @@ def get_local_system_path(target: str, profile: str = "system") -> str:
     return result.stdout.strip()
 
 
-def wait_for_ssh_down(hostname: str, timeout: int = 60) -> bool:
-    """Wait for SSH to become unavailable.
+def _ssh_no_multiplex(hostname: str, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
+    """Run an SSH command bypassing connection multiplexing."""
+    cmd = [
+        "ssh",
+        "-o", "ControlPath=none",
+        "-o", "ConnectTimeout=5",
+        "-o", "BatchMode=yes",
+        f"root@{hostname}",
+        *args,
+    ]
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
 
-    Returns True if SSH went down within timeout, False otherwise.
+
+def get_remote_boot_id(hostname: str) -> Optional[str]:
+    """Get the boot_id from a remote host.
+
+    Returns boot_id string or None if failed.
     """
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        result = subprocess.run(
-            [
-                "ssh",
-                "-o",
-                "ConnectTimeout=5",
-                "-o",
-                "BatchMode=yes",
-                f"root@{hostname}",
-                "true",
-            ],
-            capture_output=True,
-        )
-        if result.returncode != 0:
-            return True
-        time.sleep(2)
-    return False
-
-
-def wait_for_ssh_up(hostname: str, timeout: int = 300) -> bool:
-    """Wait for SSH to become available.
-
-    Returns True if SSH is up within timeout, False otherwise.
-    """
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        result = subprocess.run(
-            [
-                "ssh",
-                "-o",
-                "ConnectTimeout=5",
-                "-o",
-                "BatchMode=yes",
-                "-o",
-                "StrictHostKeyChecking=accept-new",
-                f"root@{hostname}",
-                "true",
-            ],
-            capture_output=True,
-        )
+    try:
+        result = _ssh_no_multiplex(hostname, "cat", "/proc/sys/kernel/random/boot_id")
         if result.returncode == 0:
-            return True
-        time.sleep(5)
-    return False
+            return result.stdout.strip()
+        return None
+    except (subprocess.TimeoutExpired, Exception):
+        return None
 
 
 def get_remote_uptime(hostname: str) -> Optional[float]:
@@ -132,12 +107,7 @@ def get_remote_uptime(hostname: str) -> Optional[float]:
     Returns uptime in seconds or None if failed.
     """
     try:
-        result = subprocess.run(
-            ["ssh", f"root@{hostname}", "cat", "/proc/uptime"],
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
+        result = _ssh_no_multiplex(hostname, "cat", "/proc/uptime")
         if result.returncode == 0:
             # /proc/uptime format: "uptime_seconds idle_seconds"
             return float(result.stdout.strip().split()[0])
@@ -146,42 +116,30 @@ def get_remote_uptime(hostname: str) -> Optional[float]:
         return None
 
 
-def wait_for_reboot(hostname: str, timeout: int = 300) -> bool:
-    """Wait for a machine to reboot.
+def wait_for_reboot(hostname: str, old_boot_id: Optional[str], timeout: int = 300) -> bool:
+    """Wait for a machine to reboot by polling for a new boot_id.
 
-    1. Wait for SSH to go down
-    2. Wait for SSH to come back up
-    3. Verify uptime is low (< 120 seconds)
+    Uses boot_id comparison which is race-free — works even if the
+    machine reboots faster than our polling interval.
 
     Returns True if reboot was successful, False otherwise.
     """
-    console.print(f"  Waiting for {hostname} to go down...")
-    if not wait_for_ssh_down(hostname, timeout=60):
-        console.print(
-            f"[yellow]  Warning: {hostname} did not go down within timeout[/yellow]"
-        )
-        # Continue anyway, maybe it rebooted very fast
+    console.print(f"  Waiting for {hostname} to reboot...")
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        new_boot_id = get_remote_boot_id(hostname)
+        if new_boot_id is not None:
+            if old_boot_id is None or new_boot_id != old_boot_id:
+                uptime = get_remote_uptime(hostname)
+                uptime_str = f", uptime: {uptime:.0f}s" if uptime is not None else ""
+                console.print(f"  [green]Reboot complete[/green] (new boot_id{uptime_str})")
+                return True
+        time.sleep(2)
 
-    console.print(f"  Waiting for {hostname} to come back up...")
-    if not wait_for_ssh_up(hostname, timeout=timeout):
-        console.print(
-            f"[red]  Error: {hostname} did not come back up within {timeout}s[/red]"
-        )
-        return False
-
-    # Verify uptime is low
-    uptime = get_remote_uptime(hostname)
-    if uptime is not None and uptime < 120:
-        console.print(f"  [green]Reboot complete[/green] (uptime: {uptime:.0f}s)")
-        return True
-    elif uptime is not None:
-        console.print(
-            f"[yellow]  Warning: uptime is {uptime:.0f}s, may not have rebooted[/yellow]"
-        )
-        return True  # Still consider it success if SSH works
-    else:
-        console.print("[yellow]  Warning: could not verify uptime[/yellow]")
-        return True
+    console.print(
+        f"[red]  Error: {hostname} did not reboot within {timeout}s[/red]"
+    )
+    return False
 
 
 def run_deploy_command(
@@ -327,17 +285,22 @@ def run_single(
 
     # Handle boot mode reboot
     if boot:
+        # Record boot_id before triggering reboot for race-free detection
+        old_boot_id = get_remote_boot_id(hostname)
         console.print("  Triggering reboot...")
         try:
-            # Trigger reboot
             subprocess.run(
-                ["ssh", f"root@{hostname}", "systemctl", "reboot"],
+                ["ssh", "-o", "ControlPath=none", f"root@{hostname}",
+                 "systemctl", "reboot"],
                 check=False,
+                timeout=30,
             )
+        except subprocess.TimeoutExpired:
+            pass  # Expected — SSH may hang as machine goes down
         except Exception as e:
             console.print(f"[yellow]  Warning: Could not trigger reboot: {e}[/yellow]")
 
-        if not wait_for_reboot(hostname):
+        if not wait_for_reboot(hostname, old_boot_id):
             console.print(f"[red]  FAILED: Reboot of {target} failed[/red]")
             return False
 
