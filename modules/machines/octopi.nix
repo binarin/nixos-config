@@ -5,13 +5,13 @@
   ...
 }:
 {
-  flake.deploy.nodes.octopi = {
-    hostname = config.inventory.ipAllocation."octopi".guest.primary.address;
-    profiles.system = {
-      sshUser = "root";
-      path = self.lib.deploy-nixos self.nixosConfigurations.octopi;
-    };
-  };
+  # flake.deploy.nodes.octopi = {
+  #   hostname = config.inventory.ipAllocation."octopi".guest.primary.address;
+  #   profiles.system = {
+  #     sshUser = "root";
+  #     path = self.lib.deploy-nixos self.nixosConfigurations.octopi;
+  #   };
+  # };
 
   flake.nixosConfigurations.octopi = inputs.nixos-raspberrypi.lib.nixosSystem {
     specialArgs = {
