@@ -14,8 +14,8 @@ let
   # Get list of machine directories
   machineDirs = lib.filterAttrs (_name: type: type == "directory") secretsDirContents;
 
-  # For each machine, find SSH host public keys
-  machineKeys = lib.mapAttrs (
+  # For each machine, find SSH host public keys from secrets/
+  secretsKeys = lib.mapAttrs (
     machineName: _:
     let
       machineDir = "${secretsDir}/${machineName}";
@@ -33,10 +33,45 @@ let
       in
       {
         inherit keyType keyContent;
-        file = keyFile;
       }
     ) sshKeyFiles
   ) machineDirs;
+
+  # Read clan vars directory to find machines with openssh host keys
+  varsDir = "${self}/vars/per-machine";
+  varsDirContents = if builtins.pathExists varsDir then builtins.readDir varsDir else { };
+  varsMachineDirs = lib.filterAttrs (_name: type: type == "directory") varsDirContents;
+
+  # For each clan machine, find SSH host public keys from vars/per-machine/*/openssh/
+  clanKeys = lib.mapAttrs (
+    machineName: _:
+    let
+      opensshDir = "${varsDir}/${machineName}/openssh";
+      hasOpensshDir = builtins.pathExists opensshDir;
+      dirContents = if hasOpensshDir then builtins.readDir opensshDir else { };
+      sshKeyDirs = lib.filterAttrs (
+        name: type: type == "directory" && lib.hasPrefix "ssh.id_" name && lib.hasSuffix ".pub" name
+      ) dirContents;
+    in
+    lib.mapAttrs (
+      keyDir: _:
+      let
+        keyContent = lib.trim (builtins.readFile "${opensshDir}/${keyDir}/value");
+        # Extract key type from dirname: ssh.id_ed25519.pub -> ed25519
+        keyType = lib.removePrefix "ssh.id_" (lib.removeSuffix ".pub" keyDir);
+      in
+      {
+        inherit keyType keyContent;
+      }
+    ) sshKeyDirs
+  ) varsMachineDirs;
+
+  # Merge keys from both sources, clan keys take precedence
+  allMachineNames = lib.unique (lib.attrNames machineDirs ++ lib.attrNames varsMachineDirs);
+  machineKeys = lib.genAttrs allMachineNames (
+    name:
+    (secretsKeys.${name} or { }) // (clanKeys.${name} or { })
+  );
 
   # Filter to only machines that have SSH keys
   machinesWithKeys = lib.filterAttrs (_name: keys: keys != { }) machineKeys;
