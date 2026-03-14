@@ -140,6 +140,12 @@ ip_allocation:
         _type: leaf
         address: 192.168.2.2
         mac: null
+  niks3:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.29
+        mac: null
   nix-builder-raum:
     home:
       primary:
