@@ -9,7 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     clan-core = {
-      url = "https://git.clan.lol/clan/clan-core/archive/25.11.tar.gz";
+      url = "git+https://forgejo.lynx-lizard.ts.net/binarin/clan-core?ref=25.11";
       inputs = {
         disko.follows = "disko";
         flake-parts.follows = "flake-parts";

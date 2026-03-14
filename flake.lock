@@ -222,15 +222,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1773404528,
-        "narHash": "sha256-A5tnDc+G3vARY328tLi3WQaIVFIpXfuTTOpz3peXyYc=",
-        "rev": "c9206636bf9498a4976fa3cad89dbd756605c230",
-        "type": "tarball",
-        "url": "https://git.clan.lol/api/v1/repos/clan/clan-core/archive/c9206636bf9498a4976fa3cad89dbd756605c230.tar.gz"
+        "lastModified": 1773500183,
+        "narHash": "sha256-OWEFcQt+RaQSDU1pgQ9xKml4mdCBSPQzx/UAQU8hChg=",
+        "ref": "25.11",
+        "rev": "efa35cf96f7c35222e944cdb0710c141c796b457",
+        "revCount": 11817,
+        "type": "git",
+        "url": "https://forgejo.lynx-lizard.ts.net/binarin/clan-core"
       },
       "original": {
-        "type": "tarball",
-        "url": "https://git.clan.lol/clan/clan-core/archive/25.11.tar.gz"
+        "ref": "25.11",
+        "type": "git",
+        "url": "https://forgejo.lynx-lizard.ts.net/binarin/clan-core"
       }
     },
     "data-mesher": {
