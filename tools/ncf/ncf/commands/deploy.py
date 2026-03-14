@@ -59,9 +59,10 @@ def get_remote_current_system(hostname: str) -> Optional[str]:
 
 
 def get_local_system_path(target: str, profile: str = "system") -> str:
-    """Get the store path that would be deployed for a target.
+    """Get the underlying NixOS system store path for a deploy target.
 
-    Builds the deploy-rs profile and returns the resulting store path.
+    Builds the deploy-rs profile (an activatable wrapper) and resolves the
+    underlying nixos-system path by reading the 'activate' symlink.
     """
     repo_root = config.find_repo_root()
 
@@ -70,8 +71,16 @@ def get_local_system_path(target: str, profile: str = "system") -> str:
     flake_ref = f"{repo_root}#deploy.nodes.{target}.profiles.{profile}.path"
     result = runner.run_build(flake_ref, output=None, print_out_paths=True)
 
-    # Parse the store path from output
-    return result.stdout.strip()
+    activatable_path = result.stdout.strip()
+
+    # The activatable wrapper contains symlinks into the real nixos-system path.
+    # Read the 'activate' symlink to extract the underlying system store path.
+    activate_link = os.path.join(activatable_path, "activate")
+    if os.path.islink(activate_link):
+        # e.g. /nix/store/...-nixos-system-.../activate -> extract the directory
+        return os.path.dirname(os.readlink(activate_link))
+
+    return activatable_path
 
 
 def _ssh_no_multiplex(hostname: str, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
@@ -235,14 +244,7 @@ def run_single(
             else:
                 try:
                     local_path = get_local_system_path(target, profile)
-                    # The deploy-rs path is an activatable wrapper, get the underlying system
-                    # Compare the base paths (before the /activate script)
-                    local_base = (
-                        local_path.rsplit("/", 1)[0]
-                        if "/bin/activate" in local_path
-                        else local_path
-                    )
-                    if local_base == remote_path or local_path == remote_path:
+                    if local_path == remote_path:
                         console.print(f"  [green]Skipping: already up to date[/green]")
                         return True
                     console.print(f"  Remote: {remote_path}")
