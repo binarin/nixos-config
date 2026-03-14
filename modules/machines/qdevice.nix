@@ -4,7 +4,9 @@
   config,
   ...
 }:
-
+let
+  selfLib = self.lib.self;
+in
 {
   flake.deploy.nodes.qdevice = {
     hostname = config.inventory.ipAllocation."qdevice".home.primary.address;
@@ -43,13 +45,15 @@
 
       config = {
         networking.hostName = "qdevice";
+        # TEMPORARY: intentional leak to verify CI check detects it
+        environment.etc."leak-test".text = "${self}";
         system.stateVersion = "25.05";
 
         nixos-config.export-metrics.enable = true;
 
         boot.initrd.clevis.enable = true;
         boot.initrd.clevis.useTang = true;
-        boot.initrd.clevis.devices."luks1".secretFile = config.lib.self.file' "secrets/qdevice/luks.jwe";
+        boot.initrd.clevis.devices."luks1".secretFile = selfLib.file' "secrets/qdevice/luks.jwe";
 
         boot.initrd.availableKernelModules = [ "igc" ]; # network card, to be able to
 
