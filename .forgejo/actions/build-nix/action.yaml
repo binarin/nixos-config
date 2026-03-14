@@ -31,6 +31,12 @@ runs:
           nix build "$BUILD_PATH" --no-link
         fi
 
+        # For nixos configurations, check that the flake source doesn't leak into the closure
+        if [[ "$CONFIG_NAME" == d:* ]] || [[ "$CONFIG_NAME" == c:* ]]; then
+          TOPLEVEL=$(nix path-info "$BUILD_PATH" --no-warn 2>/dev/null || nix build "$BUILD_PATH" --no-link --print-out-paths)
+          nix run .#env-aware-nix-run -- .#check-no-flake-source-leak -- "$TOPLEVEL"
+        fi
+
         # If paths-file requested, extract build closure (includes build-time deps)
         if [[ -n "$PATHS_FILE" ]]; then
           # Get the derivation for this build

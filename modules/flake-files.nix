@@ -15,82 +15,95 @@
       config = {
         lib.self =
           let
+            # == Why this module exists ==
+            #
+            # In a flake, `self` is a store path containing the entire repo source.
+            # Any reference like `"${self}/files/foo"` creates a build-time dependency
+            # on the whole source tree. When the git working tree is dirty (or any file
+            # in the repo changes), `self` gets a new hash, which cascades through
+            # every derivation that references it — even if the specific file didn't change.
+            #
+            # This causes deploy skip-if-unchanged checks to always see a "different"
+            # system, because the nixos-system derivation hash changes with every
+            # unrelated edit.
+            #
+            # == How builtins.path fixes it ==
+            #
+            # `builtins.path { path = ...; name = ...; }` copies a path into the store
+            # as a new, independent entry whose hash depends ONLY on the content of that
+            # specific file or directory — not on the enclosing store path (`self`).
+            # This breaks the dependency chain: if the file/dir content hasn't changed,
+            # the resulting store path is identical regardless of `self`'s hash.
+            #
+            # == Pitfalls ==
+            #
+            # 1. The `path` argument must be an actual Nix path type, not a string.
+            #    String interpolation like `"${self}/files/foo"` produces a string with
+            #    a store path reference, and Nix refuses to coerce it back to a path.
+            #    We use `self.outPath + "/files/${name}"` (string concatenation on a path)
+            #    which preserves the path type.
+            #
+            # 2. For directories, builtins.path copies the entire subtree, preserving
+            #    file permissions (including executable bits). This makes it suitable
+            #    for both files and directories, and eliminates the need for workarounds
+            #    like the base64-encode-in-git / decode-at-build-time pattern.
+            #
+            # 3. builtins.readFile is still needed when callers want file *content* as
+            #    a string (e.g., to embed in a larger script or config). builtins.path
+            #    only gives you a store path.
+
+            # Copy a file or directory from files/ into an independent store path.
+            # The hash depends only on the content, not on `self`.
+            isolate =
+              name:
+              builtins.path {
+                path = self.outPath + "/files/${name}";
+                inherit name;
+              };
+
+            # Same as isolate but for arbitrary paths relative to the repo root.
+            isolate' =
+              name:
+              builtins.path {
+                path = self.outPath + "/${name}";
+                name = lib.replaceStrings [ "/" ] [ "__" ] name;
+              };
+
+            # Read file content as a string. This also breaks the self dependency
+            # because builtins.readFile evaluates at eval time, converting the path
+            # reference into a plain string value.
             read = name: builtins.readFile "${self}/files/${name}";
           in
           {
             inherit read;
-            file = name: pkgs.writeText name (read name);
-            script = name: pkgs.writeScript name (read name);
-            scriptBin = name: pkgs.writeScriptBin name (read name);
-            file' =
-              name:
-              pkgs.writeText (lib.replaceStrings [ "/" ] [ "__" ] name) (builtins.readFile "${self}/${name}");
+
+            # Return an independent store path for a file in files/.
+            file = isolate;
+
+            # Return an independent store path for a script in files/.
+            # builtins.path preserves the executable bit from git, so callers
+            # must ensure the file is +x in the repo.
+            script = isolate;
+
+            # scriptBin would need a bin/ wrapper directory — not currently used,
+            # so omitted. Use pkgs.writeScriptBin directly if needed.
+
+            # Return an independent store path for an arbitrary repo-relative path.
+            file' = isolate';
 
             optionalFile' =
               name:
               let
-                shortName = lib.replaceStrings [ "/" ] [ "__" ] name;
                 path = "${self}/${name}";
-                text = if builtins.pathExists path then builtins.readFile path else "";
               in
-              "${pkgs.writeText shortName text}";
+              if builtins.pathExists path then
+                isolate' name
+              else
+                "${pkgs.writeText (lib.replaceStrings [ "/" ] [ "__" ] name) ""}";
 
-            base64Dir =
-              name:
-              with lib;
-              let
-                cleanName = lib.replaceStrings [ "/" ] [ "__" ] name;
-                dirContents = pipe "${self}/files/${name}" [
-                  builtins.readDir
-                  (filterAttrs (_k: v: v == "regular"))
-                  attrNames
-                  (filter (hasSuffix ".base64"))
-                  (imap1 (
-                    idx: base64File: {
-                      idx = toString idx;
-                      fileName = removeSuffix ".base64" base64File;
-                      fileContent = read "${name}/${base64File}";
-                    }
-                  ))
-                ];
-                fileNames = pipe dirContents [
-                  (map (
-                    { idx, fileName, ... }:
-                    {
-                      name = "FILENAME_${idx}";
-                      value = fileName;
-                    }
-                  ))
-                  listToAttrs
-                ];
-                fileContents = pipe dirContents [
-                  (map (
-                    { idx, fileContent, ... }:
-                    {
-                      name = "FILE_CONTENT_${idx}";
-                      value = fileContent;
-                    }
-                  ))
-                  listToAttrs
-                ];
-              in
-              pkgs.runCommand cleanName
-                (
-                  {
-                    passAsFile = attrNames fileContents;
-                    NUM_ITEMS = toString (length (attrNames fileContents));
-                  }
-                  // fileNames
-                  // fileContents
-                )
-                ''
-                  mkdir $out
-                  for idx in $(seq 1 $NUM_ITEMS); do
-                    nameVar="FILENAME_$idx"
-                    contentVar="FILE_CONTENT_''${idx}Path"
-                    base64 -d < "''${!contentVar}" > "$out/''${!nameVar}"
-                  done
-                '';
+            # Copy a directory from files/ into an independent store path.
+            dir = isolate;
+
           };
       };
     };

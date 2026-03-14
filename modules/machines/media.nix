@@ -666,7 +666,7 @@
 
         services.caddy.virtualHosts."homepage.binarin.info".extraConfig =
           let
-            customIconsDir = config.lib.self.base64Dir "dashboard-icons";
+            customIconsDir = config.lib.self.dir "dashboard-icons";
           in
           ''
               handle_path /custom-icons/* {

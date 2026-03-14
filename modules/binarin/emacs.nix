@@ -162,7 +162,7 @@
       config = lib.mkIf cfg.enable (
         lib.mkMerge [
           {
-            home.file.".config/emacs/snippets".source = "${self}/files/yasnippets";
+            home.file.".config/emacs/snippets".source = config.lib.self.dir "yasnippets";
 
             programs.emacs = {
               enable = lib.mkForce false; # finalEmacsPackage is configured and installed in this file

@@ -244,11 +244,11 @@ def run_single(
             else:
                 try:
                     local_path = get_local_system_path(target, profile)
+                    console.print(f"  Proposed: {local_path}")
                     if local_path == remote_path:
                         console.print(f"  [green]Skipping: already up to date[/green]")
                         return True
-                    console.print(f"  Remote: {remote_path}")
-                    console.print(f"  Local:  {local_path}")
+                    console.print(f"  Remote:   {remote_path}")
                 except Exception as e:
                     console.print(
                         f"[yellow]  Warning: Could not determine local path: {e}[/yellow]"
