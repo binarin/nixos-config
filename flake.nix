@@ -61,6 +61,14 @@
     };
     impermanence.url = "github:nix-community/impermanence";
     import-tree.url = "github:vic/import-tree";
+    niks3 = {
+      url = "github:Mic92/niks3";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        nixpkgs.follows = "nixpkgs-unstable";
+        treefmt-nix.follows = "treefmt-nix";
+      };
+    };
     nix-ai-tools = {
       url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";

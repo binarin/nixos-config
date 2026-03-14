@@ -23,10 +23,11 @@ class SecretFile:
     """Represents a secret file to be injected."""
 
     target_path: str  # Path inside the tarball/system
-    source_path: Path  # Path to the sops-encrypted source file
+    source_path: Path  # Path to the sops-encrypted source file (or decrypted if pre_decrypted)
     mode: int = 0o600  # File permissions
     owner: str = "root"  # File owner
     group: str = "root"  # File group
+    pre_decrypted: bool = False  # If True, source_path contains already-decrypted content
 
 
 def get_ssh_host_keys(
@@ -137,24 +138,95 @@ def get_user_age_key(
     )
 
 
+def is_clan_machine(machine_name: str) -> bool:
+    """Check if a machine is managed by clan.
+
+    Uses clan_lib to list clan-managed machines and checks if the given
+    machine is among them.
+    """
+    try:
+        from clan_lib.flake import Flake
+        from clan_lib.machines.actions import list_machines
+    except ImportError:
+        return False
+
+    repo_root = config.find_repo_root()
+    flake = Flake(str(repo_root))
+    machines = list_machines(flake)
+    return machine_name in machines
+
+
+def gather_secrets_for_clan_machine(machine_name: str) -> list[SecretFile]:
+    """Gather secrets for a clan-managed machine using clan_lib.
+
+    Uses clan's SecretStore.populate_dir() to stage all secrets (age key +
+    activation secrets) into a temp directory, then converts them to SecretFile
+    objects with pre_decrypted=True.
+
+    The caller is responsible for cleaning up source files after use (they
+    live in a temp directory).
+    """
+    from clan_lib.flake import Flake
+    from clan_cli.vars.secret_modules.sops import SecretStore
+
+    repo_root = config.find_repo_root()
+    flake = Flake(str(repo_root))
+    secret_store = SecretStore(flake)
+
+    upload_dir = secret_store.get_upload_directory(machine_name)
+
+    # Stage secrets to a temp directory
+    temp_dir = Path(tempfile.mkdtemp(prefix="ncf-clan-secrets-"))
+    secret_store.populate_dir(
+        machine_name,
+        temp_dir,
+        phases=["activation", "users", "services"],
+    )
+
+    # Walk the output and create SecretFile objects
+    secrets = []
+    for path in temp_dir.rglob("*"):
+        if path.is_file():
+            rel_path = path.relative_to(temp_dir)
+            target_path = f"{upload_dir}/{rel_path}"
+            secrets.append(
+                SecretFile(
+                    target_path=target_path,
+                    source_path=path,
+                    mode=path.stat().st_mode & 0o777,
+                    pre_decrypted=True,
+                )
+            )
+
+    if secrets:
+        console.print(f"  Gathered {len(secrets)} clan secret(s) for {machine_name}")
+    else:
+        console.print(f"  [yellow]No clan secrets found for {machine_name}[/yellow]")
+
+    return secrets
+
+
 def gather_secrets_for_machine(
     machine_name: str, runner: Optional[NixRunner] = None
 ) -> list[SecretFile]:
     """Gather all secrets that should be injected for a machine.
 
-    Only SSH host keys are injected during provisioning. The user age key
-    (user-binarin-age) is now decrypted at runtime by sops-nix using the
-    SSH host key, eliminating the need to pre-provision it with different
-    ownership/permissions.
+    For clan-managed machines, uses clan_lib's SecretStore to gather secrets.
+    For non-clan machines, injects SSH host keys only (user age key is
+    decrypted at runtime by sops-nix using the SSH host key).
 
     Args:
         machine_name: The NixOS configuration name
         runner: Optional NixRunner instance
 
     Returns:
-        List of all SecretFile objects to inject (SSH host keys only)
+        List of all SecretFile objects to inject
     """
-    # Only inject SSH host keys - user age key is decrypted by sops-nix at runtime
+    if is_clan_machine(machine_name):
+        console.print(f"  [cyan]Detected clan-managed machine: {machine_name}[/cyan]")
+        return gather_secrets_for_clan_machine(machine_name)
+
+    # Legacy path: only inject SSH host keys
     return get_ssh_host_keys(machine_name, runner)
 
 
@@ -180,18 +252,23 @@ def decrypt_secrets_to_tempdir(
         target = temp_dir / secret.target_path.lstrip("/")
         target.parent.mkdir(parents=True, exist_ok=True)
 
-        # Decrypt the secret
-        try:
-            decrypted_content = sops_decrypt_to_stdout(secret.source_path)
-            target.write_text(decrypted_content)
+        if secret.pre_decrypted:
+            # Already decrypted (e.g., by clan_lib), just copy
+            shutil.copy2(secret.source_path, target)
             target.chmod(secret.mode)
-        except ExternalToolError as e:
-            # Clean up on failure
-            shutil.rmtree(temp_dir, ignore_errors=True)
-            raise ExternalToolError(
-                "sops",
-                f"Failed to decrypt {secret.source_path}: {e}",
-            )
+        else:
+            # Decrypt the secret using sops
+            try:
+                decrypted_content = sops_decrypt_to_stdout(secret.source_path)
+                target.write_text(decrypted_content)
+                target.chmod(secret.mode)
+            except ExternalToolError as e:
+                # Clean up on failure
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                raise ExternalToolError(
+                    "sops",
+                    f"Failed to decrypt {secret.source_path}: {e}",
+                )
 
     return temp_dir
 

@@ -310,6 +310,8 @@ def run_auth_key(
     description: str = "ncf-generated",
     machine: Optional[str] = None,
     dry_run: bool = False,
+    client_id_file: Optional[Path] = None,
+    client_secret_file: Optional[Path] = None,
 ) -> None:
     """Create a Tailscale auth key.
 
@@ -329,13 +331,24 @@ def run_auth_key(
         description: Human-readable description for the key
         dry_run: Show what would be done without making changes
     """
+    # Validate credential file args
+    if (client_id_file is None) != (client_secret_file is None):
+        console.print(
+            "[red]Error: --client-id-file and --client-secret-file must both be provided[/red]"
+        )
+        raise SystemExit(1)
+
     # Load credentials
     if dry_run:
+        source = "files" if client_id_file else (secrets_file or "secrets/tailscale/oauth.yaml")
         console.print(
-            f"[yellow]Would load OAuth credentials from: {secrets_file or 'secrets/tailscale/oauth.yaml'}[/yellow]"
+            f"[yellow]Would load OAuth credentials from: {source}[/yellow]"
         )
         client_id = "dry-run-client-id"
         client_secret = "dry-run-secret"
+    elif client_id_file:
+        client_id = client_id_file.read_text().strip()
+        client_secret = client_secret_file.read_text().strip()
     else:
         client_id, client_secret = load_oauth_credentials(secrets_file)
 

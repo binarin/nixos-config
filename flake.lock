@@ -1204,6 +1204,33 @@
         "type": "github"
       }
     },
+    "niks3": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ],
+        "process-compose": "process-compose",
+        "treefmt-nix": [
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1773461621,
+        "narHash": "sha256-q9upxAmPvpklDaPk26zyjVLe0ZD03LalsOVBpbrkOnU=",
+        "owner": "Mic92",
+        "repo": "niks3",
+        "rev": "64dafb438b637d776467602ee00af5cb7fc6a2a9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Mic92",
+        "repo": "niks3",
+        "type": "github"
+      }
+    },
     "nix": {
       "inputs": {
         "flake-parts": "flake-parts_2",
@@ -1624,6 +1651,21 @@
         "type": "github"
       }
     },
+    "process-compose": {
+      "locked": {
+        "lastModified": 1767863885,
+        "narHash": "sha256-XXekPAxzbv1DmHFo3Elmj/vDnvWc1V0jdDUvM0/Wf7k=",
+        "owner": "Platonic-Systems",
+        "repo": "process-compose-flake",
+        "rev": "99bea96cf269cfd235833ebdf645b567069fd398",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Platonic-Systems",
+        "repo": "process-compose-flake",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "arion": "arion",
@@ -1641,6 +1683,7 @@
         "hyprland-contrib": "hyprland-contrib",
         "impermanence": "impermanence",
         "import-tree": "import-tree",
+        "niks3": "niks3",
         "nix-ai-tools": "nix-ai-tools",
         "nix-index-database": "nix-index-database",
         "nixos-hardware": "nixos-hardware",

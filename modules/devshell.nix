@@ -89,6 +89,7 @@
           tomlkit
           proxmoxer
           paramiko
+          inputs'.clan-core.packages.clan-cli
         ];
 
         postFixup = ''

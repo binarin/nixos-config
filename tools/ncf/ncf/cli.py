@@ -1309,6 +1309,16 @@ def ts_auth_key_cmd(
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Show what would be done without making changes"
     ),
+    client_id_file: str = typer.Option(
+        None,
+        "--client-id-file",
+        help="Path to file containing OAuth client ID (skips oauth.yaml decryption)",
+    ),
+    client_secret_file: str = typer.Option(
+        None,
+        "--client-secret-file",
+        help="Path to file containing OAuth client secret (skips oauth.yaml decryption)",
+    ),
 ):
     """Create a Tailscale auth key.
 
@@ -1333,6 +1343,8 @@ def ts_auth_key_cmd(
     from pathlib import Path
 
     secrets_path = Path(secrets_file) if secrets_file else None
+    client_id_path = Path(client_id_file) if client_id_file else None
+    client_secret_path = Path(client_secret_file) if client_secret_file else None
     tailscale.run_auth_key(
         reusable=reusable,
         ephemeral=ephemeral,
@@ -1343,6 +1355,8 @@ def ts_auth_key_cmd(
         description=description,
         machine=machine,
         dry_run=dry_run,
+        client_id_file=client_id_path,
+        client_secret_file=client_secret_path,
     )
 
 

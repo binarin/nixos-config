@@ -16,6 +16,7 @@ from ..proxmox_api import ProxmoxClient
 from ..secrets_inject import (
     gather_secrets_for_machine,
     decrypt_secrets_to_tempdir,
+    is_clan_machine,
 )
 from . import build
 from .build import (
@@ -831,7 +832,8 @@ def run(
         console.print(f"  [green]Container {vmid} created[/green]")
 
     # Step 5b: Restore SSH host keys (Proxmox overwrites them during creation)
-    if not dry_run:
+    # Skip for clan machines - SSH keys are managed by clan/sops-nix at runtime
+    if not dry_run and not is_clan_machine(machine):
         console.print("\n[bold]Step 5b:[/bold] Restoring SSH host keys")
         restore_ssh_host_keys(proxmox_host, vmid, machine, repo_root)
         console.print("  [green]SSH host keys restored[/green]")
