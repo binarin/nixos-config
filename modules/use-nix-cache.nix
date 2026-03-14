@@ -1,7 +1,4 @@
-{ config, ... }:
-let
-  flakeConfig = config;
-in
+{ ... }:
 {
 
   flake.nixosModules.use-nix-cache =
@@ -45,18 +42,20 @@ in
             200 "404"
           '';
           locations."/" = {
-            proxyPass = "http://${flakeConfig.inventory.ipAllocation.garage.home.primary.address}:3902";
+            proxyPass = "https://nix-cache-storage.lynx-lizard.ts.net";
             extraConfig = ''
               # Use a very short timeout for connecting to the cache, since it should be available in the
               # local network.
-              proxy_send_timeout 100ms;
-              proxy_connect_timeout 100ms;
+              proxy_send_timeout 2s;
+              proxy_connect_timeout 2s;
 
               # Serve a 404 response if the cache server cannot be reached:
               error_page 502 504 =404 @fallback;
 
               # Forward to the actual cache server:
               proxy_set_header Host nix-cache-storage.lynx-lizard.ts.net;
+              proxy_ssl_name nix-cache-storage.lynx-lizard.ts.net;
+              proxy_ssl_server_name on;
             '';
           };
         };
