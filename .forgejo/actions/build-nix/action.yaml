@@ -33,8 +33,12 @@ runs:
 
         # For nixos configurations, check that the flake source doesn't leak into the closure
         if [[ "$CONFIG_NAME" == d:* ]] || [[ "$CONFIG_NAME" == c:* ]]; then
-          TOPLEVEL=$(nix path-info "$BUILD_PATH" --no-warn 2>/dev/null || nix build "$BUILD_PATH" --no-link --print-out-paths)
-          nix run .#env-aware-nix-run -- .#check-no-flake-source-leak -- "$TOPLEVEL"
+          STORE_PATH=$(nix build "$BUILD_PATH" --no-link --print-out-paths)
+          # For deploy-rs entries, resolve the activatable wrapper to the real system path
+          if [[ "$CONFIG_NAME" == d:* ]] && [[ -L "$STORE_PATH/activate" ]]; then
+            STORE_PATH=$(dirname "$(readlink "$STORE_PATH/activate")")
+          fi
+          nix run .#env-aware-nix-run -- .#check-no-flake-source-leak -- "$STORE_PATH"
         fi
 
         # If paths-file requested, extract build closure (includes build-time deps)
