@@ -53,7 +53,7 @@ Physical machine requiring hardware-configuration.nix.
 imports = [
   self.nixosModules.baseline
   (modulesPath + "/installer/scan/not-detected.nix")
-  "${self}/machines/<machine-name>/hardware-configuration.nix"
+  "${self}/my-machines/<machine-name>/hardware-configuration.nix"
   # ... other modules
 ];
 ```

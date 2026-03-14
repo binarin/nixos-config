@@ -39,7 +39,7 @@ in
     {
       key = "nixos-config.modules.nixos.garage-configuration";
       imports = [
-        "${self}/machines/garage/hardware-configuration.nix"
+        "${self}/my-machines/garage/hardware-configuration.nix"
 
         self.nixosModules.lxc
         self.nixosModules.baseline

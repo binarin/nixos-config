@@ -35,7 +35,7 @@ in
     {
       key = "nixos-config.modules.nixos.llm-runner-configuration";
       imports = [
-        "${self}/machines/llm-runner/hardware-configuration.nix"
+        "${self}/my-machines/llm-runner/hardware-configuration.nix"
 
         self.nixosModules.disko
         self.nixosModules.baseline
@@ -49,16 +49,18 @@ in
         networking.useDHCP = false;
         systemd.network = {
           enable = true;
-          networks."40-ens18" = let
-            inherit (config.inventory.hostIpAllocation.home.primary) addressWithPrefix;
-            inherit (config.inventory.networks.home) gateway dns;
-          in {
-            matchConfig.Name = "ens18";
-            address = [ addressWithPrefix ];
-            routes = [ { Gateway = gateway; } ];
-            dns = dns;
-            linkConfig.RequiredForOnline = "routable";
-          };
+          networks."40-ens18" =
+            let
+              inherit (config.inventory.hostIpAllocation.home.primary) addressWithPrefix;
+              inherit (config.inventory.networks.home) gateway dns;
+            in
+            {
+              matchConfig.Name = "ens18";
+              address = [ addressWithPrefix ];
+              routes = [ { Gateway = gateway; } ];
+              dns = dns;
+              linkConfig.RequiredForOnline = "routable";
+            };
         };
         system.stateVersion = "25.11";
         nixos-config.export-metrics.enable = false;

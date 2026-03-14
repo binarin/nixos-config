@@ -6,7 +6,7 @@
       key = "nixos-config.modules.nixos.disko";
       imports = [
         inputs.disko.nixosModules.disko
-        "${self}/machines/${inventoryHostName}/disko.nix"
+        "${self}/my-machines/${inventoryHostName}/disko.nix"
       ];
     };
 }

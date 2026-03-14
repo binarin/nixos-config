@@ -1,4 +1,9 @@
-{ self, inputs, ... }:
+{
+  self,
+  inputs,
+  lib,
+  ...
+}:
 {
   flake.nixosConfigurations.furfur = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
@@ -40,7 +45,7 @@
         self.nixosModules.binarin-podman
         self.nixosModules.binarin-nix-dev
 
-        "${self}/machines/furfur/hardware-configuration.nix"
+        "${self}/my-machines/furfur/hardware-configuration.nix"
       ];
 
       users.users.binarin.extraGroups = [ "i2c" ];

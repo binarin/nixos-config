@@ -24,7 +24,7 @@
     {
       key = "nixos-config.modules.nixos.claude-nixos-config-configuration";
       imports = [
-        "${self}/machines/claude-nixos-config/hardware-configuration.nix"
+        "${self}/my-machines/claude-nixos-config/hardware-configuration.nix"
         self.nixosModules.baseline
         self.nixosModules.disko
         self.nixosModules.systemd-boot

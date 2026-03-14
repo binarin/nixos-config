@@ -35,7 +35,7 @@ in
     {
       key = "nixos-config.modules.nixos.nix-builder-valak-configuration";
       imports = [
-        "${self}/machines/nix-builder-valak/hardware-configuration.nix"
+        "${self}/my-machines/nix-builder-valak/hardware-configuration.nix"
 
         self.nixosModules.lxc
         self.nixosModules.baseline

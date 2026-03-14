@@ -46,7 +46,7 @@ in
     {
       key = "nixos-config.modules.nixos.paperless-nixos-configuration";
       imports = [
-        "${self}/machines/paperless-nixos/hardware-configuration.nix"
+        "${self}/my-machines/paperless-nixos/hardware-configuration.nix"
 
         self.nixosModules.lxc
         self.nixosModules.baseline

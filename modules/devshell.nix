@@ -1,6 +1,6 @@
 {
   perSystem =
-    { pkgs, ... }:
+    { inputs', pkgs, ... }:
     let
       # Environment variables to preserve when using --ignore-env with nix
       # Essential for nix operations in CI environments
@@ -132,7 +132,10 @@
         pythonImportsCheck = [ "monitoring" ];
       };
 
-      monitoringPythonEnv = pkgs.python3.withPackages (ps: [ grafana-foundation-sdk ps.pyyaml ]);
+      monitoringPythonEnv = pkgs.python3.withPackages (ps: [
+        grafana-foundation-sdk
+        ps.pyyaml
+      ]);
 
     in
     {
@@ -166,6 +169,7 @@
             monitoring
             monitoringPythonEnv
             grafanactl
+            inputs'.clan-core.packages.clan-cli
           ]
           ++ ncfRuntimeDeps;
         shellHook = ''

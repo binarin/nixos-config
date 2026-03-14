@@ -65,6 +65,7 @@ in
 {
   # Flake-parts config options for inventory data
   # All dendritic modules can access via: { config, ... }: config.inventory.*
+
   options = {
     inventory.ipAllocation = lib.mkOption {
       type = lib.types.raw;

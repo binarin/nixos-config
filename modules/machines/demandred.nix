@@ -25,7 +25,7 @@
 
         (modulesPath + "/installer/scan/not-detected.nix")
         inputs.disko.nixosModules.default
-        "${self}/machines/demandred/disko.nix"
+        "${self}/my-machines/demandred/disko.nix"
 
         self.nixosModules.baseline
         self.nixosModules.binarin-workstation

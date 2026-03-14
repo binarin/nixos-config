@@ -66,7 +66,7 @@ VM with inventory IP allocation:
     {
       key = "nixos-config.modules.nixos.my-server-configuration";
       imports = [
-        "${self}/machines/my-server/hardware-configuration.nix"
+        "${self}/my-machines/my-server/hardware-configuration.nix"
         self.nixosModules.qemu-guest
         self.nixosModules.disko
         self.nixosModules.baseline
@@ -289,7 +289,7 @@ Physical machine with full workstation setup:
       imports = [
         self.nixosModules.baseline
         (modulesPath + "/installer/scan/not-detected.nix")
-        "${self}/machines/my-workstation/hardware-configuration.nix"
+        "${self}/my-machines/my-workstation/hardware-configuration.nix"
 
         self.nixosModules.baseline
         self.nixosModules.binarin-workstation

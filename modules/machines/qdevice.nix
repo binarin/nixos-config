@@ -38,7 +38,7 @@
         self.nixosModules.systemd-boot
         self.nixosModules.disko
         inputs.arion.nixosModules.arion
-        "${self}/machines/qdevice/hardware-configuration.nix"
+        "${self}/my-machines/qdevice/hardware-configuration.nix"
       ];
 
       config = {

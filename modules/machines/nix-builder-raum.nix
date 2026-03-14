@@ -35,7 +35,7 @@ in
     {
       key = "nixos-config.modules.nixos.nix-builder-raum-configuration";
       imports = [
-        "${self}/machines/nix-builder-raum/hardware-configuration.nix"
+        "${self}/my-machines/nix-builder-raum/hardware-configuration.nix"
 
         self.nixosModules.lxc
         self.nixosModules.baseline

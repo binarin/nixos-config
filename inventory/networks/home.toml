@@ -36,7 +36,7 @@ searchdomain = "localdomain"
 "192.168.2.26" = "valak"
 "192.168.2.27" = { hostname = "paperless-nixos", mac = "02:00:94:AA:85:8C" }
 "192.168.2.28" = "llm-runner"
-# "192.168.2.29" = # unallocated
+"192.168.2.29" = "niks3"
 # "192.168.2.30" = # unallocated
 # "192.168.2.31" = # unallocated
 # "192.168.2.32" = # unallocated

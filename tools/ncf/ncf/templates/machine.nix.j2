@@ -30,7 +30,7 @@ in
     {
       key = "nixos-config.modules.nixos.{{ machine_name }}-configuration";
       imports = [
-        "${self}/machines/{{ machine_name }}/hardware-configuration.nix"
+        "${self}/my-machines/{{ machine_name }}/hardware-configuration.nix"
         {% for import in extra_imports %}
         {{ import }}
         {% endfor %}
