@@ -4,10 +4,11 @@
     { config, lib, ... }:
     {
       key = "nixos-config.modules.nixos.initrd-ssh";
+      imports = [ self.modules.generic.flake-files ];
       boot.initrd.systemd.contents."/etc/ssh/ssh_host_ed25519_key.jwe".source =
-        "${self}/secrets/qdevice/ssh_host_ed25519_key.jwe";
+        config.lib.self.file' "secrets/qdevice/ssh_host_ed25519_key.jwe";
       boot.initrd.systemd.contents."/etc/ssh/ssh_host_rsa_key.jwe".source =
-        "${self}/secrets/qdevice/ssh_host_rsa_key.jwe";
+        config.lib.self.file' "secrets/qdevice/ssh_host_rsa_key.jwe";
       boot.initrd.systemd.contents."/etc/ssh/trusted_user_ca_keys".text = lib.concatStringsSep "\n" (
         config.lib.publicKeys.secureWithTag "user-ca"
       );

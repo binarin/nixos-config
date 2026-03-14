@@ -59,7 +59,7 @@ in
       sops.secrets.user-binarin-age =
         lib.mkIf (builtins.pathExists "${self}/secrets/${config.networking.hostName}/user-binarin-age")
           {
-            sopsFile = "${self}/secrets/${config.networking.hostName}/user-binarin-age";
+            sopsFile = config.lib.self.file' "secrets/${config.networking.hostName}/user-binarin-age";
             format = "binary";
             owner = "binarin";
             group = "binarin";

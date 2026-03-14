@@ -173,7 +173,7 @@
         # Auto-detect tailscale auth key from secrets
         (lib.mkIf hasTailscaleAuth {
           sops.secrets.tailscale-auth = {
-            sopsFile = "${self}/secrets/${hostname}/tailscale-auth";
+            sopsFile = config.lib.self.file' "secrets/${hostname}/tailscale-auth";
             format = "binary";
           };
           services.tailscale.authKeyFile = config.sops.secrets.tailscale-auth.path;
