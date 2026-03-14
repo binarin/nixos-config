@@ -45,8 +45,6 @@ in
 
       config = {
         networking.hostName = "qdevice";
-        # TEMPORARY: intentional leak to verify CI check detects it
-        environment.etc."leak-test".text = "${self}";
         system.stateVersion = "25.05";
 
         nixos-config.export-metrics.enable = true;
