@@ -83,13 +83,18 @@ def get_local_system_path(target: str, profile: str = "system") -> str:
     return activatable_path
 
 
-def _ssh_no_multiplex(hostname: str, *args: str, timeout: int = 30) -> subprocess.CompletedProcess:
+def _ssh_no_multiplex(
+    hostname: str, *args: str, timeout: int = 30
+) -> subprocess.CompletedProcess:
     """Run an SSH command bypassing connection multiplexing."""
     cmd = [
         "ssh",
-        "-o", "ControlPath=none",
-        "-o", "ConnectTimeout=5",
-        "-o", "BatchMode=yes",
+        "-o",
+        "ControlPath=none",
+        "-o",
+        "ConnectTimeout=5",
+        "-o",
+        "BatchMode=yes",
         f"root@{hostname}",
         *args,
     ]
@@ -125,7 +130,9 @@ def get_remote_uptime(hostname: str) -> Optional[float]:
         return None
 
 
-def wait_for_reboot(hostname: str, old_boot_id: Optional[str], timeout: int = 300) -> bool:
+def wait_for_reboot(
+    hostname: str, old_boot_id: Optional[str], timeout: int = 300
+) -> bool:
     """Wait for a machine to reboot by polling for a new boot_id.
 
     Uses boot_id comparison which is race-free — works even if the
@@ -141,13 +148,13 @@ def wait_for_reboot(hostname: str, old_boot_id: Optional[str], timeout: int = 30
             if old_boot_id is None or new_boot_id != old_boot_id:
                 uptime = get_remote_uptime(hostname)
                 uptime_str = f", uptime: {uptime:.0f}s" if uptime is not None else ""
-                console.print(f"  [green]Reboot complete[/green] (new boot_id{uptime_str})")
+                console.print(
+                    f"  [green]Reboot complete[/green] (new boot_id{uptime_str})"
+                )
                 return True
         time.sleep(2)
 
-    console.print(
-        f"[red]  Error: {hostname} did not reboot within {timeout}s[/red]"
-    )
+    console.print(f"[red]  Error: {hostname} did not reboot within {timeout}s[/red]")
     return False
 
 
@@ -292,8 +299,14 @@ def run_single(
         console.print("  Triggering reboot...")
         try:
             subprocess.run(
-                ["ssh", "-o", "ControlPath=none", f"root@{hostname}",
-                 "systemctl", "reboot"],
+                [
+                    "ssh",
+                    "-o",
+                    "ControlPath=none",
+                    f"root@{hostname}",
+                    "systemctl",
+                    "reboot",
+                ],
                 check=False,
                 timeout=30,
             )
