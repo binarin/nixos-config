@@ -23,11 +23,15 @@ class SecretFile:
     """Represents a secret file to be injected."""
 
     target_path: str  # Path inside the tarball/system
-    source_path: Path  # Path to the sops-encrypted source file (or decrypted if pre_decrypted)
+    source_path: (
+        Path  # Path to the sops-encrypted source file (or decrypted if pre_decrypted)
+    )
     mode: int = 0o600  # File permissions
     owner: str = "root"  # File owner
     group: str = "root"  # File group
-    pre_decrypted: bool = False  # If True, source_path contains already-decrypted content
+    pre_decrypted: bool = (
+        False  # If True, source_path contains already-decrypted content
+    )
 
 
 def get_ssh_host_keys(

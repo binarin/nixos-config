@@ -138,6 +138,11 @@ in
               protocol = "https";
               target = "localhost:3902";
             };
+            niks3-storage = {
+              serviceName = "niks3-storage";
+              protocol = "https";
+              target = "localhost:3902";
+            };
             forgejo-artifacts = {
               serviceName = "forgejo-artifacts";
               protocol = "https";
