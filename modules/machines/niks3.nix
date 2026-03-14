@@ -1,4 +1,9 @@
-{ self, config, ... }:
+{
+  inputs,
+  self,
+  config,
+  ...
+}:
 let
   flakeConfig = config;
   inventoryHostName = "niks3";
@@ -9,14 +14,6 @@ in
     inputs.nixpkgs.follows = "nixpkgs-unstable";
     inputs.flake-parts.follows = "flake-parts";
     inputs.treefmt-nix.follows = "treefmt-nix";
-  };
-
-  flake.deploy.nodes.niks3 = {
-    hostname = "claude-nixos-config";
-    profiles.system = {
-      sshUser = "root";
-      path = self.lib.deploy-nixos self.nixosConfigurations.claude-nixos-config;
-    };
   };
 
   clan.inventory.machines.niks3 = {
@@ -41,6 +38,7 @@ in
       imports = [
         self.nixosModules.baseline
         self.nixosModules.lxc
+        inputs.niks3.nixosModules.default
       ];
 
       _module.args.self' = {
@@ -67,6 +65,65 @@ in
           cat $prompts/oauth-client-id > $out/oauth-client-id
           cat $prompts/oauth-client-secret > $out/oauth-client-secret
         '';
+      };
+
+      clan.core.vars.generators.s3 = {
+        prompts.access-key.description = "s3 key id";
+        prompts.secret-key.description = "s3 secret key";
+        files.access-key.secret = true;
+        files.secret-key.secret = true;
+        script = ''
+          cat $prompts/access-key > $out/access-key
+          cat $prompts/secret-key > $out/secret-key
+        '';
+      };
+
+      clan.core.vars.generators.cache-key = {
+        files.signing-key = { };
+        files.public-key.secret = false;
+        runtimeInputs = [
+          pkgs.nix
+        ];
+        script = ''
+          nix --extra-experimental-features nix-command \
+            key generate-secret --key-name binarin-niks3-cache-1 > $out/signing-key
+          nix --extra-experimental-features nix-command \
+            key convert-secret-to-public < $out/signing-key > $out/public-key
+        '';
+      };
+
+      clan.core.vars.generators.niks3-api-token = {
+        files.api-token = { };
+        runtimeInputs = [ pkgs.openssl ];
+        script = ''
+          openssl rand -base64 32 > $out/api-token
+        '';
+      };
+
+      services.niks3 = {
+        enable = false;
+        httpAddr = "127.0.0.1:5751";
+
+        s3 = {
+          endpoint = "s3.lynx-lizard.ts.net";
+          bucket = "niks3-storage";
+          region = "garage";
+          useSSL = true;
+          accessKeyFile = config.clan.core.vars.generators.s3.files.access-key.path;
+          secretKeyFile = config.clan.core.vars.generators.s3.files.secret-key.path;
+        };
+
+        # cacheUrl = "";
+
+        apiTokenFile = config.clan.core.vars.generators.niks3-api-token.files.api-token.path;
+        signKeyFiles = [
+          config.clan.core.vars.generators.cache-key.file.signing-key.path
+        ];
+      };
+
+      services.cloudflared = {
+        enable = false;
+
       };
 
       clan.core.vars.generators.tailscale-auth = {

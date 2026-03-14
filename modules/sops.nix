@@ -1,8 +1,12 @@
 {
   self,
   inputs,
+  config,
   ...
 }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake-file.inputs = {
     sops-nix.url = "github:Mic92/sops-nix";
@@ -16,12 +20,11 @@
 
       imports = [
         inputs.sops-nix.nixosModules.sops
-        self.modules.generic.flake-files
       ];
 
       config = {
         # should be stringified path
-        sops.defaultSopsFile = "${config.lib.self.file' "secrets/${config.networking.hostName}/secrets.yaml"}";
+        sops.defaultSopsFile = "${selfLib.file' "secrets/${config.networking.hostName}/secrets.yaml"}";
 
         sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
       };
@@ -34,7 +37,6 @@
 
       imports = [
         inputs.sops-nix.homeManagerModules.sops
-        self.modules.generic.flake-files
       ];
 
       config = {
@@ -52,7 +54,7 @@
               "/persist/${config.home.homeDirectory}/.config/age/nixos-config-keys.txt"
             else
               "${config.home.homeDirectory}/.config/age/nixos-config-keys.txt";
-          defaultSopsFile = config.lib.self.optionalFile' "secrets/${osConfig.networking.hostName}/user-${config.home.username}.yaml";
+          defaultSopsFile = selfLib.optionalFile' "secrets/${osConfig.networking.hostName}/user-${config.home.username}.yaml";
         };
       };
     };

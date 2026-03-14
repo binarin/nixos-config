@@ -4,6 +4,9 @@
   config,
   ...
 }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.deploy.nodes.docker-on-nixos = {
     hostname = config.inventory.ipAllocation."docker-on-nixos".home.primary.address;
@@ -55,7 +58,7 @@
         chown -Rv 100000:100000 /$ROOTFS
 
         cat <<"EOF" | tee /var/lib/vz/snippets/pve-impermanence-hook.pl > /dev/null
-        ${config.lib.self.read "pve-impermanence-hook.pl"}
+        ${selfLib.read "pve-impermanence-hook.pl"}
         EOF
         chmod +x /var/lib/vz/snippets/pve-impermanence-hook.pl
         pct set 116 --hookscript local:snippets/pve-impermanence-hook.pl

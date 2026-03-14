@@ -1,7 +1,11 @@
 {
   self,
+  config,
   ...
 }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.homeModules.waybar =
     {
@@ -14,7 +18,6 @@
       key = "nixos-config.modules.home.waybar";
       imports = [
         self.modules.generic.zenburn
-        self.modules.generic.flake-files
       ];
 
       options = {
@@ -187,7 +190,7 @@
               };
             };
           };
-          style = config.lib.style.template "waybar-style.css" (config.lib.self.file "waybar-style.css") { };
+          style = config.lib.style.template "waybar-style.css" (selfLib.file "waybar-style.css") { };
         };
       };
     };

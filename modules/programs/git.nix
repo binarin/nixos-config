@@ -1,6 +1,7 @@
-{
-  ...
-}:
+{ self, ... }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.homeModules.git =
     {
@@ -49,7 +50,7 @@
               };
             };
             commit.verbose = true;
-            commit.template = "${config.lib.self.file "git-commit-template.txt"}";
+            commit.template = "${selfLib.file "git-commit-template.txt"}";
             rerere.enabled = true;
             rerere.autoupdate = true;
             merge.conflictstyle = "zdiff3";

@@ -10,7 +10,6 @@
       key = "nixos-config.modules.nixos.microsoft-surface";
       imports = [
         inputs.nixos-hardware.nixosModules.microsoft-surface-pro-intel
-        self.modules.generic.flake-files
       ];
 
       hardware.microsoft-surface.kernelVersion = "stable";

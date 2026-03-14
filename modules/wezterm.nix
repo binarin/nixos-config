@@ -1,6 +1,7 @@
-{
-  ...
-}:
+{ self, ... }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.homeModules.wezterm =
     {
@@ -29,7 +30,7 @@
         };
 
         # xdg.configFile."wezterm/wezterm.lua".source = lib.mkForce (config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/wezterm.lua");
-        xdg.configFile."wezterm/wezterm.lua".source = lib.mkForce (config.lib.self.file "wezterm.lua");
+        xdg.configFile."wezterm/wezterm.lua".source = lib.mkForce (selfLib.file "wezterm.lua");
         xdg.configFile."wezterm/stylix-vars.lua".source = propagatedConfig;
 
         # NOTE: Needed because default .desktop has some arguments that prevents (re)connection to an existing server

@@ -1,4 +1,7 @@
-{ ... }:
+{ self, ... }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.nixosModules.tpm2-ssh =
     {
@@ -29,7 +32,7 @@
             _f: p: {
               configureFlags = [ "--disable-fapi" ];
               patches = p.patches ++ [
-                (config.lib.self.file "0002-remove-fapi-message.patch")
+                (selfLib.file "0002-remove-fapi-message.patch")
               ];
             }
           );

@@ -5,10 +5,6 @@
     {
       key = "nixos-config.modules.nixos.impure-nix-setup";
 
-      imports = [
-        self.modules.generic.flake-files
-      ];
-
       config = {
         nix.extraOptions = ''
           gc-keep-outputs = true

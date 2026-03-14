@@ -1,4 +1,7 @@
-{ self, ... }:
+{ self, config, ... }:
+let
+  selfLib = self.lib.self;
+in
 {
 
   flake.nixosModules.expose-local-http =
@@ -24,7 +27,7 @@
 
       config = lib.mkIf cfg.enable {
         sops.secrets.cloudflare-api-key = {
-          sopsFile = "${config.lib.self.file' "secrets/webservers.yaml"}";
+          sopsFile = "${selfLib.file' "secrets/webservers.yaml"}";
           restartUnits = [ "caddy.service" ];
         };
 

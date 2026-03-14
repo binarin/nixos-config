@@ -1,4 +1,7 @@
-{ self, ... }:
+{ self, config, ... }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake-file.inputs.direnv-instant.url = "github:Mic92/direnv-instant";
   flake.nixosModules.binarin-nix-dev =
@@ -37,7 +40,7 @@
 
       programs.nix-search-tv.enable = true;
       home.packages = [
-        (pkgs.writeShellScriptBin "ns" (config.lib.self.read "nix-search-tv.sh"))
+        (pkgs.writeShellScriptBin "ns" (selfLib.read "nix-search-tv.sh"))
         self.packages.${pkgs.stdenv.hostPlatform.system}.pin-nixpkgs-to-system
       ];
     };

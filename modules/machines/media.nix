@@ -4,6 +4,9 @@
   config,
   ...
 }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.deploy.nodes.media = {
     hostname = config.inventory.ipAllocation."media".home.primary.address;
@@ -183,7 +186,7 @@
         };
 
         sops.secrets.cloudflare-api-key = {
-          sopsFile = "${config.lib.self.file' "secrets/webservers.yaml"}";
+          sopsFile = "${selfLib.file' "secrets/webservers.yaml"}";
           restartUnits = [ "caddy.service" ];
         };
 
@@ -666,7 +669,7 @@
 
         services.caddy.virtualHosts."homepage.binarin.info".extraConfig =
           let
-            customIconsDir = config.lib.self.dir "dashboard-icons";
+            customIconsDir = selfLib.dir "dashboard-icons";
           in
           ''
               handle_path /custom-icons/* {

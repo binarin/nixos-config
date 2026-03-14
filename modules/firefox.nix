@@ -1,6 +1,7 @@
-{
-  ...
-}:
+{ self, ... }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.nixosModules.firefox =
     {
@@ -69,7 +70,7 @@
             id = 0;
             isDefault = true;
 
-            userChrome = (config.lib.self.read "firefox-userChrome.css");
+            userChrome = (selfLib.read "firefox-userChrome.css");
 
             userContent = "";
 

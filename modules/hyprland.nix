@@ -2,8 +2,12 @@
 {
   self,
   inputs,
+  config,
   ...
 }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake-file.inputs = {
     hyprland = {
@@ -65,7 +69,7 @@
       out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
       my-shellevents = pkgs.writeScript "my-shellevents" ''
         #!${lib.getExe pkgs.bash}
-        ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe shellevents} ${config.lib.self.file "hyprland-shellevents.sh"}",nofork
+        ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe shellevents} ${selfLib.file "hyprland-shellevents.sh"}",nofork
       '';
       rgb = color: "rgb(${lib.removePrefix "#" (config.zenburn.colors."${color}")})";
       hyprlandDefaultOrientation = {

@@ -1,8 +1,12 @@
 {
   self,
   inputs,
+  config,
   ...
 }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake-file.inputs = {
     emacs-overlay.url = "emacs-overlay";
@@ -43,7 +47,7 @@
       '';
 
       orgBabelConfigWithoutUnicode = pkgs.runCommand "cleanup-unicode-from-emacs-config.org" { } ''
-        ${cleanup-unicode-from-emacs-org-babel-config} ${config.lib.self.file cfg.orgBabelConfig} > $out
+        ${cleanup-unicode-from-emacs-org-babel-config} ${selfLib.file cfg.orgBabelConfig} > $out
       '';
 
       kbd-mode-builder =
@@ -109,7 +113,7 @@
         name = "tangle-emacs-org-babel-config";
         runtimeInputs = [ finalEmacsPackage ];
         text = ''
-          emacs -q --batch --load "${config.lib.self.file "byte-compile.el"}" "$@"
+          emacs -q --batch --load "${selfLib.file "byte-compile.el"}" "$@"
         '';
       };
 
@@ -118,8 +122,8 @@
         echo $srcs
         mkdir $out
         cd $out
-        cp "${config.lib.self.file "pta.el"}" pta.el
-        cp "${config.lib.self.file cfg.orgBabelConfig}" emacs-config.org
+        cp "${selfLib.file "pta.el"}" pta.el
+        cp "${selfLib.file cfg.orgBabelConfig}" emacs-config.org
         ${lib.getExe tangle-emacs-org-babel-config} emacs-config.org "$out"
         rm pta.el emacs-config.org
       '';
@@ -162,7 +166,7 @@
       config = lib.mkIf cfg.enable (
         lib.mkMerge [
           {
-            home.file.".config/emacs/snippets".source = config.lib.self.dir "yasnippets";
+            home.file.".config/emacs/snippets".source = selfLib.dir "yasnippets";
 
             programs.emacs = {
               enable = lib.mkForce false; # finalEmacsPackage is configured and installed in this file
@@ -183,7 +187,7 @@
 
           (lib.mkIf osConfig.services.graphical-desktop.enable {
             xdg.dataFile."applications/org-protocol.desktop".source =
-              config.lib.self.file "org-protocol.desktop";
+              selfLib.file "org-protocol.desktop";
 
             xdg.configFile."autostart/emacs.desktop".source =
               "${finalEmacsPackage}/share/applications/emacs.desktop";
@@ -192,7 +196,7 @@
               "x-scheme-handler/org-protocol" = "org-protocol.desktop";
             };
 
-            xdg.dataFile."icons/emacs/org.svg".source = config.lib.self.file "org.svg";
+            xdg.dataFile."icons/emacs/org.svg".source = selfLib.file "org.svg";
 
             home.packages = with pkgs; [
               emacs-all-the-icons-fonts
