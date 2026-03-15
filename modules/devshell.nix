@@ -49,18 +49,20 @@
         exec ${pkgs.nix}/bin/nix develop --ignore-environment ${envKeepFlags} "$@"
       '';
 
+      git-crypt-patched = pkgs.git-crypt.overrideAttrs (_prev: {
+        patches = [
+          (pkgs.fetchpatch {
+            url = "https://github.com/AGWA/git-crypt/commit/2da5e0016e53aba381046063c24c07f1bee3d824.diff";
+            sha256 = "sha256-fyHS2oeElUh+KEtvfnpf2/IiJPNSu03af+ilYFm3wOU";
+          })
+        ];
+      });
+
       ncfRuntimeDeps = with pkgs; [
         nix
         nix-output-monitor # nom for nicer build output
         git
-        (git-crypt.overrideAttrs (_prev: {
-          patches = [
-            (pkgs.fetchpatch {
-              url = "https://github.com/AGWA/git-crypt/commit/2da5e0016e53aba381046063c24c07f1bee3d824.diff";
-              sha256 = "sha256-fyHS2oeElUh+KEtvfnpf2/IiJPNSu03af+ilYFm3wOU";
-            })
-          ];
-        }))
+        git-crypt-patched
         openssh # ssh-keygen
         age # age-keygen
         sops
@@ -151,6 +153,7 @@
       packages.monitoring = monitoring;
       packages.env-aware-nix-run = env-aware-nix-run;
       packages.env-aware-nix-develop = env-aware-nix-develop;
+      packages.git-crypt-patched = git-crypt-patched;
 
       # Check that a built system closure doesn't reference the flake source tree.
       #

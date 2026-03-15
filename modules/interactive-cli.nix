@@ -13,7 +13,7 @@ in
   };
 
   flake.nixosModules.interactive-cli =
-    { pkgs, config, ... }:
+    { pkgs, config, self', ... }:
     {
       key = "nixos-config.modules.nixos.interactive-cli";
 
@@ -165,14 +165,7 @@ in
             eternal-terminal
             file
             git-annex
-            (git-crypt.overrideAttrs (_prev: {
-              patches = [
-                (pkgs.fetchpatch {
-                  url = "https://github.com/AGWA/git-crypt/commit/2da5e0016e53aba381046063c24c07f1bee3d824.diff";
-                  sha256 = "sha256-fyHS2oeElUh+KEtvfnpf2/IiJPNSu03af+ilYFm3wOU";
-                })
-              ];
-            }))
+            self'.packages.git-crypt-patched
             gnum4
             gnumake
             gnupg
