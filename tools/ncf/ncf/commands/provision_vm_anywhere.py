@@ -1,27 +1,26 @@
-"""Provision Proxmox VMs using nixos-anywhere.
+"""Provision Proxmox VMs for clan install.
 
-This module implements the nixos-anywhere based VM provisioning workflow:
+This module creates and configures VMs on Proxmox with cloud-init IP
+assignment, ready for the user to run `clan machines install` separately.
+
+Workflow:
 1. Create VM with metadata from NixOS config
-2. Boot from installer ISO
-3. Run nixos-anywhere to install the system
+2. Configure cloud-init for static IP assignment
+3. Boot from installer ISO
+4. Verify VM gets the expected IP
 """
 
 import json
-import shutil
 import socket
 import subprocess
-import tempfile
 import time
-from pathlib import Path
 from typing import Any, Optional
 
 from rich.panel import Panel
 
 from .. import config
-from ..external import ExternalToolError
 from ..nix import NixRunner
 from ..proxmox_api import ProxmoxClient
-from ..secrets_inject import gather_secrets_for_machine, decrypt_secrets_to_tempdir
 from . import iso_installer
 from .provision_vm import (
     build_qm_create_command,
@@ -64,114 +63,36 @@ def wait_for_ssh(
     return False
 
 
-def run_nixos_anywhere(
-    machine: str,
-    target_host: str,
-    extra_files_dir: Optional[Path] = None,
-    generate_hardware_config: bool = True,
-    dry_run: bool = False,
-) -> None:
-    """Run nixos-anywhere to install NixOS.
-
-    Args:
-        machine: NixOS configuration name
-        target_host: SSH target (e.g., "root@192.168.1.100")
-        extra_files_dir: Directory with extra files to copy
-        generate_hardware_config: Generate hardware-configuration.nix
-        dry_run: Show what would be done
-    """
-    repo_root = config.find_repo_root()
-
-    cmd = [
-        "nix",
-        "run",
-        "github:nix-community/nixos-anywhere",
-        "--",
-        "--flake",
-        f"{repo_root}#{machine}",
-        "--target-host",
-        target_host,
-        "--ssh-option",
-        "StrictHostKeyChecking=no",
-        "--ssh-option",
-        "UserKnownHostsFile=/dev/null",
-    ]
-
-    if extra_files_dir:
-        cmd.extend(["--extra-files", str(extra_files_dir)])
-
-    if generate_hardware_config:
-        hardware_config_path = f"machines/{machine}/hardware-configuration.nix"
-        cmd.extend(
-            [
-                "--generate-hardware-config",
-                "nixos-generate-config",
-                hardware_config_path,
-            ]
-        )
-
-    if dry_run:
-        console.print(f"[yellow]Would run:[/yellow] {' '.join(cmd)}")
-        return
-
-    console.print(f"Running nixos-anywhere...")
-    subprocess.run(cmd, cwd=repo_root, check=True)
-
-
 def run(
     machine: str,
     proxmox_host: str,
     bridge: str = "vmbr0",
     ssh_timeout: int = 300,
-    generate_hardware_config: bool = True,
+    force_rebuild_iso: bool = False,
     dry_run: bool = False,
 ) -> None:
-    """Provision a Proxmox VM using nixos-anywhere.
+    """Provision a Proxmox VM for clan install.
 
-    This workflow:
-    1. Creates VM with configuration from NixOS
-    2. Boots from installer ISO
-    3. Waits for SSH access
-    4. Runs nixos-anywhere to install the system
-    5. Reboots into the installed system
+    Creates a VM with cloud-init IP configuration, boots from installer
+    ISO, and verifies the VM gets its expected IP address. The VM is then
+    ready for `clan machines install`.
 
     Args:
         machine: NixOS configuration name
         proxmox_host: Proxmox host to provision on
         bridge: Network bridge name
         ssh_timeout: Timeout for SSH connectivity in seconds
-        generate_hardware_config: Generate hardware-configuration.nix
+        force_rebuild_iso: Force rebuild and re-upload the installer ISO
         dry_run: Show what would be done
     """
     console.print(
         Panel(
-            f"Provisioning VM: [bold]{machine}[/bold] on {proxmox_host} via nixos-anywhere"
+            f"Provisioning VM: [bold]{machine}[/bold] on {proxmox_host}"
         )
     )
 
     repo_root = config.find_repo_root()
     runner = NixRunner(verbosity=1, repo_root=repo_root)
-
-    # Preflight: verify sops decryption works before doing anything
-    console.print("\n[bold]Preflight:[/bold] Verifying sops decryption")
-    secrets = gather_secrets_for_machine(machine, runner)
-    if secrets:
-        try:
-            from ..external import sops_decrypt_to_stdout
-
-            # Test-decrypt the first secret to trigger gpg-agent initialization
-            sops_decrypt_to_stdout(secrets[0].source_path)
-            console.print(
-                f"  [green]sops decryption OK ({len(secrets)} secret(s) found)[/green]"
-            )
-        except Exception as e:
-            console.print(f"  [red]sops decryption failed: {e}[/red]")
-            console.print(
-                "  [yellow]Hint: try running 'sops decrypt' manually to initialize gpg-agent[/yellow]"
-            )
-            raise RuntimeError("sops preflight check failed")
-    else:
-        console.print("  No secrets to inject, skipping check")
 
     # Initialize Proxmox client
     client: Optional[ProxmoxClient] = None
@@ -258,6 +179,7 @@ def run(
             proxmox_host=proxmox_host,
             storage="local",
             build_if_missing=True,
+            force=force_rebuild_iso,
             verbosity=1,
         )
 
@@ -277,7 +199,6 @@ def run(
         hostname=hostname,
         vm_config=vm_config,
         network_config=network_config,
-        cloud_init_snippet=None,  # Not using cloud-init with nixos-anywhere
     )
 
     if dry_run:
@@ -289,7 +210,7 @@ def run(
         subprocess.run(ssh_cmd, check=True)
         console.print(f"  [green]VM {vmid} created[/green]")
 
-    # Step 5: Configure EFI disk if UEFI
+    # Step 5a: Configure EFI disk if UEFI
     if vm_config.get("bios") == "ovmf":
         console.print("\n[bold]Step 5a:[/bold] Configuring EFI disk")
         efidisk = vm_config.get("efidisk", {})
@@ -308,7 +229,7 @@ def run(
             subprocess.run(ssh_cmd, check=True)
             console.print(f"  [green]EFI disk configured[/green]")
 
-    # Step 6: Configure disks from NixOS config
+    # Step 5b: Configure disks from NixOS config
     console.print("\n[bold]Step 5b:[/bold] Configuring disks")
     disks = vm_config.get("disks", [])
     boot_disk_key = "scsi0"  # default
@@ -356,7 +277,20 @@ def run(
                 subprocess.run(ssh_cmd, check=True)
                 console.print(f"  [green]Disk {disk_key} configured[/green]")
 
-    # Step 7: Attach ISO and set boot order
+    # Step 5c: Attach cloud-init drive
+    console.print("\n[bold]Step 5c:[/bold] Attaching cloud-init drive")
+    cloud_init_config = vm_config.get("cloudInit", {})
+    ci_storage = cloud_init_config.get("storage", "local-zfs")
+
+    if dry_run:
+        console.print(f"  [yellow]Would attach cloud-init drive on {ci_storage}[/yellow]")
+    else:
+        ci_cmd = ["qm", "set", str(vmid), "--ide0", f"{ci_storage}:cloudinit"]
+        ssh_cmd = ["ssh", f"root@{proxmox_host}"] + ci_cmd
+        subprocess.run(ssh_cmd, check=True)
+        console.print(f"  [green]Cloud-init drive attached[/green]")
+
+    # Step 6: Attach ISO and set boot order
     console.print("\n[bold]Step 6:[/bold] Attaching ISO and configuring boot")
 
     if dry_run:
@@ -368,7 +302,7 @@ def run(
         client.set_boot_order(vmid, f"order=ide2;{boot_disk_key}")
         console.print(f"  [green]ISO attached, boot order set[/green]")
 
-    # Step 8: Start VM
+    # Step 7: Start VM
     console.print("\n[bold]Step 7:[/bold] Starting VM")
 
     if dry_run:
@@ -378,15 +312,13 @@ def run(
         client.start_vm(vmid)
         console.print(f"  [green]VM {vmid} started[/green]")
 
-    # The installer ISO gets a DHCP address, not the final static IP.
-    # Get the actual IP from the QEMU guest agent.
-    console.print(f"\n[bold]Step 8:[/bold] Waiting for VM to get an IP address")
+    # Step 8: Wait for VM to get its IP via cloud-init
+    console.print(f"\n[bold]Step 8:[/bold] Waiting for VM to get IP address")
 
     if dry_run:
         console.print(
             f"  [yellow]Would wait for guest agent IP (timeout: {ssh_timeout}s)[/yellow]"
         )
-        installer_host = "installer"
     else:
         assert client is not None
         console.print(f"  Polling guest agent for IP...")
@@ -411,62 +343,8 @@ def run(
             raise RuntimeError("SSH timeout")
         console.print(f"  [green]SSH accessible[/green]")
 
-    # Step 10: Prepare extra files (secrets) - secrets already gathered in preflight
-    console.print("\n[bold]Step 9:[/bold] Preparing secrets for injection")
-
-    extra_files_dir: Optional[Path] = None
-
-    if secrets:
-        console.print(f"  Found {len(secrets)} secret(s) to inject")
-        if not dry_run:
-            extra_files_dir = decrypt_secrets_to_tempdir(secrets)
-            console.print(f"  [green]Secrets prepared[/green]")
-    else:
-        console.print("  No secrets to inject")
-
-    # Step 11: Run nixos-anywhere
-    console.print("\n[bold]Step 10:[/bold] Running nixos-anywhere")
-
-    target_host = f"root@{installer_host}"
-
-    try:
-        run_nixos_anywhere(
-            machine=machine,
-            target_host=target_host,
-            extra_files_dir=extra_files_dir,
-            generate_hardware_config=generate_hardware_config,
-            dry_run=dry_run,
-        )
-        if not dry_run:
-            console.print(f"  [green]nixos-anywhere completed[/green]")
-    finally:
-        # Cleanup secrets directory
-        if extra_files_dir and extra_files_dir.exists():
-            shutil.rmtree(extra_files_dir, ignore_errors=True)
-
-    # Step 12: Detach ISO and set boot order to disk
-    console.print("\n[bold]Step 11:[/bold] Cleanup and reboot")
-
-    if dry_run:
-        console.print("  [yellow]Would detach ISO[/yellow]")
-        console.print("  [yellow]Would set boot order to disk[/yellow]")
-        console.print("  [yellow]Would reboot VM[/yellow]")
-    else:
-        assert client is not None
-        client.detach_iso(vmid)
-        client.set_boot_order(vmid, f"order={boot_disk_key}")
-        console.print(f"  [green]ISO detached, boot order set to disk[/green]")
-
-        # nixos-anywhere should handle reboot, but let's be safe
-        console.print("  Waiting for VM to be accessible...")
-        time.sleep(30)  # Give time for reboot
-
-        if wait_for_ssh(ip_alloc["address"], timeout=120):
-            console.print(f"  [green]VM is up and running[/green]")
-        else:
-            console.print(f"  [yellow]VM may still be booting, check manually[/yellow]")
-
     console.print("\n[bold green]Done![/bold green]")
     if not dry_run:
         console.print(f"\nVM VMID: {vmid}")
-        console.print(f"\nAccess via SSH: ssh root@{ip_alloc['address']}")
+        console.print(f"VM IP: {ip_alloc['address']}")
+        console.print(f"\nNext: clan machines install {machine} root@{ip_alloc['address']}")
