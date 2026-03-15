@@ -63,8 +63,10 @@ let
   # reference into a plain string value.
   read = name: builtins.readFile "${self}/files/${name}";
 
+  read' = name: builtins.readFile "${self}/${name}";
+
   selfLib = {
-    inherit read;
+    inherit read read';
 
     # Return an independent store path for a file in files/.
     file = isolate;

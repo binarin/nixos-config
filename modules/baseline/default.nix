@@ -9,7 +9,11 @@ let
 in
 {
   flake.nixosModules.baseline =
-    { lib, pkgs, ... }:
+    {
+      lib,
+      pkgs,
+      ...
+    }:
     {
       key = "nixos-config.modules.nixos.baseline";
 
@@ -32,6 +36,8 @@ in
         self.nixosModules.use-nix-cache
 
         self.nixosModules.binarin-baseline
+
+        self.nixosModules.clan-baseline
       ];
 
       _module.args.self' = {

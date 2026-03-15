@@ -9,7 +9,6 @@ in
 
   clan.machines.llm-runner = {
     imports = [
-      self.nixosModules.clan-baseline
       self.nixosModules.llm-runner-configuration
     ];
     nixpkgs.hostPlatform = "x86_64-linux";
@@ -31,6 +30,9 @@ in
         memory = 65536;
         balloon = 2048;
         cores = 16;
+        bios = "ovmf";
+        machine = "q35";
+        description = "LLM runner";
       };
 
       impermanence.enable = true;

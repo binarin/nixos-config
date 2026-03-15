@@ -2,8 +2,13 @@
   lib,
   inputs,
   self,
+  config,
   ...
 }:
+let
+  flakeConfig = config;
+  selfLib = self.lib.self;
+in
 {
   flake-file.inputs.clan-core = {
     # url = "https://git.clan.lol/clan/clan-core/archive/25.11.tar.gz";
@@ -25,7 +30,7 @@
     meta.domain = "clan.binarin.info";
   };
 
-  flake.nixosModuels.clan-baseline =
+  flake.nixosModules.clan-baseline =
     { ... }:
     {
       key = "nixos-config.modules.nixos.clan-baseline";
@@ -35,17 +40,27 @@
     };
 
   flake.nixosModules.clan-hostId =
-    { pkgs, ... }:
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
     {
       key = "nixos-config.modules.nixos.clan-hostId";
-      clan.core.vars.generators.hostId = {
-        files.hostId.secret = false;
-        runtimeInputs = with pkgs; [
-          openssl
-        ];
-        script = ''
-          openssl rand -hex 4 > $out/hostId
-        '';
+      config = lib.mkIf (lib.hasAttr config.networking.hostName flakeConfig.clan.machines) {
+        clan.core.vars.generators.hostId = {
+          files.hostId.secret = false;
+          runtimeInputs = with pkgs; [
+            openssl
+          ];
+          script = ''
+            openssl rand -hex 4 > $out/hostId
+          '';
+        };
+        networking.hostId = lib.mkForce (
+          lib.trim config.clan.core.vars.generators.hostId.files.hostId.value
+        );
       };
     };
 }
