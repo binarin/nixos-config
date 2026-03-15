@@ -6,14 +6,14 @@
     {
       key = "nixos-config.modules.nixos.use-nix-cache";
 
-      options = {
-        nix.usePersonalNixCache = lib.mkOption {
-          type = lib.types.bool;
-          default = true;
+      options.nixos-config.personal-nix-cache.useHomeNet =
+        with lib;
+        mkOption {
+          type = types.bool;
+          default = false;
         };
-      };
 
-      config = lib.mkIf config.nix.usePersonalNixCache {
+      config = {
         services.nginx.enable = true;
 
         networking.hosts."127.0.0.1" = [
@@ -42,7 +42,11 @@
             200 "404"
           '';
           locations."/" = {
-            proxyPass = "https://nix-cache-storage.lynx-lizard.ts.net";
+            proxyPass =
+              if config.nixos-config.personal-nix-cache.useHomeNet then
+                "https://niks3-storage.home.binarinn.info"
+              else
+                "https://nix-cache-storage.lynx-lizard.ts.net";
             extraConfig = ''
               # Use a very short timeout for connecting to the cache, since it should be available in the
               # local network.

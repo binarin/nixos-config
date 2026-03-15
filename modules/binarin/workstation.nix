@@ -42,6 +42,7 @@
       lib,
       osConfig,
       pkgs,
+      inputs',
       ...
     }:
     {
@@ -80,6 +81,7 @@
         dos2unix
         sox
         forgejo-cli
+        inputs'.niks3.packages.niks3
       ];
 
       impermanence.local-files = [

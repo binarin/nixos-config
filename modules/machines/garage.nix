@@ -45,6 +45,7 @@ in
         self.nixosModules.baseline
         self.nixosModules.tailscale
         inputs.sops-nix.nixosModules.sops
+        self.nixosModules.expose-local-http
       ];
 
       config = {
@@ -118,6 +119,23 @@ in
             };
           };
         };
+
+        services.caddy.expose-local-http.enable = true;
+        services.caddy.virtualHosts."niks3-storage.home.binarin.info".extraConfig = ''
+          reverse_proxy http://127.0.0.1:3902 {
+                    header_up Host niks3-storage.lynx-lizard.ts.net
+          }
+          import letsencrypt
+        '';
+        services.caddy.virtualHosts."http://niks3-storage.home.binarin.info".extraConfig = ''
+          reverse_proxy http://127.0.0.1:3902 {
+                    header_up Host niks3-storage.lynx-lizard.ts.net
+          }
+        '';
+        networking.firewall.allowedTCPPorts = [
+          80
+          443
+        ];
 
         # Tailscale services
         services.tailscale.serve = {

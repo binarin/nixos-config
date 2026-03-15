@@ -129,6 +129,7 @@ creation_rules:
           - *user_demandred_binarin
           - *server_media
           - *server_docker-on-nixos
+          - *server_garage
   - path_regex: secrets/[^/]+/((ssh_host_(ed25519|rsa|ecdsa)_key)|(.*-priv-key\.pem))$
     key_groups:
       - pgp:

@@ -14,6 +14,7 @@ in
       pkgs,
       inventoryHostName,
       specialArgs,
+      self',
       ...
     }:
     {
@@ -71,7 +72,7 @@ in
         apg
         net-tools # netstat
         dysk
-        self.packages."${pkgs.stdenv.hostPlatform.system}".nix-store-edit
+        self'.packages.nix-store-edit
       ];
 
       programs.bat.enable = true;

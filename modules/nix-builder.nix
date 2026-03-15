@@ -6,6 +6,7 @@
 {
   flake.nixosModules.nix-builder =
     {
+      inputs',
       config,
       lib,
       pkgs,
@@ -65,12 +66,14 @@
           TOKEN=${config.sops.placeholder."nixos-config-runner-token"}
         '';
 
-        systemd.services = builtins.listToAttrs (map (n: {
-          name = "gitea-runner-${runnerName n}";
-          value = {
-            serviceConfig.SupplementaryGroups = [ "nix-access-tokens" ];
-          };
-        }) runnerIndices);
+        systemd.services = builtins.listToAttrs (
+          map (n: {
+            name = "gitea-runner-${runnerName n}";
+            value = {
+              serviceConfig.SupplementaryGroups = [ "nix-access-tokens" ];
+            };
+          }) runnerIndices
+        );
 
         virtualisation.podman.enable = true;
 
@@ -99,6 +102,7 @@
                   wget
                   podman
                   s3cmd
+                  inputs'.niks3.packages.niks3
                 ];
               };
               mkRunner = n: {

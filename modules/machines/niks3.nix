@@ -18,7 +18,7 @@ in
   };
 
   flake.nixosConfigurations.niks3 = lib.mkForce (
-    self.clan.nixosConfigurations.llm-runner.extendModules {
+    self.clan.nixosConfigurations.niks3.extendModules {
       specialArgs.inventoryHostName = "niks3";
     }
   );
@@ -49,33 +49,17 @@ in
         inputs.niks3.nixosModules.default
       ];
 
-      clan.core.vars.generators.tailscale-admin = {
-        share = true;
-        prompts.oauth-client-id = {
-          description = "OAuth client id for machine join tokens generation";
-        };
-        prompts.oauth-client-secret = {
-          description = "OAuth client secret for machine join tokens generation";
-        };
-        files.oauth-client-id = {
-          secret = true;
-          deploy = false;
-        };
-        files.oauth-client-secret = {
-          secret = true;
-          deploy = false;
-        };
-        script = ''
-          cat $prompts/oauth-client-id > $out/oauth-client-id
-          cat $prompts/oauth-client-secret > $out/oauth-client-secret
-        '';
-      };
-
       clan.core.vars.generators.s3 = {
         prompts.access-key.description = "s3 key id";
         prompts.secret-key.description = "s3 secret key";
-        files.access-key.secret = true;
-        files.secret-key.secret = true;
+        files.access-key = {
+          owner = config.services.niks3.user;
+          group = config.services.niks3.group;
+        };
+        files.secret-key = {
+          owner = config.services.niks3.user;
+          group = config.services.niks3.group;
+        };
         script = ''
           cat $prompts/access-key > $out/access-key
           cat $prompts/secret-key > $out/secret-key
@@ -83,7 +67,10 @@ in
       };
 
       clan.core.vars.generators.cache-key = {
-        files.signing-key = { };
+        files.signing-key = {
+          owner = config.services.niks3.user;
+          group = config.services.niks3.group;
+        };
         files.public-key.secret = false;
         runtimeInputs = [
           pkgs.nix
@@ -97,7 +84,10 @@ in
       };
 
       clan.core.vars.generators.niks3-api-token = {
-        files.api-token = { };
+        files.api-token = {
+          owner = config.services.niks3.user;
+          group = config.services.niks3.group;
+        };
         runtimeInputs = [ pkgs.openssl ];
         script = ''
           openssl rand -base64 32 > $out/api-token
@@ -105,8 +95,16 @@ in
       };
 
       services.niks3 = {
-        enable = false;
+        enable = true;
         httpAddr = "127.0.0.1:5751";
+
+        oidc.providers.gitlab = {
+          issuer = "https://forgejo.lynx-lizard.ts.net";
+          audience = "https://niks3.lynx-lizard.ts.net";
+          boundClaims = {
+            repository_owner = [ "binarin" ];
+          };
+        };
 
         s3 = {
           endpoint = "s3.lynx-lizard.ts.net";
@@ -117,37 +115,18 @@ in
           secretKeyFile = config.clan.core.vars.generators.s3.files.secret-key.path;
         };
 
-        # cacheUrl = "";
+        cacheUrl = "http://niks3-storage.home.binarin.info";
 
         apiTokenFile = config.clan.core.vars.generators.niks3-api-token.files.api-token.path;
         signKeyFiles = [
-          config.clan.core.vars.generators.cache-key.file.signing-key.path
+          config.clan.core.vars.generators.cache-key.files.signing-key.path
         ];
       };
 
-      services.cloudflared = {
-        enable = false;
-
+      services.tailscale.serve.enable = true;
+      services.tailscale.serve.configs.niks3 = {
+        target = "5751";
       };
-
-      clan.core.vars.generators.tailscale-auth = {
-        files.tailscale-auth = {
-          secret = true;
-        };
-        runtimeInputs = [ self'.packages.ncf ];
-        dependencies = [ "tailscale-admin" ];
-        script = ''
-          ncf ts auth-key \
-          --client-id-file $in/tailscale-admin/oauth-client-id \
-          --client-secret-file $in/tailscale-admin/oauth-client-secret \
-           --reusable \
-           --expiry 604800 \
-           > $out/tailscale-auth
-        '';
-      };
-
-      services.tailscale.authKeyFile =
-        config.clan.core.vars.generators.tailscale-auth.files.tailscale-auth.path;
 
       nixos-config.export-metrics.enable = true;
     };

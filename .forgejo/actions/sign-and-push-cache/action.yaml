@@ -53,6 +53,13 @@ runs:
           exit 1
         fi
 
+        export NIKS3_AUTH_TOKEN_FILE="$(mktemp)"
+        export NIKS3_SERVER_URL=https://niks3.lynx-lizard.ts.net/
+        trap 'rm -f "$NIKS3_AUTH_TOKEN_FILE"' EXIT
+        curl --output "$NIKS3_AUTH_TOKEN_FILE" -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://niks3.lynx-lizard.ts.net"
+        cat "$PATHS_FILE" | xargs niks3 push --debug
+        rm -f "$NIKS3_AUTH_TOKEN_FILE"
+
         PATH_COUNT=$(wc -l < "$PATHS_FILE")
         echo "Processing $PATH_COUNT store paths from $PATHS_FILE"
 

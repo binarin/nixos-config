@@ -15,7 +15,7 @@
     {
       specialArgs,
       self',
-      packages',
+      inputs',
       ...
     }:
     {
@@ -28,7 +28,7 @@
           self.homeModules.home-misc
         ];
         home-manager.extraSpecialArgs = specialArgs // {
-          inherit self' packages';
+          inherit self' inputs';
         };
         home-manager.useGlobalPkgs = true;
         home-manager.backupFileExtension = "backup";
