@@ -230,7 +230,7 @@ def run(
     # Step 5b: Configure disks from NixOS config
     console.print("\n[bold]Step 5b:[/bold] Configuring disks")
     disks = vm_config.get("disks", [])
-    boot_disk_key = "scsi0"  # default
+    boot_disk_key = None
     if not disks:
         console.print("  No disks specified, skipping")
     else:
@@ -241,7 +241,7 @@ def run(
             disk_key = f"{bus}{index}"
 
             # Track first disk as boot disk
-            if boot_disk_key == "scsi0" or index == 0:
+            if boot_disk_key is None or index == 0:
                 boot_disk_key = disk_key
 
             if disk_type == "passthrough":
@@ -300,11 +300,13 @@ def run(
 
     if dry_run:
         console.print(f"  [yellow]Would attach ISO: {iso_ref}[/yellow]")
-        console.print(f"  [yellow]Would set boot order: ide2;{boot_disk_key}[/yellow]")
+        boot_order = f"ide2;{boot_disk_key}" if boot_disk_key else "ide2"
+        console.print(f"  [yellow]Would set boot order: {boot_order}[/yellow]")
     else:
         assert client is not None
         client.attach_iso(vmid, iso_ref)
-        client.set_boot_order(vmid, f"order=ide2;{boot_disk_key}")
+        boot_order = f"order=ide2;{boot_disk_key}" if boot_disk_key else "order=ide2"
+        client.set_boot_order(vmid, boot_order)
         console.print(f"  [green]ISO attached, boot order set[/green]")
 
     # Step 7: Start VM
