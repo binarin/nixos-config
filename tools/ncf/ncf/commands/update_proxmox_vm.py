@@ -57,6 +57,20 @@ def compute_boot_order(vm_config: dict[str, Any]) -> str | None:
     return f"order={bootable_keys[0]}"
 
 
+def add_cleanup_entries(
+    current: dict[str, Any],
+    desired: dict[str, str],
+) -> None:
+    """Add IDE device removal entries to desired config for post-install cleanup.
+
+    Marks ide0 (cloud-init) and ide2 (installer ISO) for deletion,
+    but only if they exist in the current VM config.
+    """
+    for key in ("ide0", "ide2"):
+        if key in current:
+            desired[key] = "(removed)"
+
+
 def compute_desired_config(
     vm_config: dict[str, Any],
     proxmox_host: str,
@@ -210,6 +224,7 @@ def run(
     machine: str,
     proxmox_host: str,
     apply: bool = False,
+    cleanup_install: bool = False,
 ) -> None:
     """Update Proxmox VM configuration to match NixOS config.
 
@@ -217,6 +232,7 @@ def run(
         machine: NixOS configuration name.
         proxmox_host: Proxmox hostname.
         apply: If True, apply changes. If False (default), dry-run only.
+        cleanup_install: If True, remove ISO and cloud-init drives.
     """
     mode = "APPLY" if apply else "DRY RUN"
     console.print(
@@ -255,6 +271,9 @@ def run(
     current_config = client.get_vm_config(vmid)
 
     desired = compute_desired_config(vm_config, proxmox_host, hostname)
+
+    if cleanup_install:
+        add_cleanup_entries(current_config, desired)
 
     # Compute and show diff
     console.print("\n[bold]Step 4:[/bold] Configuration diff")

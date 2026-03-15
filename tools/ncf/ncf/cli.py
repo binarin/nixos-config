@@ -839,6 +839,9 @@ def machine_update_proxmox_vm_cmd(
     apply: bool = typer.Option(
         False, "--apply", help="Apply changes (default is dry-run)"
     ),
+    cleanup_install: bool = typer.Option(
+        False, "--cleanup-install", help="Remove installation artefacts (ISO, cloud-init)"
+    ),
 ):
     """Update Proxmox VM config to match NixOS config.
 
@@ -849,11 +852,14 @@ def machine_update_proxmox_vm_cmd(
     The VM must be stopped before updating. Handles:
     - CPU/memory: cores, sockets, memory, balloon, shares
     - PCI passthrough: resolves devices, uploads ROMs, removes stale entries
+    - Boot order: computed from bootable disk/PCI device
+    - Post-install cleanup (--cleanup-install): removes ISO and cloud-init drives
     """
     update_proxmox_vm.run(
         machine=machine,
         proxmox_host=proxmox_host,
         apply=apply,
+        cleanup_install=cleanup_install,
     )
 
 
