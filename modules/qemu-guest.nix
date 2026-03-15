@@ -248,8 +248,8 @@
 
           storage = lib.mkOption {
             type = lib.types.str;
-            default = "local";
-            description = "Storage with snippets feature for cloud-init data.";
+            default = "local-zfs";
+            description = "Storage for cloud-init drive.";
           };
         };
       };
