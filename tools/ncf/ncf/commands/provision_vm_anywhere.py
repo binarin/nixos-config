@@ -11,6 +11,7 @@ Workflow:
 """
 
 import json
+import shlex
 import socket
 import subprocess
 import time
@@ -86,11 +87,7 @@ def run(
         force_rebuild_iso: Force rebuild and re-upload the installer ISO
         dry_run: Show what would be done
     """
-    console.print(
-        Panel(
-            f"Provisioning VM: [bold]{machine}[/bold] on {proxmox_host}"
-        )
-    )
+    console.print(Panel(f"Provisioning VM: [bold]{machine}[/bold] on {proxmox_host}"))
 
     repo_root = config.find_repo_root()
     runner = NixRunner(verbosity=1, repo_root=repo_root)
@@ -207,7 +204,7 @@ def run(
         console.print(f"    {' '.join(qm_cmd)}")
     else:
         console.print(f"  Creating VM {vmid}...")
-        ssh_cmd = ["ssh", f"root@{proxmox_host}"] + qm_cmd
+        ssh_cmd = ["ssh", f"root@{proxmox_host}", shlex.join(qm_cmd)]
         subprocess.run(ssh_cmd, check=True)
         console.print(f"  [green]VM {vmid} created[/green]")
 
@@ -226,7 +223,7 @@ def run(
         if dry_run:
             console.print(f"  [yellow]Would run: {' '.join(efi_cmd)}[/yellow]")
         else:
-            ssh_cmd = ["ssh", f"root@{proxmox_host}"] + efi_cmd
+            ssh_cmd = ["ssh", f"root@{proxmox_host}", shlex.join(efi_cmd)]
             subprocess.run(ssh_cmd, check=True)
             console.print(f"  [green]EFI disk configured[/green]")
 
@@ -241,7 +238,7 @@ def run(
         if dry_run:
             console.print(f"  [yellow]Would run: {' '.join(disk_cmd)}[/yellow]")
         else:
-            ssh_cmd = ["ssh", f"root@{proxmox_host}"] + disk_cmd
+            ssh_cmd = ["ssh", f"root@{proxmox_host}", shlex.join(disk_cmd)]
             subprocess.run(ssh_cmd, check=True)
     else:
         for disk in disks:
@@ -296,10 +293,12 @@ def run(
     ci_storage = cloud_init_config.get("storage", "local-zfs")
 
     if dry_run:
-        console.print(f"  [yellow]Would attach cloud-init drive on {ci_storage}[/yellow]")
+        console.print(
+            f"  [yellow]Would attach cloud-init drive on {ci_storage}[/yellow]"
+        )
     else:
         ci_cmd = ["qm", "set", str(vmid), "--ide0", f"{ci_storage}:cloudinit"]
-        ssh_cmd = ["ssh", f"root@{proxmox_host}"] + ci_cmd
+        ssh_cmd = ["ssh", f"root@{proxmox_host}", shlex.join(ci_cmd)]
         subprocess.run(ssh_cmd, check=True)
         console.print(f"  [green]Cloud-init drive attached[/green]")
 
@@ -360,4 +359,6 @@ def run(
     if not dry_run:
         console.print(f"\nVM VMID: {vmid}")
         console.print(f"VM IP: {ip_alloc['address']}")
-        console.print(f"\nNext: clan machines install {machine} root@{ip_alloc['address']}")
+        console.print(
+            f"\nNext: clan machines install {machine} root@{ip_alloc['address']}"
+        )

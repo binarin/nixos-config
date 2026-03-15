@@ -1,5 +1,6 @@
 """Shared helpers for PCI passthrough configuration on Proxmox."""
 
+import shlex
 import subprocess
 from typing import Any
 
@@ -42,9 +43,7 @@ def parse_lspci_output(lspci_output: str, device_id: str, all_functions: bool) -
     return address
 
 
-def resolve_pci_device(
-    proxmox_host: str, device_id: str, all_functions: bool
-) -> str:
+def resolve_pci_device(proxmox_host: str, device_id: str, all_functions: bool) -> str:
     """Resolve lspci description to PCI bus address on a remote host.
 
     Runs `lspci` on the Proxmox host via SSH.
@@ -183,7 +182,7 @@ def configure_pci_passthrough(
             console.print(f"  [yellow]Would set --{hostpci_key} {spec}[/yellow]")
         else:
             cmd = ["qm", "set", str(vmid), f"--{hostpci_key}", spec]
-            ssh_cmd = ["ssh", f"root@{proxmox_host}"] + cmd
+            ssh_cmd = ["ssh", f"root@{proxmox_host}", shlex.join(cmd)]
             subprocess.run(ssh_cmd, check=True)
             console.print(f"  [green]{hostpci_key}: {spec}[/green]")
 

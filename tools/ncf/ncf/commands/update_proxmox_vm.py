@@ -5,6 +5,7 @@ configuration from NixOS, shows a diff, and optionally applies changes.
 Dry-run by default.
 """
 
+import shlex
 import subprocess
 from typing import Any
 
@@ -156,19 +157,13 @@ def apply_changes(
             set_args.extend([f"--{key}", new_val])
 
     if set_args:
-        cmd = ["ssh", f"root@{proxmox_host}", "qm", "set", str(vmid)] + set_args
+        qm_cmd = ["qm", "set", str(vmid)] + set_args
+        cmd = ["ssh", f"root@{proxmox_host}", shlex.join(qm_cmd)]
         subprocess.run(cmd, check=True)
 
     if delete_keys:
-        cmd = [
-            "ssh",
-            f"root@{proxmox_host}",
-            "qm",
-            "set",
-            str(vmid),
-            "-delete",
-            ",".join(delete_keys),
-        ]
+        qm_cmd = ["qm", "set", str(vmid), "-delete", ",".join(delete_keys)]
+        cmd = ["ssh", f"root@{proxmox_host}", shlex.join(qm_cmd)]
         subprocess.run(cmd, check=True)
 
 
