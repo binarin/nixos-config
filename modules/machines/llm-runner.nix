@@ -34,6 +34,7 @@ in
         self.nixosModules.baseline
         self.nixosModules.qemu-guest
         self.nixosModules.disko-template-zfs-whole
+        (selfLib.file' "machines/llm-runner/hardware-configuration.nix")
       ];
 
       nixos-config.export-metrics.enable = false;
@@ -55,9 +56,9 @@ in
           #   # primary-gpu = true;
           #   rom = selfLib.file "GA102.rom.git-crypt";
           # };
-          gpu-sound = {
-            id = "NVIDIA Corporation GA102 High Definition Audio Controller (rev a1)";
-          };
+          # gpu-sound = {
+          #   id = "NVIDIA Corporation GA102 High Definition Audio Controller (rev a1)";
+          # };
           # radeon = {
           #   mapping = "large-radeon";
           # };
