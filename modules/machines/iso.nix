@@ -83,7 +83,10 @@ in
         services.cloud-init.enable = true;
         services.cloud-init.network.enable = true;
         # Allow network config on all boot types (cloud-init 25.x uses boot-legacy)
-        services.cloud-init.settings.updates.network.when = [ "boot" "boot-legacy" ];
+        services.cloud-init.settings.updates.network.when = [
+          "boot"
+          "boot-legacy"
+        ];
 
         # Networkd DHCP fallback for eth0 (overridden by cloud-init static config)
         systemd.network.networks."20-eth0-dhcp" = {
