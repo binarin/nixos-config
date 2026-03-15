@@ -1,0 +1,88 @@
+"""Tests for PCI passthrough helpers."""
+
+import pytest
+
+from ncf.commands.pci_passthrough import build_hostpci_spec, parse_lspci_output
+
+
+class TestParseLspciOutput:
+    """Tests for parsing lspci output to find PCI addresses."""
+
+    SAMPLE_LSPCI = (
+        "00:00.0 Host bridge: Advanced Micro Devices, Inc. [AMD] Starship/Matisse Root Complex\n"
+        "0e:00.0 Non-Volatile memory controller: Samsung Electronics Co Ltd NVMe SSD Controller SM981/PM981/PM983\n"
+        "0f:00.0 VGA compatible controller: NVIDIA Corporation GA102 [GeForce RTX 3090] (rev a1)\n"
+        "0f:00.1 Audio device: NVIDIA Corporation GA102 High Definition Audio Controller (rev a1)\n"
+    )
+
+    def test_finds_unique_device(self):
+        addr = parse_lspci_output(
+            self.SAMPLE_LSPCI,
+            "Samsung Electronics Co Ltd NVMe SSD Controller SM981/PM981/PM983",
+            all_functions=False,
+        )
+        assert addr == "0e:00.0"
+
+    def test_all_functions_strips_function(self):
+        addr = parse_lspci_output(
+            self.SAMPLE_LSPCI,
+            "Samsung Electronics Co Ltd NVMe SSD Controller SM981/PM981/PM983",
+            all_functions=True,
+        )
+        assert addr == "0e:00"
+
+    def test_fails_on_no_match(self):
+        with pytest.raises(RuntimeError, match="No PCI device found"):
+            parse_lspci_output(self.SAMPLE_LSPCI, "Nonexistent Device", all_functions=False)
+
+    def test_fails_on_multiple_matches(self):
+        with pytest.raises(RuntimeError, match="Multiple PCI devices found"):
+            parse_lspci_output(self.SAMPLE_LSPCI, "NVIDIA Corporation GA102", all_functions=False)
+
+
+class TestBuildHostpciSpec:
+    """Tests for building Proxmox hostpci spec strings."""
+
+    def test_basic_id_mode(self):
+        spec = build_hostpci_spec(
+            address="0e:00.0",
+            mapping=None,
+            pcie=True,
+            primary_gpu=False,
+            rom_bar=True,
+            romfile=None,
+        )
+        assert spec == "0e:00.0,pcie=1,x-vga=0,rombar=1"
+
+    def test_mapping_mode(self):
+        spec = build_hostpci_spec(
+            address=None,
+            mapping="rtx-3090",
+            pcie=True,
+            primary_gpu=False,
+            rom_bar=True,
+            romfile=None,
+        )
+        assert spec == "mapping=rtx-3090,pcie=1,x-vga=0,rombar=1"
+
+    def test_primary_gpu_with_rom(self):
+        spec = build_hostpci_spec(
+            address="0f:00.0",
+            mapping=None,
+            pcie=True,
+            primary_gpu=True,
+            rom_bar=True,
+            romfile="llm-runner-pci-gpu.rom",
+        )
+        assert spec == "0f:00.0,pcie=1,x-vga=1,rombar=1,romfile=llm-runner-pci-gpu.rom"
+
+    def test_no_pcie_no_rombar(self):
+        spec = build_hostpci_spec(
+            address="0e:00.0",
+            mapping=None,
+            pcie=False,
+            primary_gpu=False,
+            rom_bar=False,
+            romfile=None,
+        )
+        assert spec == "0e:00.0,pcie=0,x-vga=0,rombar=0"
