@@ -232,14 +232,7 @@ def run(
     disks = vm_config.get("disks", [])
     boot_disk_key = "scsi0"  # default
     if not disks:
-        # Default disk if none specified
-        console.print("  No disks specified, creating default 32G disk")
-        disk_cmd = ["qm", "set", str(vmid), "--scsi0", "local-zfs:32"]
-        if dry_run:
-            console.print(f"  [yellow]Would run: {' '.join(disk_cmd)}[/yellow]")
-        else:
-            ssh_cmd = ["ssh", f"root@{proxmox_host}", shlex.join(disk_cmd)]
-            subprocess.run(ssh_cmd, check=True)
+        console.print("  No disks specified, skipping")
     else:
         for disk in disks:
             disk_type = disk.get("type")
