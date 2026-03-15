@@ -23,6 +23,40 @@ from .pci_passthrough import (
 from .provision_vm import query_nixos_config
 
 
+def compute_boot_order(vm_config: dict[str, Any]) -> str | None:
+    """Compute Proxmox boot order string from NixOS config.
+
+    Returns:
+        Boot order string (e.g. "order=hostpci2") or None if no device is bootable.
+
+    Raises:
+        RuntimeError: If more than one device is marked bootable.
+    """
+    bootable_keys: list[str] = []
+
+    # Check disks with bootOrder set
+    for disk in vm_config.get("disks", []):
+        if disk.get("bootOrder") is not None:
+            key = f"{disk['bus']}{disk['index']}"
+            bootable_keys.append(key)
+
+    # Check PCI passthrough devices with bootable=True
+    pci_config = vm_config.get("pci-passthrough", {})
+    sorted_labels = sorted(pci_config.keys())
+    for idx, label in enumerate(sorted_labels):
+        if pci_config[label].get("bootable", False):
+            bootable_keys.append(f"hostpci{idx}")
+
+    if len(bootable_keys) == 0:
+        return None
+    if len(bootable_keys) > 1:
+        raise RuntimeError(
+            f"Expected exactly 1 bootable device, found {len(bootable_keys)}: {bootable_keys}"
+        )
+
+    return f"order={bootable_keys[0]}"
+
+
 def compute_desired_config(
     vm_config: dict[str, Any],
     proxmox_host: str,
@@ -84,6 +118,11 @@ def compute_desired_config(
             romfile=romfile,
         )
         desired[f"hostpci{idx}"] = spec
+
+    # Boot order
+    boot_order = compute_boot_order(vm_config)
+    if boot_order is not None:
+        desired["boot"] = boot_order
 
     return desired
 
