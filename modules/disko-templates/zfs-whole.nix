@@ -14,7 +14,9 @@
             disk = {
               main = {
                 type = "disk";
-                device = throw "Set `disko.devices.disk.main.device` when importing disko-template-zfs-whole";
+                device = lib.mkDefault (
+                  throw "Set `disko.devices.disk.main.device` when importing disko-template-zfs-whole"
+                );
                 content = {
                   type = "gpt";
                   partitions = {
