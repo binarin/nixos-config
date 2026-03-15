@@ -99,10 +99,10 @@ New step after disk configuration, before ISO attachment:
    - **id mode**: SSH to Proxmox host, run `lspci` (plain, no `-D`), find lines containing the `id` string. Extract bus:slot.function address from the start of each matching line (before the first space). Fail if not exactly one match. The `id` string must be specific enough to match exactly one lspci output line.
      - If `all-functions`: strip `.function` suffix to get `bus:slot` format.
    - **mapping mode**: use `mapping=<name>` syntax instead of address.
-   - If `rom` is set: SCP the file to `/usr/share/kvm/<basename>` on Proxmox host. Note: the `rom` value is a Nix store path (e.g., `/nix/store/...-GA102.rom.git-crypt`) since `lib.types.path` serializes that way via `query_nixos_config`.
+   - If `rom` is set: SCP the file to `/usr/share/kvm/<machine>-pci-<label>.rom` on Proxmox host (e.g., `llm-runner-pci-gpu.rom`). Note: the `rom` value is a Nix store path (e.g., `/nix/store/...-GA102.rom.git-crypt`) since `lib.types.path` serializes that way via `query_nixos_config`.
    - Build hostpci spec string (address/mapping must come first):
-     - id mode: `<addr>,pcie=<0|1>,x-vga=<0|1>,rombar=<0|1>[,romfile=<basename>]`
-     - mapping mode: `mapping=<name>,pcie=<0|1>,x-vga=<0|1>,rombar=<0|1>[,romfile=<basename>]`
+     - id mode: `<addr>,pcie=<0|1>,x-vga=<0|1>,rombar=<0|1>[,romfile=<machine>-pci-<label>.rom]`
+     - mapping mode: `mapping=<name>,pcie=<0|1>,x-vga=<0|1>,rombar=<0|1>[,romfile=<machine>-pci-<label>.rom]`
    - Run `qm set <vmid> --hostpci<N> <spec>`.
 
 ### PCI Address Resolution
@@ -126,7 +126,8 @@ def upload_rom_file(proxmox_host: str, rom_path: str) -> str:
     """Upload ROM file to /usr/share/kvm/ on Proxmox host via SCP.
 
     rom_path is a Nix store path (from lib.types.path serialization).
-    Returns the basename for use in romfile= parameter.
+    dest_name is generated as <machine>-pci-<label>.rom.
+    Returns the dest_name for use in romfile= parameter.
     """
 ```
 
@@ -152,7 +153,7 @@ ncf machine update-proxmox-vm <machine> --proxmox-host <host> [--apply]
 For each changed property, show:
 ```
   memory: 4096 -> 65536
-  hostpci0: (none) -> 0f:00.0,pcie=1,x-vga=1,rombar=1,romfile=GA102.rom.git-crypt
+  hostpci0: (none) -> 0f:00.0,pcie=1,x-vga=1,rombar=1,romfile=llm-runner-pci-gpu.rom
   hostpci5: 03:00.0,pcie=1 -> (removed)
 ```
 
