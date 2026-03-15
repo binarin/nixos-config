@@ -298,6 +298,12 @@
                   default = null;
                   description = "Path to ROM file. Uploaded to /usr/share/kvm/ on the Proxmox host during provisioning.";
                 };
+
+                bootable = lib.mkOption {
+                  type = lib.types.bool;
+                  default = false;
+                  description = "Mark this PCI device as the boot device.";
+                };
               };
             }
           );
@@ -309,8 +315,21 @@
       config = {
         services.qemuGuest.enable = lib.mkDefault config.nixos-config.qemu-guest.proxmox.agent;
 
-        boot.kernelParams = [ "console=tty0" "console=ttyS0,115200n8" ];
+        boot.kernelParams = [
+          "console=tty0"
+          "console=ttyS0,115200n8"
+          "net.ifnames=0"
+        ];
         systemd.services."serial-getty@ttyS0".enable = true;
+
+        systemd.network.networks."40-qemu" = {
+          matchConfig.Name = "eth0";
+          dns = flakeConfig.inventory.networks.home.dns;
+          address = [
+            flakeConfig.inventory.ipAllocation."${config.networking.hostName}".home.primary.addressWithPrefix
+          ];
+          routes = [ { Gateway = flakeConfig.inventory.networks.home.gateway; } ];
+        };
 
         assertions =
           let
@@ -319,7 +338,14 @@
             # Check that disko device paths match the configured disk bus types.
             # virtio disks appear as /dev/vdX (no by-id entry), while scsi/sata
             # disks appear as /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-<bus><index>
-            virtioLetters = [ "a" "b" "c" "d" "e" "f" ];
+            virtioLetters = [
+              "a"
+              "b"
+              "c"
+              "d"
+              "e"
+              "f"
+            ];
             diskoBusAssertions = lib.concatMap (
               disk:
               let
@@ -350,9 +376,7 @@
           in
           [
             {
-              assertion =
-                proxmox.tpm2.enable
-                -> proxmox.bios == "ovmf";
+              assertion = proxmox.tpm2.enable -> proxmox.bios == "ovmf";
               message = "TPM2 requires UEFI boot (bios = ovmf)";
             }
             {
@@ -365,12 +389,14 @@
               message = "Balloon memory must be less than or equal to maximum memory";
             }
           ]
-          ++ (lib.concatLists (lib.mapAttrsToList (label: entry: [
-            {
-              assertion = (entry.id != null) != (entry.mapping != null);
-              message = "pci-passthrough.${label}: exactly one of 'id' or 'mapping' must be set";
-            }
-          ]) proxmox.pci-passthrough))
+          ++ (lib.concatLists (
+            lib.mapAttrsToList (label: entry: [
+              {
+                assertion = (entry.id != null) != (entry.mapping != null);
+                message = "pci-passthrough.${label}: exactly one of 'id' or 'mapping' must be set";
+              }
+            ]) proxmox.pci-passthrough
+          ))
           ++ diskoBusAssertions;
       };
     };

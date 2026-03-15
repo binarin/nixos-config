@@ -48,12 +48,13 @@ in
         pci-passthrough = {
           nvme = {
             id = "Samsung Electronics Co Ltd NVMe SSD Controller SM981/PM981/PM983";
+            bootable = true;
           };
-          gpu = {
-            id = "NVIDIA Corporation GA102 [GeForce RTX 3090] (rev a1)";
-            # primary-gpu = true;
-            rom = selfLib.file "GA102.rom.git-crypt";
-          };
+          # gpu = {
+          #   id = "NVIDIA Corporation GA102 [GeForce RTX 3090] (rev a1)";
+          #   # primary-gpu = true;
+          #   rom = selfLib.file "GA102.rom.git-crypt";
+          # };
           gpu-sound = {
             id = "NVIDIA Corporation GA102 High Definition Audio Controller (rev a1)";
           };
@@ -64,6 +65,7 @@ in
       };
 
       impermanence.enable = true;
-      disko.devices.disk.main.device = "none";
+      disko.devices.disk.main.device =
+        "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S4EWNF0M723324Z";
     };
 }
