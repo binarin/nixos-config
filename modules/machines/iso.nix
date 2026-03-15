@@ -74,6 +74,8 @@ in
 
         services.tailscale.enable = true;
 
+        services.cloud-init.enable = true;
+
         environment.systemPackages = with pkgs; [
           inputs.disko.packages."${config.nixpkgs.hostPlatform.system}".disko
         ];
