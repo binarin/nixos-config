@@ -31,12 +31,58 @@ in
   };
 
   flake.nixosModules.clan-baseline =
-    { ... }:
+    {
+      self',
+      inventoryHostName,
+      config,
+      ...
+    }:
     {
       key = "nixos-config.modules.nixos.clan-baseline";
       imports = [
         self.nixosModules.clan-hostId
       ];
+
+      clan.core.vars.generators.tailscale-admin = {
+        share = true;
+        prompts.oauth-client-id = {
+          description = "OAuth client id for machine join tokens generation";
+        };
+        prompts.oauth-client-secret = {
+          description = "OAuth client secret for machine join tokens generation";
+        };
+        files.oauth-client-id = {
+          secret = true;
+          deploy = false;
+        };
+        files.oauth-client-secret = {
+          secret = true;
+          deploy = false;
+        };
+        script = ''
+          cat $prompts/oauth-client-id > $out/oauth-client-id
+          cat $prompts/oauth-client-secret > $out/oauth-client-secret
+        '';
+      };
+
+      clan.core.vars.generators.tailscale-auth = {
+        files.tailscale-auth = {
+          secret = true;
+        };
+        runtimeInputs = [ self'.packages.ncf ];
+        dependencies = [ "tailscale-admin" ];
+        script = ''
+          ncf ts auth-key \
+          --client-id-file $in/tailscale-admin/oauth-client-id \
+          --client-secret-file $in/tailscale-admin/oauth-client-secret \
+           --reusable \
+           --expiry 604800 \
+           > $out/tailscale-auth
+        '';
+      };
+
+      services.tailscale.authKeyFile =
+        config.clan.core.vars.generators.tailscale-auth.files.tailscale-auth.path;
     };
 
   flake.nixosModules.clan-hostId =
