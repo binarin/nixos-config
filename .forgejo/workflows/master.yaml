@@ -1,3 +1,5 @@
+enable-openid-connect: true
+
 on:
   push:
     branches:
@@ -12,10 +14,10 @@ jobs:
       - uses: actions/checkout@v4
       - id: define
         run: |
+          echo "$ACTIONS_ID_TOKEN_REQUEST_URL"
           echo "configurations=$(nix run .#env-aware-nix-run -- .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
 
   cache-flake-inputs:
-    enable-openid-connect: true
     name: cache flake inputs
     runs-on: native
     steps:
@@ -36,7 +38,6 @@ jobs:
           retention-days: 7
 
   nix-build:
-    enable-openid-connect: true
     name: build ${{ matrix.config }}
     runs-on: native
     needs: define-matrix
