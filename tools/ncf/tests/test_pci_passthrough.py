@@ -86,3 +86,41 @@ class TestBuildHostpciSpec:
             romfile=None,
         )
         assert spec == "0e:00.0,pcie=0,x-vga=0,rombar=0"
+
+
+from ncf.commands.update_proxmox_vm import compute_diff
+
+
+class TestComputeDiff:
+    """Tests for computing config diffs."""
+
+    def test_no_changes(self):
+        current = {"memory": 2048, "cores": 2}
+        desired = {"memory": "2048", "cores": "2"}
+        assert compute_diff(current, desired) == []
+
+    def test_changed_value(self):
+        current = {"memory": 2048, "cores": 2}
+        desired = {"memory": "65536", "cores": "2"}
+        changes = compute_diff(current, desired)
+        assert changes == [("memory", "2048", "65536")]
+
+    def test_new_key(self):
+        current = {"memory": 2048}
+        desired = {"memory": "2048", "hostpci0": "0f:00.0,pcie=1"}
+        changes = compute_diff(current, desired)
+        assert changes == [("hostpci0", "(none)", "0f:00.0,pcie=1")]
+
+    def test_stale_hostpci_removed(self):
+        current = {"memory": 2048, "hostpci0": "0f:00.0,pcie=1", "hostpci1": "0e:00.0,pcie=1"}
+        desired = {"memory": "2048", "hostpci0": "0f:00.0,pcie=1"}
+        changes = compute_diff(current, desired)
+        assert changes == [("hostpci1", "0e:00.0,pcie=1", "(removed)")]
+
+    def test_mixed_changes(self):
+        current = {"memory": 2048, "hostpci0": "old,pcie=1", "hostpci5": "stale"}
+        desired = {"memory": "65536", "hostpci0": "new,pcie=1"}
+        changes = compute_diff(current, desired)
+        assert ("memory", "2048", "65536") in changes
+        assert ("hostpci0", "old,pcie=1", "new,pcie=1") in changes
+        assert ("hostpci5", "stale", "(removed)") in changes

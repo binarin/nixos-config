@@ -29,6 +29,7 @@ from .commands import (
     provision_lxc,
     provision_vm,
     provision_vm_anywhere,
+    update_proxmox_vm,
     set_secret,
     tailscale,
     verify,
@@ -829,6 +830,33 @@ def machine_provision_vm_anywhere_cmd(
         ssh_timeout=ssh_timeout,
         force_rebuild_iso=force_rebuild_iso,
         dry_run=dry_run,
+    )
+
+
+@machine_app.command("update-proxmox-vm")
+def machine_update_proxmox_vm_cmd(
+    machine: str = typer.Argument(help="Machine name to update"),
+    proxmox_host: str = typer.Option(
+        ..., "--proxmox-host", "-p", help="Proxmox host where the VM runs"
+    ),
+    apply: bool = typer.Option(
+        False, "--apply", help="Apply changes (default is dry-run)"
+    ),
+):
+    """Update Proxmox VM config to match NixOS config.
+
+    Compares the current VM configuration on Proxmox with the desired
+    configuration from NixOS and shows a diff. By default, operates in
+    dry-run mode. Use --apply to actually make changes.
+
+    The VM must be stopped before updating. Handles:
+    - CPU/memory: cores, sockets, memory, balloon, shares
+    - PCI passthrough: resolves devices, uploads ROMs, removes stale entries
+    """
+    update_proxmox_vm.run(
+        machine=machine,
+        proxmox_host=proxmox_host,
+        apply=apply,
     )
 
 
