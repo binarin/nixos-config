@@ -164,6 +164,7 @@ in
             extraUpFlags = [
               "--hostname"
               "${config.networking.hostName}"
+              "--accept-routes"
             ];
 
             extraSetFlags = [
