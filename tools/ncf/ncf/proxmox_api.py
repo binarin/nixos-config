@@ -80,6 +80,15 @@ class ProxmoxClient:
         """Get VM configuration."""
         return dict(self.api.nodes(self.node).qemu(vmid).config.get())
 
+    def get_vm_status(self, vmid: int) -> str:
+        """Get VM power status.
+
+        Returns:
+            Status string, e.g., 'running', 'stopped'.
+        """
+        status = self.api.nodes(self.node).qemu(vmid).status.current.get()
+        return status["status"]
+
     def start_vm(self, vmid: int) -> None:
         """Start a VM."""
         self.api.nodes(self.node).qemu(vmid).status.start.post()
