@@ -53,7 +53,14 @@
         nix
         nix-output-monitor # nom for nicer build output
         git
-        git-crypt
+        (git-crypt.overrideAttrs (_prev: {
+          patches = [
+            (pkgs.fetchpatch {
+              url = "https://github.com/AGWA/git-crypt/commit/2da5e0016e53aba381046063c24c07f1bee3d824.diff";
+              sha256 = "sha256-fyHS2oeElUh+KEtvfnpf2/IiJPNSu03af+ilYFm3wOU";
+            })
+          ];
+        }))
         openssh # ssh-keygen
         age # age-keygen
         sops
