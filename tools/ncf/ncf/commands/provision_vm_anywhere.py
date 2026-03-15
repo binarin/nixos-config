@@ -279,8 +279,30 @@ def run(
             dry_run=dry_run,
         )
 
-    # Step 5d: Attach cloud-init drive
-    console.print("\n[bold]Step 5d:[/bold] Attaching cloud-init drive")
+    # Step 5d: Configure vsock
+    console.print("\n[bold]Step 5d:[/bold] Configuring vsock")
+
+    host_id_hex = query_nixos_config(
+        runner, machine, "config.networking.hostId"
+    )
+    vsock_cid = int(host_id_hex, 16)
+    console.print(f"  hostId: {host_id_hex} -> CID: {vsock_cid}")
+
+    if dry_run:
+        console.print(
+            f"  [yellow]Would configure vsock with CID {vsock_cid}[/yellow]"
+        )
+    else:
+        vsock_cmd = [
+            "qm", "set", str(vmid),
+            "--args", f"-device vhost-vsock-pci,guest-cid={vsock_cid}",
+        ]
+        ssh_cmd = ["ssh", f"root@{proxmox_host}", shlex.join(vsock_cmd)]
+        subprocess.run(ssh_cmd, check=True)
+        console.print(f"  [green]vsock configured with CID {vsock_cid}[/green]")
+
+    # Step 5e: Attach cloud-init drive
+    console.print("\n[bold]Step 5e:[/bold] Attaching cloud-init drive")
     cloud_init_config = vm_config.get("cloudInit", {})
     ci_storage = cloud_init_config.get("storage", "local-zfs")
 
