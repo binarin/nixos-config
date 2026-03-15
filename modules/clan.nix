@@ -25,4 +25,27 @@
     meta.domain = "clan.binarin.info";
   };
 
+  flake.nixosModuels.clan-baseline =
+    { ... }:
+    {
+      key = "nixos-config.modules.nixos.clan-baseline";
+      imports = [
+        self.nixosModules.clan-hostId
+      ];
+    };
+
+  flake.nixosModules.clan-hostId =
+    { pkgs, ... }:
+    {
+      key = "nixos-config.modules.nixos.clan-hostId";
+      clan.core.vars.generators.hostId = {
+        files.hostId.secret = false;
+        runtimeInputs = with pkgs; [
+          openssl
+        ];
+        script = ''
+          openssl rand -hex 4 > $out/hostId
+        '';
+      };
+    };
 }

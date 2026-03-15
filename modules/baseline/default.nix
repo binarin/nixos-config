@@ -1,4 +1,12 @@
-{ self, inputs, ... }:
+{
+  config,
+  self,
+  inputs,
+  ...
+}:
+let
+  flakeConfig = config;
+in
 {
   flake.nixosModules.baseline =
     { lib, pkgs, ... }:
@@ -25,6 +33,21 @@
 
         self.nixosModules.binarin-baseline
       ];
+
+      _module.args.self' = {
+        packages = self.packages."${pkgs.stdenv.hostPlatform.system}";
+      };
+
+      _module.args.inputs' =
+        with lib;
+        pipe self.inputs [
+          (lib.filterAttrs (_: v: v ? packages))
+          (lib.mapAttrs (
+            _: v: {
+              packages = v.packages."${pkgs.stdenv.hostPlatform.system}";
+            }
+          ))
+        ];
 
       services.dbus.implementation = lib.mkDefault "broker";
       environment.enableAllTerminfo = true;

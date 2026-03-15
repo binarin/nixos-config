@@ -35,15 +35,12 @@ in
       ...
     }:
     {
+      key = "nixos-config.modules.nixos.niks3-configuration";
       imports = [
         self.nixosModules.baseline
         self.nixosModules.lxc
         inputs.niks3.nixosModules.default
       ];
-
-      _module.args.self' = {
-        packages = self.packages."${pkgs.stdenv.hostPlatform.system}";
-      };
 
       clan.core.vars.generators.tailscale-admin = {
         share = true;
