@@ -12,6 +12,7 @@ in
 {
   flake.nixosConfigurations.iso = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
+    specialArgs.inventoryHostName = "iso";
     modules = [
       self.nixosModules.iso-configuration
     ];
@@ -62,7 +63,10 @@ in
             "zfs"
             "exfat"
           ];
-          kernelParams = [ "console=tty0" "console=ttyS0,115200n8" ];
+          kernelParams = [
+            "console=tty0"
+            "console=ttyS0,115200n8"
+          ];
         };
 
         # Serial console login
@@ -75,6 +79,8 @@ in
         services.tailscale.enable = true;
 
         services.cloud-init.enable = true;
+        services.cloud-init.network.enable = true;
+        services.cloud-init.settings.updates.network.when = [ "boot" ];
 
         environment.systemPackages = with pkgs; [
           inputs.disko.packages."${config.nixpkgs.hostPlatform.system}".disko
