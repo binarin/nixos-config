@@ -1,8 +1,8 @@
 FROM nixos/nix
 
 # Configure nix to use the cache
-RUN mkdir -p /etc/nix && echo 'substituters = http://nix-cache-storage-lynx-lizard-ts-net.nix-cache:48080 https://cache.nixos.org/' > /etc/nix/nix.conf
-RUN echo 'trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-cache-storage:Ds0Bxzp6s5U/8Nq/O/ORR33X4xC9s1LGQJP3SNS6KSY=' >> /etc/nix/nix.conf
+RUN mkdir -p /etc/nix && echo 'substituters = http://niks3-storage.nix-cache:48080 https://cache.nixos.org/' > /etc/nix/nix.conf
+RUN echo 'trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= binarin-niks3-cache-1:m3JYEypT3iWb02SzKOgIwdqEyDLXk1XO4UTVYFTQWxM=' >> /etc/nix/nix.conf
 
 WORKDIR /workspace
 COPY . /workspace/

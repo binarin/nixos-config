@@ -151,11 +151,6 @@ in
               protocol = "https";
               target = "localhost:3900"; # S3 API
             };
-            nix-cache-storage = {
-              serviceName = "nix-cache-storage";
-              protocol = "https";
-              target = "localhost:3902";
-            };
             niks3-storage = {
               serviceName = "niks3-storage";
               protocol = "https";

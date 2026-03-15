@@ -48,6 +48,7 @@
         "${self}/my-machines/furfur/hardware-configuration.nix"
       ];
 
+      nixos-config.personal-nix-cache.useHomeNet = false;
       users.users.binarin.extraGroups = [ "i2c" ];
       hardware.i2c.enable = true;
 

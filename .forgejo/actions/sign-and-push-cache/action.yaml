@@ -19,39 +19,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: sign and push to nix-cache-storage
+    - name: sign and push to niks3
       shell: bash
       env:
-        AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
-        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
-        AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
-        AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
-        GARAGE_STORE_PRIV_KEY_PEM: ${{ inputs.signing-key-pem }}
         PATHS_FILE: ${{ inputs.paths-file }}
         NIKS3_API_TOKEN: ${{ inputs.niks3-api-token }}
       run: |
-        S3_DEST="s3://nix-cache-storage?endpoint=s3.lynx-lizard.ts.net&region=garage"
-        S3_BUCKET="s3://nix-cache-storage/"
-        LOCK_FILE="/tmp/nix-cache-sign.lock"
-
-        # Use flock to prevent races when multiple CI jobs sign paths simultaneously
-        # Timeout after 30 minutes (1800 seconds) to prevent indefinite waiting
-        exec 9>"$LOCK_FILE"
-        echo "Acquiring exclusive lock for signing (may wait for other jobs)..."
-        if ! flock --exclusive --timeout 1800 9; then
-          echo "Error: Failed to acquire lock after 30 minutes"
-          exit 1
-        fi
-        echo "Lock acquired, proceeding with signing"
-
-        # Write key to temp file (process substitution doesn't work with xargs
-        # because the pipe can only be read once, but xargs may invoke the
-        # command multiple times for large input)
-        KEY_FILE=$(mktemp)
-        trap 'rm -f "$KEY_FILE"' EXIT
-        echo "$GARAGE_STORE_PRIV_KEY_PEM" > "$KEY_FILE"
-        chmod 600 "$KEY_FILE"
-
         if [[ ! -f "$PATHS_FILE" ]]; then
           echo "Error: paths-file does not exist: $PATHS_FILE"
           exit 1
@@ -66,67 +39,3 @@ runs:
         # rm -f "$NIKS3_AUTH_TOKEN_FILE"
         cat "$PATHS_FILE" | xargs niks3 push --auth-token "$NIKS3_API_TOKEN" --server-url "https://niks3.lynx-lizard.ts.net"
 
-        PATH_COUNT=$(wc -l < "$PATHS_FILE")
-        echo "Processing $PATH_COUNT store paths from $PATHS_FILE"
-
-        # Fetch existing narinfo hashes from S3 to avoid redundant uploads
-        # This works around nix copy silently failing on some paths (NixOS/nix#1659)
-        # and stale positive cache entries causing skipped uploads
-        echo "=== Fetching existing cache contents ==="
-        EXISTING_HASHES=$(mktemp)
-        s3cmd ls \
-          --access_key="$AWS_ACCESS_KEY_ID" \
-          --secret_key="$AWS_SECRET_ACCESS_KEY" \
-          --host=s3.lynx-lizard.ts.net \
-          --host-bucket=s3.lynx-lizard.ts.net \
-          "$S3_BUCKET" 2>/dev/null \
-          | awk '{print $4}' \
-          | grep '\.narinfo$' \
-          | sed 's|.*/||; s|\.narinfo$||' \
-          | sort -u > "$EXISTING_HASHES"
-        echo "Found $(wc -l < "$EXISTING_HASHES") paths already in cache"
-
-        # Filter to only paths missing from cache using awk for O(n) performance
-        MISSING_PATHS=$(mktemp)
-        awk -v hashfile="$EXISTING_HASHES" '
-          BEGIN {
-            while ((getline h < hashfile) > 0) existing[h] = 1
-          }
-          {
-            path = $0
-            n = split(path, parts, "/")
-            basename = parts[n]
-            split(basename, hashpart, "-")
-            hash = hashpart[1]
-            if (!(hash in existing)) print path
-          }
-        ' "$PATHS_FILE" > "$MISSING_PATHS"
-        rm -f "$EXISTING_HASHES"
-
-        MISSING_COUNT=$(wc -l < "$MISSING_PATHS")
-        echo "Need to upload $MISSING_COUNT new paths ($(( PATH_COUNT - MISSING_COUNT )) already cached)"
-
-        if [[ "$MISSING_COUNT" -eq 0 ]]; then
-          echo "=== All paths already in cache, nothing to do ==="
-          exit 0
-        fi
-
-        # Sign only missing paths
-        echo "=== Starting nix store sign ==="
-        xargs nix store sign --key-file "$KEY_FILE" < "$MISSING_PATHS"
-        echo "=== nix store sign completed ==="
-
-        # Push to S3 with cache disabled to ensure fresh checks
-        # narinfo-cache-positive-ttl=0 prevents stale cache from causing skipped uploads
-        echo "=== Starting nix copy ==="
-        xargs nix copy \
-          --option narinfo-cache-positive-ttl 0 \
-          --to "$S3_DEST" < "$MISSING_PATHS" 2>&1 || {
-          echo "=== nix copy failed with exit code $? ==="
-          echo "Note: 'key is corrupt' errors typically indicate malformed signatures in the cache"
-          exit 1
-        }
-        echo "=== nix copy completed ==="
-
-        rm -f "$MISSING_PATHS"
-        # Lock is automatically released when file descriptor 9 is closed (script exit)

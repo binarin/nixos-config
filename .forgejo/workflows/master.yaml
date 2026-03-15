@@ -29,9 +29,6 @@ jobs:
         with:
           paths-file: ${{ runner.temp }}/flake-inputs.paths
           niks3-api-token: ${{ secrets.NIKS3_API_TOKEN }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          signing-key-pem: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
       - uses: actions/upload-artifact@v3
         with:
           name: cached-paths-flake-inputs
@@ -63,9 +60,6 @@ jobs:
         with:
           paths-file: ${{ runner.temp }}/${{ steps.artifact.outputs.name }}.paths
           niks3-api-token: ${{ secrets.NIKS3_API_TOKEN }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          signing-key-pem: ${{ secrets.GARAGE_STORE_PRIV_KEY_PEM }}
       - uses: actions/upload-artifact@v3
         with:
           name: cached-paths-${{ steps.artifact.outputs.name }}
