@@ -6,7 +6,7 @@ Add PCI passthrough support to the NixOS VM provisioning system: define device o
 
 ## NixOS Options (`qemu-guest.nix`)
 
-Add `pci-passthrough` option under `options.nixos-config.qemu-guest.proxmox`:
+Add `pci-passthrough` option under `options.nixos-config.qemu-guest.proxmox`, alongside existing options like `memory`, `cores`, etc.:
 
 ```nix
 pci-passthrough = lib.mkOption {
@@ -54,9 +54,20 @@ pci-passthrough = lib.mkOption {
 };
 ```
 
-Assertion: exactly one of `id` or `mapping` must be set per entry.
+### Assertion
 
-## llm-runner.nix Test Config
+Exactly one of `id` or `mapping` must be set per entry:
+
+```nix
+(lib.concatLists (lib.mapAttrsToList (label: entry: [{
+  assertion = (entry.id != null) != (entry.mapping != null);
+  message = "pci-passthrough.${label}: exactly one of 'id' or 'mapping' must be set";
+}]) proxmox.pci-passthrough))
+```
+
+## llm-runner.nix Desired Config
+
+Note: the current working tree has `GAT102` (typo) which is corrected to `GA102` to match the actual file `files/GA102.rom.git-crypt`. The `radeon` entry is new.
 
 ```nix
 pci-passthrough = {
@@ -85,11 +96,11 @@ New step after disk configuration, before ISO attachment:
 
 1. Read `pci-passthrough` from `vm_config`, sort entries by label.
 2. For each entry, indexed as N:
-   - **id mode**: SSH to Proxmox host, run `lspci`, find lines containing the `id` string. Extract bus:slot.function addresses. Fail if not exactly one match.
+   - **id mode**: SSH to Proxmox host, run `lspci` (plain, no `-D`), find lines containing the `id` string. Extract bus:slot.function address from the start of each matching line (before the first space). Fail if not exactly one match. The `id` string must be specific enough to match exactly one lspci output line.
      - If `all-functions`: strip `.function` suffix to get `bus:slot` format.
    - **mapping mode**: use `mapping=<name>` syntax instead of address.
-   - If `rom` is set: SCP the file to `/usr/share/kvm/<basename>` on Proxmox host.
-   - Build hostpci spec string:
+   - If `rom` is set: SCP the file to `/usr/share/kvm/<basename>` on Proxmox host. Note: the `rom` value is a Nix store path (e.g., `/nix/store/...-GA102.rom.git-crypt`) since `lib.types.path` serializes that way via `query_nixos_config`.
+   - Build hostpci spec string (address/mapping must come first):
      - id mode: `<addr>,pcie=<0|1>,x-vga=<0|1>,rombar=<0|1>[,romfile=<basename>]`
      - mapping mode: `mapping=<name>,pcie=<0|1>,x-vga=<0|1>,rombar=<0|1>[,romfile=<basename>]`
    - Run `qm set <vmid> --hostpci<N> <spec>`.
@@ -100,7 +111,9 @@ New step after disk configuration, before ISO attachment:
 def resolve_pci_device(proxmox_host: str, device_id: str, all_functions: bool) -> str:
     """Resolve lspci description to PCI bus address.
 
-    Runs `lspci` on the Proxmox host, finds lines containing device_id.
+    Runs plain `lspci` (no -D flag) on the Proxmox host via SSH.
+    Finds lines containing device_id substring.
+    Extracts address from start of line (before first space).
     Fails if match count != 1.
     Returns address in format 0f:00.0 (or 0f:00 if all_functions).
     """
@@ -112,6 +125,7 @@ def resolve_pci_device(proxmox_host: str, device_id: str, all_functions: bool) -
 def upload_rom_file(proxmox_host: str, rom_path: str) -> str:
     """Upload ROM file to /usr/share/kvm/ on Proxmox host via SCP.
 
+    rom_path is a Nix store path (from lib.types.path serialization).
     Returns the basename for use in romfile= parameter.
     """
 ```
@@ -125,8 +139,8 @@ ncf machine update-proxmox-vm <machine> --proxmox-host <host> [--apply]
 ### Behavior
 
 - Dry-run by default: shows proposed changes as diffs. `--apply` executes them.
+- Finds VM by hostname match using `client.vm_exists(hostname)` from `proxmox_api.py`.
 - Checks VM is stopped via API. Fails if running.
-- Finds VM by hostname match.
 
 ### Config Properties Updated
 
@@ -148,12 +162,12 @@ New file: `tools/ncf/ncf/commands/update_proxmox_vm.py`
 
 Core logic:
 1. Query NixOS config for desired state.
-2. Find VM by hostname via Proxmox API.
-3. Check VM is stopped.
-4. Get current VM config.
+2. Find VM by hostname via Proxmox API (`client.vm_exists(hostname)`).
+3. Check VM is stopped (fail with clear message if running).
+4. Get current VM config via API.
 5. Compute desired values for memory/cpu/pci properties.
 6. Diff current vs desired.
-7. If `--apply`: execute `qm set` commands and delete stale `hostpci*` entries.
+7. If `--apply`: execute `qm set` commands. Delete stale `hostpci*` entries using `qm set <vmid> -delete hostpciN`.
 
 ### CLI Registration
 
@@ -162,14 +176,15 @@ In `cli.py`, register as `@machine_app.command("update-proxmox-vm")`.
 ## Files Modified
 
 - `modules/qemu-guest.nix` — add `pci-passthrough` option + assertion
-- `modules/machines/llm-runner.nix` — update pci-passthrough config (add radeon mapped device, fix ROM filename)
-- `tools/ncf/ncf/commands/provision_vm_anywhere.py` — add PCI passthrough step
-- `tools/ncf/ncf/commands/update_proxmox_vm.py` — new file
+- `modules/machines/llm-runner.nix` — update pci-passthrough config (fix `GAT102` typo to `GA102`, add `radeon` mapped device, remove redundant default values)
+- `tools/ncf/ncf/commands/provision_vm_anywhere.py` — call shared PCI passthrough step
+- `tools/ncf/ncf/commands/pci_passthrough.py` — new shared helper module
+- `tools/ncf/ncf/commands/update_proxmox_vm.py` — new subcommand implementation
 - `tools/ncf/ncf/cli.py` — register new subcommand, import new module
 
 ## Shared Code
 
-PCI resolution and ROM upload functions go in `provision_vm_anywhere.py` or a shared utility. Since `update_proxmox_vm.py` also needs them, extract to a helper module `tools/ncf/ncf/commands/pci_passthrough.py`:
+PCI resolution and ROM upload functions shared between provisioning and update, extracted to `tools/ncf/ncf/commands/pci_passthrough.py`:
 - `resolve_pci_device(proxmox_host, device_id, all_functions) -> str`
 - `upload_rom_file(proxmox_host, rom_path) -> str`
 - `build_hostpci_spec(entry, proxmox_host) -> str`
