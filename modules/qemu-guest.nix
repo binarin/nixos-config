@@ -1,5 +1,8 @@
 # modules/qemu-guest.nix
-{ self, ... }:
+{ self, config, ... }:
+let
+  flakeConfig = config;
+in
 {
   flake.nixosModules.qemu-guest =
     {
