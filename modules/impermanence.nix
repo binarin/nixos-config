@@ -13,6 +13,7 @@
       pkgs,
       lib,
       config,
+      specialArgs,
       ...
     }:
     {
@@ -78,8 +79,6 @@
 
             programs.fuse.userAllowOther = true;
 
-            sops.age.sshKeyPaths = lib.mkForce [ "/persist/ssh/ssh_host_ed25519_key" ];
-
             system.activationScripts = {
               "manual-impermanence-create-dirs" = {
                 deps = [
@@ -92,7 +91,9 @@
               };
             };
 
-            services.openssh = {
+            sops.age.sshKeyPaths = lib.mkForce [ "/persist/ssh/ssh_host_ed25519_key" ];
+
+            services.openssh = lib.mkIf (!(specialArgs ? clan-core)) {
               enable = true;
               hostKeys = [
                 {
@@ -112,6 +113,9 @@
             };
 
             systemd.services.tailscaled.serviceConfig.BindPaths = [
+              "/local/var/lib/tailscale:/var/lib/tailscale"
+            ];
+            systemd.services.tailscaled-autoconnect.serviceConfig.BindPaths = [
               "/local/var/lib/tailscale:/var/lib/tailscale"
             ];
 
@@ -281,6 +285,14 @@
               }
             ];
           })
+          (
+            if specialArgs ? clan-core then
+              {
+                clan.core.vars.sops.secretUploadDirectory = "/persist/var/lib/sops-nix";
+              }
+            else
+              { }
+          )
         ]
       );
     };
