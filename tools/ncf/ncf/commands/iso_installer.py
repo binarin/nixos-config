@@ -78,15 +78,11 @@ def run_build(
 
     built_iso = iso_files[0]
 
-    # Copy to the output path
-    import shutil
-
+    # Symlink to the built ISO (no need to copy from Nix store)
     output.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(built_iso, output)
-
-    # Clean up result link
-    if result_link.is_symlink():
-        result_link.unlink()
+    if output.exists() or output.is_symlink():
+        output.unlink()
+    output.symlink_to(built_iso.resolve())
 
     console.print(f"[green]✓[/green] Built installer ISO -> {output}")
     return output
