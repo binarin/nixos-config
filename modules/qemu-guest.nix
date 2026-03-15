@@ -252,6 +252,58 @@
             description = "Storage for cloud-init drive.";
           };
         };
+
+        pci-passthrough = lib.mkOption {
+          type = lib.types.attrsOf (
+            lib.types.submodule {
+              options = {
+                id = lib.mkOption {
+                  type = lib.types.nullOr lib.types.str;
+                  default = null;
+                  description = "lspci description substring to match. Mutually exclusive with mapping.";
+                };
+
+                mapping = lib.mkOption {
+                  type = lib.types.nullOr lib.types.str;
+                  default = null;
+                  description = "Proxmox mapped PCI device name. Mutually exclusive with id.";
+                };
+
+                pci-express = lib.mkOption {
+                  type = lib.types.bool;
+                  default = true;
+                  description = "Present device as PCIe (vs legacy PCI).";
+                };
+
+                primary-gpu = lib.mkOption {
+                  type = lib.types.bool;
+                  default = false;
+                  description = "Mark as primary GPU (x-vga=1 in Proxmox).";
+                };
+
+                all-functions = lib.mkOption {
+                  type = lib.types.bool;
+                  default = false;
+                  description = "Pass all functions of the device (multifunction). Address uses bus:slot without .function suffix.";
+                };
+
+                rom-bar = lib.mkOption {
+                  type = lib.types.bool;
+                  default = true;
+                  description = "Enable ROM BAR mapping.";
+                };
+
+                rom = lib.mkOption {
+                  type = lib.types.nullOr lib.types.path;
+                  default = null;
+                  description = "Path to ROM file. Uploaded to /usr/share/kvm/ on the Proxmox host during provisioning.";
+                };
+              };
+            }
+          );
+          default = { };
+          description = "PCI device passthrough configuration. Keys are labels sorted alphabetically for stable hostpciN assignment.";
+        };
       };
 
       config = {
@@ -313,6 +365,12 @@
               message = "Balloon memory must be less than or equal to maximum memory";
             }
           ]
+          ++ (lib.concatLists (lib.mapAttrsToList (label: entry: [
+            {
+              assertion = (entry.id != null) != (entry.mapping != null);
+              message = "pci-passthrough.${label}: exactly one of 'id' or 'mapping' must be set";
+            }
+          ]) proxmox.pci-passthrough))
           ++ diskoBusAssertions;
       };
     };
