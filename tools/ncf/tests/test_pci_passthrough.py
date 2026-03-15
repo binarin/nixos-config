@@ -132,3 +132,61 @@ class TestComputeDiff:
         assert ("memory", "2048", "65536") in changes
         assert ("hostpci0", "old,pcie=1", "new,pcie=1") in changes
         assert ("hostpci5", "stale", "(removed)") in changes
+
+
+from ncf.commands.update_proxmox_vm import compute_boot_order
+
+
+class TestComputeBootOrder:
+    """Tests for computing boot order from NixOS config."""
+
+    def test_pci_device_bootable(self):
+        """A PCI passthrough device marked bootable produces correct boot order."""
+        vm_config = {
+            "pci-passthrough": {
+                "gpu-sound": {"bootable": False},
+                "nvme": {"bootable": True},
+            },
+            "disks": [],
+        }
+        # PCI devices are sorted alphabetically: gpu-sound=hostpci0, nvme=hostpci1
+        assert compute_boot_order(vm_config) == "order=hostpci1"
+
+    def test_disk_bootable(self):
+        """A disk with bootOrder set produces correct boot order."""
+        vm_config = {
+            "pci-passthrough": {},
+            "disks": [
+                {"bus": "scsi", "index": 0, "bootOrder": 1},
+            ],
+        }
+        assert compute_boot_order(vm_config) == "order=scsi0"
+
+    def test_no_bootable_device_returns_none(self):
+        """When no device is marked bootable, returns None."""
+        vm_config = {
+            "pci-passthrough": {"nvme": {"bootable": False}},
+            "disks": [{"bus": "scsi", "index": 0, "bootOrder": None}],
+        }
+        assert compute_boot_order(vm_config) is None
+
+    def test_multiple_bootable_devices_raises(self):
+        """More than one bootable device raises RuntimeError."""
+        vm_config = {
+            "pci-passthrough": {"nvme": {"bootable": True}},
+            "disks": [{"bus": "scsi", "index": 0, "bootOrder": 1}],
+        }
+        with pytest.raises(RuntimeError, match="exactly 1 bootable device"):
+            compute_boot_order(vm_config)
+
+    def test_multiple_pci_bootable_raises(self):
+        """Two PCI devices marked bootable raises RuntimeError."""
+        vm_config = {
+            "pci-passthrough": {
+                "nvme1": {"bootable": True},
+                "nvme2": {"bootable": True},
+            },
+            "disks": [],
+        }
+        with pytest.raises(RuntimeError, match="exactly 1 bootable device"):
+            compute_boot_order(vm_config)
