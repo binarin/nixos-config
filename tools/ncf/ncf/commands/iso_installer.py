@@ -113,7 +113,9 @@ def run_upload(
     # Check if ISO already exists
     if client.iso_exists(storage, ISO_FILENAME):
         if force:
-            console.print(f"  [yellow]ISO '{ISO_FILENAME}' exists, overwriting[/yellow]")
+            console.print(
+                f"  [yellow]ISO '{ISO_FILENAME}' exists, overwriting[/yellow]"
+            )
         else:
             console.print(f"  [green]✓[/green] ISO '{ISO_FILENAME}' already exists")
             return

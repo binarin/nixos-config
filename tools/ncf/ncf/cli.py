@@ -840,7 +840,9 @@ def machine_update_proxmox_vm_cmd(
         False, "--apply", help="Apply changes (default is dry-run)"
     ),
     cleanup_install: bool = typer.Option(
-        False, "--cleanup-install", help="Remove installation artefacts (ISO, cloud-init)"
+        False,
+        "--cleanup-install",
+        help="Remove installation artefacts (ISO, cloud-init)",
     ),
 ):
     """Update Proxmox VM config to match NixOS config.
