@@ -796,32 +796,28 @@ def machine_provision_vm_anywhere_cmd(
     ssh_timeout: int = typer.Option(
         300, "--ssh-timeout", help="Timeout for SSH connectivity in seconds"
     ),
-    no_generate_hardware_config: bool = typer.Option(
+    force_rebuild_iso: bool = typer.Option(
         False,
-        "--no-generate-hardware-config",
-        help="Skip hardware config generation (use existing)",
+        "--force-rebuild-iso",
+        "-f",
+        help="Force rebuild and re-upload the installer ISO",
     ),
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Show what would be done without making changes"
     ),
 ):
-    """Provision a Proxmox VM using nixos-anywhere.
+    """Provision a Proxmox VM for clan install.
 
-    Creates a VM, boots from installer ISO, and uses nixos-anywhere
-    to install the NixOS configuration. This is the recommended method
-    for new VMs as it:
-
-    - Automatically detects hardware configuration
-    - Properly partitions disks using disko
-    - Injects secrets during installation
+    Creates a VM with cloud-init IP assignment, boots from installer
+    ISO, and verifies the VM gets its expected IP. The VM is then
+    ready for `clan machines install`.
 
     The workflow:
     1. Creates VM with resources from NixOS config
-    2. Ensures installer ISO is available on Proxmox
-    3. Boots VM from ISO
-    4. Waits for SSH connectivity
-    5. Runs nixos-anywhere to install
-    6. Reboots into installed system
+    2. Configures cloud-init for static IP
+    3. Ensures installer ISO is available on Proxmox
+    4. Boots VM from ISO
+    5. Verifies VM gets expected IP via cloud-init
 
     If the VM already exists, validates the configuration and
     reports any mismatches without modifying the VM.
@@ -831,7 +827,7 @@ def machine_provision_vm_anywhere_cmd(
         proxmox_host=proxmox_host,
         bridge=bridge,
         ssh_timeout=ssh_timeout,
-        generate_hardware_config=not no_generate_hardware_config,
+        force_rebuild_iso=force_rebuild_iso,
         dry_run=dry_run,
     )
 
