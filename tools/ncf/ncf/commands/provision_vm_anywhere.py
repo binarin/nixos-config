@@ -22,6 +22,7 @@ from .. import config
 from ..nix import NixRunner
 from ..proxmox_api import ProxmoxClient
 from . import iso_installer
+from .pci_passthrough import configure_pci_passthrough
 from .provision_vm import (
     build_qm_create_command,
     query_nixos_config,
@@ -277,8 +278,20 @@ def run(
                 subprocess.run(ssh_cmd, check=True)
                 console.print(f"  [green]Disk {disk_key} configured[/green]")
 
-    # Step 5c: Attach cloud-init drive
-    console.print("\n[bold]Step 5c:[/bold] Attaching cloud-init drive")
+    # Step 5c: Configure PCI passthrough devices
+    pci_config = vm_config.get("pci-passthrough", {})
+    if pci_config:
+        console.print("\n[bold]Step 5c:[/bold] Configuring PCI passthrough")
+        configure_pci_passthrough(
+            proxmox_host=proxmox_host,
+            vmid=vmid,
+            hostname=hostname,
+            pci_config=pci_config,
+            dry_run=dry_run,
+        )
+
+    # Step 5d: Attach cloud-init drive
+    console.print("\n[bold]Step 5d:[/bold] Attaching cloud-init drive")
     cloud_init_config = vm_config.get("cloudInit", {})
     ci_storage = cloud_init_config.get("storage", "local-zfs")
 
