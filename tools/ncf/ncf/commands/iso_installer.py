@@ -146,6 +146,7 @@ def ensure_iso_on_proxmox(
     proxmox_host: str,
     storage: str = "local",
     build_if_missing: bool = True,
+    force: bool = False,
     verbosity: int = 1,
     dry_run: bool = False,
 ) -> str:
@@ -158,6 +159,7 @@ def ensure_iso_on_proxmox(
         proxmox_host: Proxmox host
         storage: Storage name
         build_if_missing: Build ISO if not found locally
+        force: Rebuild and re-upload even if ISO exists
         verbosity: Verbosity level
         dry_run: Show what would be done
 
@@ -175,14 +177,14 @@ def ensure_iso_on_proxmox(
     client = ProxmoxClient(proxmox_host)
 
     # Check if already on Proxmox
-    if client.iso_exists(storage, ISO_FILENAME):
+    if not force and client.iso_exists(storage, ISO_FILENAME):
         console.print(f"  [green]✓[/green] ISO already present: {ISO_FILENAME}")
         return iso_ref
 
     # Build if needed
-    if not local_iso.exists():
-        if build_if_missing:
-            console.print("  ISO not found locally, building...")
+    if force or not local_iso.exists():
+        if build_if_missing or force:
+            console.print("  Building installer ISO...")
             run_build(output=local_iso, verbosity=verbosity)
         else:
             raise RuntimeError(f"ISO not found at {local_iso}")
