@@ -190,3 +190,41 @@ class TestComputeBootOrder:
         }
         with pytest.raises(RuntimeError, match="exactly 1 bootable device"):
             compute_boot_order(vm_config)
+
+
+from ncf.commands.update_proxmox_vm import add_cleanup_entries
+
+
+class TestAddCleanupEntries:
+    """Tests for adding IDE cleanup entries to desired config."""
+
+    def test_adds_ide_deletions_when_present(self):
+        """When ide0 and ide2 exist in current config, adds removal entries."""
+        current = {
+            "ide0": "local-zfs:vm-125-cloudinit,media=cdrom",
+            "ide2": "local:iso/nixos-installer.iso,media=cdrom,size=4563216K",
+            "memory": "2048",
+        }
+        desired = {"memory": "2048"}
+        add_cleanup_entries(current, desired)
+        assert desired["ide0"] == "(removed)"
+        assert desired["ide2"] == "(removed)"
+
+    def test_skips_missing_ide_devices(self):
+        """When ide0/ide2 are absent, does not add removal entries."""
+        current = {"memory": "2048"}
+        desired = {"memory": "2048"}
+        add_cleanup_entries(current, desired)
+        assert "ide0" not in desired
+        assert "ide2" not in desired
+
+    def test_partial_cleanup(self):
+        """When only ide2 exists, only ide2 gets removal entry."""
+        current = {
+            "ide2": "local:iso/nixos-installer.iso,media=cdrom",
+            "memory": "2048",
+        }
+        desired = {"memory": "2048"}
+        add_cleanup_entries(current, desired)
+        assert "ide0" not in desired
+        assert desired["ide2"] == "(removed)"
