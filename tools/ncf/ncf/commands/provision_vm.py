@@ -144,16 +144,16 @@ def build_qm_create_command(
     # Serial console for NixOS (common for cloud images)
     cmd.extend(["--serial0", "socket", "--vga", "serial0"])
 
-    # Cloud-init snippet
+    # Cloud-init snippet (optional)
     if cloud_init_snippet:
         cmd.extend(["--cicustom", f"user={cloud_init_snippet}"])
 
-        # Also set ipconfig0 for static IP
-        ip_addr = network_config.get("address")
-        prefix = network_config.get("prefix")
-        gateway = network_config.get("gateway")
-        if ip_addr and prefix and gateway:
-            cmd.extend(["--ipconfig0", f"ip={ip_addr}/{prefix},gw={gateway}"])
+    # Static IP configuration (always set for cloud-init)
+    ip_addr = network_config.get("address")
+    prefix = network_config.get("prefix")
+    gateway = network_config.get("gateway")
+    if ip_addr and prefix and gateway:
+        cmd.extend(["--ipconfig0", f"ip={ip_addr}/{prefix},gw={gateway}"])
 
     return cmd
 
