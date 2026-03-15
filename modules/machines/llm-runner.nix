@@ -10,6 +10,14 @@ let
   flakeConfig = config;
 in
 {
+  flake.deploy.nodes.llm-runner = {
+    hostname = "llm-runner";
+    profiles.system = {
+      sshUser = "root";
+      path = self.lib.deploy-nixos self.nixosConfigurations.llm-runner;
+    };
+  };
+
   clan.inventory.machines.llm-runner = {
     deploy.targetHost = flakeConfig.inventory.ipAllocation.llm-runner.home.primary.address;
   };
@@ -105,16 +113,47 @@ in
         };
       };
 
+      environment.persistence."/persist".directories = [
+        "/var/lib/private/llama-swap"
+      ];
+
+      system.activationScripts."createPersistentStorageDirs".deps = [
+        "var-lib-private-permissions"
+        "users"
+        "groups"
+      ];
+      system.activationScripts = {
+        "var-lib-private-permissions" = {
+          deps = [ "specialfs" ];
+          text = ''
+            mkdir -p /persist/var/lib/private
+            chmod 0700 /persist/var/lib/private
+          '';
+        };
+      };
+
+      systemd.services.llama-swap.serviceConfig.StateDirectory = "llama-swap";
+      systemd.services.llama-swap.environment.HOME = "/var/lib/llama-swap";
+
+      services.tailscale.serve.enable = true;
+      services.tailscale.serve.configs.llama-swap = {
+        target = "8080";
+      };
+
       services.llama-swap = {
         enable = true;
         settings = {
-          models = {
-            "qwen3-coder:30b" = {
-              cmd = ''
-                ${lib.getExe' pkgs.llama-cpp "llama-server"} --hf-repo unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q4_K_M --port ''${PORT} --ctx-size 131072
-              '';
+          models =
+            let
+              llama-server = lib.getExe' pkgs.llama-cpp "llama-server";
+            in
+            {
+              "qwen3.5:9b" = {
+                cmd = ''
+                  ${llama-server} --hf-repo unsloth/Qwen3.5-9B-GGUF:Q8_0 --port ''${PORT} --ctx-size 262144
+                '';
+              };
             };
-          };
         };
       };
     };
