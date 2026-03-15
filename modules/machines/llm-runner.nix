@@ -1,5 +1,6 @@
 { self, config, ... }:
 let
+  selfLib = self.lib.self;
   flakeConfig = config;
 in
 {
@@ -33,6 +34,22 @@ in
         bios = "ovmf";
         machine = "q35";
         description = "LLM runner";
+        pci-passthrough = {
+          nvme = {
+            id = "Samsung Electronics Co Ltd NVMe SSD Controller SM981/PM981/PM983";
+          };
+          gpu = {
+            id = "NVIDIA Corporation GA102 [GeForce RTX 3090] (rev a1)";
+            primary-gpu = true;
+            rom = selfLib.file "GA102.rom.git-crypt";
+          };
+          gpu-sound = {
+            id = "NVIDIA Corporation GA102 High Definition Audio Controller (rev a1)";
+          };
+          radeon = {
+            mapping = "large-radeon";
+          };
+        };
       };
 
       impermanence.enable = true;
