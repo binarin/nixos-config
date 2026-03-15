@@ -18,6 +18,7 @@ in
 
   flake.nixosConfigurations.docker-on-nixos = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
+    specialArgs.inventoryHostName = "docker-on-nixos";
     modules = [
       self.nixosModules.docker-on-nixos-configuration
     ];

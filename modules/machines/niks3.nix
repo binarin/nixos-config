@@ -2,6 +2,7 @@
   inputs,
   self,
   config,
+  lib,
   ...
 }:
 let
@@ -15,6 +16,12 @@ in
     inputs.flake-parts.follows = "flake-parts";
     inputs.treefmt-nix.follows = "treefmt-nix";
   };
+
+  flake.nixosConfigurations.niks3 = lib.mkForce (
+    self.clan.nixosConfigurations.llm-runner.extendModules {
+      specialArgs.inventoryHostName = "niks3";
+    }
+  );
 
   clan.inventory.machines.niks3 = {
     deploy.targetHost = flakeConfig.inventory.ipAllocation."${inventoryHostName}".home.primary.address;

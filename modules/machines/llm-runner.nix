@@ -1,4 +1,9 @@
-{ self, config, ... }:
+{
+  self,
+  config,
+  lib,
+  ...
+}:
 let
   selfLib = self.lib.self;
   flakeConfig = config;
@@ -14,6 +19,12 @@ in
     ];
     nixpkgs.hostPlatform = "x86_64-linux";
   };
+
+  flake.nixosConfigurations.llm-runner = lib.mkForce (
+    self.clan.nixosConfigurations.llm-runner.extendModules {
+      specialArgs.inventoryHostName = "llm-runner";
+    }
+  );
 
   flake.nixosModules.llm-runner-configuration =
     { ... }:
@@ -40,15 +51,15 @@ in
           };
           gpu = {
             id = "NVIDIA Corporation GA102 [GeForce RTX 3090] (rev a1)";
-            primary-gpu = true;
+            # primary-gpu = true;
             rom = selfLib.file "GA102.rom.git-crypt";
           };
           gpu-sound = {
             id = "NVIDIA Corporation GA102 High Definition Audio Controller (rev a1)";
           };
-          radeon = {
-            mapping = "large-radeon";
-          };
+          # radeon = {
+          #   mapping = "large-radeon";
+          # };
         };
       };
 

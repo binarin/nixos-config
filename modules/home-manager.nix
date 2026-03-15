@@ -14,6 +14,8 @@
   flake.nixosModules.home-manager =
     {
       specialArgs,
+      self',
+      packages',
       ...
     }:
     {
@@ -25,7 +27,9 @@
         home-manager.sharedModules = [
           self.homeModules.home-misc
         ];
-        home-manager.extraSpecialArgs = specialArgs;
+        home-manager.extraSpecialArgs = specialArgs // {
+          inherit self' packages';
+        };
         home-manager.useGlobalPkgs = true;
         home-manager.backupFileExtension = "backup";
       };

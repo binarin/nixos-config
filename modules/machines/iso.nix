@@ -66,6 +66,8 @@ in
           kernelParams = [
             "console=tty0"
             "console=ttyS0,115200n8"
+            # Use eth0 naming to match Proxmox cloud-init network config
+            "net.ifnames=0"
           ];
         };
 
@@ -80,7 +82,14 @@ in
 
         services.cloud-init.enable = true;
         services.cloud-init.network.enable = true;
-        services.cloud-init.settings.updates.network.when = [ "boot" ];
+        # Allow network config on all boot types (cloud-init 25.x uses boot-legacy)
+        services.cloud-init.settings.updates.network.when = [ "boot" "boot-legacy" ];
+
+        # Networkd DHCP fallback for eth0 (overridden by cloud-init static config)
+        systemd.network.networks."20-eth0-dhcp" = {
+          matchConfig.Name = "eth0";
+          networkConfig.DHCP = "yes";
+        };
 
         environment.systemPackages = with pkgs; [
           inputs.disko.packages."${config.nixpkgs.hostPlatform.system}".disko
@@ -99,6 +108,8 @@ in
         ];
 
         networking.networkmanager.enable = true;
+        # Let networkd handle eth0 (cloud-init static IP), NM handles WiFi
+        networking.networkmanager.unmanaged = [ "interface-name:eth0" ];
 
         # WiFi credentials injected via environment variables in impure mode
         # In pure mode (CI, regular eval), no WiFi credentials are configured

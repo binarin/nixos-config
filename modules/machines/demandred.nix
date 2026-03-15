@@ -6,6 +6,7 @@
 {
   flake.nixosConfigurations.demandred = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
+    specialArgs.inventoryHostName = "demandred";
     modules = [
       self.nixosModules.demandred-configuration
     ];

@@ -12,6 +12,8 @@ in
     {
       lib,
       pkgs,
+      inventoryHostName,
+      specialArgs,
       ...
     }:
     {
@@ -36,9 +38,8 @@ in
         self.nixosModules.use-nix-cache
 
         self.nixosModules.binarin-baseline
-
-        self.nixosModules.clan-baseline
-      ];
+      ]
+      ++ (lib.optional (specialArgs ? clan-core) self.nixosModules.clan-baseline);
 
       _module.args.self' = {
         packages = self.packages."${pkgs.stdenv.hostPlatform.system}";

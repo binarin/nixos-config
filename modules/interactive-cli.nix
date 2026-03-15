@@ -13,7 +13,12 @@ in
   };
 
   flake.nixosModules.interactive-cli =
-    { pkgs, config, self', ... }:
+    {
+      pkgs,
+      config,
+      self',
+      ...
+    }:
     {
       key = "nixos-config.modules.nixos.interactive-cli";
 
@@ -42,6 +47,7 @@ in
 
   flake.homeModules.interactive-cli =
     {
+      self',
       lib,
       pkgs,
       config,

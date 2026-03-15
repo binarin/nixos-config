@@ -176,7 +176,6 @@ def run(
         iso_ref = iso_installer.ensure_iso_on_proxmox(
             proxmox_host=proxmox_host,
             storage="local",
-            build_if_missing=True,
             force=force_rebuild_iso,
             verbosity=1,
         )

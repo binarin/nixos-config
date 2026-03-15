@@ -6,6 +6,7 @@
 {
   flake.nixosConfigurations.ishamael = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
+    specialArgs.inventoryHostName = "ishamael";
     modules = [
       self.nixosModules.ishamael-configuration
     ];

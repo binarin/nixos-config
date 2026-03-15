@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from proxmoxer import ProxmoxAPI
 
@@ -200,16 +200,20 @@ class ProxmoxClient:
         isos = self.list_isos(storage)
         return filename in isos
 
-    def upload_iso(self, storage: str, local_path: Path) -> None:
+    def upload_iso(
+        self, storage: str, local_path: Path, filename: Optional[str] = None
+    ) -> None:
         """Upload ISO to Proxmox storage via pv + SSH with progress.
 
         Args:
             storage: Storage name (must have iso content type enabled)
             local_path: Path to local ISO file
+            filename: Remote filename (defaults to local_path.name)
         """
         import subprocess
 
-        filename = local_path.name
+        if filename is None:
+            filename = local_path.name
         remote_path = f"/var/lib/vz/template/iso/{filename}"
         source_size = local_path.stat().st_size
 

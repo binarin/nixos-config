@@ -33,11 +33,15 @@ class TestParseLspciOutput:
 
     def test_fails_on_no_match(self):
         with pytest.raises(RuntimeError, match="No PCI device found"):
-            parse_lspci_output(self.SAMPLE_LSPCI, "Nonexistent Device", all_functions=False)
+            parse_lspci_output(
+                self.SAMPLE_LSPCI, "Nonexistent Device", all_functions=False
+            )
 
     def test_fails_on_multiple_matches(self):
         with pytest.raises(RuntimeError, match="Multiple PCI devices found"):
-            parse_lspci_output(self.SAMPLE_LSPCI, "NVIDIA Corporation GA102", all_functions=False)
+            parse_lspci_output(
+                self.SAMPLE_LSPCI, "NVIDIA Corporation GA102", all_functions=False
+            )
 
 
 class TestBuildHostpciSpec:
@@ -112,7 +116,11 @@ class TestComputeDiff:
         assert changes == [("hostpci0", "(none)", "0f:00.0,pcie=1")]
 
     def test_stale_hostpci_removed(self):
-        current = {"memory": 2048, "hostpci0": "0f:00.0,pcie=1", "hostpci1": "0e:00.0,pcie=1"}
+        current = {
+            "memory": 2048,
+            "hostpci0": "0f:00.0,pcie=1",
+            "hostpci1": "0e:00.0,pcie=1",
+        }
         desired = {"memory": "2048", "hostpci0": "0f:00.0,pcie=1"}
         changes = compute_diff(current, desired)
         assert changes == [("hostpci1", "0e:00.0,pcie=1", "(removed)")]

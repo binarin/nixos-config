@@ -18,6 +18,7 @@ in
 
   flake.nixosConfigurations.media = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
+    specialArgs.inventoryHostName = "media";
     modules = [
       self.nixosModules.media-configuration
     ];

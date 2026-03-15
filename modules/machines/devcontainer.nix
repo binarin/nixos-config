@@ -6,6 +6,7 @@
 {
   flake.nixosConfigurations.devcontainer = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
+    specialArgs.inventoryHostName = "devcontainer";
     modules = [
       self.nixosModules.devcontainer-configuration
     ];

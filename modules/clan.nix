@@ -48,7 +48,7 @@ in
     }:
     {
       key = "nixos-config.modules.nixos.clan-hostId";
-      config = lib.mkIf (lib.hasAttr config.networking.hostName flakeConfig.clan.machines) {
+      config = {
         clan.core.vars.generators.hostId = {
           files.hostId.secret = false;
           runtimeInputs = with pkgs; [

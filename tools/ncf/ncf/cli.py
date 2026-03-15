@@ -391,7 +391,6 @@ def build_iso_cmd(
 )
 def build_iso_installer_cmd(
     ctx: typer.Context,
-    output: str = typer.Option(None, "--output", "-o", help="Output path for ISO file"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     no_nom: bool = typer.Option(False, "--no-nom", help="Disable nix-output-monitor"),
@@ -408,15 +407,11 @@ def build_iso_installer_cmd(
 
     Extra arguments after -- are passed directly to nix build.
     """
-    from pathlib import Path
-
     verbosity = 0 if quiet else (2 if verbose else 1)
     use_nom = None if not no_nom else False
-    output_path = Path(output) if output else None
     extra_nix_args = list(ctx.args) if ctx.args else None
 
-    iso_installer.run_build(
-        output=output_path,
+    iso_path = iso_installer.run_build(
         verbosity=verbosity,
         use_nom=use_nom,
         builders=builder if builder else None,
@@ -424,6 +419,8 @@ def build_iso_installer_cmd(
         dry_run=dry_run,
         extra_nix_args=extra_nix_args,
     )
+    if not dry_run:
+        console.print(f"ISO path: {iso_path}")
 
 
 @build_app.command(
