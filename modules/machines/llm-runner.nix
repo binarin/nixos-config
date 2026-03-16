@@ -265,7 +265,7 @@ in
       llama-models.models."Qwen3-Coder-30B-A3B-Instruct:Q4_K_S".url =
         "https://cloudflare-b2.binarin.workers.dev/Qwen3-Coder-30B-A3B-Instruct-Q4_K_S.gguf";
       llama-models.models."unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0".url =
-        "https://cloudflare-b2.binarin.workers.dev/unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0";
+        "https://cloudflare-b2.binarin.workers.dev/unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0.gguf";
 
       llama-models.configurations."qwen3-coder-30b" = {
         model = "Qwen3-Coder-30B-A3B-Instruct:Q4_K_S";
