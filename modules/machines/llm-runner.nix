@@ -94,9 +94,38 @@ in
                     type = types.str;
                     default = name;
                   };
-                  ctx-size = mkOption {
-                    type = types.int;
-                    default = 262144;
+                  settings = mkOption {
+                    type = types.submodule (
+                      let
+                        intOpt =
+                          def:
+                          lib.mkOption {
+                            type = with lib.types; int;
+                            default = def;
+                          };
+                        floatOpt =
+                          def:
+                          lib.mkOption {
+                            type =
+                              with lib.types;
+                              oneOf [
+                                str
+                                int
+                                float
+                              ];
+                            default = def;
+                          };
+                      in
+                      {
+                        options = {
+                          ctx-size = intOpt 4096;
+                          temp = floatOpt 0.8;
+                          top-p = floatOpt 0.9;
+                          top-k = intOpt 40;
+                          repeat-penalty = floatOpt 1.00;
+                        };
+                      }
+                    );
                   };
                 };
               }
@@ -269,14 +298,21 @@ in
 
       llama-models.configurations."qwen3-coder-30b" = {
         model = "Qwen3-Coder-30B-A3B-Instruct:Q4_K_S";
-        ctx-size = 262144;
+        settings = {
+          ctx-size = 262144;
+          temp = 0.7;
+          top-p = 0.8;
+          top-k = 20;
+          repeat-penalty = 1.05;
+        };
       };
       llama-models.configurations."gemma3" = {
         model = "gemma-3-27b-it:Q4_K_M";
-        ctx-size = 262144;
+        settings.ctx-size = 262144;
       };
       llama-models.configurations."qwen3.5-9b" = {
         model = "unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0";
+        settings.ctx-size = 262144;
       };
 
       services.llama-swap = {
@@ -286,12 +322,21 @@ in
             with lib;
             let
               llama-server = lib.getExe' pkgs.llama-cpp "llama-server";
+              opts =
+                s:
+                with lib;
+                pipe s [
+                  (mapAttrsToList (opt: val: "--${opt} ${lib.escapeShellArg (builtins.toString val)}"))
+                  (concatStringsSep " ")
+                ];
             in
             flip mapAttrs config.llama-models.configurations (
               _: v: {
-                cmd = "${llama-server} -m ${
-                  lib.escapeShellArg config.llama-models.models."${v.model}".path
-                } --port \${PORT} --ctx-size ${builtins.toString v.ctx-size}";
+                cmd = ''
+                  ${llama-server} -m ${
+                    lib.escapeShellArg config.llama-models.models."${v.model}".path
+                  } --port ''${PORT} ${opts v.settings}
+                '';
               }
             );
         };
