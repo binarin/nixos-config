@@ -264,9 +264,10 @@ in
         "https://cloudflare-b2.binarin.workers.dev/gemma-3-27b-it-Q4_K_M.gguf";
       llama-models.models."Qwen3-Coder-30B-A3B-Instruct:Q4_K_S".url =
         "https://cloudflare-b2.binarin.workers.dev/Qwen3-Coder-30B-A3B-Instruct-Q4_K_S.gguf";
+      llama-models.models."unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0".url =
+        "https://cloudflare-b2.binarin.workers.dev/unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0";
 
-      llama-models.configurations."gemma-3-27b-it:Q4_K_M" = { };
-      llama-models.configurations."qwen3-coder" = {
+      llama-models.configurations."qwen3-coder-30b" = {
         model = "Qwen3-Coder-30B-A3B-Instruct:Q4_K_S";
         ctx-size = 262144;
       };
@@ -274,30 +275,24 @@ in
         model = "gemma-3-27b-it:Q4_K_M";
         ctx-size = 262144;
       };
+      llama-models.configurations."qwen3.5-9b" = {
+        model = "unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0";
+      };
 
       services.llama-swap = {
         enable = true;
         settings = {
           models =
+            with lib;
             let
               llama-server = lib.getExe' pkgs.llama-cpp "llama-server";
             in
-            {
-              "qwen3.5:9b" = {
-                cmd = ''
-                  ${llama-server} --hf-repo unsloth/Qwen3.5-9B-GGUF:Q8_0 --port ''${PORT} --ctx-size 262144
-                '';
-              };
-            }
-            // (
-              with lib;
-              flip mapAttrs config.llama-models.configurations (
-                _: v: {
-                  cmd = "${llama-server} -m ${
-                    lib.escapeShellArg config.llama-models.models."${v.model}".path
-                  } --port \${PORT} --ctx-size ${builtins.toString v.ctx-size}";
-                }
-              )
+            flip mapAttrs config.llama-models.configurations (
+              _: v: {
+                cmd = "${llama-server} -m ${
+                  lib.escapeShellArg config.llama-models.models."${v.model}".path
+                } --port \${PORT} --ctx-size ${builtins.toString v.ctx-size}";
+              }
             );
         };
       };

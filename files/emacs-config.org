@@ -1438,10 +1438,19 @@
        :ensure t
        :bind (("C-M-S-s-<return>" . gptel-send))
        :config
-       (setf gptel-backend (gptel-make-gemini "Gemini"
-                             :key 'gptel-api-key-from-auth-source
-                             :stream t)
-             gptel-default-mode 'org-mode)
+
+       (gptel-make-openai "llm-runner"
+         :stream t
+         :protocol "https"
+         :host "llm-runner.lynx-lizard.ts.net"
+         ;; nix eval .#nixosConfigurations.llm-runner.config.llama-models.configurations --json 2>/dev/null | jq 'keys|join(" ")' -r
+         :models '(gemma3 qwen3-coder-30b qwen3.5-9b))
+
+       (gptel-make-gemini "Gemini"
+         :key 'gptel-api-key-from-auth-source
+         :stream t)
+
+       (setf gptel-default-mode 'org-mode)
        (add-hook 'gptel-mode-hook 'gptel-highlight-mode))
    #+end_src
 

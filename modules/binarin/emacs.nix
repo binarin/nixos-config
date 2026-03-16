@@ -186,8 +186,7 @@ in
           }
 
           (lib.mkIf osConfig.services.graphical-desktop.enable {
-            xdg.dataFile."applications/org-protocol.desktop".source =
-              selfLib.file "org-protocol.desktop";
+            xdg.dataFile."applications/org-protocol.desktop".source = selfLib.file "org-protocol.desktop";
 
             xdg.configFile."autostart/emacs.desktop".source =
               "${finalEmacsPackage}/share/applications/emacs.desktop";
@@ -201,7 +200,6 @@ in
             home.packages = with pkgs; [
               emacs-all-the-icons-fonts
               ghostscript
-              inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}.claude-code-acp
             ];
           })
         ]
