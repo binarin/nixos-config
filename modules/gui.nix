@@ -151,7 +151,7 @@
             home.packages = guiPackages;
           }
           (lib.mkIf config.programs.telegram-desktop.enable {
-            # home.packages = with pkgs; [ telegram-desktop ];
+            home.packages = with pkgs; [ telegram-desktop ];
             impermanence.local-directories = [ ".local/share/TelegramDesktop" ];
           })
           (lib.mkIf config.programs.thunderbird.enable {
