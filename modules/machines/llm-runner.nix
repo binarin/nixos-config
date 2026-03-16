@@ -35,6 +35,124 @@ in
     }
   );
 
+  flake.nixosModules.llama-models =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      cfg = config.llama-models;
+    in
+    {
+      key = "nixos-config.modules.nixos.llama-models";
+      imports = [
+      ];
+      options.llama-models = with lib; {
+        dir = mkOption {
+          type = types.str;
+          default = "/var/lib/llama-models";
+        };
+        models = mkOption {
+          type = types.attrsOf (
+            types.submodule (
+              { name, config, ... }:
+              {
+                options = {
+                  name = mkOption {
+                    type = types.str;
+                    default = name;
+                  };
+                  url = mkOption {
+                    type = types.str;
+                  };
+                  filename = mkOption {
+                    type = types.str;
+                    default = baseNameOf config.url;
+                  };
+                  path = mkOption {
+                    type = types.str;
+                    default = "${cfg.dir}/${config.filename}";
+                  };
+                };
+              }
+            )
+          );
+        };
+        configurations = mkOption {
+          type = types.attrsOf (
+            types.submodule (
+              { name, config, ... }:
+              {
+                options = {
+                  name = mkOption {
+                    type = types.str;
+                    default = name;
+                  };
+                  model = mkOption {
+                    type = types.str;
+                    default = name;
+                  };
+                  ctx-size = mkOption {
+                    type = types.int;
+                    default = 262144;
+                  };
+                };
+              }
+            )
+          );
+        };
+      };
+      config = {
+        llama-models.dir = lib.mkIf config.impermanence.enable "/persist/var/lib/llama-models";
+
+        systemd.services."llama-models-download" =
+          let
+            modelSnippet =
+              {
+                url,
+                filename,
+                path,
+                ...
+              }:
+              let
+                cleanPath = lib.escapeShellArg path;
+              in
+              ''
+                dest=${cleanPath}
+                if [[ ! -f "$dest" ]]; then
+                    tmp_file="$dest.tmp"
+                    if aria2c --max-connection-per-server=4 --min-split-size=1M --out "$tmp_file" ${lib.escapeShellArg url}; then
+                      mv "$tmp_file" "$dest"
+                    fi
+                fi
+              '';
+          in
+          {
+            path = with pkgs; [
+              coreutils
+              aria2
+            ];
+            wantedBy = [ "multi-user.target" ];
+            script =
+              with lib;
+              ''
+                install -d "${cfg.dir}" -m 0755
+              ''
+              + pipe cfg.models [
+                attrValues
+                (map modelSnippet)
+                (concatStringsSep "\n")
+              ];
+            serviceConfig = {
+              Type = "exec";
+              RemainAfterExit = true;
+            };
+          };
+      };
+    };
+
   flake.nixosModules.llm-runner-configuration =
     {
       config,
@@ -48,6 +166,7 @@ in
         self.nixosModules.baseline
         self.nixosModules.qemu-guest
         self.nixosModules.disko-template-zfs-whole
+        self.nixosModules.llama-models
         (selfLib.file' "machines/llm-runner/hardware-configuration.nix")
       ];
 
@@ -122,6 +241,7 @@ in
         "users"
         "groups"
       ];
+
       system.activationScripts = {
         "var-lib-private-permissions" = {
           deps = [ "specialfs" ];
@@ -140,6 +260,21 @@ in
         target = "8080";
       };
 
+      llama-models.models."gemma-3-27b-it:Q4_K_M".url =
+        "https://cloudflare-b2.binarin.workers.dev/gemma-3-27b-it-Q4_K_M.gguf";
+      llama-models.models."Qwen3-Coder-30B-A3B-Instruct:Q4_K_S".url =
+        "https://cloudflare-b2.binarin.workers.dev/Qwen3-Coder-30B-A3B-Instruct-Q4_K_S.gguf";
+
+      llama-models.configurations."gemma-3-27b-it:Q4_K_M" = { };
+      llama-models.configurations."qwen3-coder" = {
+        model = "Qwen3-Coder-30B-A3B-Instruct:Q4_K_S";
+        ctx-size = 262144;
+      };
+      llama-models.configurations."gemma3" = {
+        model = "gemma-3-27b-it:Q4_K_M";
+        ctx-size = 262144;
+      };
+
       services.llama-swap = {
         enable = true;
         settings = {
@@ -153,7 +288,17 @@ in
                   ${llama-server} --hf-repo unsloth/Qwen3.5-9B-GGUF:Q8_0 --port ''${PORT} --ctx-size 262144
                 '';
               };
-            };
+            }
+            // (
+              with lib;
+              flip mapAttrs config.llama-models.configurations (
+                _: v: {
+                  cmd = "${llama-server} -m ${
+                    lib.escapeShellArg config.llama-models.models."${v.model}".path
+                  } --port \${PORT} --ctx-size ${builtins.toString v.ctx-size}";
+                }
+              )
+            );
         };
       };
     };
