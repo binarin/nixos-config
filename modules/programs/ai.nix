@@ -4,7 +4,12 @@
   flake-file.inputs.nix-ai-tools.inputs.nixpkgs.follows = "nixpkgs";
 
   flake.homeModules.ai-tools =
-    { pkgs, config, ... }:
+    {
+      inputs',
+      pkgs,
+      config,
+      ...
+    }:
     {
       key = "nixos-config.modules.home.ai-tools";
       imports = [
@@ -13,10 +18,13 @@
       ];
 
       home.packages =
-        (with self.inputs.nix-ai-tools.packages.${pkgs.stdenv.hostPlatform.system}; [
+        (with inputs'.nix-ai-tools.packages; [
           claude-code
+          claude-code-acp
+          claude-code-router
           gemini-cli
           opencode
+          pi
         ])
         ++ (with pkgs; [
           llm
