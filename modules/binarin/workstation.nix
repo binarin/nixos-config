@@ -58,6 +58,7 @@
         self.homeModules.sops
         self.homeModules.gnupg
         self.homeModules.binarin-nix-dev
+        self.homeModules.backblaze-b2
       ]
       ++ (lib.optionals osConfig.services.graphical-desktop.enable [
         self.homeModules.niri
