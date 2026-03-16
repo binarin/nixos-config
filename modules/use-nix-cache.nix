@@ -57,7 +57,7 @@
               error_page 502 504 =404 @fallback;
 
               # Forward to the actual cache server:
-              proxy_set_header Host niks3-storaget.lynx-lizard.ts.net;
+              proxy_set_header Host niks3-storage.lynx-lizard.ts.net;
               proxy_ssl_name niks3-storage.lynx-lizard.ts.net;
               proxy_ssl_server_name on;
             '';
