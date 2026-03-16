@@ -240,7 +240,7 @@ while still providing environment isolation.
 
 - Interactive shell usage (environment is already set)
 - `ncf` commands (inherits environment from caller, doesn't use --ignore-env)
-- Direct `nix build`, `nix flake check` without --ignore-env
+- Direct `nix build` without --ignore-env
 
 The list of preserved variables is defined in `modules/devshell.nix`
 (`envVarsToKeep`).

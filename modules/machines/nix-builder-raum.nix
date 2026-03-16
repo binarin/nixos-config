@@ -46,11 +46,11 @@ in
         networking.hostName = inventoryHostName;
         system.stateVersion = "25.11";
 
-        nixos-config.nix-builder.runnerCount = 1;
+        nixos-config.nix-builder.runnerCount = 2;
 
         proxmoxLXC = {
           cores = 8;
-          memory = 16384;
+          memory = 32768;
           mounts = [
             {
               mountPoint = "/nix";

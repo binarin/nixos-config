@@ -122,17 +122,20 @@ def run_all(
 ) -> None:
     """Evaluate all NixOS configurations in parallel.
 
-    Primary use case: Debugging infinite recursion and evaluation errors.
-    When `nix flake check` fails, it evaluates all outputs together, making
-    it difficult to identify which specific configuration is causing the problem.
-    This command evaluates each configuration individually in parallel, isolating
-    failures and providing clear diagnostics about which configs have issues.
+    Primary use case: Debugging infinite recursion and evaluation
+    errors.  When `nix flake check` fails, it evaluates all outputs
+    together, making it difficult to identify which specific
+    configuration is causing the problem. This command evaluates each
+    configuration individually in parallel, isolating failures and
+    providing clear diagnostics about which configs have issues. And
+    also preventing excessive memory usage by `nix flake check`.
 
     Args:
         verbosity: 0=quiet, 1=normal, 2=verbose
         max_parallel: Max parallel evaluations (default: CPU count)
         dry_run: Show what would be done without evaluating
         extra_nix_args: Extra arguments to pass to nix eval
+
     """
     repo_root = config.find_repo_root()
 

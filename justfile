@@ -20,11 +20,6 @@ lint:
     ./scripts/check-module-keys.sh
     nix fmt
 
-# Check nix flake
-[group('dev')]
-check:
-    nix flake check {{ nixOpts }}
-
 # Manually enter dev shell
 [group('dev')]
 dev:
