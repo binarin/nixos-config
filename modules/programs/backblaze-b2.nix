@@ -16,7 +16,7 @@
       config = {
         home.packages = with pkgs; [ backblaze-b2 ];
         home.sessionVariables = lib.mkIf osConfig.impermanence.enable {
-          B2_ACCOUNT_INFO = persistDir;
+          B2_ACCOUNT_INFO = "${persistDir}/account_info";
         };
         home.activation = lib.mkIf osConfig.impermanence.enable {
           b2-account-persist-dir = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
