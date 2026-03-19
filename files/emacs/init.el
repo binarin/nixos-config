@@ -176,6 +176,10 @@
 
 (add-hook 'go-ts-mode-hook 'binarin/go-ts-mode-hook)
 
+(defun b/yaml-mode-hook ()
+  (setf tab-width 2))
+
+(add-hook 'yaml-ts-mode-hook #'b/yaml-mode-hook)
 
 (use-package nix-mode
   :ensure t
