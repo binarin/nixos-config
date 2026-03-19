@@ -47,7 +47,7 @@ let
     name:
     builtins.path {
       path = self.outPath + "/files/${name}";
-      inherit name;
+      name = lib.replaceStrings [ "/" ] [ "__" ] name;
     };
 
   # Same as isolate but for arbitrary paths relative to the repo root.
