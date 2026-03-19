@@ -168,8 +168,9 @@
 (defun binarin/go-ts-mode-hook ()
   (eglot-ensure)
   (add-hook 'before-save-hook 'eglot-format-buffer nil t)
-  (electric-pair-local-mode t)
-  (local-set-key (kbd "<f16>") 'recompile))
+  (electric-pair-local-mode t))
+
+(global-set-key (kbd "<f16>") 'recompile)
 
 (setf compilation-ask-about-save nil)
 
