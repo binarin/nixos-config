@@ -135,6 +135,7 @@ in
         networking.firewall.allowedTCPPorts = [
           80
           443
+          3902
         ];
 
         # Tailscale services
