@@ -83,7 +83,7 @@ in
 
   config = {
     flake.nixosModules.inventory =
-      { config, ... }:
+      { config, lib, ... }:
       {
         key = "nixos-config.modules.nixos.inventory";
         options = {
@@ -102,7 +102,7 @@ in
         };
         config = {
           networking.hostId =
-            (builtins.fromTOML (builtins.readFile "${self}/inventory/host-id.toml"))
+            lib.mkDefault (builtins.fromTOML (builtins.readFile "${self}/inventory/host-id.toml"))
             ."${config.networking.hostName}";
           networking.hosts = flakeConfig.inventory.networks.home.hosts;
           inventory.ipAllocation = flakeConfig.inventory.ipAllocation;
