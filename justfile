@@ -49,7 +49,7 @@ eval-all:
     ncf eval all
 
 [group('Main')]
-build-all: check
+build-all:
     ncf build all
 
 
