@@ -1,37 +1,62 @@
 ;;; -*- mode: emacs-lisp; lexical-binding: t -*-
-
 (require 'cl-lib)
 (require 'rx)
+
+(defvar b/xdg-app "emacs-clean")
+
+(defvar b/xdg-state-home (file-name-concat
+			  (or (getenv "XDG_STATE_HOME")
+			      (expand-file-name "~/.local/state"))
+			  b/xdg-app))
+(defvar b/xdg-cache-home (file-name-concat
+			  (or (getenv "XDG_CACHE_HOME")
+			      (expand-file-name "~/.cache"))
+			  b/xdg-app))
+(defvar b/xdg-runtime-dir (file-name-concat
+			   (or (getenv "XDG_RUNTIME_DIR")
+			       (progn
+				 (warn "No XDG_RUNTIME_DIR, defaulting to ~/tmp")
+				 (expand-file-name "~/tmp"))
+			       )
+			   b/xdg-app))
+
+(cl-loop
+ for dir in (list b/xdg-state-home b/xdg-cache-home b/xdg-runtime-dir)
+ unless (file-exists-p dir)
+ do (make-directory dir t))
+
 (defun binarin/locate-user-emacs-file (new-name &optional old-name)
-  (let ((xdg-state-home (or (getenv "XDG_STATE_HOME")
-                            (expand-file-name "~/.local/state")))
-        (xdg-cache-home (or (getenv "XDG_CACHE_HOME")
-                            (expand-file-name "~/.cache")))
-        (xdg-runtime-dir (or (getenv "XDG_RUNTIME_DIR")
-                             (error "Runtime dir not known")))
-        (state-rx (rx bol
+  (let ((state-rx (rx bol
                       (or
+		       "projects.eld"
+		       "custom.el"
                        "history"
                        "recentf.eld"
                        "url"
-                       "transient")
+		       "completions"
+		       "network-security.eld"
+		       "bookmarks.eld"
+		       "eshell"
+                       "transient"
+		       "diary")
                       (or eol "/")))
         (cache-rx (rx bol
                       (or
                        "treesitter"
-                       "eln")
+                       "eln"
+		       ".org-id-locations")
                       (or eol "/")))
         (tmp-rx (rx bol
                     (or
                      "server") (or eol "/"))))
     (cl-flet* ((make-path (dir nm)
-                 (convert-standard-filename (file-name-concat dir "emacs-clean" nm)))
+                 (convert-standard-filename (file-name-concat dir nm)))
                (state-file (nm)
-                 (make-path xdg-state-home nm))
+                 (make-path b/xdg-state-home nm))
                (cache-file (nm)
-                 (make-path xdg-state-home nm))
+                 (make-path b/xdg-state-home nm))
                (tmp-file (nm)
-                 (make-path xdg-runtime-dir nm)))
+                 (make-path b/xdg-runtime-dir nm)))
       (when (listp new-name) (setf new-name (car new-name)))
       (cond
        ((string-match state-rx new-name) (state-file new-name))

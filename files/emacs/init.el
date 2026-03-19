@@ -1,8 +1,26 @@
 ;;; -*- mode: emacs-lisp; lexical-binding: t -*-
-(setf inhibit-startup-screen t)
+(setf auto-save-list-file-prefix (file-name-concat b/xdg-runtime-dir))
+
+(setf custom-file (locate-user-emacs-file "custom.el"))
+(when (file-exists-p custom-file)
+  (load custom-file))
+
+(savehist-mode t)
 
 ;; Mostly do not want to track down which sensitive files should be excluded from backups
 (setf make-backup-file nil)
+
+(require 'recentf)
+(setf recentf-max-saved-items 200
+      recentf-auto-cleanup 300)
+(setopt recentf-autosave-interval 60)
+(recentf-mode t)
+
+(setf inhibit-startup-screen t)
+(context-menu-mode t)
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
 
 (use-package zenburn-theme
   :ensure t)
@@ -10,6 +28,9 @@
 (add-to-list 'default-frame-alist '(font . "IosevkaTerm Nerd Font-16"))
 
 (winner-mode t)
+
+(require 'which-key)
+(which-key-mode t)
 
 (use-package direnv
   :ensure t)
@@ -21,63 +42,123 @@
 
 (advice-add 'direnv--summarise-changes :filter-args #'binarin/direnv--summarise-changes)
 
-
-(require 'which-key)
-(which-key-mode t)
-
-(use-package emacs
-  :custom
-  ;; Enable context menu. `vertico-multiform-mode' adds a menu in the minibuffer
-  ;; to switch display modes.
-  (context-menu-mode t)
-  ;; Support opening new minibuffers from inside existing minibuffers.
-  (enable-recursive-minibuffers t)
-  ;; Hide commands in M-x which do not work in the current mode.  Vertico
-  ;; commands are hidden in normal buffers. This setting is useful beyond
-  ;; Vertico.
-  (read-extended-command-predicate #'command-completion-default-include-p)
-  ;; Do not allow the cursor in the minibuffer prompt
-  (minibuffer-prompt-properties
-   '(read-only t cursor-intangible t face minibuffer-prompt)))
-
-(savehist-mode t)
-
-(use-package vertico
-  :ensure t
-  :init
-  (vertico-mode))
-
-(use-package orderless
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles partial-completion))))
-  (completion-category-defaults nil) ;; Disable defaults, use our settings
-  (completion-pcm-leading-wildcard t)) ;; Emacs 31: partial-completion behaves like substring
+(setf enable-recursive-minibuffers t)
 
 
-;; (icomplete-vertical-mode t)
-;; (setf icomplete-in-buffer t
-;;       read-buffer-completion-ignore-case t
-;;       read-file-name-completion-ignore-case t)
-;; (advice-add 'completion-at-point :after #'minibuffer-hide-completions)
-;; (add-to-list 'completion-styles 'flex)
+;; Hide commands in M-x which do not work in the current mode.  Vertico
+;; commands are hidden in normal buffers. This setting is useful beyond
+;; Vertico.
+(setf read-extended-command-predicate #'command-completion-default-include-p)
 
-(setf remote-file-name-access-timeout 3)
+;; Do not allow the cursor in the minibuffer prompt
+(setf minibuffer-prompt-properties
+      '(read-only t cursor-intangible t face minibuffer-prompt))
 
-
-(require 'recentf)
-(setf recentf-max-saved-items 200
-      recentf-auto-cleanup 300)
-(setopt recentf-autosave-interval 60)
-(unless (file-exists-p (file-name-directory recentf-save-file)) (make-directory (file-name-directory recentf-save-file)))
-(recentf-mode t)
-
-;; (add-hook 'buffer-list-update-hook #'recentf-track-opened-file)
+(setf remote-file-name-access-timeout 2)
 
 (put 'set-goal-column 'disabled nil)
 
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
+
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;;; Completion:
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode))
+
+(use-package vertico-directory
+  :after vertico
+  :ensure nil)
+
+(add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
+
+(setf vertico-multiform-categories
+      '((file (:keymap . vertico-directory-map))))
+
+(vertico-multiform-mode)
+
+(keymap-set vertico-directory-map "C-l" #'vertico-directory-delete-word)
+;; XXX - not working, picking DEL from global map
+;; (keymap-set vertico-directory-map "DEL" #'vertico-directory-delete-char)
+
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic)))
+
+
+(use-package corfu
+  :ensure t
+  :init
+  (global-corfu-mode)
+  (corfu-history-mode)
+  (corfu-popupinfo-mode))
+
+(use-package consult
+  :ensure t
+  ;; XXX continue binding
+  :bind (([remap switch-to-buffer] . consult-buffer)
+	 ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
+	 ([remap switch-to-buffer-other-tab] . consult-buffer-other-tab)
+	 ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
+	 ([remap yank-pop] . consult-yank-pop))
+  :config
+  (setf xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref))
+
+(use-package marginalia
+  :ensure t
+  :bind (:map minibuffer-local-map
+	      ("M-A" . marginalia-cycle))
+  :init
+  (marginalia-mode t))
+
+
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
+  :config
+  (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
+  (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
+  (add-to-list 'dabbrev-ignored-buffer-modes 'tags-table-mode))
+
+(defun b/prog-mode-hook ()
+  (setq-local dabbrev-case-replace nil
+	      dabbrev-case-fold-search nil))
+
+(add-hook 'prog-mode-hook #'b/prog-mode-hook)
+
+(setf tab-always-indent 'complete
+
+      ;; TAB cycle if there are only few candidates
+      completion-cycle-threshold 3
+
+      ;; partial-completion is important for file wildcard
+      ;; support. Multiple files can be opened at once with find-file if
+      ;; you enter a wildcard.
+      completion-category-overrides '((file (styles partial-completion)))
+
+      ;; Disable defaults, use our settings
+      completion-category-defaults nil
+      ;; Emacs 31: partial-completion behaves like substring
+      completion-pcm-leading-wildcard t)
+
+(use-package paredit
+  :ensure t
+  :hook ((emacs-lisp-mode . paredit-mode))
+  :bind (:map paredit-mode-map
+	 ("RET" . paredit-newline)
+	 ("C-j". nil)))
+
+(setf treesit-font-lock-level 4)
+
+;;; Go
 
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 
@@ -91,8 +172,13 @@
 
 (add-hook 'go-ts-mode-hook 'binarin/go-ts-mode-hook)
 
-(fset 'yes-or-no-p 'y-or-n-p)
+
+(use-package nix-mode
+  :ensure t
+  :mode ("\\.nix\\'" . nix-mode))
+
+
 
 (use-package magit
-  :ensure nil
+  :ensure t
   :bind (("C-x g" . magit)))
