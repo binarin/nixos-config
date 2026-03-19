@@ -1,4 +1,7 @@
 ;;; -*- mode: emacs-lisp; lexical-binding: t -*-
+(setf server-name "emacs-clean")
+(server-start)
+
 (setf auto-save-list-file-prefix (file-name-concat b/xdg-runtime-dir))
 
 (setf custom-file (locate-user-emacs-file "custom.el"))
