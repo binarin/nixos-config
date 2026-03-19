@@ -234,6 +234,9 @@
   :mode ("\\.nix\\'" . nix-mode)
   :hook ((nix-mode . b/nix-mode-hook)))
 
+(use-package cperl-mode
+  :ensure nil
+  :mode ("\\.\\(pl\\|pm\\)\\'"))
 
 (use-package magit
   :ensure t
