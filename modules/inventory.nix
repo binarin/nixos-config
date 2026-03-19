@@ -102,8 +102,10 @@ in
         };
         config = {
           networking.hostId =
-            lib.mkDefault (builtins.fromTOML (builtins.readFile "${self}/inventory/host-id.toml"))
-            ."${config.networking.hostName}";
+            # clan has hard-coded hostId somewhere with default (100) prio
+            lib.mkOverride 90
+              (builtins.fromTOML (builtins.readFile "${self}/inventory/host-id.toml"))
+              ."${config.networking.hostName}";
           networking.hosts = flakeConfig.inventory.networks.home.hosts;
           inventory.ipAllocation = flakeConfig.inventory.ipAllocation;
           inventory.hostIpAllocation = flakeConfig.inventory.ipAllocation."${config.networking.hostName}";

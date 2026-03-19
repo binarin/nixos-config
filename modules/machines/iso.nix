@@ -49,7 +49,7 @@ in
         nixpkgs.hostPlatform = "x86_64-linux";
 
         # NOTE: Don't bump without re-installing complete system!
-        system.stateVersion = "24.11";
+        system.stateVersion = "25.11";
 
         boot = {
           supportedFilesystems = lib.mkForce [
