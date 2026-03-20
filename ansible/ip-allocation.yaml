@@ -121,7 +121,7 @@ ip_allocation:
       primary:
         _type: leaf
         address: 192.168.2.28
-        mac: null
+        mac: 02:00:2D:2D:CE:92
   mail:
     home:
       primary:
@@ -145,7 +145,7 @@ ip_allocation:
       primary:
         _type: leaf
         address: 192.168.2.29
-        mac: null
+        mac: 02:00:1F:6D:AB:E1
   nix-builder-raum:
     home:
       primary:
@@ -343,6 +343,12 @@ ip_allocation:
         _type: leaf
         address: 192.168.2.15
         mac: null
+  web:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.30
+        mac: 02:00:E5:4E:FE:98
   xmg1915:
     home:
       primary:
