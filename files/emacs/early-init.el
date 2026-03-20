@@ -1,24 +1,9 @@
 ;;; -*- mode: emacs-lisp; lexical-binding: t -*-
+(add-to-list 'load-path (file-name-concat user-emacs-directory "lisp"))
+
 (require 'cl-lib)
 (require 'rx)
-
-(defvar b/xdg-app "emacs-clean")
-
-(defvar b/xdg-state-home (file-name-concat
-			  (or (getenv "XDG_STATE_HOME")
-			      (expand-file-name "~/.local/state"))
-			  b/xdg-app))
-(defvar b/xdg-cache-home (file-name-concat
-			  (or (getenv "XDG_CACHE_HOME")
-			      (expand-file-name "~/.cache"))
-			  b/xdg-app))
-(defvar b/xdg-runtime-dir (file-name-concat
-			   (or (getenv "XDG_RUNTIME_DIR")
-			       (progn
-				 (warn "No XDG_RUNTIME_DIR, defaulting to ~/tmp")
-				 (expand-file-name "~/tmp"))
-			       )
-			   b/xdg-app))
+(require 'b-xdg)
 
 (cl-loop
  for dir in (list b/xdg-state-home b/xdg-cache-home b/xdg-runtime-dir)
@@ -26,6 +11,7 @@
  do (make-directory dir t))
 
 (defun binarin/locate-user-emacs-file (new-name &optional old-name)
+  (ignore old-name)
   (let ((state-rx (rx bol
                       (or
 		       "projects.eld"
@@ -66,5 +52,4 @@
           (state-file new-name))))))
 
 (advice-add 'locate-user-emacs-file :override #'binarin/locate-user-emacs-file)
-
 (startup-redirect-eln-cache (binarin/locate-user-emacs-file "eln"))

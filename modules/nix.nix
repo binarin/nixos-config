@@ -19,6 +19,9 @@ in
     {
       _module.args.pkgs = import inputs.nixpkgs {
         inherit system;
+        overlays = [
+          inputs.emacs-overlay.overlays.default
+        ];
         config = nixpkgsConfig;
       };
     };
@@ -29,9 +32,7 @@ in
       cfg = config.nixos-config.nix.accessTokens;
       hasTokens = cfg != { };
       tokenLine = lib.concatStringsSep " " (
-        lib.mapAttrsToList (
-          site: secretName: "${site}=${config.sops.placeholder.${secretName}}"
-        ) cfg
+        lib.mapAttrsToList (site: secretName: "${site}=${config.sops.placeholder.${secretName}}") cfg
       );
     in
     {

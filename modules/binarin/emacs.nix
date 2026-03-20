@@ -37,6 +37,7 @@ in
       pkgs,
       lib,
       osConfig,
+      self',
       ...
     }:
     let
@@ -128,39 +129,6 @@ in
         rm pta.el emacs-config.org
       '';
 
-      emacs-clean-package = pkgs.emacsWithPackagesFromUsePackage {
-        package = cfg.basePackage;
-        extraEmacsPackages =
-          e:
-          [ e.treesit-grammars.with-all-grammars ]
-          ++ (with pkgs; [
-            yamllint
-            nixfmt
-          ]);
-        config = selfLib.file "emacs/init.el";
-      };
-      emacs-clean =
-        pkgs.runCommand "emacs-clean-wrapped"
-          {
-            buildInputs = with pkgs; [ makeWrapper ];
-            meta.mainProgram = "emacs1";
-          }
-          ''
-            mkdir -p $out/bin
-            mkdir -p $out/share/applications
-            cat ${emacs-clean-package}/share/applications/emacs.desktop | sed 's/^Exec=emacs /Exec=emacs1 /; s/^Name=Emacs/Name=Emacs(clean cfg)/'  > $out/share/applications/emacs1.desktop
-
-            makeShellWrapper "${emacs-clean-package}/bin/emacs" "$out/bin/emacs1" \
-              --inherit-argv0 \
-              --add-flag --init-directory \
-              --add-flag "${config.home.homeDirectory}/personal-workspace/nixos-config/files/emacs" \
-              --add-flag --eval \
-              --add-flag '(setf server-name "emacs-clean")'
-
-            makeShellWrapper "${emacs-clean-package}/bin/emacsclient" "$out/bin/emacsclient1" \
-              --add-flags "--socket-name=emacs-clean" \
-              --prefix PATH : "${emacs-clean-package}/bin" \
-          '';
     in
     {
       key = "nixos-config.modules.home.emacs";
@@ -209,7 +177,12 @@ in
             services.emacs.package = finalEmacsPackage;
 
             home.packages = with pkgs; [
-              emacs-clean
+              (
+                if osConfig.services.graphical-desktop.enable then
+                  self'.packages.emacs-clean-pgtk
+                else
+                  self'.packages.emacs-clean-nox
+              )
               finalEmacsPackage
               tangle-emacs-org-babel-config
               wtype

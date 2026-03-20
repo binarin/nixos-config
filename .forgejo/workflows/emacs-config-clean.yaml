@@ -1,0 +1,46 @@
+---
+"on":
+  push:
+    branches:
+      - master
+  pull_request:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+jobs:
+  emacs-clean-tests:
+    name: ert-tests
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: run ert tests
+        run: |
+          nix run .#emacs-clean-nox -- -Q \
+          -L ./files/emacs/lisp \
+          --batch \
+          -l ./files/emacs/tests/config-test-pre.el \
+          -l ./files/emacs/init.el \
+          -l ./files/emacs/tests/config-tests.el -f ert-run-tests-batch-and-exit
+  define-matrix:
+    runs-on: native
+    steps:
+      id: define
+      run: |
+        echo "array=[$(find files/emacs -name '*.el' -type f | sed 's/.*/"&"/' | tr '\n' ',' | sed 's/,$//')]" >> "$FORGEJO_OUTPUT"
+    outputs:
+      array-value: ${{steps.define.outputs.array }}
+  byte-compile:
+    needs: define-matrix
+    strategy:
+      matrix:
+        elisp-files: ${{ fromJSON(needs.define-matrix.outputs.array-value }}
+    runs-on-native:
+      steps:
+        - run: |
+            nix run .#emacs-clean-nox -- -Q -L ./files/emacs/ --batch \
+            --eval '(setf byte-compile-error-on-warn t)' \
+            --eval '(unless (byte-compile-file "${{ matrix.elisp-files }}") (kill-emacs 1))'
