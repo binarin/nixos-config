@@ -7,6 +7,8 @@
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
 
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+
 (fset 'yes-or-no-p 'y-or-n-p)
 
 (put 'set-goal-column 'disabled nil)
