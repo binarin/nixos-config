@@ -1,8 +1,11 @@
 ;; -*- lexical-binding: t; -*-
 
 (use-package direnv
-  :ensure t)
-(direnv-mode t)
+  :ensure t
+  :commands (direnv-mode)
+  :init
+  (direnv-mode t))
+
 (setf direnv-show-paths-in-summary nil)
 
 (defun binarin/direnv--summarise-changes (items)

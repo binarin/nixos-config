@@ -1,11 +1,12 @@
 ;; -*- lexical-binding: t; -*-
 (require 'ert)
 (require 'cl-lib)
+(require 'recentf)
 
 (ert-deftest config-test-user-emacs-directory-clean ()
   (recentf-save-list)
   (let (unnecessary-files)
-    (cl-loop for (file-name is-directory) in (directory-files-and-attributes user-emacs-directory)
+    (cl-loop for (file-name) in (directory-files-and-attributes user-emacs-directory)
 	     unless (pcase file-name
 		      ("init.el" t)
 		      ("early-init.el" t)

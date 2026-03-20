@@ -29,6 +29,10 @@
   (add-hook 'before-save-hook #'b/format-yaml nil t)
   (flymake-mode))
 
+(use-package yaml-ts-mode
+  :ensure nil
+  :mode "\\.\\(yaml\\|yml\\)\\'")
+
 (setf yaml-ts-mode-yamllint-options '("--config-data" "{rules: {line-length: {max: 132}}}"))
 
 (add-hook 'yaml-ts-mode-hook #'b/yaml-mode-hook)
@@ -37,7 +41,8 @@
 (use-package nix-mode
   :ensure t
   :mode ("\\.nix\\'" . nix-mode)
-  :hook ((nix-mode . b/nix-mode-hook)))
+  :config
+  (add-hook nix-mode-hook #'b/nix-mode-hook))
 
 (defun b/format-nix (&optional display-errors)
   (interactive "P")

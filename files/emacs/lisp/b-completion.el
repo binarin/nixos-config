@@ -19,20 +19,26 @@
   (vertico-mode))
 
 (use-package vertico-directory
+  :commands (vertico-directory-delete-word)
+  :defines (vertico-directory-map)
   :after vertico
+  :hook ((rfn-eshadow-update-overlay . vertico-directory-tidy))
+  :config
+  (keymap-set vertico-directory-map "C-l" #'vertico-directory-delete-word)
   :ensure nil)
 
 (use-package vertico-multiform
+  :commands (vertico-multiform-mode)
   :ensure nil
   :after vertico)
 
-(add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
+(add-hook '-hook #'vertico-directory-tidy)
 
 (setf vertico-multiform-categories
       '((file (:keymap . vertico-directory-map))))
 
 
-(keymap-set vertico-directory-map "C-l" #'vertico-directory-delete-word)
+
 ;; XXX - not working, picking DEL from global map
 ;; (keymap-set vertico-directory-map "DEL" #'vertico-directory-delete-char)
 
@@ -41,8 +47,8 @@
   :custom
   (completion-styles '(orderless basic)))
 
-(use-package corfu-history :ensure nil :after corfu)
-(use-package corfu-popupinfo :ensure nil :after corfu)
+(use-package corfu-history :ensure nil :after corfu :commands (corfu-history-mode))
+(use-package corfu-popupinfo :ensure nil :after corfu :commands (corfu-popupinfo-mode))
 
 (use-package corfu
   :ensure t
@@ -52,8 +58,11 @@
   (corfu-history-mode)
   (corfu-popupinfo-mode))
 
+(use-package xref :ensure nil :defer t)
+
 (use-package consult
   :ensure t
+  :commands (consult-xref)
   ;; XXX continue binding
   :bind (([remap switch-to-buffer] . consult-buffer)
 	 ([remap switch-to-buffer-other-window] . consult-buffer-other-window)

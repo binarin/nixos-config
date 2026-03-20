@@ -3,8 +3,6 @@
 (defvar b/tests-generated-files-dir (make-temp-file "emacs-config-generated" t))
 (setf user-emacs-directory (make-temp-file "emacs-config-user" t))
 
-(message "%s\n%s" b/tests-generated-files-dir user-emacs-directory)
-
 (advice-add 'locate-user-emacs-file
 	    :override
 	    (lambda (new-name &optional old-name)

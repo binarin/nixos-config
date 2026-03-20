@@ -1,4 +1,5 @@
 ;; -*- lexical-binding: t; -*-
+(require 'cl-lib)
 (defvar b/format-buffer-with-error-buffer)
 (make-variable-buffer-local 'b/format-buffer-with-error-buffer)
 
