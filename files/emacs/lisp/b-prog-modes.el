@@ -12,6 +12,15 @@
 	      ("RET" . paredit-newline)
 	      ("C-j". nil)))
 
+
+;;; emacs-lisp
+(autoload 'b/rainbow-mode "b-rainbow")
+(defun b/emacs-lisp-mode-hook ()
+  (when (and (buffer-file-name)
+	     (equal "zenburn-theme.el" (file-name-nondirectory (buffer-file-name))))
+    (b/rainbow-mode t)))
+(add-hook 'emacs-lisp-mode-hook 'b/emacs-lisp-mode-hook)
+
 ;;; YAML
 
 (defvar b/yaml-mode-fmt-args '("-formatter" "indent=2,include_document_start=true,max_line_length=132"))
@@ -64,5 +73,12 @@
   (electric-pair-local-mode t))
 
 (add-hook 'go-ts-mode-hook 'binarin/go-ts-mode-hook)
+
+(defun b/Info-selection-hook ()
+  (when (equal (file-name-nondirectory Info-current-file) "elisp")
+    (add-hook 'xref-backend-functions 'elisp--xref-backend)))
+
+(add-hook 'Info-selection-hook 'b/Info-selection-hook)
+
 
 (provide 'b-prog-modes)

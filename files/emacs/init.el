@@ -21,6 +21,14 @@
 (require 'b-compilation)
 (require 'b-version-control)
 
+(use-package b-org
+  :ensure nil
+  :bind (("C-c l" . org-store-link)
+	 ("C-c a" . org-agenda)
+	 ("C-c r" . org-capture))
+  :mode (("\\.org\\'" . org-mode))
+  :defer 5)
+
 (winner-mode t)
 (which-key-mode t)
 (global-auto-revert-mode t)
