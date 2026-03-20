@@ -28,6 +28,9 @@ jobs:
   define-matrix:
     runs-on: native
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - id: define
         run: |
           echo "array=[$(find files/emacs -name '*.el' -type f | sed 's/.*/"&"/' | tr '\n' ',' | sed 's/,$//')]" \
@@ -41,6 +44,9 @@ jobs:
         elisp-files: ${{ fromJSON(needs.define-matrix.outputs.array-value }}
     runs-on-native:
       steps:
+        - uses: actions/checkout@v4
+          with:
+            ref: ${{ github.event.pull_request.head.sha || github.sha }}
         - run: |
             nix run .#emacs-clean-nox -- -Q -L ./files/emacs/ --batch \
             --eval '(setf byte-compile-error-on-warn t)' \
