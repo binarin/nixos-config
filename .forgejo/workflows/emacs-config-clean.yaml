@@ -28,9 +28,10 @@ jobs:
   define-matrix:
     runs-on: native
     steps:
-      id: define
-      run: |
-        echo "array=[$(find files/emacs -name '*.el' -type f | sed 's/.*/"&"/' | tr '\n' ',' | sed 's/,$//')]" >> "$FORGEJO_OUTPUT"
+      - id: define
+        run: |
+          echo "array=[$(find files/emacs -name '*.el' -type f | sed 's/.*/"&"/' | tr '\n' ',' | sed 's/,$//')]" \
+            >> "$FORGEJO_OUTPUT"
     outputs:
       array-value: ${{steps.define.outputs.array }}
   byte-compile:
