@@ -47,6 +47,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - run: find files/emacs -type f
       - run: |
           nix run .#emacs-clean-nox -- -Q -L ./files/emacs/ --batch \
           --eval '(setf byte-compile-error-on-warn t)' \
