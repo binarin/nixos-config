@@ -19,7 +19,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: run ert tests
         run: |
-          ./scripts/tests-emacs-clean-ert.sh
+          ./scripts/test-emacs-clean-ert.sh
   define-matrix:
     runs-on: native
     steps:
@@ -43,4 +43,4 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - run: |
-          ./scripts/tests-byte-compile.sh "${{ matrix.elisp-files }}"
+          ./scripts/test-byte-compile.sh "${{ matrix.elisp-files }}"
