@@ -1,14 +1,18 @@
 ;; -*- lexical-binding: t; -*-
+(require 'cl-lib)
+
+(require 'b-visual)
 (defun b/color-luminance (color)
   (cl-destructuring-bind (r g b) (mapcar (lambda (c) (/ c 256.0)) (color-values color))
     (/ (+ (* .2126 r) (* .7152 g) (* .0722 b)) 255)))
 
+
 (defun b/colorize-hex ()
   (b/with-zenburn
     (let* ((color (match-string-no-properties 0))
-	  (contrasting (if (< 0.5 (b/color-luminance color))
-			   zenburn-bg
-			 zenburn-fg)))
+	   (contrasting (if (< 0.5 (b/color-luminance color))
+			    zenburn-bg
+			  zenburn-fg)))
       (put-text-property
        (match-beginning 1) (match-end 1)
        'face `((:background ,color :foreground ,contrasting)))

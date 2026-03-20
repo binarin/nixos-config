@@ -21,3 +21,4 @@ __pycache__/
 /.mcp.json
 /mcp-config.nix
 .worktrees/
+*.elc

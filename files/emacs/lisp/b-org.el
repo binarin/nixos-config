@@ -13,11 +13,11 @@
 
 (b/with-zenburn
   (setf org-todo-keyword-faces
-	`(("TODO" . ,zenburn-red)
+	`(("TODO" . ,zenburn-red+1)
 	  ("NEXT" . ,zenburn-cyan)
 	  ("DONE" . ,zenburn-green)
 	  ("WAIT" . ,zenburn-orange)
-	  ("CNCL" . ,zenburn-green-1))))
+	  ("CNCL" . ,zenburn-fg-05))))
 
 
 

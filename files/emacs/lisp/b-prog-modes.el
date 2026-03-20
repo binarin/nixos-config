@@ -74,6 +74,12 @@
 
 (add-hook 'go-ts-mode-hook 'binarin/go-ts-mode-hook)
 
+
+(use-package info
+  :ensure nil
+  :defer t
+  :defines (Info-current-file))
+
 (defun b/Info-selection-hook ()
   (when (equal (file-name-nondirectory Info-current-file) "elisp")
     (add-hook 'xref-backend-functions 'elisp--xref-backend)))
