@@ -19,12 +19,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: run ert tests
         run: |
-          nix run .#emacs-clean-nox -- -Q           \
-          -L ./files/emacs/lisp                     \
-          --batch                                   \
-          -l ./files/emacs/tests/config-test-pre.el \
-          -l ./files/emacs/init.el                  \
-          -l ./files/emacs/tests/config-tests.el -f ert-run-tests-batch-and-exit
+          ./scripts/tests-emacs-clean-ert.sh
   define-matrix:
     runs-on: native
     steps:
@@ -47,10 +42,5 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - run: find files/emacs -type f | xargs ls -l
-      - run: id
       - run: |
-          nix run .#emacs-clean-nox -- \
-          -Q -L ./files/emacs/ --batch \
-          --eval '(setf byte-compile-error-on-warn t)' \
-          --eval '(unless (byte-compile-file "${{ matrix.elisp-files }}") (kill-emacs 1))'
+          ./scripts/tests-byte-compile.sh "${{ matrix.elisp-files }}"
