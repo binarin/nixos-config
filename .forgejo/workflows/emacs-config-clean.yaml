@@ -41,7 +41,7 @@ jobs:
     needs: define-matrix
     strategy:
       matrix:
-        elisp-files: ${{ fromJSON(needs.define-matrix.outputs.array-value }}
+        elisp-files: ${{ fromJSON(needs.define-matrix.outputs.array-value) }}
     runs-on-native:
       steps:
         - uses: actions/checkout@v4
