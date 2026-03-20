@@ -1,0 +1,21 @@
+{
+  "providers": {
+    "llama-cpp": {
+      "baseUrl": "https://llm-runner.lynx-lizard.ts.net/v1",
+      "api": "openai-completions",
+      "apiKey": "none",
+      "models": [
+        {
+            "id": "qwen3-coder-30b"
+        },
+        {
+            "id": "gemma3"
+        },
+        {
+            "id": "qwen3.5-9b"
+        }
+      ]
+    }
+  }
+}
+

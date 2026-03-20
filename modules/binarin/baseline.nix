@@ -181,6 +181,9 @@ in
 
           set-option -s set-clipboard on
           set-option -as terminal-overrides "xterm-256color:Ms=\\E]52;c%p1%.0s;%p2%s\\7" # only for mosh - https://github.com/mobile-shell/mosh/pull/1054
+
+          set-option -s extended-keys on
+          set-option -s extended-keys-format csi-u
         '';
       };
 

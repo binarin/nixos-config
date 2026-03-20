@@ -34,6 +34,9 @@
       home.file.".claude/skills/".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/claude-skills";
 
+      home.file.".pi/agent/models.json".source =
+        config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/pi-agent/models.json";
+
       impermanence.persist-files = [
         ".claude.json"
       ];
