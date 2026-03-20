@@ -61,5 +61,6 @@
     {
       packages.emacs-clean-pgtk = wrap-emacs-clean pkgs.emacs-git-pgtk;
       packages.emacs-clean-nox = wrap-emacs-clean pkgs.emacs-git-nox;
+      packages.emacs-clean-batch = emacs-clean-with-packages pkgs.emacs-git-nox;
     };
 }

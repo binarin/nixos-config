@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-nix run .#emacs-clean-nox -- -Q			\
+nix run .#emacs-clean-batch -- -Q		\
     -L ./files/emacs/lisp			\
     --batch					\
     -l ./files/emacs/tests/config-test-pre.el	\
