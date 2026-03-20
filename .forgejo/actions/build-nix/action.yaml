@@ -1,3 +1,4 @@
+---
 name: 'Build Nix'
 description: 'Build a nix flake output and extract store paths for caching'
 inputs:
@@ -26,14 +27,13 @@ runs:
 
         # Run the build
         if [[ -n "$OUTPUT_LINK" ]]; then
-          nix build "$BUILD_PATH" -o "$OUTPUT_LINK"
+          STORE_PATH=$(nix build "$BUILD_PATH" -o "$OUTPUT_LINK" --print-out-paths)
         else
-          nix build "$BUILD_PATH" --no-link
+          STORE_PATH=$(nix build "$BUILD_PATH" --no-link --print-out-paths)
         fi
 
         # For nixos configurations, check that the flake source doesn't leak into the closure
         if [[ "$CONFIG_NAME" == d:* ]] || [[ "$CONFIG_NAME" == c:* ]]; then
-          STORE_PATH=$(nix build "$BUILD_PATH" --no-link --print-out-paths)
           # For deploy-rs entries, resolve the activatable wrapper to the real system path
           if [[ "$CONFIG_NAME" == d:* ]] && [[ -L "$STORE_PATH/activate" ]]; then
             STORE_PATH=$(dirname "$(readlink "$STORE_PATH/activate")")
@@ -43,15 +43,5 @@ runs:
 
         # If paths-file requested, extract build closure (includes build-time deps)
         if [[ -n "$PATHS_FILE" ]]; then
-          # Get the derivation for this build
-          DRV=$(nix path-info --derivation "$BUILD_PATH")
-
-          # Get all outputs in the build closure (runtime + build-time deps)
-          # --include-outputs adds realized outputs of derivations in the closure
-          # Filter out .drv files - we only want actual store paths
-          nix-store -qR --include-outputs "$DRV" \
-            | grep -v '\.drv$' \
-            | sort -u > "$PATHS_FILE"
-
-          echo "Extracted $(wc -l < "$PATHS_FILE") store paths for caching (build closure)"
+          echo "$STORE_PATH" >> "$PATHS_FILE"
         fi

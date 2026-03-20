@@ -33,7 +33,7 @@
   :ensure nil
   :mode "\\.\\(yaml\\|yml\\)\\'")
 
-(setf yaml-ts-mode-yamllint-options '("--config-data" "{rules: {line-length: {max: 132}}}"))
+(setf yaml-ts-mode-yamllint-options '("--config-data" "{rules: {line-length: {max: 150}}}"))
 
 (add-hook 'yaml-ts-mode-hook #'b/yaml-mode-hook)
 

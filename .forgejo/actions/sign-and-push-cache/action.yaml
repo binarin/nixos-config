@@ -1,3 +1,4 @@
+---
 name: 'Sign and Push to Cache'
 description: 'Sign Nix store paths and push to S3 cache'
 inputs:
@@ -37,5 +38,4 @@ runs:
         # curl --output "$NIKS3_AUTH_TOKEN_FILE" -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://niks3.lynx-lizard.ts.net"
         # cat "$PATHS_FILE" | xargs niks3 push --debug
         # rm -f "$NIKS3_AUTH_TOKEN_FILE"
-        cat "$PATHS_FILE" | xargs niks3 push --auth-token "$NIKS3_API_TOKEN" --server-url "https://niks3.lynx-lizard.ts.net"
-
+        cat "$PATHS_FILE" | xargs --max-chars=1944546 --max-args=20000 niks3 push --auth-token "$NIKS3_API_TOKEN" --server-url "https://niks3.lynx-lizard.ts.net"
