@@ -5,6 +5,8 @@
   ...
 }:
 {
+  flake.furfur = self.nixosConfigurations.furfur.pkgs;
+
   flake.nixosConfigurations.furfur = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = {
