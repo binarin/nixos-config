@@ -99,5 +99,20 @@
 (setf org-use-speed-commands t)
 (setf org-protocol-default-template-key "l")
 
+(require 'org-roam)
+(require 'org-roam-dailies)
+
+(setq org-roam-dailies-capture-templates
+      '(("d" "default" entry
+         "* %<%H:%M:%S>: %?"
+         :target (file+head "%<%Y-%m-%d>.org"
+                            "#+title: %<%Y-%m-%d>\n"))))
+
+
+(setf org-roam-directory (file-truename "~/org/roam"))
+(setf org-roam-dailies-directory "daily/")
+
+(when (file-exists-p "~/org/roam")
+  (org-roam-db-autosync-mode))
 
 (provide 'b-org)

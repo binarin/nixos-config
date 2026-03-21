@@ -34,6 +34,7 @@
                        "treesitter"
                        "eln"
 		       "elpa"
+		       "org-roam.db"
 		       ".org-id-locations")
                       (or eol "/")))
         (tmp-rx (rx bol

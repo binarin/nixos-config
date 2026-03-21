@@ -37,6 +37,14 @@
   :config
   (load? 'b-org))
 
+(use-package org-roam
+  :bind (("C-c n f" . org-roam-node-find)
+	 ("C-c n i" . org-roam-node-insert)
+	 ("C-c n r" . org-roam-capture))
+  :bind-keymap ("C-c d" . org-roam-dailies-map)
+  :config
+  (load? 'b-org))
+
 
 (winner-mode t)
 (which-key-mode t)
