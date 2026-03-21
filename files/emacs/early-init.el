@@ -35,6 +35,7 @@
                        "eln"
 		       "elpa"
 		       "org-roam.db"
+		       "init_zsh.sh"
 		       ".org-id-locations")
                       (or eol "/")))
         (tmp-rx (rx bol
