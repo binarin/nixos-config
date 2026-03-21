@@ -7,14 +7,9 @@ in
     { pkgs, lib, ... }:
     let
       emacs-clean-with-packages =
-        {
-          basePackage,
-          extraPackages ? [ ],
-        }:
+        basePackage:
         basePackage.pkgs.withPackages (
-          e:
-          with e;
-          [
+          e: with e; [
             consult
             corfu
             direnv
@@ -32,13 +27,6 @@ in
             zenburn-theme
             treesit-grammars.with-all-grammars
           ]
-          ++ (with pkgs; [
-            yamllint
-            yamlfmt
-            nixfmt
-            wtype
-          ])
-          ++ extraPackages
         );
 
       emacsPackage =
@@ -52,12 +40,10 @@ in
           extraPackages ? [ ],
         }:
         let
-          emacsWithPackages = emacs-clean-with-packages { inherit basePackage; };
+          emacsWithPackages = emacs-clean-with-packages basePackage;
           flakyConfigDir = selfLib.dir "emacs";
           emacsBinaryWrapper = writeShellApplication {
             name = "emacs-env-aware-wrapper";
-            runtimeInputs = [
-            ];
             text = ''
               init_directory="${flakyConfigDir}"
               lib_directory="${flakyConfigDir}/lisp"
@@ -78,10 +64,15 @@ in
         in
         symlinkJoin {
           name = "emacs-from-nixos-config";
-          paths = [
-            emacsWithPackages
-          ]
-          ++ extraPackages;
+          paths =
+            with pkgs;
+            [
+              emacsWithPackages
+              yamllint
+              yamlfmt
+              nixfmt
+            ]
+            ++ extraPackages;
           postBuild = ''
             ln -sf "${lib.getExe emacsBinaryWrapper}" "$out/bin/emacs"
           '';

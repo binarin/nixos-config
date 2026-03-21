@@ -44,36 +44,38 @@ in
     {
       key = "nixos-config.modules.home.emacs";
 
-      config = 
-        lib.mkMerge [
-          {
-            home.file.".config/emacs/snippets".source = selfLib.dir "yasnippets";
+      config = lib.mkMerge [
+        {
+          home.file.".config/emacs/snippets".source = selfLib.dir "yasnippets";
 
-            programs.emacs = {
-              enable = lib.mkForce false;
-              package = lib.mkOverride 90 self'.packages.emacs-nox;
-            };
-          }
+          programs.emacs = {
+            enable = lib.mkForce false;
+            package = lib.mkOverride 90 self'.packages.emacs-nox;
+          };
+        }
 
-          (lib.mkIf osConfig.services.graphical-desktop.enable {
-            xdg.dataFile."applications/org-protocol.desktop".source = selfLib.file "org-protocol.desktop";
+        (lib.mkIf osConfig.services.graphical-desktop.enable {
+          xdg.dataFile."applications/org-protocol.desktop".source = selfLib.file "org-protocol.desktop";
 
-            xdg.configFile."autostart/emacs.desktop".source =
-              "${config.programs.emacs.package}/share/applications/emacs.desktop";
+          xdg.configFile."autostart/emacs.desktop".source =
+            "${config.programs.emacs.package}/share/applications/emacs.desktop";
 
-            xdg.mimeApps.defaultApplications = lib.mkIf pkgs.stdenv.isLinux {
-              "x-scheme-handler/org-protocol" = "org-protocol.desktop";
-            };
+          xdg.mimeApps.defaultApplications = lib.mkIf pkgs.stdenv.isLinux {
+            "x-scheme-handler/org-protocol" = "org-protocol.desktop";
+          };
 
-            xdg.dataFile."icons/emacs/org.svg".source = selfLib.file "org.svg";
+          xdg.dataFile."icons/emacs/org.svg".source = selfLib.file "org.svg";
 
-            programs.emacs.package = lib.mkForce (self'.packages.emacs-pgtk.override {
+          programs.emacs.package = lib.mkForce (
+            self'.packages.emacs-pgtk.override {
               extraPackages = with pkgs; [
                 emacs-all-the-icons-fonts
                 ghostscript
+                wtype
               ];
-            });
-           })
-        ];
+            }
+          );
+        })
+      ];
     };
 }
