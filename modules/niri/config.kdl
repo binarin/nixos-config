@@ -396,7 +396,7 @@ binds {
   // Ctrl+Shift+Alt+Super+C { spawn-sh "emacsclient --eval '(binarin/full-frame-org-capture \"t\")'"; }
   // Ctrl+Shift+Alt+Super+D { spawn-sh "emacsclient --eval '(binarin/full-frame-org-roam-dailies-capture-today)'"; }
   // Ctrl+Shift+Alt+Super+E { spawn-sh "emacsclient --eval '(thanos/type)'"; }
-  // Ctrl+Shift+Alt+Super+F { spawn-sh "firefox"; }
+  Ctrl+Shift+Alt+Super+F { spawn-sh "firefox"; }
   // Ctrl+Shift+Alt+Super+L { spawn-sh "emacsclient --eval '(when (org-clocking-p) (binarin/full-frame-org-capture \"n\"))'"; }
   // Ctrl+Shift+Alt+Super+N { spawn-sh "emacsclient --create-frame --no-wait --timeout=2 --quiet"; }
   // Ctrl+Shift+Alt+Super+P { spawn-sh "~/personal-workspace/nixos-config/scripts/org-capture-clipboard.sh"; }
