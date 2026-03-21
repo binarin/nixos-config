@@ -1,10 +1,13 @@
 { self, inputs, ... }:
+let
+  selfLib = self.lib.self;
+in
 {
   perSystem =
     { pkgs, lib, ... }:
     let
       emacs-clean-with-packages =
-        basePackage:
+        {basePackage, extraPackages ? []}:
         basePackage.pkgs.withPackages (
           e:
           with e;
@@ -12,15 +15,18 @@
             consult
             corfu
             direnv
+            embark
+            embark-consult
             magit
             marginalia
             nix-mode
             orderless
+            org-roam
             paredit
             vertico
+            ws-butler
+            kdl-mode
             zenburn-theme
-            embark
-            embark-consult
 
             treesit-grammars.with-all-grammars
           ]
@@ -28,39 +34,56 @@
             yamllint
             yamlfmt
             nixfmt
-          ])
+            wtype
+          ]) ++ extraPackages
         );
 
-      wrap-emacs-clean =
-        basePackage:
+      emacsPackage =
+        {
+          lib,
+          symlinkJoin,
+          makeWrapper,
+          writeShellApplication,
+          basePackage ? pkgs.emacs-git-nox,
+          impureConfigDir ? "personal-workspace/nixos-config/files/emacs",
+          extraPackages ? [],
+        }:
         let
-          emacs-clean-package = emacs-clean-with-packages basePackage;
+          emacsWithPackages = emacs-clean-with-packages { inherit basePackage; };
+          flakyConfigDir = selfLib.dir "emacs";
+          emacsBinaryWrapper = writeShellApplication {
+            name = "emacs-env-aware-wrapper";
+            runtimeInputs = [
+            ];
+            text = ''
+              init_directory="${flakyConfigDir}"
+              lib_directory="${flakyConfigDir}/lisp"
+              if [[ -n ''${HOME+x} && -d "$HOME/${impureConfigDir}" ]]; then
+                 init_directory="$HOME/${impureConfigDir}"
+                 lib_directory="$HOME/${impureConfigDir}/lisp"
+              fi
+              exec "${lib.getExe emacsWithPackages}" \
+                --init-directory="$init_directory" \
+                --directory="$lib_directory" \
+                "$@"
+            '';
+          };
         in
-        pkgs.runCommand "emacs-clean-wrapped"
-          {
-            buildInputs = with pkgs; [ makeWrapper ];
-            meta.mainProgram = "emacs1";
-          }
-          ''
-            mkdir -p $out/bin
-            mkdir -p $out/share/applications
-            cat ${emacs-clean-package}/share/applications/emacs.desktop | sed 's/^Exec=emacs /Exec=emacs1 /; s/^Name=Emacs/Name=Emacs(clean cfg)/'  > $out/share/applications/emacs1.desktop
-
-            makeShellWrapper "${emacs-clean-package}/bin/emacs" "$out/bin/emacs1" \
-              --inherit-argv0 \
-              --add-flag -L --add-flag "/home/binarin/personal-workspace/nixos-config/files/emacs/lisp" \
-              --add-flag --init-directory="/home/binarin/personal-workspace/nixos-config/files/emacs"
-
-
-            makeShellWrapper "${emacs-clean-package}/bin/emacsclient" "$out/bin/emacsclient1" \
-              --add-flags "--socket-name=emacs-clean" \
-              --prefix PATH : "${emacs-clean-package}/bin" \
+        symlinkJoin {
+          name = "emacs-from-nixos-config";
+          paths = [
+            emacsWithPackages
+          ] ++ extraPackages;
+          postBuild = ''
+            ln -sf "${lib.getExe emacsBinaryWrapper}" "$out/bin/emacs"
           '';
+          meta.mainProgram = "emacs";
+        };
 
     in
     {
-      packages.emacs-clean-pgtk = wrap-emacs-clean pkgs.emacs-git-pgtk;
-      packages.emacs-clean-nox = wrap-emacs-clean pkgs.emacs-git-nox;
-      packages.emacs-clean-batch = emacs-clean-with-packages pkgs.emacs-git-nox;
+      packages.emacs = pkgs.callPackage emacsPackage { };
+      packages.emacs-pgtk = pkgs.callPackage emacsPackage { basePackage = pkgs.emacs-git-pgtk; };
+      packages.emacs-nox = pkgs.callPackage emacsPackage { basePackage = pkgs.emacs-git-nox; };
     };
 }

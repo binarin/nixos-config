@@ -223,22 +223,6 @@ in
 
       home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
 
-      programs.emacs = {
-        enable = true;
-        extraPackages =
-          epkgs: with epkgs; [
-            magit
-            zenburn-theme
-          ];
-      };
-
-      services.emacs = {
-        # - In graphical session, emacs daemon lifetime is tied to wayland server anyway
-        # - I suspect that non-daemon graphical emacs works better, i.e. with `xdg-activation-v1`
-        enable = !osConfig.services.graphical-desktop.enable;
-        socketActivation.enable = !osConfig.services.graphical-desktop.enable;
-      };
-
       programs.starship = {
         enable = true;
         settings = {
