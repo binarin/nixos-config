@@ -10,10 +10,7 @@
 			  b/xdg-app))
 (defvar b/xdg-runtime-dir (file-name-concat
 			   (or (getenv "XDG_RUNTIME_DIR")
-			       (progn
-				 (warn "No XDG_RUNTIME_DIR, defaulting to ~/tmp")
-				 (expand-file-name "~/tmp"))
-			       )
+			       (expand-file-name "~/tmp"))
 			   b/xdg-app))
 
 (provide 'b-xdg)

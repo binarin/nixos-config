@@ -24,12 +24,16 @@
 		       "bookmarks.eld"
 		       "eshell"
                        "transient"
+		       "calc.el"
+		       "org-clock-save.el"
+		       "user-lisp"
 		       "diary")
                       (or eol "/")))
         (cache-rx (rx bol
                       (or
                        "treesitter"
                        "eln"
+		       "elpa"
 		       ".org-id-locations")
                       (or eol "/")))
         (tmp-rx (rx bol

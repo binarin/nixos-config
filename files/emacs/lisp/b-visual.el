@@ -1,4 +1,9 @@
 ;; -*- lexical-binding: t; -*-
+
+(use-package treesit :ensure nil
+  :config
+  (setf treesit-font-lock-level 4))
+
 (context-menu-mode t)
 (menu-bar-mode -1)
 (tool-bar-mode -1)

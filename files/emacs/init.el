@@ -1,4 +1,5 @@
 ;;; -*- mode: emacs-lisp; lexical-binding: t -*-
+(require 'cl-lib)
 
 ;; lower priority than anything else below
 (setf custom-file (locate-user-emacs-file "custom.el"))
@@ -23,22 +24,36 @@
 (require 'b-compilation)
 (require 'b-version-control)
 
-(use-package b-org
+(defun load? (n)
+  (unless (featurep n)
+    (load (symbol-name n))))
+
+(use-package org
   :ensure nil
   :bind (("C-c l" . org-store-link)
 	 ("C-c a" . org-agenda)
 	 ("C-c r" . org-capture))
   :mode (("\\.org\\'" . org-mode))
-  :defer 5)
+  :config
+  (load? 'b-org))
+
+(require 'server)
+(defun b/org-protocol-lazy-load (orig-fun files client &rest args)
+  (message "%s" files)
+  (if (any (lambda (f)
+	     (string-match (rx "org-protocol:/") (car f)))
+	   files)
+      (progn
+	(load? 'b-org)
+	(apply 'org--protocol-detect-protocol-server orig-fun files client args))
+    (apply orig-fun files client args)))
+(advice-add 'server-visit-files :around 'b/org-protocol-lazy-load)
+(with-eval-after-load 'org-protocol
+  (advice-remove 'server-visit-files 'b/org-protocol-lazy-load))
+(server-start)
 
 (winner-mode t)
 (which-key-mode t)
 (global-auto-revert-mode t)
 
 (setf remote-file-name-access-timeout 2)
-
-(use-package treesit :ensure nil
-  :config
-  (setf treesit-font-lock-level 4))
-
-(require 'b-server)

@@ -50,8 +50,8 @@
 (use-package nix-mode
   :ensure t
   :mode ("\\.nix\\'" . nix-mode)
-  :config
-  (add-hook nix-mode-hook #'b/nix-mode-hook))
+  :init
+  (add-hook 'nix-mode-hook #'b/nix-mode-hook))
 
 (defun b/format-nix (&optional display-errors)
   (interactive "P")
@@ -86,5 +86,12 @@
 
 (add-hook 'Info-selection-hook 'b/Info-selection-hook)
 
+(defun b/tab-width-2 ()
+  (setf tab-width 2))
+
+(use-package kdl-mode
+  :ensure t
+  :mode ("\\.kdl\\'" . kdl-mode)
+  :hook (kdl-mode . b/tab-width-2))
 
 (provide 'b-prog-modes)
