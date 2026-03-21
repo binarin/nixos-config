@@ -228,6 +228,16 @@
         '';
       };
 
+      devShells.niri-dynamic-keybindings = pkgs.mkShell {
+        packages = with pkgs; [
+          cargo
+          rustc
+          rust-analyzer
+          clippy
+          rustfmt
+        ];
+      };
+
       devShells.default = pkgs.mkShell {
         name = "nixos-unified-template-shell";
         meta.description = "Shell environment for modifying this Nix configuration";
