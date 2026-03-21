@@ -101,4 +101,20 @@
 
 (defun b/rust-mode-hook ()
   (electric-pair-local-mode t))
+(cl-defstruct b/flake-subproject
+  root-dir flake-dir)
+
+(defun b/try-flake-subproject (dir)
+  (let ((candidate (locate-dominating-file dir ".envrc")))
+    (when (and candidate
+	       (not (file-exists-p (file-name-concat candidate "flake.nix"))))
+      (let ((flake (locate-dominating-file (file-name-parent-directory candidate) "flake.nix")))
+	(when flake
+	  (make-b/flake-subproject :root-dir candidate :flake-dir flake))))))
+
+(with-eval-after-load 'project
+    (add-hook 'project-find-functions #'b/try-flake-subproject))
+
+(cl-defmethod project-root ((project b/flake-subproject))
+  (b/flake-subproject-root-dir project))
 (provide 'b-prog-modes)
