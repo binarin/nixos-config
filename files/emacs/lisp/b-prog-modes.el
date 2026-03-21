@@ -117,4 +117,22 @@
 
 (cl-defmethod project-root ((project b/flake-subproject))
   (b/flake-subproject-root-dir project))
+
+(use-package view-mode
+  :ensure nil
+  :commands (view-mode)
+  :bind (:map view-mode-map
+	      ("j" . 'next-line)
+	      ("k" . 'previous-line)
+	      ("n" . 'next-line)
+	      ("p" . 'previous-line)))
+
+(defun b/view-mode-for-nix-store ()
+  (when (string-prefix-p "/nix/store/" (buffer-file-name))
+    (view-mode 1)))
+
+(add-hook 'find-file-hook 'b/view-mode-for-nix-store)
+
+
+
 (provide 'b-prog-modes)
