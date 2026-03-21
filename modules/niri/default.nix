@@ -24,17 +24,18 @@
         self.nixosModules.swayidle
       ];
 
+      programs.niri.enable = true;
+
       environment.systemPackages = with pkgs; [
         # Things used by the default config
         alacritty
         fuzzel
 
-        # niri binary itself, for RPC calls
-        niri
-
         # automatically started if installed
         xwayland-satellite
       ];
+
+      services.gnome.gcr-ssh-agent.enable = false;
 
       programs.uwsm = {
         enable = true;
@@ -82,6 +83,7 @@
         xdg.portal.extraPortals = [
           pkgs.kdePackages.kwallet
           pkgs.kdePackages.xdg-desktop-portal-kde
+          pkgs.kdePackages.polkit-kde-agent-1
         ];
 
       };

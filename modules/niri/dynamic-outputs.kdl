@@ -1,0 +1,57 @@
+output "Dell Inc. DELL U4025QW J7Q6FP3" {
+  // 5120x2160
+  // scale: 1.25 -> 4096x1728
+  position x=0 y=0
+  focus-at-startup
+
+  layout {
+    preset-column-widths {
+      proportion 0.3333
+      proportion 0.5
+      proportion 0.6666
+    }
+
+    preset-window-heights {
+      proportion 0.3333
+      proportion 0.5
+      proportion 0.6666
+    }
+
+    default-column-width { proportion 0.33; }
+  }
+
+}
+
+output "LG Display 0x06B1 0x002127A1" {
+  // 2880x1920
+  // scale: 2 -> 1440x960
+  position x=1328 y=1728
+
+  layout {
+    gaps 6
+
+    default-column-display "tabbed"
+
+    tab-indicator {
+      hide-when-single-tab
+      place-within-column
+      width 5
+      position "bottom"
+      gaps-between-tabs 10
+      gap 8
+      corner-radius 3
+      active-color "#93E0E3" // zenburn-cyan
+      inactive-color "#343434" // zenburn-bg
+      urgent-color "#DC8CC3" // zenburn-magenta
+    }
+
+    preset-column-widths {
+      proportion 0.5
+      proportion 0.6666
+      proportion 0.97
+    }
+
+    default-column-width { proportion 0.97; }
+  }
+
+}

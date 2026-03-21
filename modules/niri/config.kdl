@@ -7,7 +7,7 @@
 // Find the full list of options on the wiki:
 // https://yalter.github.io/niri/Configuration:-Input
 
-// include "layout-binds.kdl" XXX
+include "dynamic-outputs.kdl"
 
 input {
   disable-power-key-handling
@@ -65,7 +65,7 @@ input {
 
   // Focus windows and outputs automatically when moving the mouse into them.
   // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
-  // focus-follows-mouse max-scroll-amount="0%"
+  focus-follows-mouse max-scroll-amount="50%"
 }
 
 // You can configure outputs by their name, which you can find
@@ -393,15 +393,15 @@ window-rule {
 binds {
   Ctrl+Backslash { spawn "~/personal-workspace/nixos-config/scripts/niri-layout-toggle.sh"; }
 
-  Ctrl+Shift+Alt+Super+C { spawn-sh "emacsclient --eval '(binarin/full-frame-org-capture \"t\")'"; }
-  Ctrl+Shift+Alt+Super+D { spawn-sh "emacsclient --eval '(binarin/full-frame-org-roam-dailies-capture-today)'"; }
-  Ctrl+Shift+Alt+Super+E { spawn-sh "emacsclient --eval '(thanos/type)'"; }
-  Ctrl+Shift+Alt+Super+F { spawn-sh "firefox"; }
-  Ctrl+Shift+Alt+Super+L { spawn-sh "emacsclient --eval '(when (org-clocking-p) (binarin/full-frame-org-capture \"n\"))'"; }
-  Ctrl+Shift+Alt+Super+N { spawn-sh "emacsclient --create-frame --no-wait --timeout=2 --quiet"; }
-  Ctrl+Shift+Alt+Super+P { spawn-sh "~/personal-workspace/nixos-config/scripts/org-capture-clipboard.sh"; }
-  Ctrl+Shift+Alt+Super+T { spawn-sh "emacsclient --eval '(binarin/new-vterm-frame)'"; }
-  Ctrl+Shift+Alt+Super+A { spawn-sh "~/personal-workspace/nixos-config/scripts/emacs-launcher.sh '(org-agenda nil \"a\")'"; }
+  // Ctrl+Shift+Alt+Super+C { spawn-sh "emacsclient --eval '(binarin/full-frame-org-capture \"t\")'"; }
+  // Ctrl+Shift+Alt+Super+D { spawn-sh "emacsclient --eval '(binarin/full-frame-org-roam-dailies-capture-today)'"; }
+  // Ctrl+Shift+Alt+Super+E { spawn-sh "emacsclient --eval '(thanos/type)'"; }
+  // Ctrl+Shift+Alt+Super+F { spawn-sh "firefox"; }
+  // Ctrl+Shift+Alt+Super+L { spawn-sh "emacsclient --eval '(when (org-clocking-p) (binarin/full-frame-org-capture \"n\"))'"; }
+  // Ctrl+Shift+Alt+Super+N { spawn-sh "emacsclient --create-frame --no-wait --timeout=2 --quiet"; }
+  // Ctrl+Shift+Alt+Super+P { spawn-sh "~/personal-workspace/nixos-config/scripts/org-capture-clipboard.sh"; }
+  // Ctrl+Shift+Alt+Super+T { spawn-sh "emacsclient --eval '(binarin/new-vterm-frame)'"; }
+  // Ctrl+Shift+Alt+Super+A { spawn-sh "~/personal-workspace/nixos-config/scripts/emacs-launcher.sh '(org-agenda nil \"a\")'"; }
 
   Mod+N { spawn-sh "swaync-client -t"; }
   Mod+A { spawn-sh "wl-kbptr -o modes=floating,click -o mode_floating.source=detect"; }
@@ -492,14 +492,22 @@ binds {
   Mod+Shift+K     { focus-monitor-up; }
   Mod+Shift+L     { focus-monitor-right; }
 
-  Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
-  Mod+Shift+Ctrl+Down  { move-column-to-monitor-down; }
-  Mod+Shift+Ctrl+Up    { move-column-to-monitor-up; }
-  Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
-  Mod+Shift+Ctrl+H     { move-column-to-monitor-left; }
-  Mod+Shift+Ctrl+J     { move-column-to-monitor-down; }
-  Mod+Shift+Ctrl+K     { move-column-to-monitor-up; }
-  Mod+Shift+Ctrl+L     { move-column-to-monitor-right; }
+  Mod+Shift+Ctrl+Left  { move-workspace-to-monitor-left; }
+  Mod+Shift+Ctrl+Down  { move-workspace-to-monitor-down; }
+  Mod+Shift+Ctrl+Up    { move-workspace-to-monitor-up; }
+  Mod+Shift+Ctrl+Right { move-workspace-to-monitor-right; }
+  Mod+Shift+Ctrl+H     { move-workspace-to-monitor-left; }
+  Mod+Shift+Ctrl+J     { move-workspace-to-monitor-down; }
+  Mod+Shift+Ctrl+K     { move-workspace-to-monitor-up; }
+  Mod+Shift+Ctrl+L     { move-workspace-to-monitor-right; }
+  // Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
+  // Mod+Shift+Ctrl+Down  { move-column-to-monitor-down; }
+  // Mod+Shift+Ctrl+Up    { move-column-to-monitor-up; }
+  // Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
+  // Mod+Shift+Ctrl+H     { move-column-to-monitor-left; }
+  // Mod+Shift+Ctrl+J     { move-column-to-monitor-down; }
+  // Mod+Shift+Ctrl+K     { move-column-to-monitor-up; }
+  // Mod+Shift+Ctrl+L     { move-column-to-monitor-right; }
 
   // Alternatively, there are commands to move just a single window:
   // Mod+Shift+Ctrl+Left  { move-window-to-monitor-left; }
