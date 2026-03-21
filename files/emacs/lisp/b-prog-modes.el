@@ -94,4 +94,11 @@
   :mode ("\\.kdl\\'" . kdl-mode)
   :hook (kdl-mode . b/tab-width-2))
 
+(use-package rust-ts-mode
+  :ensure nil
+  :mode ("\\.rs\\'". rust-ts-mode)
+  :hook (rust-ts-mode . b/rust-mode-hook))
+
+(defun b/rust-mode-hook ()
+  (electric-pair-local-mode t))
 (provide 'b-prog-modes)
