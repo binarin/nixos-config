@@ -14,6 +14,12 @@
 (load-theme 'zenburn t)
 (add-to-list 'default-frame-alist '(font . "IosevkaTerm Nerd Font-16"))
 
+(when (display-graphic-p)
+  (set-face-attribute 'mode-line nil :height 0.8)
+  (set-face-attribute 'mode-line-inactive nil :height 0.8))
+(line-number-mode 1)
+(column-number-mode 1)
+
 (defun b/zenburn-all-colors ()
   (append zenburn-default-colors-alist
 	  zenburn-override-colors-alist))
