@@ -7,7 +7,10 @@ in
     { pkgs, lib, ... }:
     let
       emacs-clean-with-packages =
-        {basePackage, extraPackages ? []}:
+        {
+          basePackage,
+          extraPackages ? [ ],
+        }:
         basePackage.pkgs.withPackages (
           e:
           with e;
@@ -27,7 +30,6 @@ in
             ws-butler
             kdl-mode
             zenburn-theme
-
             treesit-grammars.with-all-grammars
           ]
           ++ (with pkgs; [
@@ -35,7 +37,8 @@ in
             yamlfmt
             nixfmt
             wtype
-          ]) ++ extraPackages
+          ])
+          ++ extraPackages
         );
 
       emacsPackage =
@@ -46,7 +49,7 @@ in
           writeShellApplication,
           basePackage ? pkgs.emacs-git-nox,
           impureConfigDir ? "personal-workspace/nixos-config/files/emacs",
-          extraPackages ? [],
+          extraPackages ? [ ],
         }:
         let
           emacsWithPackages = emacs-clean-with-packages { inherit basePackage; };
@@ -62,6 +65,10 @@ in
                  init_directory="$HOME/${impureConfigDir}"
                  lib_directory="$HOME/${impureConfigDir}/lisp"
               fi
+              # trailing ':' makes emacs join INFOPATH and Info-default-directory-alist
+              if [[ -n ''${INFOPATH+x} && ! $INFOPATH =~ :$ ]]; then
+                export INFOPATH="$INFOPATH:"
+              fi
               exec "${lib.getExe emacsWithPackages}" \
                 --init-directory="$init_directory" \
                 --directory="$lib_directory" \
@@ -73,7 +80,8 @@ in
           name = "emacs-from-nixos-config";
           paths = [
             emacsWithPackages
-          ] ++ extraPackages;
+          ]
+          ++ extraPackages;
           postBuild = ''
             ln -sf "${lib.getExe emacsBinaryWrapper}" "$out/bin/emacs"
           '';
