@@ -57,6 +57,7 @@
 	(display-buffer (current-buffer))
 	(erase-buffer)
 	(cl-loop for (name . color) in (b/zenburn-all-colors)
+		 do (ins-block color :width 8)
 		 do (ins-block name :fg color :width 18)
 		 do (ins-block name :bg color :fg zenburn-bg :width 18)
 		 do (ins-block "bg-1" :fg color :bg zenburn-bg-1)
