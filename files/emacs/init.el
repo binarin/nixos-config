@@ -33,7 +33,7 @@
 
 (use-package org
   :ensure nil
-  :bind (("C-c l" . org-store-link)
+  :bind (("C-c o c" . org-clock-goto)
 	 ("C-c a" . org-agenda)
 	 ("C-c r" . org-capture))
   :mode (("\\.org\\'" . org-mode))
