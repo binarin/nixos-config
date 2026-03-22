@@ -35,7 +35,7 @@
               regular1 = "cd0000";
               regular2 = "00cd00";
               regular3 = "cdcd00";
-              regular4 = "0000cd";
+              regular4 = "366080";
               regular5 = "cd00cd";
               regular6 = "00cdcd";
               regular7 = "faebd7";
