@@ -127,7 +127,11 @@
 
 (b/set-org-speed-commands
   "d" (org-todo 'done)
-  "j" (org-refile '(4)))
+  "j" (org-refile '(4))
+  "i" (org-clock-in)
+  "k" (progn)
+  "m" (org-roam-refile (org-roam-node-read nil nil nil 'require-match))
+  "M" (org-roam-extract-subtree))
 
 (setf org-protocol-default-template-key "l")
 
