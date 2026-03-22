@@ -79,13 +79,16 @@
 (defun b/org-capture-fold-after ()
   (unless org-note-abort
     (with-current-buffer (org-capture-get :buffer)
-	(save-restriction
-	  (save-excursion
-	    (let ((pt (org-capture-get :insertion-point)))
-	      (when pt
-		(widen)
-		(goto-char pt)
-		(org-fold-hide-entry))))))))
+      (let ((pt (org-capture-get :insertion-point)))
+	(when pt
+	  (org-with-point-at pt
+	    (pcase (org-get-property-block pt)
+	      (`(,beg . ,end)
+     	       (save-restriction
+		 (when (re-search-forward org-property-drawer-re)
+		   (goto-char (match-beginning 0))
+		   (org-fold-hide-drawer-toggle t)))))
+	    (org-fold-hide-entry)))))))
 
 (setf org-agenda-files
       (when (file-exists-p "~/org")
