@@ -52,24 +52,40 @@
            * %?
              :PROPERTIES:
              :ID: %(org-id-new)
+             :capture-clocked: %K
              :capture-location: %a
              :capture-timestamp: %U
              :END:
 
              %i
           ")
-	 :hook org-fold-hide-drawer-all)
+	 :hook org-fold-hide-drawer-all
+	 :prepare-finalize b/org-remove-empty-properties-from-capture
+	 :after-finalize b/org-capture-fold-after
+	 )
 	("l" "Capture link" entry (file "~/org/refile.org")
 	 ,(b/strip-indentation "
            * %a
              :PROPERTIES:
              :ID: %(org-id-new)
+             :capture-clocked: %K
              :capture-timestamp: %U
              :END:
 
              %i
           ")
 	 :immediate-finish t)))
+
+(defun b/org-capture-fold-after ()
+  (unless org-note-abort
+    (with-current-buffer (org-capture-get :buffer)
+	(save-restriction
+	  (save-excursion
+	    (let ((pt (org-capture-get :insertion-point)))
+	      (when pt
+		(widen)
+		(goto-char pt)
+		(org-fold-hide-entry))))))))
 
 (setf org-agenda-files
       (when (file-exists-p "~/org")
@@ -131,4 +147,12 @@
 (when (file-exists-p "~/org/roam")
   (org-roam-db-autosync-mode))
 
+(defun b/org-remove-empty-properties-from-capture ()
+  (interactive)
+  (cl-loop for property in '("capture-clocked" "capture-location")
+	   for val = (org-entry-get (point) property)
+	   when (equal "" val)
+	   do (org-entry-delete nil property)))
+
 (provide 'b-org)
+
