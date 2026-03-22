@@ -115,6 +115,15 @@
 (with-eval-after-load 'project
     (add-hook 'project-find-functions #'b/try-flake-subproject))
 
+(bind-key "<f21>" 'project-eshell)
+
+
+(use-package eglot
+  :ensure nil
+  :bind (:map eglot-mode-map
+	      ("<f23>" . eglot-code-actions)))
+
+
 (cl-defmethod project-root ((project b/flake-subproject))
   (b/flake-subproject-root-dir project))
 
