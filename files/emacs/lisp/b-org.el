@@ -34,6 +34,7 @@
       org-tag-alist '(("PROJ" . ?p)))
 
 (setf org-clock-idle-time 10)
+(setf org-clock-in-switch-to-state "NEXT")
 
 (setf org-refile-use-outline-path 'file
       org-outline-path-complete-in-steps nil
