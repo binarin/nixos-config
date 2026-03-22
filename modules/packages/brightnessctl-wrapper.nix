@@ -238,7 +238,9 @@
 
             # First pass: identify monitor types
             for output in "''${active_outputs[@]}"; do
-              if bus=$(get_bus_for_connector "$output"); then
+              if [[ "$output" == eDP-* ]]; then
+                has_laptop=true
+              elif bus=$(get_bus_for_connector "$output"); then
                 ddc_buses+=("$bus")
               else
                 has_laptop=true
