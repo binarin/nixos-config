@@ -1,6 +1,9 @@
 ;;; -*- mode: emacs-lisp; lexical-binding: t -*-
 (require 'cl-lib)
 
+(set-language-environment "English")
+(set-language-environment-input-method "Russian")
+
 ;; lower priority than anything else below
 (setf custom-file (locate-user-emacs-file "custom.el"))
 (when (file-exists-p custom-file) (load custom-file))
