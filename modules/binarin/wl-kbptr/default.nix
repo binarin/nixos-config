@@ -5,7 +5,7 @@
     {
       key = "nixos-config.modules.home.wl-kbptr";
       home.packages = [
-        inputs.nixpkgs-unstable.legacyPackages."${pkgs.stdenv.hostPlatform.system}".wl-kbptr
+        pkgs.wl-kbptr
       ];
 
       xdg.configFile."wl-kbptr/config".source =
