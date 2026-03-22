@@ -99,9 +99,19 @@
 
 (require 'org-keys)
 (setf org-use-speed-commands t)
-(add-to-list 'org-speed-commands (cons "d" (lambda () (interactive) (org-todo 'done)))
-	     nil (lambda (new existing) (equal (car new) (car existing))))
 
+(defun b/set-org-speed-command (key form)
+  (setf (alist-get key org-speed-commands) form))
+
+(defmacro b/set-org-speed-commands (&rest pairs)
+  (declare (indent 0))
+  `(progn
+     ,@(cl-loop for (key form) on pairs by #'cddr
+		collect `(b/set-org-speed-command ,key ',form))))
+
+(b/set-org-speed-commands
+  "d" (org-todo 'done)
+  "j" (org-refile '(4)))
 
 (setf org-protocol-default-template-key "l")
 
