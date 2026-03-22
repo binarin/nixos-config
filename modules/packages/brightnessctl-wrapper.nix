@@ -54,7 +54,7 @@
           done
 
           # Remaining positional arguments: command and value (e.g., "s 10%")
-          if [[ $# -ge 2 && "$1" == "s" ]]; then
+          if [[ $# -ge 2 && ("$1" == "s" || "$1" == "set") ]]; then
             SET_VALUE="$2"
           fi
 
