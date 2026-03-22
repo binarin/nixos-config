@@ -19,6 +19,7 @@
 (put 'narrow-to-region 'disabled nil)
 
 (require 'b-startup)
+(require 'b-windows)
 (require 'b-files)
 (require 'b-visual)
 (require 'b-completion)
@@ -30,6 +31,10 @@
 (defun load? (n)
   (unless (featurep n)
     (load (symbol-name n))))
+
+(use-package b-org
+  :ensure nil
+  :commands (b/clock-out-on-screen-lock))
 
 (use-package org
   :ensure nil

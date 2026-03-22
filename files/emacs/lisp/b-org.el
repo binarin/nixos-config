@@ -19,7 +19,7 @@
 
 (setf org-todo-keywords
       '((sequence "TODO(t)" "NEXT(n!)" "|" "DONE(d!)")
-	(sequence "|" "CNCL(c!)")
+	(sequence "|" "CNCL(c@)")
 	(sequence "WAIT(w!/!)" "|")))
 
 (b/with-zenburn
@@ -127,7 +127,8 @@
 
 (b/set-org-speed-commands
   "d" (org-todo 'done)
-  "j" (org-refile '(4))
+  "c" (org-todo "CNCL")
+  "J" (org-refile '(4))
   "i" (org-clock-in)
   "k" (progn)
   "m" (org-roam-refile (org-roam-node-read nil nil nil 'require-match))
@@ -157,6 +158,11 @@
 	   for val = (org-entry-get (point) property)
 	   when (equal "" val)
 	   do (org-entry-delete nil property)))
+
+(defun b/clock-out-on-screen-lock ()
+  (when (org-clocking-p)
+    (org-clock-out)
+    (org-save-all-org-buffers)))
 
 (provide 'b-org)
 

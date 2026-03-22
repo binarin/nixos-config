@@ -112,6 +112,18 @@
               '';
             };
 
+          doSessionLock = pkgs.writeShellApplication {
+            name = "do-session-lock";
+            runtimeInputs = [
+              config.programs.emacs.package
+              pkgs.swaylock
+            ];
+            text = ''
+              emacsclient -n -a true --eval "(b/clock-out-on-screen-lock)" || true
+              swaylock --show-failed-attempts --daemonize --show-keyboard-layout --indicator-caps-lock
+            '';
+          };
+
           # Wrapped commands for brightness control (using wrapper for DDC monitor support)
           dimBrightnessAc = onAcPower "br-10" "${lib.getExe brightnessctl-wrapper} -s s 10%";
           dimBrightnessBattery = onBatteryPower "br-10" "${lib.getExe brightnessctl-wrapper} -s s 10%";
@@ -146,7 +158,7 @@
               }
               {
                 event = "lock";
-                command = "${lib.getExe pkgs.swaylock} -fF";
+                command = "${lib.getExe doSessionLock}";
               }
             ];
             timeouts = [
