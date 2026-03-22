@@ -96,7 +96,12 @@
 
 (add-to-list 'org-structure-template-alist '("m" . "SRC emacs-lisp"))
 
+(require 'org-keys)
 (setf org-use-speed-commands t)
+(add-to-list 'org-speed-commands (cons "d" (lambda () (interactive) (org-todo 'done)))
+	     nil (lambda (new existing) (equal (car new) (car existing))))
+
+
 (setf org-protocol-default-template-key "l")
 
 (require 'org-roam)
