@@ -34,6 +34,7 @@
 (use-package org
   :ensure nil
   :bind (("C-c o c" . org-clock-goto)
+	 ("C-c o l" . (lambda () (interactive) (org-goto-marker-or-bmk org-capture-last-stored-marker)))
 	 ("C-c a" . org-agenda)
 	 ("C-c r" . org-capture))
   :mode (("\\.org\\'" . org-mode))
