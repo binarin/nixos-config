@@ -127,7 +127,7 @@
 (cl-defmethod project-root ((project b/flake-subproject))
   (b/flake-subproject-root-dir project))
 
-(use-package view-mode
+(use-package view
   :ensure nil
   :commands (view-mode)
   :bind (:map view-mode-map
