@@ -1,10 +1,6 @@
 ;; -*- lexical-binding: t; -*-
-
-(use-package direnv
-  :ensure t
-  :commands (direnv-mode)
-  :init
-  (direnv-mode t))
+(require 'direnv)
+(direnv-mode t)
 
 (setf direnv-show-paths-in-summary nil)
 
