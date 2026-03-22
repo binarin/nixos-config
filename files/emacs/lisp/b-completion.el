@@ -98,10 +98,13 @@
 (use-package embark-consult
   :ensure t)
 
+
+(defun b/dabbrev-completion-all ()
+  (interactive)
+  (dabbrev-completion '(16)))
+
 (use-package dabbrev
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand))
+  :bind (("C-M-/" . b/dabbrev-completion-all))
   :config
   (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
   (add-to-list 'dabbrev-ignored-buffer-modes 'authinfo-mode)
