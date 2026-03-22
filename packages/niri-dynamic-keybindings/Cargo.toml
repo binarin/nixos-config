@@ -6,4 +6,6 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.102"
 clap = { version = "4.6.0", features = ["derive"] }
+log = "0.4.29"
 niri-ipc = "25.11.0"
+pretty_env_logger = "0.5.0"

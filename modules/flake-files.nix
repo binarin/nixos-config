@@ -91,6 +91,7 @@ let
 
     # Copy a directory from files/ into an independent store path.
     dir = isolate;
+    dir' = isolate';
   };
 in
 {

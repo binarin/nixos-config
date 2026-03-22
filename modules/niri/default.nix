@@ -1,4 +1,7 @@
 { self, ... }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.nixosModules.niri =
     {
@@ -53,6 +56,7 @@
     {
       config,
       pkgs,
+      lib,
       ...
     }:
     {
@@ -65,6 +69,7 @@
         self.homeModules.swaync
         self.homeModules.wl-kbptr
         self.homeModules.swayidle
+        self.homeModules.niri-dynamic-keybindings
       ];
 
       config = {
@@ -72,20 +77,28 @@
           self.packages."${pkgs.stdenv.hostPlatform.system}".sshmenu
         ];
 
-        xdg.configFile."niri/config.kdl".source =
-          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/modules/niri/config.kdl";
+        # xdg.configFile."niri/config.kdl".source =
+        #   config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/modules/niri/config.kdl";
 
-        # XXX
-        # home.activation.niri-layout-binds = lib.hm.dag.entryAfter ["writeBoundary"] ''
-        #   run touch ~/.config/niri/layout-binds.kdl
-        # '';
+        xdg.configFile."niri/config.kdl".source = selfLib.file' "modules/niri/config.kdl";
+        xdg.configFile."niri/dynamic-outputs.kdl".source = selfLib.file' "modules/niri/dynamic-outputs.kdl";
+
+        home.activation.niri-config-materialize = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          run touch ~/.config/niri/dynamic-binds.kdl
+          if [[ -d $HOME/personal-workspace/nixos-config ]]; then
+            for niri_cfg in config.kdl dynamic-outputs.kdl; do
+              if [[ -L $HOME/.config/niri/$niri_cfg ]]; then
+                run ln -sf $HOME/personal-workspace/nixos-config/modules/niri/$niri_cfg $HOME/.config/niri/$niri_cfg
+              fi
+            done
+          fi
+        '';
 
         xdg.portal.extraPortals = [
           pkgs.kdePackages.kwallet
           pkgs.kdePackages.xdg-desktop-portal-kde
           pkgs.kdePackages.polkit-kde-agent-1
         ];
-
       };
     };
 }
