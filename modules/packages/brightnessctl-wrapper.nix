@@ -151,11 +151,33 @@
             ddcutil -b "$bus" setvcp 10 "$value" 2>/dev/null
           }
 
-          # Convert percentage string (e.g., "10%") to integer
-          percent_to_int() {
+          # Check if a brightness value is relative (+10% or 10%-)
+          is_relative() {
+            [[ "$1" =~ ^\+[0-9]+%$ || "$1" =~ ^[0-9]+%-$ ]]
+          }
+
+          # Parse a brightness value string and resolve it to an absolute 0-100 value.
+          # Supports: "50%" (absolute), "+10%" (relative increase), "10%-" (relative decrease)
+          # Args: value_string current_brightness
+          resolve_brightness() {
             local val="$1"
-            val="''${val%\%}"
-            echo "$val"
+            local current="$2"
+            local num
+
+            if [[ "$val" =~ ^\+([0-9]+)%$ ]]; then
+              num="''${BASH_REMATCH[1]}"
+              local result=$(( current + num ))
+              (( result > 100 )) && result=100
+              echo "$result"
+            elif [[ "$val" =~ ^([0-9]+)%-$ ]]; then
+              num="''${BASH_REMATCH[1]}"
+              local result=$(( current - num ))
+              (( result < 0 )) && result=0
+              echo "$result"
+            else
+              val="''${val%\%}"
+              echo "$val"
+            fi
           }
 
           # Handle save and set for DDC monitors
@@ -165,24 +187,29 @@
             local percent="$2"
             local save_mode="$3"
             local state_dir="$4"
-            local value
-            value=$(percent_to_int "$percent")
 
-            if [[ "$save_mode" == "true" ]]; then
-              local current
-              current=$(get_ddc_brightness "$bus")
-              if [[ -n "$current" ]]; then
-                local state_file="$state_dir/ddc-$bus.brightness"
-                if [[ -f "$state_file" ]]; then
-                  local old_saved
-                  old_saved=$(cat "$state_file")
-                  echo "Saving DDC bus $bus brightness: $current (overwriting previous saved value $old_saved)"
-                else
-                  echo "Saving DDC bus $bus brightness: $current"
-                fi
-                echo "$current" > "$state_file"
-              fi
+            local current
+            current=$(get_ddc_brightness "$bus")
+
+            if [[ -z "$current" ]] && is_relative "$percent"; then
+              echo "Skipping DDC bus $bus: cannot read current brightness for relative change" >&2
+              return 0
             fi
+
+            if [[ "$save_mode" == "true" && -n "$current" ]]; then
+              local state_file="$state_dir/ddc-$bus.brightness"
+              if [[ -f "$state_file" ]]; then
+                local old_saved
+                old_saved=$(cat "$state_file")
+                echo "Saving DDC bus $bus brightness: $current (overwriting previous saved value $old_saved)"
+              else
+                echo "Saving DDC bus $bus brightness: $current"
+              fi
+              echo "$current" > "$state_file"
+            fi
+
+            local value
+            value=$(resolve_brightness "$percent" "$current")
 
             echo "Setting DDC bus $bus brightness to $value (via ddcutil)"
             set_ddc_brightness "$bus" "$value"
