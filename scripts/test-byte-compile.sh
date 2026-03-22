@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -x
-nix run .#emacs-clean-batch --				\
+nix run .#emacs-nox --					\
     -Q							\
     -L ./files/emacs/lisp				\
     --batch						\

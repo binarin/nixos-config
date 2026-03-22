@@ -83,7 +83,7 @@
 	(when pt
 	  (org-with-point-at pt
 	    (pcase (org-get-property-block pt)
-	      (`(,beg . ,end)
+	      (`(,_ . ,_)
      	       (save-restriction
 		 (when (re-search-forward org-property-drawer-re)
 		   (goto-char (match-beginning 0))
@@ -152,9 +152,6 @@
 (setf org-roam-directory (file-truename "~/org/roam"))
 (setf org-roam-dailies-directory "daily/")
 
-(when (file-exists-p "~/org/roam")
-  (org-roam-db-autosync-mode))
-
 (defun b/org-remove-empty-properties-from-capture ()
   (interactive)
   (cl-loop for property in '("capture-clocked" "capture-location")
@@ -166,6 +163,10 @@
   (when (org-clocking-p)
     (org-clock-out)
     (org-save-all-org-buffers)))
+
+(defun b/org-goto-last-capture ()
+  (interactive)
+  (org-goto-marker-or-bmk org-capture-last-stored-marker))
 
 (provide 'b-org)
 

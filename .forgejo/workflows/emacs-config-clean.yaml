@@ -20,27 +20,12 @@ jobs:
       - name: run ert tests
         run: |
           ./scripts/test-emacs-clean-ert.sh
-  define-matrix:
-    runs-on: native
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - id: define
-        run: |
-          echo "array=[$(find files/emacs -name '*.el' -type f | sed 's/.*/"&"/' | tr '\n' ',' | sed 's/,$//')]" \
-            >> "$FORGEJO_OUTPUT"
-    outputs:
-      array-value: ${{steps.define.outputs.array }}
   byte-compile:
-    needs: define-matrix
-    strategy:
-      matrix:
-        elisp-files: ${{ fromJSON(needs.define-matrix.outputs.array-value) }}
+    name: byte-compile
     runs-on: native
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - run: |
-          ./scripts/test-byte-compile.sh "${{ matrix.elisp-files }}"
+          ./scripts/test-byte-compile-all.sh

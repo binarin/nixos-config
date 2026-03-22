@@ -12,9 +12,11 @@ in
           e: with e; [
             consult
             corfu
+            devicetree-ts-mode
             direnv
             embark
             embark-consult
+            kdl-mode
             magit
             marginalia
             nix-mode
@@ -23,7 +25,6 @@ in
             paredit
             vertico
             ws-butler
-            kdl-mode
             zenburn-theme
             treesit-grammars.with-all-grammars
           ]

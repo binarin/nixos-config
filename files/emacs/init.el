@@ -1,6 +1,8 @@
 ;;; -*- mode: emacs-lisp; lexical-binding: t -*-
 (require 'cl-lib)
 
+(require 'l-lib)
+
 (set-language-environment "English")
 (set-language-environment-input-method "Russian")
 
@@ -28,18 +30,14 @@
 (require 'b-compilation)
 (require 'b-version-control)
 
-(defun load? (n)
-  (unless (featurep n)
-    (load (symbol-name n))))
-
 (use-package b-org
   :ensure nil
-  :commands (b/clock-out-on-screen-lock))
+  :commands (b/clock-out-on-screen-lock b/org-goto-last-capture))
 
 (use-package org
   :ensure nil
   :bind (("C-c o c" . org-clock-goto)
-	 ("C-c o l" . (lambda () (interactive) (org-goto-marker-or-bmk org-capture-last-stored-marker)))
+	 ("C-c o l" . b/org-goto-last-capture)
 	 ("C-c a" . org-agenda)
 	 ("C-c r" . org-capture))
   :mode (("\\.org\\'" . org-mode))
@@ -51,9 +49,11 @@
 	 ("C-c n i" . org-roam-node-insert)
 	 ("C-c n r" . org-roam-capture))
   :bind-keymap ("C-c d" . org-roam-dailies-map)
+  :commands (org-roam-db-autosync-mode)
   :config
-  (load? 'b-org))
-
+  (load? 'b-org)
+  (when (file-exists-p "~/org/roam")
+    (org-roam-db-autosync-mode)))
 
 (winner-mode t)
 (which-key-mode t)

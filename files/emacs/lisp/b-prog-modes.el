@@ -94,13 +94,15 @@
   :mode ("\\.kdl\\'" . kdl-mode)
   :hook (kdl-mode . b/tab-width-2))
 
+(defun b/rust-mode-hook ()
+  (electric-pair-local-mode t))
+
 (use-package rust-ts-mode
   :ensure nil
   :mode ("\\.rs\\'". rust-ts-mode)
   :hook (rust-ts-mode . b/rust-mode-hook))
 
-(defun b/rust-mode-hook ()
-  (electric-pair-local-mode t))
+
 (cl-defstruct b/flake-subproject
   root-dir flake-dir)
 
@@ -143,5 +145,27 @@
 (add-hook 'find-file-hook 'b/view-mode-for-nix-store)
 
 
+(defun b/indent-zmk-layer ()
+  (interactive)
+  (let (beg end)
+    (save-excursion
+      (beginning-of-line)
+      (while (not (looking-at (rx (* space) "bindings" (* space) "=" (* space) "<") t))
+        (forward-line -1))
+      (forward-line)
+      (beginning-of-line)
+      (setf beg (point))
+      (re-search-forward ">;")
+      (forward-line -1)
+      (end-of-line)
+      (setf end (point))
+      (align-regexp beg end (rx (not (any " \n")) (group (+ " ")) (not (any " \n"))) 1 1 t))))
+
+(use-package devicetree-ts-mode
+  :ensure nil
+  :defer t
+  :mode "\\.keymap\\'"
+  :bind (:map devicetree-ts-mode-map
+	      ("C-c C-i" . b/indent-zmk-layer)))
 
 (provide 'b-prog-modes)
