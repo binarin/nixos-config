@@ -69,6 +69,10 @@
         treefmt-nix.follows = "treefmt-nix";
       };
     };
+    niri = {
+      url = "github:niri-wm/niri";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nix-ai-tools = {
       url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";
