@@ -52,6 +52,14 @@ in
             enable = lib.mkForce false;
             package = lib.mkOverride 90 self'.packages.emacs-nox;
           };
+
+          impermanence.persist-directories = [
+            ".local/state/emacs-clean"
+          ];
+
+          impermanence.local-directories = [
+            ".cache/emacs-clean"
+          ];
         }
 
         (lib.mkIf osConfig.services.graphical-desktop.enable {
