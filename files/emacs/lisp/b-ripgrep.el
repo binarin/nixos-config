@@ -108,8 +108,8 @@ function properly")
       (push (symbol-name pattern-type) parts))
 
     ;; bool flags, like --follow/--no-follow
-    (cl-loop for (flag value) in `(("follow" . ,follow) ("heading" . ,heading) ("search-zip" . ,search-zip)
-				   ("invert-match" . ,invert-match) ("max-columns-preview" . ,max-columns-preview))
+    (cl-loop for (flag value) in `(("follow" ,follow) ("heading" ,heading) ("search-zip"  ,search-zip)
+				   ("invert-match" ,invert-match) ("max-columns-preview" ,max-columns-preview))
 	     do (if value
 		    (push (concat "--" flag) parts)
 		  (push (concat "--no-" flag) parts)))
@@ -118,7 +118,7 @@ function properly")
       (push (if sort-reverse "--sortr" "--sort") parts)
       (push (symbol-name sort) parts))
 
-    (cl-loop for (flag value) in `(("max-columns" . ,max-columns))
+    (cl-loop for (flag value) in `(("max-columns" ,max-columns))
 	     do (push (format "--%s" flag) parts)
 	     do (push (format "%s" value) parts))
 
