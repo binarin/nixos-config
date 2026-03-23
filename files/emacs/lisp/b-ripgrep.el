@@ -77,7 +77,8 @@ function properly")
      1 2
      ,(cons #'b/ripgrep--col-beg #'b/ripgrep--col-end)
      nil nil
-     (3 '(face nil display ":")))))
+     (3 '(face nil display ":")))
+    (,(rx bol (group-n 1 (+? not-newline)) ": binary file matches") 1 nil nil 0 1)))
 
 (cl-defun b/ripgrep-command (pattern
 			     &key
@@ -87,6 +88,7 @@ function properly")
 			     heading
 			     search-zip
 			     invert-match
+			     (binary t)
 			     sort ;; nil=none/path/modified/accessed/created
 			     sort-reverse
 			     (max-columns 300)
@@ -109,7 +111,8 @@ function properly")
 
     ;; bool flags, like --follow/--no-follow
     (cl-loop for (flag value) in `(("follow" ,follow) ("heading" ,heading) ("search-zip"  ,search-zip)
-				   ("invert-match" ,invert-match) ("max-columns-preview" ,max-columns-preview))
+				   ("invert-match" ,invert-match) ("max-columns-preview" ,max-columns-preview)
+				   ("binary" ,binary))
 	     do (if value
 		    (push (concat "--" flag) parts)
 		  (push (concat "--no-" flag) parts)))
