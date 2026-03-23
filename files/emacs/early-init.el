@@ -36,6 +36,7 @@
 		       "elpa"
 		       "org-roam.db"
 		       "init_zsh.sh"
+		       "js/js"
 		       ".org-id-locations")
                       (or eol "/")))
         (tmp-rx (rx bol
