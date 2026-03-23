@@ -33,7 +33,6 @@
 (setf org-fast-tag-selection-single-key t
       org-tag-alist '(("PROJ" . ?p)))
 
-(setf org-clock-idle-time nil) ;; handled by swayidle
 (setf org-clock-in-switch-to-state "NEXT")
 
 (setf org-refile-use-outline-path 'file
