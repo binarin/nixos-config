@@ -10,7 +10,10 @@ in
         pname = "niri-dynamic-keybindings";
         version = "0.1.0";
         src = selfLib.dir' "packages/niri-dynamic-keybindings";
-        cargoLock.lockFile = selfLib.file' "packages/niri-dynamic-keybindings/Cargo.lock";
+        cargoLock = {
+          lockFile = selfLib.file' "packages/niri-dynamic-keybindings/Cargo.lock";
+          outputHashes."niri-ipc-25.11.0" = "sha256-wtc4RYOWgwjRoi19oX769hzxbjfVWW29v9MN2BGMUag";
+        };
         meta.mainProgram = "niri-dynamic-keybindings";
       };
     };
