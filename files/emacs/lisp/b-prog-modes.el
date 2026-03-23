@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 (require 'b-format-on-save)
+(setf indent-tabs-mode nil)
 
 (use-package cperl-mode
   :ensure nil
