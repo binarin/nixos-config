@@ -1,8 +1,13 @@
-{ self, ... }:
+{ self, inputs, ... }:
 let
   selfLib = self.lib.self;
 in
 {
+  flake-file.inputs.niri = {
+    url = "github:niri-wm/niri";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
   flake.nixosModules.niri =
     {
       pkgs,
@@ -26,6 +31,8 @@ in
         self.nixosModules.wayland
         self.nixosModules.swayidle
       ];
+
+      nixpkgs.overlays = [ inputs.niri.overlays.default ];
 
       programs.niri.enable = true;
 
