@@ -43,7 +43,9 @@ in
       ++ (lib.optional (specialArgs ? clan-core) self.nixosModules.clan-baseline);
 
       _module.args.self' = {
-        packages = self.packages."${pkgs.stdenv.hostPlatform.system}";
+        packages = self.packages."${pkgs.stdenv.hostPlatform.system}" // {
+          xpu-smi = pkgs.callPackage ../../packages/xpu-smi { };
+        };
       };
 
       _module.args.inputs' =

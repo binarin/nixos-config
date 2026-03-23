@@ -47,6 +47,8 @@
         self.nixosModules.binarin-podman
         self.nixosModules.binarin-nix-dev
 
+        self.nixosModules.xpu-smi
+
         "${self}/my-machines/furfur/hardware-configuration.nix"
       ];
 
