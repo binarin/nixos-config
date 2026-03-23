@@ -55,6 +55,11 @@
   (when (file-exists-p "~/org/roam")
     (org-roam-db-autosync-mode)))
 
+(use-package b-ripgrep
+  :ensure nil
+  :commands (b/ripgrep)
+  :bind (("C-x p r" . b/ripgrep-project)))
+
 (winner-mode t)
 (which-key-mode t)
 (global-auto-revert-mode t)
