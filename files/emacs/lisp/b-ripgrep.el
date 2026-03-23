@@ -29,8 +29,6 @@ function properly")
 
 (defvar compilation-filter-start)
 
-(defvar-local b/ripgrep-num-matches-found)
-
 (defun b/ripgrep-process-setup ()
   (setf b/ripgrep-num-matches-found 0))
 
@@ -47,7 +45,7 @@ function properly")
 	  (replace-match (propertize (match-string 1)
 				     'face nil 'font-lock-face grep-match-face)
 			 t t)
-	  (incf b/ripgrep-num-matches-found))
+	  (incf grep-num-matches-found))
 	;; clean up the rest of escapes
 	(goto-char beg)
 	(while (re-search-forward "\033\\[[0-9;]*[mK]" end 1)
@@ -139,6 +137,7 @@ function properly")
   (setq-local compilation-disable-input t)
   (toggle-truncate-lines t)
 
+  (setq-local compilation-mode-line-errors grep-mode-line-matches)
   (setq-local compilation-process-setup-function #'b/ripgrep-process-setup)
   (setq-local compilation-error-face grep-hit-face)
   (setq-local compilation-error-regexp-alist b/ripgrep-error-regexp-alist)
