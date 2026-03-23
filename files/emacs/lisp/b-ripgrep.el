@@ -1,17 +1,33 @@
 ;; -*- lexical-binding: t; -*-
+(require 'cl-lib)
+(require 'grep)
+(require 'compile)
+(require 'project)
 
-(defun b/ripgrep (needle)
-  (interactive "sFixed string: ")
-  (compilation-start (format (concat
-			      "rg --smart-case --fixed-strings --with-filename "
-			      "--no-heading " 
-			      "--color always --colors path:none --colors line:none --colors match:fg:cyan "
-			      "--max-columns=300 --max-columns-preview --null "
-			      "--regexp=%s ")
-			     (shell-quote-argument needle))
-		     #'b/ripgrep-mode))
+(defgroup b/ripgrep nil
+  "Run ripgrep"
+  :group 'tools
+  :group 'processes)
 
-(defvar b/ripgrep-match-regexp (rx "\033[36m" (group (+ (not "\033")))))
+(defvar b/ripgrep-base-args
+  '("rg"
+    "--with-filename" ;; show filename even if only one file is searched
+    "--null" ;; use \0 to separate filename from line number - don't need to handle file-names with ':' in them
+
+    "--color" "ansi" 
+    "--colors" "path:none"
+    "--colors" "line:none"
+    "--colors" "match:fg:cyan" ;; we'll match it via b/ripgrep-match-regexp
+    )
+  "Mandatory flags that are necessary for the rest of the code here to
+function properly")
+
+(defvar b/ripgrep-match-regexp (rx "\033[36m" (group (+ (not "\033"))))
+  "`cyan' from b/ripgrep-base-args")
+
+(defvar b/ripgrep-history nil)
+
+(defvar compilation-filter-start)
 
 (defvar-local b/ripgrep-num-matches-found)
 
@@ -54,8 +70,8 @@
 
 (defvar b/ripgrep-error-regexp-alist
   `((,(rx bol
-	  (group-n 1 (+ (not (any "\0\n"))))
-	  (group-n 3 "\0")
+	  (? (group-n 1 (+ (not (any "\0\n"))))
+	     (group-n 3 "\0"))
 	  (group-n 2 (+ (any digit)))
 	  ":")
      1 2
@@ -63,21 +79,89 @@
      nil nil
      (3 '(face nil display ":")))))
 
+(cl-defun b/ripgrep-command (pattern
+			     &key
+			     (case-sensitive 'smart) ;; nil/smart/t
+			     (pattern-type 'fixed) ;; fixed/default/pcre2/auto
+			     follow
+			     heading
+			     search-zip
+			     invert-match
+			     sort ;; nil=none/path/modified/accessed/created
+			     sort-reverse
+			     (max-columns 300)
+			     (max-columns-preview t))
+  (let (parts)
+    (cl-loop for arg in b/ripgrep-base-args
+	     do (push arg parts))
+
+    (push (pcase case-sensitive
+	    ('smart "--smart-case")
+	    ('nil "--ignore-case")
+	    ('t "--case-sensitive")
+	    (unk (error "unknown case-sensitive: '%s'" unk)))
+	  parts)
+    
+    (if (eq pattern-type 'fixed)
+	(push "--fixed-strings" parts)
+      (push "--engine" parts)
+      (push (symbol-name pattern-type) parts))
+
+    ;; bool flags, like --follow/--no-follow
+    (cl-loop for (flag value) in `(("follow" . ,follow) ("heading" . ,heading) ("search-zip" . ,search-zip)
+				   ("invert-match" . ,invert-match) ("max-columns-preview" . ,max-columns-preview))
+	     do (if value
+		    (push (concat "--" flag) parts)
+		  (push (concat "--no-" flag) parts)))
+    
+    (when sort
+      (push (if sort-reverse "--sortr" "--sort") parts)
+      (push (symbol-name sort) parts))
+
+    (cl-loop for (flag value) in `(("max-columns" . ,max-columns))
+	     do (push (format "--%s" flag) parts)
+	     do (push (format "%s" value) parts))
+
+    (push "--regexp" parts)
+    (push pattern parts)
+
+    (setf parts (nreverse parts))
+    (string-join (mapcar #'shell-quote-argument parts) " ")))
+
+
+(defvar b/ripgrep-mode)
 (define-compilation-mode b/ripgrep-mode "Ripgrep"
-  ""
-  (require 'grep)
-  ;; (setf b/ripgrep-num-matches-found 0)
-  (setq-local compilation-process-setup-function #'b/ripgrep-process-setup)
+  :syntax-table nil
+  :abbrev-table nil
   (setq-local compilation-disable-input t)
-  ;; (setq-local compilation-hidden-output "[\0]") ;; XXX
+  (toggle-truncate-lines t)
+
+  (setq-local compilation-process-setup-function #'b/ripgrep-process-setup)
   (setq-local compilation-error-face grep-hit-face)
-  (setq-local compilation-error-regexp-alist
-	      b/ripgrep-error-regexp-alist)
+  (setq-local compilation-error-regexp-alist b/ripgrep-error-regexp-alist)
+
   (unless kill-transform-function
     (setq-local kill-transform-function #'identity))
   (add-function :filter-return (local 'kill-transform-function)
 		(lambda (string)
 		  (string-replace "\0" ":" string)))
+
   (add-hook 'compilation-filter-hook #'b/ripgrep-filter nil t))
+
+
+(defun b/ripgrep (needle)
+  (interactive
+   (let ((pattern (read-from-minibuffer "Ripgrep: " nil nil nil 'b/ripgrep-history)))
+     (list pattern)))
+  (compilation-start (b/ripgrep-command needle)
+		     #'b/ripgrep-mode))
+
+(defun b/ripgrep-project (project)
+  (interactive
+   (list (project-current t)))
+  (let ((default-directory (project-root project)))
+    (call-interactively #'b/ripgrep)))
+
+
 
 (provide 'b-ripgrep)
