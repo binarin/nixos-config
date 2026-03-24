@@ -1,10 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 (require 'cl-lib)
 
-(defun load? (n)
-  (unless (featurep n)
-    (load (symbol-name n))))
-
+;;;###autoload
 (defun b/compose (&rest functions)
   (cl-assert (car functions))
   (lambda (&rest args)
@@ -14,6 +11,7 @@
 	     do (funcall next-fn val)
 	     finally return val)))
 
+;;;###autoload
 (defun b/find-exe (exe)
   (if (file-name-absolute-p exe)
       exe
@@ -22,8 +20,8 @@
 	     when (file-executable-p full-path)
 	     return full-path)))
 
+;;;###autoload
 (defun b/hide-ml-mode (mode)
   (add-to-list 'mode-line-collapse-minor-modes mode))
-
 
 (provide 'l-lib)

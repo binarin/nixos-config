@@ -15,7 +15,7 @@
 	     (string-match (rx "org-protocol:/") (car f)))
 	   files)
       (progn
-	(load? 'b-org)
+	(require 'b-org)
 	(apply 'org--protocol-detect-protocol-server orig-fun files client args))
     (apply orig-fun files client args)))
 

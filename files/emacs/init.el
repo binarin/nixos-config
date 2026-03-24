@@ -43,7 +43,7 @@
 	 ("C-c r" . org-capture))
   :mode (("\\.org\\'" . org-mode))
   :config
-  (load? 'b-org))
+  (require 'b-org))
 
 (use-package org-roam
   :bind (("C-c n f" . org-roam-node-find)
@@ -52,7 +52,7 @@
   :bind-keymap ("C-c d" . org-roam-dailies-map)
   :commands (org-roam-db-autosync-mode)
   :config
-  (load? 'b-org)
+  (require 'b-org)
   (when (file-exists-p "~/org/roam")
     (org-roam-db-autosync-mode)))
 

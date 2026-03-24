@@ -54,7 +54,7 @@
                  (make-path b/xdg-runtime-dir nm)))
       (when (listp new-name) (setf new-name (car new-name)))
       (cond
-       ((string= "user-lisp" new-name)
+       ((string-prefix-p "user-lisp" new-name)
 	(let ((rw-dir (make-path "~/personal-workspace/nixos-config" "files/emacs/user-lisp")))
 	  (if (file-exists-p rw-dir)
 	      rw-dir
