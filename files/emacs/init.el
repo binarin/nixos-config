@@ -39,6 +39,7 @@
   :bind (("C-c o c" . org-clock-goto)
 	 ("C-c o l" . b/org-goto-last-capture)
 	 ("C-c o z" . b/org-add-note-to-clocked)
+	 ("C-c o p" . b/org-save-and-push-files)
 	 ("C-c a" . org-agenda)
 	 ("C-c r" . org-capture))
   :mode (("\\.org\\'" . org-mode))

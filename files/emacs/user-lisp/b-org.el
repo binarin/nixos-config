@@ -183,5 +183,16 @@
       (org-add-log-note)
       (org-store-log-note))))
 
+;;;###autoload
+(defun b/org-save-and-push-files ()
+  (interactive)
+  (save-some-buffers t)
+  (let* ((default-directory "~/org")
+	 (buffer-name "*Pushing org changes*")
+	 (display-buffer-alist `((,(rx bol (literal buffer-name) eol)
+				  (display-buffer-no-window)))))
+    (message "Syncing org mode changes.")
+    (async-shell-command "./push.sh" buffer-name)))
+
 (provide 'b-org)
 
