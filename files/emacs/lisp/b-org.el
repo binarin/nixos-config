@@ -128,6 +128,7 @@
 		collect `(b/set-org-speed-command ,key ',form))))
 
 (b/set-org-speed-commands
+  "a" (org-archive-subtree-default)
   "d" (org-todo 'done)
   "c" (org-todo "CNCL")
   "J" (org-refile '(4))
