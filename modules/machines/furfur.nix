@@ -57,7 +57,7 @@
       hardware.i2c.enable = true;
 
       services.avahi.enable = true;
-      nixos-config.export-metrics.enable = false;
+      nixos-config.export-metrics.enable = true;
       home-manager.users.binarin = self.homeModules.furfur-binarin;
       environment.systemPackages = with pkgs; [
         zoom-us

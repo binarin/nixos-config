@@ -15,7 +15,8 @@ After this work, the machine should run for weeks without OOM kills from shmem a
 - [x] (2026-03-24) Found upstream niri issue #3295 confirming shmem leak when screens power off
 - [x] (2026-03-24) Catalogued kernel versions: boot -3 had 6.15.9, boots -2 and 0 have 6.18.8
 - [x] (2026-03-24) Catalogued nixos-hardware revs: boot -3 had a351494b (Jan 25), boot -2 had f8e82243 (Mar 15)
-- [x] (2026-03-24) Milestone 1: Roll back nixos-hardware to a351494b in flake.nix (flake.nix edited, pending rebuild/reboot/monitor)
+- [x] (2026-03-24) Milestone 1: Roll back nixos-hardware to a351494b in flake.nix (commit cddf4bd, pending rebuild/reboot/monitor)
+- [x] (2026-03-24) Enabled Prometheus metrics export on furfur (nixos-config.export-metrics.enable = true) for continuous shmem monitoring via node_memory_Shmem_bytes in VictoriaMetrics/Grafana
 - [ ] Milestone 2: If still leaking, roll back niri to the version from boot -3
 - [ ] Milestone 3: If still leaking, roll back nixpkgs to fa83fd8
 
