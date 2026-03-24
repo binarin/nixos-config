@@ -66,4 +66,7 @@
 		 do (insert "\n"))
 	(view-mode)))))
 
+;; disable legacy behaviour when 'C-x C-x' highlights region, even if nothing was highlighted
+(setf exchange-point-and-mark-highlight-region nil)
+
 (provide 'b-visual)

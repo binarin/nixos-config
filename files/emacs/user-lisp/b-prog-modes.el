@@ -20,6 +20,10 @@
 
 
 ;;; emacs-lisp
+(add-to-list 'trusted-content "~/personal-workspace/nixos-config/files/emacs")
+(setf elisp-fontify-semantically t)
+
+
 (autoload 'b/rainbow-mode "b-rainbow")
 (defun b/emacs-lisp-mode-hook ()
   (when (and (buffer-file-name)
