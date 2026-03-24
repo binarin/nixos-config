@@ -72,6 +72,7 @@ in
               yamllint
               yamlfmt
               nixfmt
+              fd
             ]
             ++ extraPackages;
           postBuild = ''
