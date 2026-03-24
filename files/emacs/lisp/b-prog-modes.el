@@ -133,15 +133,16 @@
 (cl-defmethod project-external-roots ((project b/flake-subproject))
   (list (b/flake-subproject-flake-dir project)))
 
-;; (cl-defmethod project-files ((project b/flake-subproject) &optional dirs)
-;;   (let ((command
-;; 	 (format
-;; 	  "git ls-files --full-name -z %s"
-;; 	  (string-join (mapcar (b/compose #'shell-quote-argument #'expand-file-name)
-;; 			       (or (and dirs (project-combine-directories dirs))
-;; 				   (list (b/flake-subproject-root-dir project))))
-;; 		       " "))))
-;;     (string-split (shell-command-to-string command) "\0" t)))
+(cl-defmethod project-files ((project b/flake-subproject) &optional dirs)
+  (let* ((expanded-dirs (or (and dirs (project-combine-directories dirs))
+			    (list (b/flake-subproject-root-dir project))))
+	(command
+	 (format
+	  "fd --print0 --absolute-path . %s"
+	  (string-join (mapcar (b/compose #'shell-quote-argument #'expand-file-name) expanded-dirs)
+		       " ")))
+	(files (string-split (shell-command-to-string command) "\0" t)))
+    files))
 
 (use-package view
   :ensure nil
