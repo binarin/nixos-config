@@ -45,6 +45,9 @@
 
 (setf org-default-notes-file (concat org-directory "/notes.org"))
 
+(require 'notifications)
+
+
 (setf org-capture-templates
       `(("t" "TODO" entry (file "~/org/refile.org")
 	 ,(b/strip-indentation "
@@ -73,7 +76,13 @@
 
              %i
           ")
-	 :immediate-finish t)))
+	 :immediate-finish t
+	 :prepare-finalize
+	 (lambda ()
+	   (b/org-remove-empty-properties-from-capture)
+	   (ignore-errors
+	     (notifications-notify :title "Link captured"
+				   :body (caar org-stored-links)))))))
 
 (defun b/org-capture-fold-after ()
   (unless org-note-abort
@@ -193,6 +202,9 @@
 				  (display-buffer-no-window)))))
     (message "Syncing org mode changes.")
     (async-shell-command "./push.sh" buffer-name)))
+
+
+
 
 (provide 'b-org)
 
