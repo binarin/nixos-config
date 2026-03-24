@@ -70,6 +70,7 @@ in
               yamlfmt
               nixfmt
               fd
+              ripgrep
             ]
             ++ extraPackages;
           postBuild = ''
