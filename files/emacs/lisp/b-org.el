@@ -168,5 +168,19 @@
   (interactive)
   (org-goto-marker-or-bmk org-capture-last-stored-marker))
 
+(defun b/org-add-note-to-clocked--hack ()
+  (lambda ()
+    (warn "here" )
+    (remove-hook 'org-log-buffer-setup-hook 'b/org-add-note-to-clocked--hack)
+    (org-store-log-note)))
+
+(defun b/org-add-note-to-clocked (arg)
+  (interactive "MNote for clocked task: ")
+  (when (org-clocking-p)
+    (org-with-point-at org-clock-marker
+      (org-add-log-setup 'note nil nil nil arg)
+      (org-add-log-note)
+      (org-store-log-note))))
+
 (provide 'b-org)
 
