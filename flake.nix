@@ -81,7 +81,7 @@
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixos-hardware.url = "github:NixOS/nixos-hardware?rev=a351494b0e35fd7c0b7a1aae82f0afddf4907aa8";
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     nixos-raspberrypi = {
       url = "github:nvmd/nixos-raspberrypi/develop";
       inputs.nixpkgs.follows = "nixpkgs";

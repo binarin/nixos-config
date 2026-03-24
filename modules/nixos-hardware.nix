@@ -5,9 +5,6 @@
   };
 
   flake.nixosModules.microsoft-surface =
-    let
-      selfLib = self.lib.self;
-    in
     { ... }:
     {
       key = "nixos-config.modules.nixos.microsoft-surface";
@@ -16,13 +13,6 @@
       ];
 
       hardware.microsoft-surface.kernelVersion = "stable";
-      # XXX broken after rust was bumped
-      boot.kernelPatches = [
-        {
-          name = "rust-1.91-fix";
-          patch = selfLib.file "rust-fix.patch";
-        }
-      ];
       boot.initrd.kernelModules = [
         "surface_aggregator"
         "surface_aggregator_registry"
