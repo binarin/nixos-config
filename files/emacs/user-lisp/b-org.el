@@ -12,9 +12,6 @@
 (require 'ox)
 (require 'org-mouse)
 
-;;  - problematic one for 'o' speedcommand
-(setf org-mouse-features (remove 'activate-stars org-mouse-features))
-
 (setf org-startup-folded 'show2levels
       org-startup-shrink-all-tables t
       org-fold-catch-invisible-edits 'smart
@@ -148,6 +145,7 @@
   "J" (org-refile '(4))
   "i" (org-clock-in)
   "k" (progn)
+  "o" (b/org-open-first-link-at-point)
   "m" (org-roam-refile (org-roam-node-read nil nil nil 'require-match))
   "M" (org-roam-extract-subtree))
 
@@ -208,7 +206,11 @@
     (async-shell-command "./push.sh" buffer-name)))
 
 
-
+(defun b/org-open-first-link-at-point ()
+  (interactive)
+  (if-let* ((link (org-offer-links-in-entry (current-buffer) (point) 1)))
+      (progn
+	(org-link-open-from-string (car link)))))
 
 (provide 'b-org)
 
