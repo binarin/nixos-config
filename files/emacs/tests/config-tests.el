@@ -10,13 +10,11 @@
 	     unless (pcase file-name
 		      ("init.el" t)
 		      ("early-init.el" t)
-		      ("lisp" t)
 		      ("tests" t)
+		      ("user-lisp" t)
 		      ("." t)
 		      (".."t))
 	     do (push file-name unnecessary-files))
     (should (equal nil unnecessary-files))))
-
-
 
 

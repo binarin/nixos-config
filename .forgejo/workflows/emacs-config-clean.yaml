@@ -10,22 +10,11 @@
       - synchronize
       - reopened
 jobs:
-  emacs-clean-tests:
-    name: ert-tests
-    runs-on: native
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: run ert tests
-        run: |
-          ./scripts/test-emacs-clean-ert.sh
   byte-compile:
-    name: byte-compile
     runs-on: native
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - run: |
-          ./scripts/test-byte-compile-all.sh
+          ./scripts/test-emacs.sh

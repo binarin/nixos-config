@@ -5,7 +5,7 @@
   :ensure nil
   :defer 10
   :config
-  (server-start))
+  (when (display-graphic-p) (server-start)))
 
 (require 'l-lib)
 

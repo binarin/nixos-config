@@ -1,8 +1,10 @@
 ;;; -*- mode: emacs-lisp; lexical-binding: t -*-
-(add-to-list 'load-path (file-name-concat user-emacs-directory "lisp"))
-
 (require 'cl-lib)
 (require 'rx)
+
+(when load-file-name
+  (load (file-name-concat (file-name-directory load-file-name) "user-lisp/b-xdg") nil t))
+
 (require 'b-xdg)
 
 (cl-loop
@@ -26,7 +28,6 @@
                        "transient"
 		       "calc.el"
 		       "org-clock-save.el"
-		       "user-lisp"
 		       "diary")
                       (or eol "/")))
         (cache-rx (rx bol
@@ -52,6 +53,11 @@
                  (make-path b/xdg-runtime-dir nm)))
       (when (listp new-name) (setf new-name (car new-name)))
       (cond
+       ((string= "user-lisp" new-name)
+	(let ((rw-dir (make-path "~/personal-workspace/nixos-config" "files/emacs/user-lisp")))
+	  (if (file-exists-p rw-dir)
+	      rw-dir
+	    (make-path user-emacs-directory "user-lisp"))))
        ((string-match state-rx new-name) (state-file new-name))
        ((string-match cache-rx new-name) (cache-file new-name))
        ((string-match tmp-rx new-name) (tmp-file new-name))

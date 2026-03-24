@@ -47,10 +47,8 @@ in
             name = "emacs-env-aware-wrapper";
             text = ''
               init_directory="${flakyConfigDir}"
-              lib_directory="${flakyConfigDir}/lisp"
               if [[ -n ''${HOME+x} && -d "$HOME/${impureConfigDir}" ]]; then
                  init_directory="$HOME/${impureConfigDir}"
-                 lib_directory="$HOME/${impureConfigDir}/lisp"
               fi
               # trailing ':' makes emacs join INFOPATH and Info-default-directory-alist
               if [[ -n ''${INFOPATH+x} && ! $INFOPATH =~ :$ ]]; then
@@ -58,7 +56,6 @@ in
               fi
               exec "${lib.getExe emacsWithPackages}" \
                 --init-directory="$init_directory" \
-                --directory="$lib_directory" \
                 "$@"
             '';
           };
