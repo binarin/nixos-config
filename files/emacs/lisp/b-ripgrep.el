@@ -32,7 +32,7 @@ function properly")
 (defvar compilation-filter-start)
 
 (defun b/ripgrep-process-setup ()
-  (setf b/ripgrep-num-matches-found 0))
+  (setf grep-num-matches-found 0))
 
 (defun b/ripgrep-filter ()
   (save-excursion

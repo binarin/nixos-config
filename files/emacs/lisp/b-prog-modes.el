@@ -1,5 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 (require 'b-format-on-save)
+(require 'l-lib)
+
 (setf indent-tabs-mode nil)
 
 (use-package cperl-mode
@@ -115,6 +117,7 @@
 	(when flake
 	  (make-b/flake-subproject :root-dir candidate :flake-dir flake))))))
 
+(defvar project-buffers-viewer)
 (with-eval-after-load 'project
   (add-hook 'project-find-functions #'b/try-flake-subproject)
   (setf project-buffers-viewer 'project-list-buffers-ibuffer))
@@ -134,15 +137,17 @@
 (cl-defmethod project-external-roots ((project b/flake-subproject))
   (list (b/flake-subproject-flake-dir project)))
 
+(require 'project)
+
 (cl-defmethod project-files ((project b/flake-subproject) &optional dirs)
   (let* ((expanded-dirs (or (and dirs (project-combine-directories dirs))
 			    (list (b/flake-subproject-root-dir project))))
-	(command
-	 (format
-	  "fd --print0 --absolute-path . %s"
-	  (string-join (mapcar (b/compose #'shell-quote-argument #'expand-file-name) expanded-dirs)
-		       " ")))
-	(files (string-split (shell-command-to-string command) "\0" t)))
+	 (command
+	  (format
+	   "fd --print0 --absolute-path . %s"
+	   (string-join (mapcar (b/compose #'shell-quote-argument #'expand-file-name) expanded-dirs)
+			" ")))
+	 (files (string-split (shell-command-to-string command) "\0" t)))
     files))
 
 (use-package view
