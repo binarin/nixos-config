@@ -27,6 +27,7 @@
 		       "eshell"
                        "transient"
 		       "calc.el"
+		       "places.eld"
 		       "org-clock-save.el"
 		       "diary")
                       (or eol "/")))

@@ -12,8 +12,10 @@
 (setf recentf-max-saved-items 200
       recentf-auto-cleanup 300
       recentf-show-messages nil)
-(setopt recentf-autosave-interval 60)
+(setopt recentf-autosave-interval 180)
 (recentf-mode t)
 
+(save-place-mode t)
+(setopt save-place-autosave-interval 180)
 
 (provide 'b-files)
