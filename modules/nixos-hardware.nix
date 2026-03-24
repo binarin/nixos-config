@@ -5,7 +5,10 @@
   };
 
   flake.nixosModules.microsoft-surface =
-    { config, ... }:
+    let
+      selfLib = self.lib.self;
+    in
+    { ... }:
     {
       key = "nixos-config.modules.nixos.microsoft-surface";
       imports = [
@@ -17,7 +20,7 @@
       boot.kernelPatches = [
         {
           name = "rust-1.91-fix";
-          patch = config.lib.self.file "rust-fix.patch";
+          patch = selfLib.file "rust-fix.patch";
         }
       ];
       boot.initrd.kernelModules = [
