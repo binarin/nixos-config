@@ -116,7 +116,8 @@
 	  (make-b/flake-subproject :root-dir candidate :flake-dir flake))))))
 
 (with-eval-after-load 'project
-    (add-hook 'project-find-functions #'b/try-flake-subproject))
+  (add-hook 'project-find-functions #'b/try-flake-subproject)
+  (setf project-buffers-viewer 'project-list-buffers-ibuffer))
 
 (bind-key "<f21>" 'project-eshell)
 
