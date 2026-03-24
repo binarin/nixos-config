@@ -14,4 +14,13 @@
 	     do (funcall next-fn val)
 	     finally return val)))
 
+(defun b/find-exe (exe)
+  (if (file-name-absolute-p exe)
+      exe
+    (cl-loop for path in exec-path
+	     for full-path = (file-name-concat path exe)
+	     when (file-executable-p full-path)
+	     return full-path)))
+
+
 (provide 'l-lib)
