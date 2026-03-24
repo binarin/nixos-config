@@ -95,6 +95,7 @@
 		 for full = (file-name-concat "~/org" file)
 		 if (file-exists-p full)
 		 collect full)))
+(setf org-refile-targets '((org-agenda-files . t)))
 
 (setf org-agenda-window-setup 'only-window
       org-agenda-restore-windows-after-quit t
