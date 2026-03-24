@@ -17,6 +17,7 @@ After this work, the machine should run for weeks without OOM kills from shmem a
 - [x] (2026-03-24) Catalogued nixos-hardware revs: boot -3 had a351494b (Jan 25), boot -2 had f8e82243 (Mar 15)
 - [x] (2026-03-24) Milestone 1: Roll back nixos-hardware to a351494b in flake.nix (commit cddf4bd, pending rebuild/reboot/monitor)
 - [x] (2026-03-24) Enabled Prometheus metrics export on furfur (nixos-config.export-metrics.enable = true) for continuous shmem monitoring via node_memory_Shmem_bytes in VictoriaMetrics/Grafana
+- [x] (2026-03-24) Restored rust-1.91-fix kernel patch (rust-fix.patch + boot.kernelPatches in nixos-hardware.nix) — needed for building the older surface kernel from pinned nixos-hardware
 - [ ] Milestone 2: If still leaking, roll back niri to the version from boot -3
 - [ ] Milestone 3: If still leaking, roll back nixpkgs to fa83fd8
 

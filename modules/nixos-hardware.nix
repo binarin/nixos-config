@@ -5,7 +5,7 @@
   };
 
   flake.nixosModules.microsoft-surface =
-    { ... }:
+    { config, ... }:
     {
       key = "nixos-config.modules.nixos.microsoft-surface";
       imports = [
@@ -13,6 +13,13 @@
       ];
 
       hardware.microsoft-surface.kernelVersion = "stable";
+      # XXX broken after rust was bumped
+      boot.kernelPatches = [
+        {
+          name = "rust-1.91-fix";
+          patch = config.lib.self.file "rust-fix.patch";
+        }
+      ];
       boot.initrd.kernelModules = [
         "surface_aggregator"
         "surface_aggregator_registry"
