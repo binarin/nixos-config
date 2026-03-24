@@ -10,6 +10,10 @@
 (require 'b-lib)
 (require 'b-visual)
 (require 'ox)
+(require 'org-mouse)
+
+;;  - problematic one for 'o' speedcommand
+(setf org-mouse-features (remove 'activate-stars org-mouse-features))
 
 (setf org-startup-folded 'show2levels
       org-startup-shrink-all-tables t
