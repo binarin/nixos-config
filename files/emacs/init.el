@@ -62,7 +62,10 @@
   :bind (("C-x p r" . b/ripgrep-project)))
 
 (winner-mode t)
+
 (which-key-mode t)
+(b/hide-ml-mode 'which-key-mode)
+
 (global-auto-revert-mode t)
 
 (setf remote-file-name-access-timeout 2)

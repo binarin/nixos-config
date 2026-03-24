@@ -1,5 +1,4 @@
 ;; -*- lexical-binding: t; -*-
-
 (use-package treesit :ensure nil
   :config
   (setf treesit-font-lock-level 4))

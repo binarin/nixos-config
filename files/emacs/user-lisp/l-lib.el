@@ -22,5 +22,8 @@
 	     when (file-executable-p full-path)
 	     return full-path)))
 
+(defun b/hide-ml-mode (mode)
+  (add-to-list 'mode-line-collapse-minor-modes mode))
+
 
 (provide 'l-lib)

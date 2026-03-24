@@ -13,7 +13,10 @@
   :hook ((emacs-lisp-mode . paredit-mode))
   :bind (:map paredit-mode-map
 	      ("RET" . paredit-newline)
-	      ("C-j". nil)))
+	      ("C-j". nil))
+  :config
+  (b/hide-ml-mode 'paredit-mode))
+ 
 
 
 ;;; emacs-lisp
@@ -188,5 +191,7 @@
   :mode "\\.keymap\\'"
   :bind (:map devicetree-ts-mode-map
 	      ("C-c C-i" . b/indent-zmk-layer)))
+
+(b/hide-ml-mode 'eldoc-mode)
 
 (provide 'b-prog-modes)
