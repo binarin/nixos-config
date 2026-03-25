@@ -4,10 +4,6 @@
     "type": "pgp"
   },
   {
-    "publickey": "age1ec9gz6f685mn8pdrz48qm4vq7qzpzcz48vgkcty9aa665evra9lq2uz3s2",
-    "type": "age"
-  },
-  {
     "publickey": "age1nvy6629y23y7c38f9qk8qekqn089a5x55nklp2t3hdzl7la7xgys5rcfsy",
     "type": "age"
   },
