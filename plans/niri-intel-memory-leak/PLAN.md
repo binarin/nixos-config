@@ -18,7 +18,9 @@ After this work, the machine should run for weeks without OOM kills from shmem a
 - [x] (2026-03-24) Milestone 1: Roll back nixos-hardware to a351494b in flake.nix (commit cddf4bd, pending rebuild/reboot/monitor)
 - [x] (2026-03-24) Enabled Prometheus metrics export on furfur (nixos-config.export-metrics.enable = true) for continuous shmem monitoring via node_memory_Shmem_bytes in VictoriaMetrics/Grafana
 - [x] (2026-03-24) Restored rust-1.91-fix kernel patch (rust-fix.patch + boot.kernelPatches in nixos-hardware.nix) — needed for building the older surface kernel from pinned nixos-hardware
-- [ ] Milestone 2: If still leaking, roll back niri to the version from boot -3
+- [x] (2026-03-24) Milestone 1 result: reverting kernel to 6.15 did NOT fix the leak (commit 10b7db0)
+- [x] (2026-03-24) Identified niri versions: boot -3 had niri v25.11 from nixpkgs (commit 15c52bfb4318), current has niri from git (commit b07bde3ee82d)
+- [ ] Milestone 2: Bisect niri between v25.11 (15c52bfb4318, known good) and b07bde3ee82d (known bad)
 - [ ] Milestone 3: If still leaking, roll back nixpkgs to fa83fd8
 
 ## Surprises & Discoveries
@@ -27,11 +29,17 @@ After this work, the machine should run for weeks without OOM kills from shmem a
 - OOM kill victims are collateral damage. The actual shmem consumer (25 GB) is never among the killed processes, suggesting the memory is held by the kernel/driver on behalf of the compositor, not by a single userspace process.
 - Upstream niri issue #3295 confirms: video memory / GTT climbs at ~20 MB/s when displays are powered off. Memory is freed when displays power back on. Does not reproduce on Sway or GNOME Cosmic, pointing to niri specifically.
 - Boot -3 (kernel 6.15.9, nixos-hardware a351494b from Jan 25) did not exhibit the shmem leak. The leak appeared after upgrading to kernel 6.18.8 and newer nixos-hardware. This could be a kernel regression, a nixos-hardware surface kernel config change, or a niri update coinciding with the same timeframe.
+- Reverting kernel to 6.15.9 (Milestone 1) did NOT fix the leak, ruling out the kernel as the cause.
+- Boot -3 used niri v25.11 from nixpkgs (tag v25.11, commit 15c52bfb4318f3b2452f511d5367b4bfe6335242). The niri flake input did not exist at that time — it was added later (commit 72a6654). The current leaking build uses niri from git at commit b07bde3ee82dd73115e6b949e4f3f63695da35ea.
 
 ## Decision Log
 
 - Decision: Roll back nixos-hardware first (Milestone 1), before touching niri or nixpkgs.
   Rationale: The kernel jumped from 6.15.9 to 6.18.8 between the last known-good boot (-3) and the first problematic boot. nixos-hardware provides the surface-specific kernel configuration. Rolling this back is the least disruptive change (single line in flake.nix) and tests the kernel variable in isolation. If the surface kernel config or kernel version is responsible, this fixes it without losing niri or mesa updates.
+  Date: 2026-03-24
+
+- Decision: Milestone 1 failed — kernel rollback did not fix the leak. Proceeding to bisect niri (Milestone 2).
+  Rationale: With the kernel ruled out, niri is the strongest suspect per upstream issue #3295. Boot -3 used niri v25.11 from nixpkgs (commit 15c52bfb4318). The current build uses niri from git (commit b07bde3ee82d). A git bisect between these two commits will pinpoint the regression.
   Date: 2026-03-24
 
 ## Outcomes & Retrospective
@@ -101,11 +109,36 @@ Monitor shmem over a multi-day session. Check periodically with:
 
 Lock the screen / let displays power off and check if shmem climbs. If shmem stays under 2 GB during normal use including screen-off periods, this milestone succeeds and the kernel was the issue. If shmem still climbs to 10+ GB, proceed to Milestone 2.
 
-## Milestone 2: Roll back niri
+## Milestone 2: Bisect niri to find the leaking commit
 
-If Milestone 1 does not resolve the leak, the niri compositor is the next suspect per upstream issue #3295. The niri input in flake.nix needs to be identified and pinned to the version from the flake.lock at commit a136273 (Jan 21) or 1ad1917 (Feb 1), whichever was used for boot -3.
+Milestone 1 (kernel rollback) did not fix the leak. The niri compositor is now the primary suspect. Boot -3 used niri v25.11 from nixpkgs (no niri flake input existed). The current leaking build uses niri from the git flake input at commit b07bde3.
 
-Steps: identify the niri flake input, find its rev from git show 1ad1917:flake.lock, pin it in flake.nix, rebuild, reboot, and monitor shmem as in Milestone 1. Detailed commands to be filled in when this milestone is reached.
+Bisect range:
+- Good: `15c52bfb4318f3b2452f511d5367b4bfe6335242` (tag v25.11, used in boot -3 via nixpkgs)
+- Bad: `b07bde3ee82dd73115e6b949e4f3f63695da35ea` (current git HEAD in flake.lock)
+
+The niri flake input in `flake.nix` (line 72-75) is:
+
+    niri = {
+      url = "github:niri-wm/niri";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+To test a specific niri commit, pin the input to that rev:
+
+    niri.url = "github:niri-wm/niri?rev=<COMMIT_HASH>";
+
+Then rebuild and reboot:
+
+    nix flake lock --update-input niri
+    sudo nixos-rebuild switch --flake .#furfur
+    sudo reboot
+
+After each reboot, trigger the leak by locking the screen / letting displays power off, then monitor:
+
+    grep -E "Shmem:|Unevictable:" /proc/meminfo
+
+If shmem climbs past 3 GB during screen-off, the commit is "bad". If it stays stable, the commit is "good". Use `git bisect` in a niri checkout to manage the bisect, and pin each candidate commit in flake.nix for testing.
 
 ## Milestone 3: Roll back nixpkgs (mesa)
 
@@ -140,6 +173,12 @@ nixos-hardware revisions:
 
 The only file edited is `flake.nix`, specifically the `nixos-hardware` input URL on line 84. No code changes, no new modules, no new dependencies. The nixos-hardware module at `modules/nixos-hardware.nix` imports `microsoft-surface-pro-intel` and sets kernel version to "stable", which is interpreted by the nixos-hardware module to select the appropriate kernel.
 
+niri versions in store for reference:
+- Boot -3 niri: /nix/store/r532p9gafrnwxinr8czdklc150ikxwjp-niri-25.11 (from nixpkgs, version "niri 25.11 (Nixpkgs)", git tag v25.11 = 15c52bfb4318)
+- Current niri: /nix/store/9aqh3cnnsrx3di9nqphspqwb7sqp28bz-niri-b07bde3 (from niri flake input, git commit b07bde3ee82d)
+
 ---
 
 Revision note (2026-03-24): Reworked initial investigation notes into full ExecPlan format per ../PLANS.md. Structured as three sequential rollback milestones (nixos-hardware, niri, nixpkgs) based on user direction. Added upstream niri issue #3295 context. First action is pinning nixos-hardware to a351494b.
+
+Revision note (2026-03-24): Milestone 1 failed — kernel rollback to 6.15.9 did not resolve the shmem leak. Updated plan to proceed with Milestone 2: bisecting niri between v25.11 (15c52bfb4318, known good from boot -3) and b07bde3ee82d (known bad, current git HEAD). Discovered that boot -3 did not use a niri flake input at all — it used niri v25.11 from nixpkgs. The niri flake input was added later in commit 72a6654.

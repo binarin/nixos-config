@@ -1,6 +1,7 @@
 { self, ... }:
 let
   selfLib = self.lib.self;
+  niriCargo = builtins.fromTOML (selfLib.read' "packages/niri-dynamic-keybindings/Cargo.toml");
 in
 {
   perSystem =
@@ -12,7 +13,7 @@ in
         src = selfLib.dir' "packages/niri-dynamic-keybindings";
         cargoLock = {
           lockFile = selfLib.file' "packages/niri-dynamic-keybindings/Cargo.lock";
-          outputHashes."niri-ipc-25.11.0" = "sha256-wtc4RYOWgwjRoi19oX769hzxbjfVWW29v9MN2BGMUag";
+          outputHashes."niri-ipc-25.11.0" = niriCargo.dependencies.niri-ipc.ipcHash;
         };
         meta.mainProgram = "niri-dynamic-keybindings";
       };

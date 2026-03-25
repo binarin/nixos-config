@@ -70,7 +70,7 @@
       };
     };
     niri = {
-      url = "github:niri-wm/niri";
+      url = "github:niri-wm/niri?rev=15c52bfb4318f3b2452f511d5367b4bfe6335242";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-ai-tools = {

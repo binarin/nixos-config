@@ -1,10 +1,11 @@
 { self, inputs, ... }:
 let
   selfLib = self.lib.self;
+  niriCargo = builtins.fromTOML (selfLib.read' "packages/niri-dynamic-keybindings/Cargo.toml");
 in
 {
   flake-file.inputs.niri = {
-    url = "github:niri-wm/niri";
+    url = "github:niri-wm/niri?rev=${niriCargo.dependencies.niri-ipc.rev}";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
