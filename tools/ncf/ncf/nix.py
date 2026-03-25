@@ -77,7 +77,7 @@ class NixRunner:
 
         # Remote builders
         if self.builders:
-            builders_str = " ".join(self.builders)
+            builders_str = " ;".join(self.builders)
             args.extend(["--builders", builders_str, "--max-jobs", "0"])
 
         return args
