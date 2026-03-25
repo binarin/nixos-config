@@ -66,6 +66,11 @@
 	 :prepare-finalize b/org-remove-empty-properties-from-capture
 	 :after-finalize b/org-capture-fold-after
 	 )
+	("z" "Add note to a running clock" plain (clock)
+	 "  - %U %?")
+	("Z" "Add note to a running clock (pre-fill/immediate finish)" plain (clock)
+	 "  - %U %i "
+	 :immediate-finish t)
 	("l" "Capture link" entry (file "~/org/refile.org")
 	 ,(b/strip-indentation "
            * %a
@@ -83,7 +88,25 @@
 	   (b/org-remove-empty-properties-from-capture)
 	   (ignore-errors
 	     (notifications-notify :title "Link captured"
-				   :body (caar org-stored-links)))))))
+				   :body (caar org-stored-links)))))
+	("P" "Capture clipboard contents" entry (file "~/org/refile.org")
+	 ,(b/strip-indentation "
+           * %i
+             :PROPERTIES:
+             :ID: %(org-id-new)
+             :capture-clocked: %K
+             :capture-timestamp: %U
+             :END:
+
+             %(progn b/org-capture-gui-selection--body)
+          ")
+	 :immediate-finish t
+	 :prepare-finalize
+	 (lambda ()
+	   (b/org-remove-empty-properties-from-capture)
+	   (ignore-errors
+	     (notifications-notify :title "Clipboard captured"
+				   :body (org-get-heading)))))))
 
 (defun b/org-capture-fold-after ()
   (unless org-note-abort
@@ -176,23 +199,10 @@
     (org-clock-out)
     (org-save-all-org-buffers)))
 
+;;;###autoload
 (defun b/org-goto-last-capture ()
   (interactive)
   (org-goto-marker-or-bmk org-capture-last-stored-marker))
-
-(defun b/org-add-note-to-clocked--hack ()
-  (lambda ()
-    (warn "here" )
-    (remove-hook 'org-log-buffer-setup-hook 'b/org-add-note-to-clocked--hack)
-    (org-store-log-note)))
-
-(defun b/org-add-note-to-clocked (arg)
-  (interactive "MNote for clocked task: ")
-  (when (org-clocking-p)
-    (org-with-point-at org-clock-marker
-      (org-add-log-setup 'note nil nil nil arg)
-      (org-add-log-note)
-      (org-store-log-note))))
 
 ;;;###autoload
 (defun b/org-save-and-push-files ()
@@ -206,11 +216,78 @@
     (async-shell-command "./push.sh" buffer-name)))
 
 
+(defmacro b/with-org-capture-frame (&rest body)
+  "BODY should leave org-capture buffer as current"
+  (declare (indent 0))
+  (let ((frame-var (gensym)))
+    `(let  ((,frame-var (make-frame '((name . "*org-capture - Emacs(float)*"))))
+	    (display-buffer-alist (cons (list (rx bol "CAPTURE-")
+					      '(display-buffer-full-frame))
+					display-buffer-alist)))
+       (with-selected-frame ,frame-var
+	 ,@body
+	 (add-hook 'kill-buffer-hook
+		   #'(lambda ()
+		       (message "Want to clean-up")
+		       (delete-frame ,frame-var t))
+		   nil t)))))
+
+;;;###autoload
+(defun b/full-frame-org-capture (&optional keys)
+  (b/with-org-capture-frame
+    (when (symbolp keys)
+      (setf keys (symbol-name keys))) ;; easier quoting in niri config, doesn't support raw strings in KDL
+    (org-capture nil keys)))
+
+;;;###autoload
+(defun b/full-frame-org-roam-dailes-capture-today ()
+  (b/with-org-capture-frame
+    (org-roam-dailies-capture-today)))
+
+;;;###autoload
+(defun b/full-frame-org-note-on-running-clock ()
+  (when (org-clocking-p)
+    (b/with-org-capture-frame
+      (org-capture nil "z"))))
+
+;;;###autoload
+(defun b/new-emacs-frame ()
+  (make-frame))
+
+;;;###autoload
+(defun b/full-frame-org-agenda ()
+  (let ((org-agenda-window-setup 'other-frame))
+    (org-agenda nil "a")
+    (setq-local org-agenda-window-setup 'other-frame)))
+
 (defun b/org-open-first-link-at-point ()
   (interactive)
   (if-let* ((link (org-offer-links-in-entry (current-buffer) (point) 1)))
       (progn
 	(org-link-open-from-string (car link)))))
+
+;;;###autoload
+(defvar b/org-capture-gui-selection--body)
+(defun b/org-capture-gui-selection ()
+  ;; (gui-selection-value) doesn't work on wayland, when emacs doesn't have focus
+  (let* ((selection (shell-command-to-string "wl-paste -p")) 
+	 (lines (string-split (string-trim selection) "\n"))
+	 (heading (string-trim-left (car lines))))
+
+    (setf b/org-capture-gui-selection--body
+	  (when (cdr lines)
+	    (string-join
+	     (mapcar (lambda (s) (concat "  " s)) lines) ; repeat the first line in the body too
+	     "\n")))
+    
+    (org-capture-string heading "P")))
+
+;;;###autoload
+(defun b/org-add-note-to-clocked ()
+  (interactive)
+  (if  (not (org-clocking-p))
+      (error "No running clock to comment on")
+    (org-capture-string (read-from-minibuffer "Note for clocked task: ") "Z")))
 
 (provide 'b-org)
 

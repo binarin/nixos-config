@@ -336,7 +336,7 @@ window-rule {
 }
 
 window-rule {
-  match title="^emacs-(float|org-capture)$"
+  match title="Emacs\\(float\\)\\*$"
   open-floating true
 }
 
@@ -392,15 +392,17 @@ window-rule {
 }
 
 binds {
-  // Ctrl+Shift+Alt+Super+C { spawn-sh "emacsclient --eval '(binarin/full-frame-org-capture \"t\")'"; }
-  // Ctrl+Shift+Alt+Super+D { spawn-sh "emacsclient --eval '(binarin/full-frame-org-roam-dailies-capture-today)'"; }
-  // Ctrl+Shift+Alt+Super+E { spawn-sh "emacsclient --eval '(thanos/type)'"; }
-  Ctrl+Shift+Alt+Super+F { spawn-sh "firefox"; }
-  // Ctrl+Shift+Alt+Super+L { spawn-sh "emacsclient --eval '(when (org-clocking-p) (binarin/full-frame-org-capture \"n\"))'"; }
-  // Ctrl+Shift+Alt+Super+N { spawn-sh "emacsclient --create-frame --no-wait --timeout=2 --quiet"; }
+  Ctrl+Shift+Alt+Super+A { spawn "b-emacsclient" "--eval" "(b/full-frame-org-agenda)"; }
+  Ctrl+Shift+Alt+Super+C { spawn "b-emacsclient" "--eval" "(b/full-frame-org-capture 't)"; }
+  Ctrl+Shift+Alt+Super+D { spawn "b-emacsclient" "--eval" "(b/full-frame-org-roam-dailes-capture-today)"; }
+  Ctrl+Shift+Alt+Super+F { spawn "firefox"; }
+  Ctrl+Shift+Alt+Super+N { spawn "b-emacsclient" "--eval" "(b/new-emacs-frame)"; }
+  Ctrl+Shift+Alt+Super+Z { spawn "b-emacsclient" "--eval" "(b/full-frame-org-note-on-running-clock)"; }
+  Ctrl+Shift+Alt+Super+P { spawn "b-emacsclient" "--eval" "(b/org-capture-gui-selection)"; }
+
   // Ctrl+Shift+Alt+Super+P { spawn-sh "~/personal-workspace/nixos-config/scripts/org-capture-clipboard.sh"; }
+  // Ctrl+Shift+Alt+Super+E { spawn-sh "emacsclient --eval '(thanos/type)'"; }
   // Ctrl+Shift+Alt+Super+T { spawn-sh "emacsclient --eval '(binarin/new-vterm-frame)'"; }
-  // Ctrl+Shift+Alt+Super+A { spawn-sh "~/personal-workspace/nixos-config/scripts/emacs-launcher.sh '(org-agenda nil \"a\")'"; }
 
   Mod+N { spawn-sh "swaync-client -t"; }
   Mod+A { spawn-sh "wl-kbptr -o modes=floating,click -o mode_floating.source=detect"; }

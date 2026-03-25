@@ -59,6 +59,15 @@ in
                 "$@"
             '';
           };
+          b-emacsclient = writeShellApplication {
+            name = "b-emacsclient";
+            runtimeInputs = [
+              emacsWithPackages
+            ];
+            text = ''
+              exec emacsclient --no-wait --alternate-editor="${lib.getExe' pkgs.coreutils "true"}" "$@"
+            '';
+          };
         in
         symlinkJoin {
           name = "emacs-from-nixos-config";
@@ -71,6 +80,7 @@ in
               nixfmt
               fd
               ripgrep
+              b-emacsclient
             ]
             ++ extraPackages;
           postBuild = ''
