@@ -66,6 +66,24 @@
 	 :prepare-finalize b/org-remove-empty-properties-from-capture
 	 :after-finalize b/org-capture-fold-after
 	 )
+	("s" "Start working on a task" entry (file "~/org/refile.org")
+	 ,(b/strip-indentation "
+           * NEXT %?
+             :PROPERTIES:
+             :ID: %(org-id-new)
+             :capture-clocked: %K
+             :capture-location: %a
+             :capture-timestamp: %U
+             :END:
+
+             %i
+          ")
+	 :clock-in t
+	 :clock-keep t
+	 :hook org-fold-hide-drawer-all
+	 :prepare-finalize b/org-remove-empty-properties-from-capture
+	 :after-finalize b/org-capture-fold-after
+	 )
 	("z" "Add note to a running clock" plain (clock)
 	 "  - %U %?")
 	("Z" "Add note to a running clock (pre-fill/immediate finish)" plain (clock)
