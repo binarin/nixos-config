@@ -74,14 +74,6 @@ in
       networking.hostName = "furfur";
       impermanence.enable = true;
 
-      # XXX
-      boot.kernelPatches = [
-        {
-          name = "rust-1.91-fix";
-          patch = selfLib.file "rust-fix.patch";
-        }
-      ];
-
       # services.kanata.keyboards.all.devices = [
       #   "/dev/input/by-path/platform-MSHW0263:00-event-kbd"
       # ];

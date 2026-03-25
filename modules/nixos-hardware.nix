@@ -1,4 +1,7 @@
 { self, inputs, ... }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake-file.inputs = {
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
@@ -10,6 +13,14 @@
       key = "nixos-config.modules.nixos.microsoft-surface";
       imports = [
         inputs.nixos-hardware.nixosModules.microsoft-surface-pro-intel
+      ];
+
+      # XXX
+      boot.kernelPatches = [
+        {
+          name = "rust-1.91-fix";
+          patch = selfLib.file "rust-fix.patch";
+        }
       ];
 
       boot.initrd.kernelModules = [
