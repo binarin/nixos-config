@@ -13,6 +13,7 @@
         self.nixosModules.gnupg
         self.nixosModules.emacs
         self.nixosModules.binarin-nix-dev
+        self.nixosModules.age-encryption
       ];
 
       users.users.binarin.extraGroups = [
@@ -58,6 +59,7 @@
         self.homeModules.sops
         self.homeModules.gnupg
         self.homeModules.binarin-nix-dev
+        self.homeModules.age-encryption
       ]
       ++ (lib.optionals osConfig.services.graphical-desktop.enable [
         self.homeModules.niri
