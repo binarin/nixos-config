@@ -4,6 +4,9 @@
   lib,
   ...
 }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.furfur = self.nixosConfigurations.furfur.pkgs;
 
@@ -67,9 +70,17 @@
         "github.com" = "extra-access-tokens/github.com";
       };
       system.stateVersion = "25.11";
-      hardware.microsoft-surface.kernelVersion = "longterm";
+      hardware.microsoft-surface.kernelVersion = lib.mkForce "stable";
       networking.hostName = "furfur";
       impermanence.enable = true;
+
+      # XXX
+      boot.kernelPatches = [
+        {
+          name = "rust-1.91-fix";
+          patch = selfLib.file "rust-fix.patch";
+        }
+      ];
 
       # services.kanata.keyboards.all.devices = [
       #   "/dev/input/by-path/platform-MSHW0263:00-event-kbd"
