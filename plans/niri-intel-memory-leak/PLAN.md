@@ -25,7 +25,8 @@ After this work, the machine should run for weeks without OOM kills from shmem a
 - [x] (2026-03-25) Key finding: old working system has kernel 6.12.67, NOT 6.15.9 like boot -3. Previous kernel rollback only went to 6.15, not far enough. Mesa version number is same (25.2.6) but built from different nixpkgs (fa83fd8 vs current)
 - [x] (2026-03-25) Traced working-furfur system source to nixos-config commit 068a3c3e. It uses nixos-hardware a351494b (same as Milestone 1) and nixpkgs fa83fd8. At that nixos-hardware rev, "stable" = 6.15.9 and "longterm" = 6.12.19. The working system was built from a dirty worktree — likely with kernelVersion changed to "longterm" or equivalent, producing kernel 6.12.67 (a later patch of the 6.12 series).
 - [x] (2026-03-25) Milestone 2a: Switch kernelVersion from "stable" to "longterm" in both modules/nixos-hardware.nix and modules/machines/furfur.nix. This selects kernel 6.12.x via nixos-hardware, testing whether the leak is a kernel regression in 6.15+.
-- [ ] Milestone 2a validation: Rebuild, reboot, monitor shmem during screen-off periods
+- [x] (2026-03-25) Milestone 2a build failure: kernel 6.12 (longterm) doesn't build with current nixos-hardware (master) — wrong patches. Pinned nixos-hardware back to a351494b to get matching surface patches for kernel 6.12.
+- [ ] Milestone 2a validation: Rebuild with pinned nixos-hardware + longterm kernel, reboot, monitor shmem during screen-off periods
 - [ ] Milestone 3: If kernel 6.12 still leaks, roll back nixpkgs to fa83fd8
 
 ## Surprises & Discoveries
@@ -41,6 +42,7 @@ After this work, the machine should run for weeks without OOM kills from shmem a
 - The remaining variables are: (1) kernel (6.12 vs 6.15/6.18 — the only confirmed leak-free system used 6.12.67), (2) nixpkgs (fa83fd8 vs current — affects mesa build, libdrm, and all system libs). Niri is ruled out.
 - The working-furfur system was built from nixos-config commit 068a3c3e with a dirty worktree. The clean config at that commit sets kernelVersion = "stable" (6.15.9 at nixos-hardware a351494b), but the actual built system has kernel 6.12.67. The dirty change was most likely switching kernelVersion to "longterm" (which gives 6.12.x at that nixos-hardware rev).
 - nixos-hardware's kernelVersion option: "stable" selects the latest supported kernel (6.15.9 at a351494b, 6.18.8 at current master), "longterm" selects the LTS kernel (6.12.x). Both modules/nixos-hardware.nix and modules/machines/furfur.nix set this option — both must be changed.
+- Kernel 6.12 (longterm) fails to build with current nixos-hardware master — the surface patches don't match. The patches at nixos-hardware a351494b are compatible with the 6.12 longterm kernel. This means testing kernel 6.12 also requires pinning nixos-hardware, combining kernel and nixos-hardware variables in a single change.
 
 ## Decision Log
 
@@ -58,6 +60,10 @@ After this work, the machine should run for weeks without OOM kills from shmem a
 
 - Decision: Test kernel 6.12 before rolling back nixpkgs (Milestone 2a). Changed kernelVersion from "stable" to "longterm" in both modules/nixos-hardware.nix and modules/machines/furfur.nix.
   Rationale: The only confirmed leak-free system (working-furfur) used kernel 6.12.67. The previous kernel rollback (Milestone 1) only went to 6.15.9, which still leaked. The working-furfur source (nixos-config commit 068a3c3e) was built from a dirty worktree that likely had kernelVersion set to "longterm". Testing 6.12 is a single config change and isolates the kernel variable before the more disruptive nixpkgs rollback.
+  Date: 2026-03-25
+
+- Decision: Pin nixos-hardware to a351494b alongside longterm kernel, since current nixos-hardware master's surface patches don't build with kernel 6.12.
+  Rationale: The longterm kernel 6.12.x fails to build with nixos-hardware master — patch mismatch. The a351494b rev has compatible patches for 6.12. This combines two variables (kernel + nixos-hardware) in one change, but it's the same combination as the confirmed working system (working-furfur). If this works, Milestone 3 can further isolate by testing current nixos-hardware with kernel 6.12 patches fixed separately.
   Date: 2026-03-25
 
 ## Outcomes & Retrospective
