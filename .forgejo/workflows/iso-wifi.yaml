@@ -1,3 +1,4 @@
+---
 on:
   workflow_dispatch: {}
 jobs:
@@ -5,17 +6,19 @@ jobs:
     runs-on: native
     if: github.ref == 'refs/heads/master'
     steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: master
-    - uses: ./.forgejo/actions/git-crypt-unlock
-      with:
-        git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
-    - name: Build WiFi-enabled ISO
-      run: nix run .#env-aware-nix-run -- .#ncf -- iso build-wifi --output "$RUNNER_TEMP/nixos-wifi.iso" --password-file files/agares-guest.git-crypt
-    - name: Upload ISO artifact
-      uses: https://code.forgejo.org/forgejo/upload-artifact@v4
-      with:
-        name: nixos-wifi-iso
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - uses: ./.forgejo/actions/git-crypt-unlock
+        with:
+          git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
+      - name: Build WiFi-enabled ISO
+        run: nix run .#env-aware-nix-run -- .#ncf -- iso build-wifi --output "$RUNNER_TEMP/nixos-wifi.iso" --password-file files/agares-guest.git-crypt
+      - name: Upload ISO to garage
         path: ${{ runner.temp }}/nixos-wifi.iso
-        retention-days: 30
+        env:
+          AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+          AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: s3cmd --host=s3.lynx-lizard.ts.net --host-bucket=s3.lynx-lizard.ts.net put age-yubikey-identity-1af95560.txt s3://web.binarin.info/files/
