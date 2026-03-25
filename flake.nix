@@ -70,7 +70,7 @@
       };
     };
     niri = {
-      url = "github:niri-wm/niri?rev=15c52bfb4318f3b2452f511d5367b4bfe6335242";
+      url = "github:niri-wm/niri?rev=b07bde3ee82dd73115e6b949e4f3f63695da35ea";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-ai-tools = {
@@ -92,7 +92,7 @@
     };
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-lib.follows = "nixpkgs";
-    nixpkgs-trezor-agent.url = "github:nixos/nixpkgs?rev=daf6dc47aa4b44791372d6139ab7b25269184d55";
+    nixpkgs-trezor-agent.url = "github:nixos/nixpkgs?rev=41e216c0ca66c83b12ab7a98cc326b5db01db646";
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     sops-nix = {

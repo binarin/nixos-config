@@ -199,7 +199,7 @@ dependencies = [
 [[package]]
 name = "niri-ipc"
 version = "25.11.0"
-source = "git+https://github.com/niri-wm/niri?rev=15c52bfb4318f3b2452f511d5367b4bfe6335242#b35bcae35b3f9665043c335e55ed5828af77db85"
+source = "git+https://github.com/niri-wm/niri?rev=b07bde3ee82dd73115e6b949e4f3f63695da35ea#b07bde3ee82dd73115e6b949e4f3f63695da35ea"
 dependencies = [
  "serde",
  "serde_json",
