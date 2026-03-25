@@ -21,7 +21,7 @@ let
 in
 {
   flake-file.inputs.nixpkgs-trezor-agent = {
-    url = "github:nixos/nixpkgs?rev=daf6dc47aa4b44791372d6139ab7b25269184d55";
+    url = "github:nixos/nixpkgs?rev=41e216c0ca66c83b12ab7a98cc326b5db01db646";
   };
 
   # Expose trezor-agent as a package so CI can test building it
