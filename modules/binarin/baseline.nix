@@ -260,6 +260,7 @@ in
           vi = "emacsclient -a 'emacs -nw' -nw";
           vim = "emacsclient -a 'emacs -nw' -nw";
           o = "xdg-open";
+          lst = "lsa --tree";
         };
 
         initContent = ''
