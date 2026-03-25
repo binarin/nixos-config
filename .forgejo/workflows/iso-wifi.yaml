@@ -15,7 +15,6 @@ jobs:
       - name: Build WiFi-enabled ISO
         run: nix run .#env-aware-nix-run -- .#ncf -- iso build-wifi --output "$RUNNER_TEMP/nixos-wifi.iso" --password-file files/agares-guest.git-crypt
       - name: Upload ISO to garage
-        path: ${{ runner.temp }}/nixos-wifi.iso
         env:
           AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
           AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
