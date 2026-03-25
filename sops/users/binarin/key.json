@@ -16,6 +16,10 @@
     "type": "age"
   },
   {
+    "publickey": "age1yubikey1q02k6e7g66y4kqetrdt4fqku4py68mf92ul7a5pmuhr54846h0np5pepuvn",
+    "type": "age"
+  },
+  {
     "publickey": "age1yubikey1qvxrwgjqsdqw55c77l5dwa6h6kee6p84lyagdcd22jp6ztmv6guw7fvkp6l",
     "type": "age"
   },
