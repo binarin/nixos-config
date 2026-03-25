@@ -22,6 +22,7 @@ in
           patch = selfLib.file "rust-fix.patch";
         }
       ];
+      hardware.microsoft-surface.kernelVersion = "stable";
 
       boot.initrd.kernelModules = [
         "surface_aggregator"
