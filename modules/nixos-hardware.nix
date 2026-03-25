@@ -12,7 +12,6 @@
         inputs.nixos-hardware.nixosModules.microsoft-surface-pro-intel
       ];
 
-      hardware.microsoft-surface.kernelVersion = "longterm";
       boot.initrd.kernelModules = [
         "surface_aggregator"
         "surface_aggregator_registry"
