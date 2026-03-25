@@ -20,17 +20,27 @@ After this work, the machine should run for weeks without OOM kills from shmem a
 - [x] (2026-03-24) Restored rust-1.91-fix kernel patch (rust-fix.patch + boot.kernelPatches in nixos-hardware.nix) — needed for building the older surface kernel from pinned nixos-hardware
 - [x] (2026-03-24) Milestone 1 result: reverting kernel to 6.15 did NOT fix the leak (commit 10b7db0)
 - [x] (2026-03-24) Identified niri versions: boot -3 had niri v25.11 from nixpkgs (commit 15c52bfb4318), current has niri from git (commit b07bde3ee82d)
-- [ ] Milestone 2: Bisect niri between v25.11 (15c52bfb4318, known good) and b07bde3ee82d (known bad)
-- [ ] Milestone 3: If still leaking, roll back nixpkgs to fa83fd8
+- [x] (2026-03-25) Milestone 2 attempt: Reverted niri to v25.11 (15c52bfb4318) — did NOT fix the leak
+- [x] (2026-03-25) Tested the complete old system generation (working-furfur, store path w6dqk2vlrnip0gxk3h58k0v3760y3xqj) — NO leak. Identified versions: niri 25.11, mesa 25.2.6, kernel 6.12.67
+- [x] (2026-03-25) Key finding: old working system has kernel 6.12.67, NOT 6.15.9 like boot -3. Previous kernel rollback only went to 6.15, not far enough. Mesa version number is same (25.2.6) but built from different nixpkgs (fa83fd8 vs current)
+- [x] (2026-03-25) Traced working-furfur system source to nixos-config commit 068a3c3e. It uses nixos-hardware a351494b (same as Milestone 1) and nixpkgs fa83fd8. At that nixos-hardware rev, "stable" = 6.15.9 and "longterm" = 6.12.19. The working system was built from a dirty worktree — likely with kernelVersion changed to "longterm" or equivalent, producing kernel 6.12.67 (a later patch of the 6.12 series).
+- [x] (2026-03-25) Milestone 2a: Switch kernelVersion from "stable" to "longterm" in both modules/nixos-hardware.nix and modules/machines/furfur.nix. This selects kernel 6.12.x via nixos-hardware, testing whether the leak is a kernel regression in 6.15+.
+- [ ] Milestone 2a validation: Rebuild, reboot, monitor shmem during screen-off periods
+- [ ] Milestone 3: If kernel 6.12 still leaks, roll back nixpkgs to fa83fd8
 
 ## Surprises & Discoveries
 
 - The "GPU Memory Used: 97%" reported by xpu-smi is misleading on integrated GPUs. It reports total system RAM as GPU memory since the GPU shares it. Not indicative of a GPU-specific problem.
 - OOM kill victims are collateral damage. The actual shmem consumer (25 GB) is never among the killed processes, suggesting the memory is held by the kernel/driver on behalf of the compositor, not by a single userspace process.
 - Upstream niri issue #3295 confirms: video memory / GTT climbs at ~20 MB/s when displays are powered off. Memory is freed when displays power back on. Does not reproduce on Sway or GNOME Cosmic, pointing to niri specifically.
-- Boot -3 (kernel 6.15.9, nixos-hardware a351494b from Jan 25) did not exhibit the shmem leak. The leak appeared after upgrading to kernel 6.18.8 and newer nixos-hardware. This could be a kernel regression, a nixos-hardware surface kernel config change, or a niri update coinciding with the same timeframe.
-- Reverting kernel to 6.15.9 (Milestone 1) did NOT fix the leak, ruling out the kernel as the cause.
+- Boot -3 (kernel 6.15.9, nixos-hardware a351494b from Jan 25) was previously assumed leak-free, but the actual confirmed leak-free system (/nix/store/w6dqk2vlrnip0gxk3h58k0v3760y3xqj-nixos-system-furfur-25.11.20260128.fa83fd8) used kernel 6.12.67. Boot -3 was never monitored long enough to confirm whether it leaked.
+- Reverting kernel to 6.15.9 (Milestone 1) did NOT fix the leak. However, this does NOT rule out the kernel — the actual working system used kernel 6.12.67, not 6.15.9. The regression could be between 6.12 and 6.15.
 - Boot -3 used niri v25.11 from nixpkgs (tag v25.11, commit 15c52bfb4318f3b2452f511d5367b4bfe6335242). The niri flake input did not exist at that time — it was added later (commit 72a6654). The current leaking build uses niri from git at commit b07bde3ee82dd73115e6b949e4f3f63695da35ea.
+- Reverting niri to v25.11 (15c52bfb4318) on the current system did NOT fix the leak. Since the old working system also uses niri v25.11, niri version is ruled out as the sole cause.
+- The old working system (working-furfur, /nix/store/w6dqk2vlrnip0gxk3h58k0v3760y3xqj-nixos-system-furfur-25.11.20260128.fa83fd8) confirmed no leak. Its versions: niri 25.11 (r532p9gafrnwxinr8czdklc150ikxwjp), mesa 25.2.6 (2qfbxd5268m5v1h8f8nwz6kp18x3d0dy), kernel 6.12.67 (4c083cypp2xgzf226d2ng7kalgl0fzmc). Mesa has the same version number as current but different store paths, meaning it was built from a different nixpkgs snapshot (fa83fd8) and may have different build-time dependencies or patches.
+- The remaining variables are: (1) kernel (6.12 vs 6.15/6.18 — the only confirmed leak-free system used 6.12.67), (2) nixpkgs (fa83fd8 vs current — affects mesa build, libdrm, and all system libs). Niri is ruled out.
+- The working-furfur system was built from nixos-config commit 068a3c3e with a dirty worktree. The clean config at that commit sets kernelVersion = "stable" (6.15.9 at nixos-hardware a351494b), but the actual built system has kernel 6.12.67. The dirty change was most likely switching kernelVersion to "longterm" (which gives 6.12.x at that nixos-hardware rev).
+- nixos-hardware's kernelVersion option: "stable" selects the latest supported kernel (6.15.9 at a351494b, 6.18.8 at current master), "longterm" selects the LTS kernel (6.12.x). Both modules/nixos-hardware.nix and modules/machines/furfur.nix set this option — both must be changed.
 
 ## Decision Log
 
@@ -42,6 +52,14 @@ After this work, the machine should run for weeks without OOM kills from shmem a
   Rationale: With the kernel ruled out, niri is the strongest suspect per upstream issue #3295. Boot -3 used niri v25.11 from nixpkgs (commit 15c52bfb4318). The current build uses niri from git (commit b07bde3ee82d). A git bisect between these two commits will pinpoint the regression.
   Date: 2026-03-24
 
+- Decision: Niri is ruled out. Milestone 2 (niri bisect) is no longer needed.
+  Rationale: Reverting niri to v25.11 (the exact same version as the working system) did not fix the leak. Niri version is the same in both working and broken systems.
+  Date: 2026-03-25
+
+- Decision: Test kernel 6.12 before rolling back nixpkgs (Milestone 2a). Changed kernelVersion from "stable" to "longterm" in both modules/nixos-hardware.nix and modules/machines/furfur.nix.
+  Rationale: The only confirmed leak-free system (working-furfur) used kernel 6.12.67. The previous kernel rollback (Milestone 1) only went to 6.15.9, which still leaked. The working-furfur source (nixos-config commit 068a3c3e) was built from a dirty worktree that likely had kernelVersion set to "longterm". Testing 6.12 is a single config change and isolates the kernel variable before the more disruptive nixpkgs rollback.
+  Date: 2026-03-25
+
 ## Outcomes & Retrospective
 
 (To be filled as milestones complete.)
@@ -51,7 +69,7 @@ After this work, the machine should run for weeks without OOM kills from shmem a
 furfur is a Microsoft Surface Pro with Intel Iris Xe integrated graphics running NixOS 25.11. The key files are:
 
 - `flake.nix` (line 84): defines the nixos-hardware input, currently `github:NixOS/nixos-hardware/master`
-- `modules/nixos-hardware.nix`: imports `inputs.nixos-hardware.nixosModules.microsoft-surface-pro-intel` and sets `hardware.microsoft-surface.kernelVersion = "stable"`
+- `modules/nixos-hardware.nix`: imports `inputs.nixos-hardware.nixosModules.microsoft-surface-pro-intel` and sets `hardware.microsoft-surface.kernelVersion` (now "longterm", previously "stable")
 - `modules/machines/furfur.nix`: the machine configuration, imports `self.nixosModules.microsoft-surface` and `self.nixosModules.niri`, sets `boot.kernelParams = ["i915.enable_psr=0"]`
 
 The nixos-hardware module provides a surface-patched kernel. The "stable" kernel version setting selects the kernel version that nixos-hardware considers stable for Surface devices. The jump from kernel 6.15.9 to 6.18.8 happened via a nixos-hardware update.
@@ -109,36 +127,37 @@ Monitor shmem over a multi-day session. Check periodically with:
 
 Lock the screen / let displays power off and check if shmem climbs. If shmem stays under 2 GB during normal use including screen-off periods, this milestone succeeds and the kernel was the issue. If shmem still climbs to 10+ GB, proceed to Milestone 2.
 
-## Milestone 2: Bisect niri to find the leaking commit
+## Milestone 2: Niri bisect (SKIPPED — niri ruled out)
 
-Milestone 1 (kernel rollback) did not fix the leak. The niri compositor is now the primary suspect. Boot -3 used niri v25.11 from nixpkgs (no niri flake input existed). The current leaking build uses niri from the git flake input at commit b07bde3.
+Reverting niri to v25.11 (15c52bfb4318) did not fix the leak, and the confirmed working system also uses niri v25.11. Niri version is not the cause. This milestone is skipped.
 
-Bisect range:
-- Good: `15c52bfb4318f3b2452f511d5367b4bfe6335242` (tag v25.11, used in boot -3 via nixpkgs)
-- Bad: `b07bde3ee82dd73115e6b949e4f3f63695da35ea` (current git HEAD in flake.lock)
+## Milestone 2a: Switch to kernel 6.12 (longterm)
 
-The niri flake input in `flake.nix` (line 72-75) is:
+The only confirmed leak-free system used kernel 6.12.67. The previous kernel test (Milestone 1) only went back to 6.15.9, which still leaked. The regression may be between 6.12 and 6.15.
 
-    niri = {
-      url = "github:niri-wm/niri";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+Edit both `modules/nixos-hardware.nix` and `modules/machines/furfur.nix`. Change:
 
-To test a specific niri commit, pin the input to that rev:
+    hardware.microsoft-surface.kernelVersion = "stable";
 
-    niri.url = "github:niri-wm/niri?rev=<COMMIT_HASH>";
+to:
 
-Then rebuild and reboot:
+    hardware.microsoft-surface.kernelVersion = "longterm";
 
-    nix flake lock --update-input niri
+At the current nixos-hardware rev, "longterm" selects kernel 6.12.x with surface patches. Rebuild and reboot:
+
     sudo nixos-rebuild switch --flake .#furfur
     sudo reboot
 
-After each reboot, trigger the leak by locking the screen / letting displays power off, then monitor:
+After reboot, verify:
+
+    uname -r
+    # Expected: 6.12.x
+
+Monitor shmem during screen-off periods:
 
     grep -E "Shmem:|Unevictable:" /proc/meminfo
 
-If shmem climbs past 3 GB during screen-off, the commit is "bad". If it stays stable, the commit is "good". Use `git bisect` in a niri checkout to manage the bisect, and pin each candidate commit in flake.nix for testing.
+If shmem stays under 3 GB during screen-off, the kernel 6.15+ regression is confirmed. If it still leaks, proceed to Milestone 3 (nixpkgs rollback).
 
 ## Milestone 3: Roll back nixpkgs (mesa)
 
@@ -161,6 +180,7 @@ Each milestone is a single flake.nix edit that can be reverted by restoring the 
 ## Artifacts and Notes
 
 Key store paths for reference:
+- Working-furfur (confirmed no leak): /nix/store/w6dqk2vlrnip0gxk3h58k0v3760y3xqj-nixos-system-furfur-25.11.20260128.fa83fd8 (kernel 6.12.67, niri 25.11, mesa 25.2.6)
 - Boot -3 (known good): /nix/store/nmkmn28jq3kh6a4sklsk7k65w3xhwh8p-nixos-system-furfur-25.11.20260128.fa83fd8 (kernel 6.15.9)
 - Boot -2 (last clean): /nix/store/izrh6lnpzg9100sv60nsd3bpp1a11850-nixos-system-furfur-25.11.20260314.e9f278f (kernel 6.18.8)
 - Boot 0 (OOMs): /nix/store/5fihvhd6cpag09q0ak4brcw39l3abssb-nixos-system-furfur-25.11.20260320.812b398 (kernel 6.18.8)
@@ -171,7 +191,7 @@ nixos-hardware revisions:
 
 ## Interfaces and Dependencies
 
-The only file edited is `flake.nix`, specifically the `nixos-hardware` input URL on line 84. No code changes, no new modules, no new dependencies. The nixos-hardware module at `modules/nixos-hardware.nix` imports `microsoft-surface-pro-intel` and sets kernel version to "stable", which is interpreted by the nixos-hardware module to select the appropriate kernel.
+Files edited: `modules/nixos-hardware.nix` and `modules/machines/furfur.nix` (kernelVersion "stable" → "longterm"), and previously `flake.nix` (nixos-hardware input pin). The nixos-hardware module at `modules/nixos-hardware.nix` imports `microsoft-surface-pro-intel` and sets kernel version to "longterm", which selects the LTS 6.12.x kernel.
 
 niri versions in store for reference:
 - Boot -3 niri: /nix/store/r532p9gafrnwxinr8czdklc150ikxwjp-niri-25.11 (from nixpkgs, version "niri 25.11 (Nixpkgs)", git tag v25.11 = 15c52bfb4318)
@@ -182,3 +202,7 @@ niri versions in store for reference:
 Revision note (2026-03-24): Reworked initial investigation notes into full ExecPlan format per ../PLANS.md. Structured as three sequential rollback milestones (nixos-hardware, niri, nixpkgs) based on user direction. Added upstream niri issue #3295 context. First action is pinning nixos-hardware to a351494b.
 
 Revision note (2026-03-24): Milestone 1 failed — kernel rollback to 6.15.9 did not resolve the shmem leak. Updated plan to proceed with Milestone 2: bisecting niri between v25.11 (15c52bfb4318, known good from boot -3) and b07bde3ee82d (known bad, current git HEAD). Discovered that boot -3 did not use a niri flake input at all — it used niri v25.11 from nixpkgs. The niri flake input was added later in commit 72a6654.
+
+Revision note (2026-03-25): Both niri revert (to v25.11 / 15c52bf) and kernel revert (to 6.15) failed individually. However, booting the complete old system generation (working-furfur) confirmed no leak. That system uses: niri 25.11, mesa 25.2.6, kernel 6.12.67. Critical new finding: the old working system has kernel 6.12.67, not 6.15.9. The previous kernel rollback only went to 6.15 which was not far enough. Niri is now ruled out (same version in both working and broken systems). Remaining suspects: nixpkgs (mesa/libdrm build differences despite same version number) and kernel (6.12 vs 6.18, with 6.15 already excluded).
+
+Revision note (2026-03-25): Traced working-furfur to nixos-config commit 068a3c3e (dirty worktree build). Same nixos-hardware (a351494b) and nixpkgs (fa83fd8) as boot -3, but kernel 6.12.67 instead of 6.15.9 — the dirty change was likely switching kernelVersion to "longterm". Added Milestone 2a: switch kernelVersion from "stable" to "longterm" in modules/nixos-hardware.nix and modules/machines/furfur.nix. Skipped Milestone 2 (niri bisect) since niri is ruled out. Milestone 3 (nixpkgs rollback) remains as fallback if kernel 6.12 still leaks.

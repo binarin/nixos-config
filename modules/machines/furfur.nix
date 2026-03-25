@@ -67,7 +67,7 @@
         "github.com" = "extra-access-tokens/github.com";
       };
       system.stateVersion = "25.11";
-      hardware.microsoft-surface.kernelVersion = "stable";
+      hardware.microsoft-surface.kernelVersion = "longterm";
       networking.hostName = "furfur";
       impermanence.enable = true;
 
