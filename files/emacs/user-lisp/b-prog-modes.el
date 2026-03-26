@@ -201,4 +201,6 @@
 
 (b/hide-ml-mode 'eldoc-mode)
 
+(add-to-list 'eshell-modules-list 'eshell-smart)
+
 (provide 'b-prog-modes)
