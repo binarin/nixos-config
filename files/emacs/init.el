@@ -37,6 +37,8 @@
 (use-package org
   :ensure nil
   :bind (("C-c o c" . org-clock-goto)
+	 ("C-c o o" . org-clock-out)
+	 ("C-c o i" . (lambda () (interactive) (org-clock-in '(4))))
 	 ("C-c o l" . b/org-goto-last-capture)
 	 ("C-c o z" . b/org-add-note-to-clocked)
 	 ("C-c o p" . b/org-save-and-push-files)
