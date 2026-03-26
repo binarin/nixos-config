@@ -174,16 +174,16 @@
                 command = "${lib.getExe dimBrightnessBattery}";
                 resumeCommand = "${lib.getExe brightnessctl-wrapper} -r";
               }
-              # Lock session - AC power
-              {
-                timeout = cfg.lock.ac.timeout;
-                command = "${lib.getExe lockAc}";
-              }
-              # Lock session - Battery power
-              {
-                timeout = cfg.lock.battery.timeout;
-                command = "${lib.getExe lockBattery}";
-              }
+              # # Lock session - AC power
+              # {
+              #   timeout = cfg.lock.ac.timeout;
+              #   command = "${lib.getExe lockAc}";
+              # }
+              # # Lock session - Battery power
+              # {
+              #   timeout = cfg.lock.battery.timeout;
+              #   command = "${lib.getExe lockBattery}";
+              # }
               # Post-lock action - AC power
               {
                 timeout = cfg.post-lock.ac.timeout;
