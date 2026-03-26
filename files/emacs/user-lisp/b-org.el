@@ -87,8 +87,11 @@
 	("z" "Add note to a running clock" plain (clock)
 	 "  - %U %?")
 	("Z" "Add note to a running clock (pre-fill/immediate finish)" plain (clock)
-	 "  - %U %i "
+	 "  - %U %i"
 	 :immediate-finish t)
+	("r" "Add note to an interactively selected task"
+         plain (function b/org-goto-heading-and-go-inside)
+	 "  - %U %?")
 	("l" "Capture link" entry (file "~/org/refile.org")
 	 ,(b/strip-indentation "
            * %a
@@ -323,6 +326,20 @@
 ;;;###autoload
 (defun b/org-goto-heading ()
   (interactive)
-  (org-refile '(4)))
+  (org-refile '(4))
+  (org-fold-show-entry))
+
+;;;###autoload
+(defun b/org-add-note-to-selected ()
+  (interactive)
+  (org-capture nil "r"))
+
+(defun b/full-frame-add-note-to-selected ()
+  (b/with-org-capture-frame
+    (b/org-add-note-to-selected)))
+
+(defun b/org-goto-heading-and-go-inside ()
+  (b/org-goto-heading)
+  (forward-line 1))
 
 (provide 'b-org)

@@ -36,14 +36,15 @@
 
 (use-package org
   :ensure nil
-  :bind (("C-c o c" . org-clock-goto)
-	 ("C-c o o" . org-clock-out)
+  :bind (("C-c a" . org-agenda)
+         ("C-c o c" . org-clock-goto)
+         ("C-c o g" . b/org-goto-heading)
 	 ("C-c o i" . b/org-clock-in-select)
 	 ("C-c o l" . b/org-goto-last-capture)
-	 ("C-c o z" . b/org-add-note-to-clocked)
+	 ("C-c o o" . org-clock-out)
 	 ("C-c o p" . b/org-save-and-push-files)
-         ("C-c o g" . b/org-goto-heading)
-	 ("C-c a" . org-agenda)
+	 ("C-c o r" . b/org-add-note-to-selected)
+	 ("C-c o z" . b/org-add-note-to-clocked)
 	 ("C-c r" . org-capture))
   :mode (("\\.org\\'" . org-mode))
   :config
