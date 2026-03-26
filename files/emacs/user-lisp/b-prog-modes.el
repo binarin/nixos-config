@@ -175,7 +175,8 @@
 
 (defun b/indent-zmk-layer ()
   (interactive)
-  (let (beg end)
+  (let ((indent-tabs-mode nil)
+	beg end)
     (save-excursion
       (beginning-of-line)
       (while (not (looking-at (rx (* space) "bindings" (* space) "=" (* space) "<") t))
