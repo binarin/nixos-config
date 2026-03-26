@@ -309,3 +309,10 @@
 
 (provide 'b-org)
 
+;;;;###autoload
+(defun b/org-clock-in-select ()
+  (interactive)
+  (org-clock-in '(4)))
+
+
+(provide 'b-org)
