@@ -18,4 +18,9 @@
 (save-place-mode t)
 (setopt save-place-autosave-interval 180)
 
+(setopt dired-isearch-filenames 'dwim
+	dired-dwim-target 'dired-dwim-target-recent
+	wdired-allow-to-change-permissions t
+	dired-hide-details-hide-symlink-targets nil)
+
 (provide 'b-files)
