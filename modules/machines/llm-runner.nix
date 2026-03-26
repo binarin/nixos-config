@@ -195,6 +195,7 @@ in
         self.nixosModules.baseline
         self.nixosModules.qemu-guest
         self.nixosModules.disko-template-zfs-whole
+        self.nixosModules.disko-template-separate-uefi-boot
         self.nixosModules.llama-models
         (selfLib.file' "machines/llm-runner/hardware-configuration.nix")
       ];
@@ -208,10 +209,18 @@ in
         bios = "ovmf";
         machine = "q35";
         description = "LLM runner";
+        disks = [
+          {
+            type = "image";
+            storage = "local-zfs";
+            size = "128M";
+            bootOrder = 1;
+          }
+        ];
+
         pci-passthrough = {
           nvme = {
             id = "Samsung Electronics Co Ltd NVMe SSD Controller SM981/PM981/PM983";
-            bootable = true;
           };
           gpu = {
             id = "NVIDIA Corporation GA102 [GeForce RTX 3090] (rev a1)";
@@ -220,15 +229,13 @@ in
           gpu-sound = {
             id = "NVIDIA Corporation GA102 High Definition Audio Controller (rev a1)";
           };
-          # radeon = {
-          #   mapping = "large-radeon";
-          # };
         };
       };
 
       impermanence.enable = true;
       disko.devices.disk.main.device =
         "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S4EWNF0M723324Z";
+      disko.devices.disk.boot.device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0";
 
       services.xserver.videoDrivers = [ "nvidia" ];
       services.xserver.deviceSection = ''
@@ -289,12 +296,15 @@ in
         target = "8080";
       };
 
+      networking.hosts."${flakeConfig.inventory.ipAllocation.garage.home.primary.address}" = [
+        "web.binarin.info"
+      ];
       llama-models.models."gemma-3-27b-it:Q4_K_M".url =
-        "https://cloudflare-b2.binarin.workers.dev/gemma-3-27b-it-Q4_K_M.gguf";
+        "http://web.binarin.info:3902/files/gemma-3-27b-it-Q4_K_M.gguf";
       llama-models.models."Qwen3-Coder-30B-A3B-Instruct:Q4_K_S".url =
-        "https://cloudflare-b2.binarin.workers.dev/Qwen3-Coder-30B-A3B-Instruct-Q4_K_S.gguf";
+        "http://web.binarin.info:3902/files/Qwen3-Coder-30B-A3B-Instruct-Q4_K_S.gguf";
       llama-models.models."unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0".url =
-        "https://cloudflare-b2.binarin.workers.dev/unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0.gguf";
+        "http://web.binarin.info:3902/files/unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0.gguf";
 
       llama-models.configurations."qwen3-coder-30b" = {
         model = "Qwen3-Coder-30B-A3B-Instruct:Q4_K_S";
