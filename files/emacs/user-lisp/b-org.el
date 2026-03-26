@@ -315,10 +315,14 @@
       org-caldav-files (cl-set-difference org-agenda-files '("~/org/archive.org" "~/org/caldav.org") :test #'equal)
       org-caldav-save-directory "~/org")
 
-;;;;###autoload
+;;;###autoload
 (defun b/org-clock-in-select ()
   (interactive)
   (org-clock-in '(4)))
 
+;;;###autoload
+(defun b/org-goto-heading ()
+  (interactive)
+  (org-refile '(4)))
 
 (provide 'b-org)
