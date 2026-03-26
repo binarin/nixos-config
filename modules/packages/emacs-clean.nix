@@ -14,6 +14,7 @@ in
             corfu
             devicetree-ts-mode
             direnv
+            eat
             embark
             embark-consult
             kdl-mode
