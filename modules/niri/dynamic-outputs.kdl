@@ -5,6 +5,8 @@ output "Dell Inc. DELL U4025QW J7Q6FP3" {
   focus-at-startup
 
   layout {
+    always-center-single-column
+
     preset-column-widths {
       proportion 0.3333
       proportion 0.5
