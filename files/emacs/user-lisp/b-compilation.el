@@ -17,30 +17,34 @@
 
 (defvar b/paint-kill-target-on-subprocesses nil)
 
-(defun b/start-process-systemd-kill-target-hook (orig-fun command infile destination display &rest args)
-  (when b/paint-kill-target-on-subprocesses
-    (setf command "systemd-run"
-	  args (append b/systemd-run-args args)))
-  (apply orig-fun command infile destination display args))
+(defun b/call-process-systemd-kill-target-hook (whole-args)
+  (cl-destructuring-bind (program infile destination display &rest args) whole-args
+    (when b/paint-kill-target-on-subprocesses
+      (setf args (append b/systemd-run-args (cons program args)))
+      (setf program "systemd-run"))
+    (let ((result (cl-list* program infile destination display args)))
+      result)))
 
-(cl-defun b/make-process-systemd-kill-target-hook (orig-fun &rest args &key command &allow-other-keys)
-  (when (and command
-	     b/paint-kill-target-on-subprocesses)
-    (let ((exe (car command))
-	  (cmd-args (cdr command)))
-      (plist-put args :command (append
-				(cl-list* "systemd-run" b/systemd-run-args)
-				(list (b/find-exe exe)) cmd-args))))
-  (apply orig-fun args))
+(defun b/make-process-systemd-kill-target-hook (args)
+  (when (listp (car args))
+    (setf args (car args)))
+  (when-let* ((_ b/paint-kill-target-on-subprocesses)
+              (command (plist-get args :command))
+              (exe (car command))
+              (new-command
+               (append (cl-list* "systemd-run" b/systemd-run-args)
+                       (cons (b/find-exe exe) (cdr command)))))
+    (plist-put args :command new-command))
+  args)
 
 (defun b/compilation-start-paint-kill-target (orig-fun &rest args)
   (let ((b/paint-kill-target-on-subprocesses t))
     (apply orig-fun args)))
 
 (when (eq system-type 'gnu/linux)
-  (advice-add 'call-process :around #'b/start-process-systemd-kill-target-hook)
-  (advice-add 'make-process :around #'b/make-process-systemd-kill-target-hook)
-  (advice-add 'compilation-start :around #'b/compilation-start-paint-kill-target))
+  (advice-add 'call-process :filter-args 'b/call-process-systemd-kill-target-hook)
+  (advice-add 'make-process :filter-args 'b/make-process-systemd-kill-target-hook)
+  (advice-add 'compilation-start :around 'b/compilation-start-paint-kill-target))
 
 (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
 
