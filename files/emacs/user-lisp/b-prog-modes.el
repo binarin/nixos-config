@@ -1,8 +1,10 @@
 ;; -*- lexical-binding: t; -*-
 (require 'b-format-on-save)
 (require 'l-lib)
+(require 'ws-butler)
 
-(setf indent-tabs-mode nil)
+(setq-default indent-tabs-mode nil)
+(ws-butler-global-mode)
 
 (use-package cperl-mode
   :ensure nil
