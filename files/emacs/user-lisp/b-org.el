@@ -307,7 +307,13 @@
       (error "No running clock to comment on")
     (org-capture-string (read-from-minibuffer "Note for clocked task: ") "Z")))
 
-(provide 'b-org)
+(require 'org-caldav)
+(setf org-caldav-url "https://nextcloud.lynx-lizard.ts.net/remote.php/dav/calendars/binarin"
+      org-caldav-calendar-id "binarin"
+      org-caldav-inbox "~/org/caldav.org"
+      org-icalendar-timezone "Europe/Amsterdam"
+      org-caldav-files (cl-set-difference org-agenda-files '("~/org/archive.org" "~/org/caldav.org") :test #'equal)
+      org-caldav-save-directory "~/org")
 
 ;;;;###autoload
 (defun b/org-clock-in-select ()

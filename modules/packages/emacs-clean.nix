@@ -22,6 +22,7 @@ in
             marginalia
             nix-mode
             orderless
+            org-caldav
             org-roam
             paredit
             vertico

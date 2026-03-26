@@ -30,5 +30,11 @@
 (add-hook 'dired-mode-hook 'b/dired-mode-hook)
 (ffap-bindings)
 
+(eval-when-compile
+  (require 'auth-source-pass))
+(setf auth-source-pass-filename (expand-file-name "~/.local/share/gopass/stores/root/"))
+(with-eval-after-load 'auth-source
+    (auth-source-pass-enable))
+
 
 (provide 'b-files)
