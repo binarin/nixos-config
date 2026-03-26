@@ -446,6 +446,8 @@ binds {
   // but you need to manually put each argument in separate "" quotes.
   XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl-wrapper" "set" "+10%"; }
   XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl-wrapper" "set" "10%-"; }
+  Shift+XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl-wrapper" "set" "100%"; }
+  Shift+XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl-wrapper" "set" "50%"; }
 
   // Open/close the Overview: a zoomed-out view of workspaces and windows.
   // You can also move the mouse into the top-left hot corner,
