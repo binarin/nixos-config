@@ -14,6 +14,25 @@ in
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
   };
 
+  perSystem =
+    { self', pkgs, ... }:
+    {
+      devShells.emacs-test = pkgs.mkShell {
+        name = "emacs-test-devshell";
+        packages = with pkgs; [
+          coreutils
+          bash
+          bubblewrap
+          rsync
+          gnugrep
+          self'.packages.emacs-nox
+        ];
+        shellHook = ''
+          export IN_TEST_SHELL=1
+        '';
+      };
+    };
+
   flake.nixosModules.emacs =
     {
       pkgs,

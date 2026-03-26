@@ -42,6 +42,8 @@
   (advice-add 'make-process :around #'b/make-process-systemd-kill-target-hook)
   (advice-add 'compilation-start :around #'b/compilation-start-paint-kill-target))
 
+(add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+
 (provide 'b-compilation)
 
 

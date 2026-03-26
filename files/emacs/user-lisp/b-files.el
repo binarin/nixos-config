@@ -23,4 +23,12 @@
 	wdired-allow-to-change-permissions t
 	dired-hide-details-hide-symlink-targets nil)
 
+(autoload 'dired-omit-mode "dired-x")
+(defun b/dired-mode-hook ()
+  (dired-omit-mode 1))
+
+(add-hook 'dired-mode-hook 'b/dired-mode-hook)
+(ffap-bindings)
+
+
 (provide 'b-files)

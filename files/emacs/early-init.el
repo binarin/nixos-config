@@ -4,7 +4,6 @@
 
 (when load-file-name
   (load (file-name-concat (file-name-directory load-file-name) "user-lisp/b-xdg") nil t))
-
 (require 'b-xdg)
 
 (cl-loop

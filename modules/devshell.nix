@@ -244,6 +244,7 @@
         packages =
           with pkgs;
           [
+            rsync
             s3cmd
             just
             nixd

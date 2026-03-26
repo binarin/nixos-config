@@ -8,6 +8,7 @@
   (let (unnecessary-files)
     (cl-loop for (file-name) in (directory-files-and-attributes user-emacs-directory)
 	     unless (pcase file-name
+		      (".dir-locals.el" t)
 		      ("init.el" t)
 		      ("early-init.el" t)
 		      ("tests" t)
