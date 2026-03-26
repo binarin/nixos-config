@@ -133,6 +133,7 @@
               defaultApplications = {
                 "x-scheme-handler/tg" = "org.telegram.desktop.desktop";
                 "image/jpeg" = "geeqie.desktop";
+                "application/pdf" = "org.gnome.Evince.desktop";
               };
               associations.added = {
                 "application/pdf" = "org.gnome.Evince.desktop";
