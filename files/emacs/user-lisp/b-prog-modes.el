@@ -203,6 +203,9 @@
 
 (eval-when-compile
   (require 'eshell))
-(add-to-list 'eshell-modules-list 'eshell-smart)
+
+(with-eval-after-load 'eshell
+  (add-to-list 'eshell-modules-list 'eshell-smart))
+
 
 (provide 'b-prog-modes)
