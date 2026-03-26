@@ -1,12 +1,11 @@
+---
 on:
   schedule:
     - cron: "13 10 * * Mon"
   workflow_dispatch: {}
-
 concurrency:
   group: flake-update
   cancel-in-progress: false
-
 jobs:
   update-flake:
     runs-on: native
@@ -31,7 +30,6 @@ jobs:
         run: git commit -am "Bump inputs" || echo "No changes to commit"
       - name: Push to flake-bump branch
         run: git push --force origin HEAD:flake-bump
-
   update-caddy-hash:
     runs-on: native
     needs: update-flake
@@ -72,7 +70,6 @@ jobs:
             echo "Caddy build succeeded or failed for other reasons"
             echo "$BUILD_OUTPUT"
           fi
-
   update-trezor-nixpkgs:
     runs-on: native
     needs: update-caddy-hash
@@ -86,6 +83,8 @@ jobs:
           git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
       - name: Update nixpkgs-trezor-agent to match main nixpkgs
         run: nix run .#update-trezor-agent
+      - name: Run the resulting agent
+        run: nix run .#trezor-agent -- --help
       - name: Commit and push if build succeeded
         run: |
           if git diff --quiet; then
@@ -97,7 +96,6 @@ jobs:
           git add -A
           git commit -m "Bump nixpkgs-trezor-agent to match nixpkgs"
           git push --force origin HEAD:flake-bump
-
   define-matrix:
     runs-on: native
     needs: update-trezor-nixpkgs
@@ -114,7 +112,6 @@ jobs:
       - id: define
         run: |
           echo "configurations=$(nix run .#env-aware-nix-run -- .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
-
   build-configs:
     name: build ${{ matrix.config }}
     runs-on: native
@@ -134,7 +131,6 @@ jobs:
         with:
           config: ${{ matrix.config }}
           output-link: temp-result/${{ matrix.config }}
-
   create-pr:
     runs-on: native
     needs: build-configs
@@ -147,4 +143,5 @@ jobs:
           token: ${{ secrets.PR_TOKEN }}
           key-name: nixos-config-bumper
       - name: Maybe create PR
-        run: fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config --base master --head flake-bump --body "Bump flake inputs" "Bump everything" || true
+        run: fj -H forgejo.lynx-lizard.ts.net pr create -r binarin/nixos-config --base master --head flake-bump --body "Bump flake inputs"
+          "Bump everything" || true
