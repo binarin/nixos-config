@@ -287,24 +287,33 @@ in
           }
 
           # let a terminal/tmux to keep track of a current directory to open new window in the same place
-          function osc7 {
+          function osc7-pwd() {
+              emulate -L zsh # also sets localoptions for us
+              setopt extendedglob
               local LC_ALL=C
-              export LC_ALL
-
-              setopt localoptions extendedglob
-              input=( ''${(s::)PWD} )
-              uri=''${(j::)input/(#b)([^A-Za-z0-9_.\!~*\'\(\)-\/])/%''${(l:2::0:)$(([##16]#match))}}
-              print -n "\e]7;file://''${HOSTNAME}''${uri}\e\\"
+              printf '\e]7;file://%s%s\e\' $HOST ''${PWD//(#m)([^@-Za-z&-;_~])/%''${(l:2::0:)$(([##16]#MATCH))}}
           }
-          add-zsh-hook -Uz chpwd osc7
+          function chpwd-osc7-pwd() {
+              (( ZSH_SUBSHELL )) || osc7-pwd
+          }
+          add-zsh-hook -Uz chpwd chpwd-osc7-pwd
 
           [ -n "$EAT_SHELL_INTEGRATION_DIR" ] && \
             source "$EAT_SHELL_INTEGRATION_DIR/zsh"
 
           # OSC 133 (shell integration / semantic prompt) support, delimits the shell prompt from a command output
-          precmd() {
+          # A - prompt start, B - input start, C - output start, D - output end, P - prompt start (alternative to A, wihtout fresh line)
+          function precmd() {
               print -Pn "\e]133;A\e\\"
+              if ! builtin zle; then
+                  print -n "\e]133;D\e\\"
+              fi
           }
+
+          function preexec {
+              print -n "\e]133;C\e\\"
+          }
+
           export LS_COLORS="$(${lib.getExe pkgs.vivid} generate zenburn)"
 
           ${builtins.readFile ./atuin-zsh-widget.sh}

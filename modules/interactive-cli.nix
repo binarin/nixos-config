@@ -216,6 +216,16 @@ in
             yubikey-manager
             zip
           ];
+
+          programs.readline = {
+            enable = true;
+            extraConfig = ''
+              # $if term=foot
+              set show-mode-in-prompt on
+              set emacs-mode-string "\1\e]133;A\e\\\2"
+              $endif
+            '';
+          };
         }
         (lib.mkIf config.programs.fzf.enable {
           programs.doggo.enable = true;
