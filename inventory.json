@@ -2,6 +2,9 @@
   "machines": {
     "llm-runner": {
       "installedAt": 1774534568
+    },
+    "acme": {
+      "installedAt": 1774629786
     }
   }
 }
