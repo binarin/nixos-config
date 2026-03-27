@@ -15,13 +15,6 @@ in
         inputs.nixos-hardware.nixosModules.microsoft-surface-pro-intel
       ];
 
-      # XXX
-      boot.kernelPatches = [
-        {
-          name = "rust-1.91-fix";
-          patch = selfLib.file "rust-fix.patch";
-        }
-      ];
       hardware.microsoft-surface.kernelVersion = "stable";
 
       boot.initrd.kernelModules = [

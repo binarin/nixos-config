@@ -53,7 +53,7 @@
         self.homeModules.impermanence
         self.homeModules.git
         self.homeModules.emacs
-        # self.homeModules.ai-tools
+        self.homeModules.ai-tools
         self.homeModules.direnv
         self.homeModules.interactive-cli
         self.homeModules.sops

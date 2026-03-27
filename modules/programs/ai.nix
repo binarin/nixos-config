@@ -17,19 +17,17 @@
         self.homeModules.claude-completion
       ];
 
-      home.packages =
-        (with inputs'.nix-ai-tools.packages; [
+      home.packages = (
+        with inputs'.nix-ai-tools.packages;
+        [
           claude-code
           claude-code-acp
           claude-code-router
           gemini-cli
           opencode
           pi
-        ])
-        ++ (with pkgs; [
-          llm
-          python3Packages.markitdown
-        ]);
+        ]
+      );
 
       home.file.".claude/skills/".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/claude-skills";
