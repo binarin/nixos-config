@@ -27,18 +27,19 @@
                        "transient"
 		       "calc.el"
 		       "places.eld"
+                       "tramp"
+		       "org-roam.db"
 		       "org-clock-save.el"
-		       "diary")
+                       ".org-id-locations"
+                       "diary")
                       (or eol "/")))
         (cache-rx (rx bol
                       (or
                        "treesitter"
                        "eln"
 		       "elpa"
-		       "org-roam.db"
 		       "init_zsh.sh"
-		       "js/js"
-		       ".org-id-locations")
+		       "js/js")
                       (or eol "/")))
         (tmp-rx (rx bol
                     (or
