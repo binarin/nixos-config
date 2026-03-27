@@ -342,4 +342,10 @@
   (b/org-goto-heading)
   (forward-line 1))
 
+;;;###autoload
+(defun b/org-clock-out ()
+  (interactive)
+  (org-clock-out)
+  (force-mode-line-update t))
+
 (provide 'b-org)

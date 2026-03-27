@@ -41,7 +41,7 @@
          ("C-c o g" . b/org-goto-heading)
 	 ("C-c o i" . b/org-clock-in-select)
 	 ("C-c o l" . b/org-goto-last-capture)
-	 ("C-c o o" . org-clock-out)
+	 ("C-c o o" . b/org-clock-out)
 	 ("C-c o p" . b/org-save-and-push-files)
 	 ("C-c o r" . b/org-add-note-to-selected)
 	 ("C-c o z" . b/org-add-note-to-clocked)
