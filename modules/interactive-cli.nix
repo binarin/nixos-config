@@ -80,8 +80,12 @@ in
           programs.fzf = {
             enable = true;
             defaultCommand = "fd";
+
             fileWidgetOptions = [ "--preview '${fzf_show_file_or_dir_preview}'" ];
+            fileWidgetCommand = "fd --type f";
+
             changeDirWidgetOptions = [ "--preview 'lsd --tree --color=always {} | head -200'" ];
+            changeDirWidgetCommand = "fd --type d";
           };
 
           programs.helix.enable = true;
