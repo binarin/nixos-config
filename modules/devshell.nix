@@ -1,6 +1,11 @@
 {
   perSystem =
-    { inputs', pkgs, ... }:
+    {
+      self',
+      inputs',
+      pkgs,
+      ...
+    }:
     let
       # Environment variables to preserve when using --ignore-env with nix
       # Essential for nix operations in CI environments
@@ -244,6 +249,7 @@
         packages =
           with pkgs;
           [
+            self'.formatter
             rsync
             s3cmd
             just
