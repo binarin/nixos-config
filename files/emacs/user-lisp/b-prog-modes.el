@@ -207,5 +207,10 @@
 (with-eval-after-load 'eshell
   (add-to-list 'eshell-modules-list 'eshell-smart))
 
+;;;###autoload
+(defun b/rr (cmd)
+  (interactive "sCommand name: ")
+  (when-let* ((exe (file-truename (b/find-exe cmd))))
+    (dired-jump t exe)))
 
 (provide 'b-prog-modes)
