@@ -73,6 +73,17 @@ in
         addSSL = true;
         sslCertificate = "/var/lib/ssl-cert/full.pem";
         sslCertificateKey = "/var/lib/ssl-cert/full.pem";
+
+        locations."~ ^(/_matrix/|/.well-known/matrix/)" = {
+          priority = 100;
+          proxyPass = "http://127.0.0.1:6167$request_uri";
+          extraConfig = ''
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+          '';
+        };
         locations."/" = {
           proxyPass = "http://garage.home.binarin.info:3902";
           extraConfig = ''
@@ -87,6 +98,16 @@ in
         script = ''
           cat $prompts/credentials-json > $out/credentials-json
         '';
+      };
+
+      services.matrix-continuwuity = {
+        enable = true;
+        settings = {
+          global.server_name = "binarin.info";
+          global.address = [ "127.0.0.1" ];
+          global.well_known.client = "https://binarin.info";
+          global.well_known.server = "binarin.info:443";
+        };
       };
 
       services.cloudflared = {
