@@ -8,7 +8,11 @@
     {
       _class = "clan.service";
       manifest.name = "nixos-config-let-encrypt";
+      manifest.readme = ''
+        centrally issued and distributed let's encrypt certs (via dns-01 challenge)
+      '';
       roles.server = {
+        description = "will issue certs and make age-encrypted certs available via https for other machines to download";
         interface = with lib; {
           options = {
             acme = {
@@ -77,6 +81,8 @@
               };
           };
       };
-      roles.client = { };
+      roles.client = {
+        description = "will pull age-encrypted cert/key from server and decrypt it";
+      };
     };
 }

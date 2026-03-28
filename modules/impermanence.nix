@@ -126,7 +126,8 @@
                 "/var/lib/nixos"
                 "/root/.ssh"
                 "/etc/NetworkManager/system-connections"
-              ];
+              ]
+              ++ config.impermanence.persist.directories;
               files = [
                 "/etc/machine-id"
               ];
