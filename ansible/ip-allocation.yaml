@@ -1,4 +1,10 @@
 ip_allocation:
+  acme:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.31
+        mac: 02:00:9E:88:E2:3A
   bael:
     home:
       primary:
