@@ -29,6 +29,18 @@ in
     nixpkgs.hostPlatform = "x86_64-linux";
   };
 
+  clan.inventory.instances.acme = {
+    roles.client.machines.web = {
+      settings = {
+        domain = "web.clan.binarin.info";
+        extraDomainNames = [
+          "binarin.info"
+          "web.home.binarin.info"
+        ];
+      };
+    };
+  };
+
   flake.nixosConfigurations.web = lib.mkForce (
     self.clan.nixosConfigurations.web.extendModules {
       specialArgs.inventoryHostName = "web";
@@ -51,21 +63,27 @@ in
 
       nixos-config.export-metrics.enable = false;
 
-      services.caddy = {
-        enable = true;
-        virtualHosts."http://binarin.info" = {
+      services.nginx.enable = true;
+      networking.firewall.allowedTCPPorts = [
+        80
+        443
+      ];
+
+      services.nginx.virtualHosts."binarin.info" = {
+        addSSL = true;
+        sslCertificate = "/var/lib/ssl-cert/full.pem";
+        sslCertificateKey = "/var/lib/ssl-cert/full.pem";
+        locations."/" = {
+          proxyPass = "http://garage.home.binarin.info:3902";
           extraConfig = ''
-            reverse_proxy http://garage.home.binarin.info:3902 {
-                      header_up Host web.binarin.info
-            }
+            proxy_set_header Host web.binarin.info;
           '';
         };
-        acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
       };
 
       clan.core.vars.generators.cloudflare-tunnel = {
         prompts.credentials-json.description = "credentials json file";
-        files.credentials-json = {};
+        files.credentials-json = { };
         script = ''
           cat $prompts/credentials-json > $out/credentials-json
         '';

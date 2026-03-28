@@ -41,6 +41,7 @@ in
       key = "nixos-config.modules.nixos.clan-baseline";
       imports = [
         self.nixosModules.clan-hostId
+        self.nixosModules.clan-hosts
       ];
 
       clan.core.vars.generators.tailscale-admin = {
@@ -83,6 +84,33 @@ in
 
       services.tailscale.authKeyFile =
         config.clan.core.vars.generators.tailscale-auth.files.tailscale-auth.path;
+    };
+
+  flake.nixosModules.clan-hosts =
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
+    {
+      key = "nixos-config.modules.nixos.clan-hosts";
+      config = {
+        networking.hosts =
+          with lib;
+          pipe config.clanConfig.machines [
+            attrNames
+            (map (
+              name:
+              lib.optionalAttrs (name != config.networking.hostName) {
+                "${flakeConfig.inventory.ipAllocation."${name}".home.primary.address}" = [
+                  "${name}.${config.clan.core.settings.domain}"
+                ];
+              }
+            ))
+            mergeAttrsList
+          ];
+      };
     };
 
   flake.nixosModules.clan-hostId =
