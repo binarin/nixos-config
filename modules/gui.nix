@@ -79,23 +79,24 @@
       texlive-combined = pkgs.texlive.combine { inherit (pkgs.texlive) scheme-full beamer ps2eps; };
 
       guiPackages = with pkgs; [
-        libreoffice
-        openscad-unstable
-        freecad
         chromium
+        element-desktop
         evince
         flacon
+        freecad
         geeqie
         gimp
         gitg
-        mesa-demos
         imagemagickBig
         imhex
         libnotify
+        libreoffice
+        mesa-demos
         mplayer
+        openscad-unstable
+        pdftk
         steam-run
         texlive-combined
-        pdftk
         usbutils.python
         v4l-utils
         vlc
