@@ -375,15 +375,14 @@
 (defvar b/agenda-prepend-parent nil)
 
 (defun b/agenda-item-prepend-parent (item)
- (let ((marker (org-find-text-property-in-string 'org-marker item))
-        priority-cookie project-text)
+  (let ((marker (org-find-text-property-in-string 'org-marker item)))
     (when (markerp marker)
       (org-with-point-at marker
         (when-let* ((parent (and (= 3 (org-current-level))
-                               (org-up-heading-safe)
-                               (org-entry-get nil "ITEM")))
-                  (project-text (propertize (concat "[" parent "] ")
-                                            'face 'org-agenda-dimmed-todo-face)))
+                                 (org-up-heading-safe)
+                                 (org-entry-get nil "ITEM")))
+                    (project-text (propertize (concat "[" parent "] ")
+                                              'face 'org-agenda-dimmed-todo-face)))
           (setf item (replace-regexp-in-string
                       (rx (or "NEXT" "WAIT") " " (? (regexp org-priority-regexp)) (group-n 10) (* anychar) eos)
                       project-text
