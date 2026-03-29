@@ -10,6 +10,7 @@ in
         basePackage:
         basePackage.pkgs.withPackages (
           e: with e; [
+            anki-editor
             consult
             corfu
             devicetree-ts-mode
