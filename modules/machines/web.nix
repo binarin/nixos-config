@@ -36,6 +36,9 @@ in
         extraDomainNames = [
           "binarin.info"
           "web.home.binarin.info"
+          "unifi.home.binarin.info"
+          "unifi.clan.binarin.info"
+          "unifi.binarin.info"
         ];
       };
     };
@@ -68,6 +71,48 @@ in
         80
         443
       ];
+
+      services.nginx.virtualHosts."unifi.binarin.info" = {
+        addSSL = true;
+        sslCertificate = "/var/lib/ssl-cert/full.pem";
+        sslCertificateKey = "/var/lib/ssl-cert/full.pem";
+        serverAliases = [
+          "unifi.home.binarin.info"
+          "unifi.clan.binarin.info"
+        ];
+
+        locations."/api/ws/" = {
+          proxyPass = "https://usg.home.binarin.info:443";
+          extraConfig = ''
+            proxy_set_header        Host $host;
+            proxy_set_header        X-Real-IP $remote_addr;
+            proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header        X-Forwarded-Proto $scheme;
+            proxy_set_header        X-Forwarded-Host $host;
+            proxy_set_header        X-Forwarded-Server $hostname;
+            proxy_ssl_verify       off;
+            proxy_ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+          '';
+        };
+
+        locations."/" = {
+          proxyPass = "https://usg.home.binarin.info:443";
+          extraConfig = ''
+            proxy_set_header        Host $host;
+            proxy_set_header        X-Real-IP $remote_addr;
+            proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header        X-Forwarded-Proto $scheme;
+            proxy_set_header        X-Forwarded-Host $host;
+            proxy_set_header        X-Forwarded-Server $hostname;
+            proxy_ssl_verify       off;
+            proxy_ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+            proxy_http_version 1.1;
+          '';
+        };
+      };
 
       services.nginx.virtualHosts."binarin.info" = {
         addSSL = true;
@@ -139,5 +184,6 @@ in
           };
         };
       };
+
     };
 }

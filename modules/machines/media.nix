@@ -627,7 +627,7 @@ in
               }
               {
                 "Servers" = [
-                  (svc "Unifi" "https://unifi.binarin.info/" "unifi.svg")
+                  (svc "Unifi" "https://unifi.lynx-lizard.ts.net/" "unifi.svg")
                   (svc "Proxmox Raum" "https://raum.lynx-lizard.ts.net" "proxmox.svg")
                   (svc "Proxmox Bael" "https://bael.lynx-lizard.ts.net" "proxmox.svg")
                   (svc "Proxmox Backup Server - bael" "https://bael.lynx-lizard.ts.net:8007/" "/custom-icons/pbs.png")
@@ -670,16 +670,6 @@ in
 
         services.caddy.virtualHosts."atuin.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:8888
-          import letsencrypt
-        '';
-
-        services.caddy.virtualHosts."unifi.binarin.info".extraConfig = ''
-          reverse_proxy ${config.inventory.ipAllocation."usg".home.primary.address}:443 {
-            transport http {
-              tls
-              tls_insecure_skip_verify
-            }
-          }
           import letsencrypt
         '';
 
