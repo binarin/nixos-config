@@ -283,9 +283,14 @@
 
 (defun b/org-open-first-link-at-point ()
   (interactive)
-  (if-let* ((link (org-offer-links-in-entry (current-buffer) (point) 1)))
-      (progn
-	(org-link-open-from-string (car link)))))
+  (save-excursion
+    (if-let*  ((_ (re-search-forward org-link-any-re (pos-eol) t))
+               (_ (org-element-type-p
+                   (save-match-data (org-element-context))
+                   '(link comment comment-block node-property keyword)))
+               (link (match-string 0)))
+        (org-link-open-from-string link)
+      (message "No link in heading."))))
 
 ;;;###autoload
 (defvar b/org-capture-gui-selection--body)
