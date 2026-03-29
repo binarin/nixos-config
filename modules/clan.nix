@@ -35,6 +35,7 @@ in
       self',
       inventoryHostName,
       config,
+      lib,
       ...
     }:
     {
@@ -66,7 +67,7 @@ in
         '';
       };
 
-      clan.core.vars.generators.tailscale-auth = {
+      clan.core.vars.generators.tailscale-auth = lib.mkIf config.services.tailscale.enable {
         files.tailscale-auth = {
           secret = true;
         };
@@ -137,4 +138,40 @@ in
         );
       };
     };
+
+  flake.nixosModules.clan-smtp =
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
+    {
+      key = "nixos-config.modules.nixos.clan-smtp";
+      config = {
+
+        users.groups.smtp-password = { };
+
+        clan.core.vars.generators.smtp = {
+          share = true;
+          prompts.host.description = "smtp host";
+          prompts.port.description = "smtp port";
+          prompts.user.description = "smtp user";
+          prompts.password.description = "smtp password";
+          files.host = { };
+          files.port = { };
+          files.user = { };
+          files.password = {
+            group = "smtp-password";
+            mode = "0640";
+          };
+          script = ''
+            for f in host port user password; do
+              cat $prompts/$f > $out/$f
+            done
+          '';
+        };
+      };
+    };
+
 }

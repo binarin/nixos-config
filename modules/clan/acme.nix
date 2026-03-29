@@ -242,6 +242,7 @@ in
                     fi
                     if curl -o new-full.pem https://acme.clan.binarin.info/${config.networking.hostName}-full.pem; then
                       if age \
+                        --decrypt \
                         --identity ${config.clan.core.vars.generators.acme-distribution.files.encryption-key.path} \
                         --output new-full-decrypted.pem new-full.pem; then \
                         mv new-full-decrypted.pem full.pem
