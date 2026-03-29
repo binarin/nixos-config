@@ -100,7 +100,7 @@ in
         };
 
         locations."/files/" = {
-          proxyPass = "http://garage.home.binarin.info:3902/";
+          proxyPass = "http://${flakeConfig.inventory.ipAllocation.garage.home.primary.address}:3902$request_uri";
           extraConfig = ''
             proxy_set_header Host web.binarin.info;
           '';
