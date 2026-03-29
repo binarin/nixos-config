@@ -371,24 +371,6 @@ in
           };
         };
 
-        systemd.timers."restart-tubearchivist" = {
-          wantedBy = [ "timers.target" ];
-          timerConfig = {
-            OnCalendar = "*-*-* 03:15:00";
-            Unit = "restart-tubearchivist.service";
-          };
-        };
-
-        systemd.services."restart-tubearchivist" = {
-          script = ''
-            ${lib.getExe pkgs.docker} restart tubearchivist
-          '';
-          serviceConfig = {
-            Type = "oneshot";
-            User = "root";
-          };
-        };
-
         services.caddy.virtualHosts."ta.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:8001
           import letsencrypt
