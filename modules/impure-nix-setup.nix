@@ -11,9 +11,36 @@
           gc-keep-derivations = true
         '';
 
-        nix.registry.nixpkgs.flake = inputs.nixpkgs;
-        nix.registry.nixpkgs-unstable.flake = inputs.nixpkgs-unstable;
-        nix.registry.flake-parts.flake = inputs.flake-parts;
+        nix.registry.nixpkgs = {
+          from = {
+            type = "indirect";
+            id = "nixpkgs";
+          };
+          to = {
+            type = "path";
+            path = inputs.nixpkgs.outPath;
+          };
+        };
+        nix.registry.nixpkgs-unstable = {
+          from = {
+            type = "indirect";
+            id = "nixpkgs-unstable";
+          };
+          to = {
+            type = "path";
+            path = inputs.nixpkgs-unstable.outPath;
+          };
+        };
+        nix.registry.flake-parts = {
+          from = {
+            type = "indirect";
+            id = "flake-parts";
+          };
+          to = {
+            type = "path";
+            path = inputs.flake-parts.outPath;
+          };
+        };
       };
     };
 }
