@@ -156,14 +156,31 @@
       org-agenda-todo-ignore-with-date t)
 
 (setf org-agenda-custom-commands
-      '(("a" agenda ""
+      `(("w" agenda ""
 	 ((org-agenda-start-day "-1d")
-	  (org-agenda-start-on-weekday nil)))))
+	  (org-agenda-start-on-weekday nil)))
+        ("a"
+         ((agenda ""
+                  ((org-agenda-span 'day)))
+          (tags-todo "-agenda_hide+TODO=\"NEXT\""
+                     ((b/agenda-prepend-parent t)
+                      (org-agenda-overriding-header "Tasks:")
+                      (org-agenda-hide-tags-regexp ,(rx (or "PROJ")))
+                      (org-agenda-sorting-strategy '(priority-down category-keep))))
+          (stuck ""))
+         ((org-agenda-compact-blocks t)))))
+
+(setf org-stuck-projects '("+PROJ-agenda_hide/+TODO" ("NEXT")))
+(setf org-tags-exclude-from-inheritance '("PROJ"))
 
 (setf org-export-with-sub-superscripts '{}
       org-pretty-entities t
       org-pretty-entities-include-sub-superscripts nil)
 
+
+(setf org-lowest-priority ?D
+      org-highest-priority ?A
+      org-default-priority ?C)
 
 (setf org-src-window-setup 'current-window
       org-src-ask-before-returning-to-edit-buffer nil)
@@ -352,5 +369,36 @@
   (interactive)
   (org-clock-out)
   (force-mode-line-update t))
+
+
+
+(defvar b/agenda-prepend-parent nil)
+
+(defun b/agenda-item-prepend-parent (item)
+ (let ((marker (org-find-text-property-in-string 'org-marker item))
+        priority-cookie project-text)
+    (when (markerp marker)
+      (org-with-point-at marker
+        (when-let* ((parent (and (= 3 (org-current-level))
+                               (org-up-heading-safe)
+                               (org-entry-get nil "ITEM")))
+                  (project-text (propertize (concat "[" parent "] ")
+                                            'face 'org-agenda-dimmed-todo-face)))
+          (setf item (replace-regexp-in-string
+                      (rx (or "NEXT" "WAIT") " " (? (regexp org-priority-regexp)) (group-n 10) (* anychar) eos)
+                      project-text
+                      item nil nil 10)))))
+    item))
+
+(defun b/org-agenda-finalize-prepend-parent (string)
+  (if (not b/agenda-prepend-parent)
+      string
+    (string-join
+     (mapcar 'b/agenda-item-prepend-parent
+             (split-string string "\n" 'omit-nulls))
+     "\n")))
+
+(advice-add 'org-agenda-finalize-entries :filter-return 'b/org-agenda-finalize-prepend-parent)
+
 
 (provide 'b-org)
