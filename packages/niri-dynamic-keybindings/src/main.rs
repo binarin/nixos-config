@@ -29,7 +29,7 @@ impl BindWriter {
                 is_focused: true,
                 app_id: Some(app_id),
                 ..
-            } => app_id == "Emacs",
+            } => app_id.to_lowercase() == "emacs",
             _ => false,
         });
 
