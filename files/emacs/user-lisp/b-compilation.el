@@ -42,7 +42,7 @@
     (apply orig-fun args)))
 
 (when (eq system-type 'gnu/linux)
-  (advice-add 'call-process :filter-args 'b/call-process-systemd-kill-target-hook)
+  ;; (advice-add 'call-process :filter-args 'b/call-process-systemd-kill-target-hook)
   (advice-add 'make-process :filter-args 'b/make-process-systemd-kill-target-hook)
   (advice-add 'compilation-start :around 'b/compilation-start-paint-kill-target))
 
