@@ -18,7 +18,7 @@
 (defvar b/paint-kill-target-on-subprocesses nil)
 
 (defun b/call-process-systemd-kill-target-hook (whole-args)
-  (cl-destructuring-bind (program infile destination display &rest args) whole-args
+  (cl-destructuring-bind (program &optional infile destination display &rest args) whole-args
     (when b/paint-kill-target-on-subprocesses
       (setf args (append b/systemd-run-args (cons program args)))
       (setf program "systemd-run"))
@@ -42,7 +42,7 @@
     (apply orig-fun args)))
 
 (when (eq system-type 'gnu/linux)
-  ;; (advice-add 'call-process :filter-args 'b/call-process-systemd-kill-target-hook)
+  (advice-add 'call-process :filter-args 'b/call-process-systemd-kill-target-hook)
   (advice-add 'make-process :filter-args 'b/make-process-systemd-kill-target-hook)
   (advice-add 'compilation-start :around 'b/compilation-start-paint-kill-target))
 
