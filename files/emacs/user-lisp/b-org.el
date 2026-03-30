@@ -167,7 +167,9 @@
                       (org-agenda-overriding-header "Tasks:")
                       (org-agenda-hide-tags-regexp ,(rx (or "PROJ")))
                       (org-agenda-sorting-strategy '(priority-down category-keep))))
-          (stuck ""))
+          (stuck "")
+          (tags "REFILE/-DONE-CNCL"
+                ((org-agenda-overriding-header "Items to refile:"))))
          ((org-agenda-compact-blocks t)))))
 
 (setf org-stuck-projects '("+PROJ-agenda_hide/+TODO" ("NEXT")))
