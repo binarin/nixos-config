@@ -25,7 +25,6 @@ in
           bubblewrap
           rsync
           gnugrep
-          self'.packages.emacs-nox
         ];
         shellHook = ''
           export IN_TEST_SHELL=1
@@ -36,7 +35,6 @@ in
   flake.nixosModules.emacs =
     {
       pkgs,
-      self',
       ...
     }:
     {
@@ -44,10 +42,20 @@ in
 
       nixpkgs.overlays = [
         inputs.emacs-overlay.overlays.default
+        (final: prev: {
+          my-emacs = final.callPackage ../../packages/my-emacs {
+            emacsBasePackage = final.emacs-git-nox;
+            flakyConfigDir = selfLib.dir "emacs";
+          };
+        })
       ];
 
-      environment.systemPackages = with pkgs; [
-        self'.packages.emacs-nox
+      environment.systemPackages = [
+        # (pkgs.callPackage ../../packages/my-emacs {
+        #   basePackage = pkgs.emacs-nox;
+        #   flakyConfigDir = selfLib.dir "emacs";
+        # })
+        pkgs.my-emacs
       ];
     };
 
@@ -57,7 +65,6 @@ in
       pkgs,
       lib,
       osConfig,
-      self',
       ...
     }:
     {
@@ -69,8 +76,21 @@ in
 
           programs.emacs = {
             enable = lib.mkForce false;
-            package = lib.mkOverride 90 self'.packages.emacs-nox;
+            package = lib.mkOverride 90 (
+              pkgs.my-emacs.override {
+                emacsBasePackage = pkgs.emacs-git-nox.override {
+                  withNS = false;
+                  withX = false;
+                  withGTK3 = false;
+                  withWebP = false;
+                };
+              }
+            );
           };
+
+          home.packages = [
+            config.programs.emacs.package
+          ];
 
           impermanence.persist-directories = [
             ".local/state/emacs-clean"
@@ -94,7 +114,8 @@ in
           xdg.dataFile."icons/emacs/org.svg".source = selfLib.file "org.svg";
 
           programs.emacs.package = lib.mkForce (
-            self'.packages.emacs-pgtk.override {
+            pkgs.my-emacs.override {
+              emacsBasePackage = pkgs.emacs-git-pgtk;
               extraPackages = with pkgs; [
                 emacs-all-the-icons-fonts
                 ghostscript
