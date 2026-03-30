@@ -6,7 +6,10 @@
 (context-menu-mode t)
 (menu-bar-mode -1)
 (tool-bar-mode -1)
-(scroll-bar-mode -1)
+
+(autoload 'scroll-bar-mode "scroll-bar")
+(when (display-graphic-p)
+  (scroll-bar-mode -1))
 
 (use-package zenburn-theme
   :ensure t)

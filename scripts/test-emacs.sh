@@ -6,8 +6,6 @@ if [[ ! -v IN_TEST_SHELL ]]; then
     exec nix develop .#emacs-test --ignore-env --command "$0" "$@"
 fi
 
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 EMACS_DIR="$REPO_DIR/files/emacs"

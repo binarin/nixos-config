@@ -14,8 +14,29 @@ in
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
   };
 
+  flake.overlays.my-emacs =
+    final: prev:
+    let
+      emacsMaker =
+        base:
+        final.callPackage ../../packages/my-emacs {
+          emacsBasePackage = base;
+          flakyConfigDir = selfLib.dir "emacs";
+        };
+    in
+    {
+      my-emacs = emacsMaker final.emacs-git-nox;
+      my-emacs-nox = emacsMaker final.emacs-git-nox;
+      my-emacs-pgtk = emacsMaker final.emacs-git-pgtk;
+    };
+
   perSystem =
-    { self', pkgs, ... }:
+    {
+      self',
+      pkgs,
+      lib,
+      ...
+    }:
     {
       devShells.emacs-test = pkgs.mkShell {
         name = "emacs-test-devshell";
@@ -25,9 +46,11 @@ in
           bubblewrap
           rsync
           gnugrep
+          my-emacs-nox
         ];
         shellHook = ''
           export IN_TEST_SHELL=1
+          export EMACS_PGTK="${lib.getExe pkgs.my-emacs-pgtk}"
         '';
       };
     };
@@ -42,19 +65,10 @@ in
 
       nixpkgs.overlays = [
         inputs.emacs-overlay.overlays.default
-        (final: prev: {
-          my-emacs = final.callPackage ../../packages/my-emacs {
-            emacsBasePackage = final.emacs-git-nox;
-            flakyConfigDir = selfLib.dir "emacs";
-          };
-        })
+        self.overlays.my-emacs
       ];
 
       environment.systemPackages = [
-        # (pkgs.callPackage ../../packages/my-emacs {
-        #   basePackage = pkgs.emacs-nox;
-        #   flakyConfigDir = selfLib.dir "emacs";
-        # })
         pkgs.my-emacs
       ];
     };

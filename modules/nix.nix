@@ -1,4 +1,5 @@
 {
+  self,
   inputs,
   lib,
   ...
@@ -21,6 +22,7 @@ in
         inherit system;
         overlays = [
           inputs.emacs-overlay.overlays.default
+          self.overlays.my-emacs
         ];
         config = nixpkgsConfig;
       };
