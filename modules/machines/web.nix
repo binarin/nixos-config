@@ -167,6 +167,7 @@ in
           global.address = [ "127.0.0.1" ];
           global.well_known.client = "https://binarin.info";
           global.well_known.server = "binarin.info:443";
+          global.new_user_displayname_suffix = "";
         };
       };
 
