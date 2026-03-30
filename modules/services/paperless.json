@@ -2,6 +2,6 @@
   "webserver": "2.20.13",
   "db": "16.6",
   "broker": "7.4",
-  "gotenberg": "8.28.0",
+  "gotenberg": "8.29.0",
   "tika": "3.3.0.0"
 }
