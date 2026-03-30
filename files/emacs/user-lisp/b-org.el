@@ -172,6 +172,8 @@
 
 (setf org-stuck-projects '("+PROJ-agenda_hide/+TODO" ("NEXT")))
 (setf org-tags-exclude-from-inheritance '("PROJ"))
+(setf org-tags-column -118)
+(setf org-ellipsis "…")
 
 (setf org-export-with-sub-superscripts '{}
       org-pretty-entities t
