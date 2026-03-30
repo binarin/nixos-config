@@ -1,0 +1,7 @@
+panes:
+  - command: claude --dangerously-skip-permissions
+    focus: true
+  - command: zsh
+    split: horizontal
+post_create:
+  - direnv allow
