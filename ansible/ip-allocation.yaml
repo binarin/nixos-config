@@ -302,6 +302,12 @@ ip_allocation:
         _type: leaf
         address: 192.168.2.74
         mac: null
+  social:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.32
+        mac: 02:00:ae:b2:53:00
   tapo-c100:
     home:
       primary:
