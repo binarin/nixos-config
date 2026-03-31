@@ -230,7 +230,7 @@
 
 (defun b/org-roam-refile-without-id ()
   (interactive)
-  (when-let ((target (org-roam-node-read nil nil nil 'require-match)))
+  (when-let* ((target (org-roam-node-read nil nil nil 'require-match)))
     (org-delete-property "ID")
     (org-roam-refile target)))
 
