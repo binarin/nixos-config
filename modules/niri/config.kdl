@@ -399,6 +399,7 @@ binds {
   Ctrl+Shift+Alt+Super+N { spawn "b-emacsclient" "--eval" "(b/new-emacs-frame)"; }
   Ctrl+Shift+Alt+Super+P { spawn "b-emacsclient" "--eval" "(b/org-capture-gui-selection)"; }
   Ctrl+Shift+Alt+Super+R { spawn "b-emacsclient" "--eval" "(b/full-frame-add-note-to-selected)"; }
+  Ctrl+Shift+Alt+Super+S { spawn "b-emacsclient" "--eval" "(b/full-frame-org-capture 's)"; }
   Ctrl+Shift+Alt+Super+Z { spawn "b-emacsclient" "--eval" "(b/full-frame-org-note-on-running-clock)"; }
 
   // Ctrl+Shift+Alt+Super+P { spawn-sh "~/personal-workspace/nixos-config/scripts/org-capture-clipboard.sh"; }
