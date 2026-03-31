@@ -17,6 +17,7 @@ local-shell() {
 home-servers() {
     item "amon" mosh-amon "$@"
     item "amon-root" mosh-amon-root "$@"
+    item "claude-nixos-config" mosh-ts "$@"
     item "naberius-root" mosh-naberius-root "$@"
     item "raum-root" mosh-raum-root "$@"
     item "bael-root" mosh-bael-root "$@"

@@ -7,6 +7,7 @@
       config,
       lib,
       osConfig,
+      pkgs,
       ...
     }:
     {
@@ -17,6 +18,48 @@
           foot.desktop
           /execarg_default:org.codeberg.dnkl.foot.desktop:--
         '';
+
+        home.packages = [
+          (pkgs.writeShellApplication {
+            name = "foot-unique-window";
+            runtimeInputs = with pkgs; [
+              niri
+              jq
+              gnugrep
+              foot
+            ];
+            text = ''
+              title="$1"
+
+              find-and-focus-window() {
+                  local title
+                  title="$1"
+
+                  if niri msg --json windows | jq -r '.[].title' | grep -q -F "$title"; then
+                      local window_id
+                      window_id="$(niri msg --json windows | jq -r ".[] | select(.title == \"$title\") | .id")"
+                      niri msg action focus-window --id "$window_id"
+                      return 0
+                  else
+                      return 1
+                  fi
+              }
+
+              switch-or-run-foot() {
+                  local title
+                  title="''${1:?}"; shift
+
+                  if find-and-focus-window "$title"; then
+                      exit 0
+                  else
+                      exec uwsm app -t service -a "sshmenu-$title" -- foot --title "$title" "$@"
+                  fi
+              }
+
+              switch-or-run-foot "$@"
+            '';
+          })
+        ];
 
         programs.foot = {
           enable = true;

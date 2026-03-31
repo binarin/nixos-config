@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=mosh to claude-nixos-config
+Exec=foot-unique-window "SSH|claude-nixos-config" --override=colors.background=001800 -e mosh claude-nixos-config -- tmux new-session -A -s binarin
+Type=Application
+Terminal=false
+Categories=System;

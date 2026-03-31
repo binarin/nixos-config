@@ -1,4 +1,7 @@
 { self, ... }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.nixosModules.gui =
     {
@@ -125,6 +128,19 @@
               "Hyprland"
               "niri"
             ];
+
+            xdg.dataFile =
+              with lib;
+              traceValSeq (
+                pipe "${self}/files/xdg-applications" [
+                  builtins.readDir
+                  (filterAttrs (n: v: v == "regular" && hasSuffix ".desktop" n))
+                  attrNames
+                  (flip genAttrs' (
+                    fn: nameValuePair "applications/${fn}" { source = selfLib.file "xdg-applications/${fn}"; }
+                  ))
+                ]
+              );
 
             programs.thunderbird.enable = lib.mkDefault true;
             programs.telegram-desktop.enable = lib.mkDefault true;
