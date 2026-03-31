@@ -211,13 +211,19 @@
   "i" (org-clock-in)
   "k" (progn)
   "o" (b/org-open-first-link-at-point)
-  "m" (org-roam-refile (org-roam-node-read nil nil nil 'require-match))
+  "m" (b/org-roam-refile-without-id)
   "M" (org-roam-extract-subtree))
 
 (setf org-protocol-default-template-key "l")
 
 (require 'org-roam)
 (require 'org-roam-dailies)
+
+(defun b/org-roam-refile-without-id ()
+  (interactive)
+  (when-let ((target (org-roam-node-read nil nil nil 'require-match)))
+    (org-delete-property "ID")
+    (org-roam-refile target)))
 
 (setq org-roam-dailies-capture-templates
       '(("d" "default" entry
