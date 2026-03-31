@@ -219,6 +219,15 @@
 (require 'org-roam)
 (require 'org-roam-dailies)
 
+(defun b/org-roam-format (node)
+  (if (eql 0 (org-roam-node-level node))
+      (org-roam-node-title node)
+    (format "%s %s"
+            (propertize (format "[%s]" (org-roam-node-file-title node))
+                        'face 'org-agenda-dimmed-todo-face)
+            (org-roam-node-title node))))
+(setf org-roam-node-display-template 'b/org-roam-format)
+
 (defun b/org-roam-refile-without-id ()
   (interactive)
   (when-let ((target (org-roam-node-read nil nil nil 'require-match)))
