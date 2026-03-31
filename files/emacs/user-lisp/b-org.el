@@ -162,7 +162,7 @@
         ("a"
          ((agenda ""
                   ((org-agenda-span 'day)))
-          (tags-todo "-agenda_hide+TODO=\"NEXT\""
+          (tags-todo "-agenda_hide-REFILE+TODO=\"NEXT\""
                      ((b/agenda-prepend-parent t)
                       (org-agenda-overriding-header "Tasks:")
                       (org-agenda-hide-tags-regexp ,(rx (or "PROJ")))
