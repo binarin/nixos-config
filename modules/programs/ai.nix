@@ -26,6 +26,7 @@
           gemini-cli
           opencode
           pi
+          workmux
         ]
       );
 
