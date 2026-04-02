@@ -75,6 +75,7 @@ in
         net-tools # netstat
         dysk
         self'.packages.nix-store-edit
+        bpftrace
       ];
 
       programs.bat.enable = true;
