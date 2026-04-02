@@ -30,6 +30,7 @@ let
         embark
         embark-consult
         kdl-mode
+        hledger-mode
         magit
         marginalia
         nix-mode

@@ -29,6 +29,7 @@
 (require 'b-prog-modes)
 (require 'b-compilation)
 (require 'b-version-control)
+(require 'b-ledger)
 
 (use-package b-org
   :ensure nil
