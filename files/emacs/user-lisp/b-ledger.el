@@ -4,7 +4,9 @@
   :mode "\\.journal"
   :bind (:map hledger-mode-map
               ("<Forward>" . hledger-forward-entry)
-              ("<Back>" . hledger-backward-entry)))
+              ("<Back>" . hledger-backward-entry)
+              ("RET" . newline))
+  :custom ((hledger-currency-string "€")))
 
 
 (provide 'b-ledger)
