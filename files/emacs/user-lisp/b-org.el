@@ -475,7 +475,7 @@
 
 (defvar b/org-clock-heading-file
   (file-name-concat (or (getenv "XDG_RUNTIME_DIR") "/tmp")
-                    "org-mode-clock.txt"))
+                    "org-mode/org-mode-clock.txt"))
 
 (defun b/org-clock-in-hook ()
   (with-temp-buffer
