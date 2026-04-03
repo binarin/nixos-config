@@ -67,7 +67,13 @@
   :commands (b/ripgrep)
   :bind (("C-x p r" . b/ripgrep-project)))
 
-(winner-mode t)
+(use-package tab-bar
+  :ensure nil
+  :bind (("C-c <left>" . tab-bar-history-back)
+         ("C-c <right>" . tab-bar-history-forward))
+  :init
+  (tab-bar-history-mode t))
+
 
 (which-key-mode t)
 (b/hide-ml-mode 'which-key-mode)

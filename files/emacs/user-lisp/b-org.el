@@ -206,7 +206,7 @@
 		 collect full)))
 (setf org-refile-targets '((org-agenda-files . (:maxlevel . 5))))
 
-(setf org-agenda-window-setup 'only-window
+(setf org-agenda-window-setup 'other-tab
       org-agenda-restore-windows-after-quit t
       org-agenda-todo-ignore-with-date t)
 
