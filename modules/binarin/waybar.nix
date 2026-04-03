@@ -35,7 +35,10 @@ in
       };
 
       config = {
-        home.packages = [ pkgs.noto-fonts ];
+        home.packages = with pkgs; [
+          noto-fonts
+          pavucontrol
+        ];
 
         systemd.user.services.waybar.Unit.After = [ "graphical-session.target" ];
         systemd.user.services.waybar.Unit.BindsTo = [ "graphical-session.target" ];
@@ -137,7 +140,7 @@ in
                   hands-free = "🎧";
                 };
                 scroll-step = 1;
-                on-click = "pavucontrol";
+                on-click = "${lib.getExe pkgs.pavucontrol}";
               };
 
               clock = {
