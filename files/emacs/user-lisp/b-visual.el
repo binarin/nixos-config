@@ -8,7 +8,8 @@
 (tool-bar-mode -1)
 
 (autoload 'scroll-bar-mode "scroll-bar")
-(when (display-graphic-p)
+
+(when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
 
 (use-package zenburn-theme
