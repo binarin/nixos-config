@@ -129,6 +129,16 @@ window#waybar {
     background: {{ zenburn.bg_plus_1 }};
 }
 
+#custom-org-clock {
+    font-family: {{ fonts.monospace }}, mono;
+    border-radius: 5px;
+    min-width: 3em;
+    margin: 1px 2px;
+    padding: 0 5px;
+    background: {{ zenburn.bg_plus_1 }};
+    color: {{ zenburn.green_plus_2 }};
+}
+
 tooltip {
   background: {{ zenburn.bg }};
   border: 2px solid {{ zenburn.cyan }};
