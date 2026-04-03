@@ -199,6 +199,10 @@
   :bind (:map devicetree-ts-mode-map
 	      ("C-c C-i" . b/indent-zmk-layer)))
 
+(use-package toml-ts-mode
+  :ensure nil
+  :mode "\\.toml\\'")
+
 (b/hide-ml-mode 'eldoc-mode)
 
 (eval-when-compile
