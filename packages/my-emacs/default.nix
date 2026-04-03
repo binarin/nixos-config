@@ -22,6 +22,7 @@ let
     (emacsPackagesFor basePackage).emacsWithPackages (
       e: with e; [
         anki-editor
+        bazel
         consult
         corfu
         devicetree-ts-mode
@@ -29,8 +30,9 @@ let
         eat
         embark
         embark-consult
-        kdl-mode
+        haskell-mode
         hledger-mode
+        kdl-mode
         magit
         marginalia
         nix-mode
