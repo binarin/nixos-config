@@ -25,6 +25,7 @@
 
 (autoload 'dired-omit-mode "dired-x")
 (defun b/dired-mode-hook ()
+  (toggle-truncate-lines t)
   (dired-omit-mode 1))
 
 (add-hook 'dired-mode-hook 'b/dired-mode-hook)
