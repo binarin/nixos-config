@@ -63,6 +63,7 @@ in
               ];
               modules-center = [ "niri/window" ];
               modules-right = [
+                "custom/org-clock"
                 "tray"
                 "idle_inhibitor"
                 "pulseaudio"
@@ -187,6 +188,11 @@ in
                 on-click = "${pkgs.swaynotificationcenter}/bin/swaync-client -t -sw";
                 on-click-right = "${pkgs.swaynotificationcenter}/bin/swaync-client -d -sw";
                 escape = true;
+              };
+
+              "custom/org-clock" = {
+                return-type = "json";
+                exec = "${pkgs.waybar-org-clock}/bin/waybar-org-clock";
               };
             };
           };
