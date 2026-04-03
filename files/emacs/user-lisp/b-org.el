@@ -49,8 +49,63 @@
 (require 'notifications)
 
 
+(defvar b/anki-capture-note-type "Basic")
+(defvar b/anki-capture-note-target nil)
+
+;;;###autoload
+(defun b/anki-capture-location (&optional select)
+  (interactive "P")
+  (if (or (equal select '(4))
+          (not (markerp b/anki-capture-note-target)))
+      (let ((org-agenda-files nil)
+            (org-refile-targets '((("~/org/anki.org") . (:maxlevel . 2)))))
+        (org-refile '(4))
+        (org-fold-reveal '(4))
+        (setf b/anki-capture-note-target (point-marker)))
+    (org-goto-marker-or-bmk b/anki-capture-note-target)
+    (org-fold-reveal '(4))))
+
+(defmacro b/pipe (expr &rest forms)
+  (declare (indent 1))
+  `(let ((it ,expr))
+     ,@(cl-loop
+        for form in forms
+        if (functionp form)
+        collect `(setf it (funcall ,form it))
+        collect `(setf it ,form))
+     it))
+
+(defun b/org-capture-init-indent-stripped (&optional new-prefix)
+  (when-let* ((init (org-capture-get :initial))
+              (stripped (b/strip-indentation (concat "\n" init))))
+    (when new-prefix
+      (setf
+       stripped
+       (b/pipe stripped
+         (string-split it "\n")
+         (mapcar (lambda (ln) (concat new-prefix ln)) it)
+         (string-join it "\n"))))
+    stripped))
+
+(defvar b/anki-basic-card-template
+  `("anki-editor card" entry (function b/anki-capture-location)
+    ,(b/strip-indentation "
+        * %?
+          :PROPERTIES:
+          :ANKI_NOTE_TYPE: %(progn b/anki-capture-note-type)
+          :capture-location: %a
+          :capture-timestamp: %U
+          :END:
+
+        %(b/org-capture-init-indent-stripped \"  \")
+      ")
+    :hook org-fold-hide-drawer-all
+    :prepare-finalize b/org-remove-empty-properties-from-capture
+    :after-finalize b/org-capture-fold-after))
+
 (setf org-capture-templates
-      `(("t" "TODO" entry (file "~/org/refile.org")
+      `(("a" ,@b/anki-basic-card-template)
+        ("t" "TODO" entry (file "~/org/refile.org")
 	 ,(b/strip-indentation "
            * %?
              :PROPERTIES:
