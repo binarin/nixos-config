@@ -473,5 +473,21 @@
 
 (advice-add 'org-agenda-finalize-entries :filter-return 'b/org-agenda-finalize-prepend-parent)
 
+(defvar b/org-clock-heading-file
+  (file-name-concat (or (getenv "XDG_RUNTIME_DIR") "/tmp")
+                    "org-mode-clock.txt"))
+
+(defun b/org-clock-in-hook ()
+  (with-temp-buffer
+    (insert org-clock-heading)
+    (let ((inhibit-message t))
+      (write-region (point-min) (point-max) b/org-clock-heading-file))))
+
+(defun b/org-clock-out-hook ()
+  (when (file-exists-p b/org-clock-heading-file)
+    (delete-file b/org-clock-heading-file)))
+
+(add-hook 'org-clock-in-hook 'b/org-clock-in-hook)
+(add-hook 'org-clock-out-hook 'b/org-clock-out-hook)
 
 (provide 'b-org)
