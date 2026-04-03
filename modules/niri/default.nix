@@ -94,7 +94,7 @@ in
         xdg.configFile."niri/config.kdl".source = selfLib.file' "modules/niri/config.kdl";
         xdg.configFile."niri/dynamic-outputs.kdl".source = selfLib.file' "modules/niri/dynamic-outputs.kdl";
 
-        home.activation.niri-config-materialize = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        home.activation.niri-config-materialize = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
           run touch ~/.config/niri/dynamic-binds.kdl
           if [[ -d $HOME/personal-workspace/nixos-config ]]; then
             for niri_cfg in config.kdl dynamic-outputs.kdl; do
