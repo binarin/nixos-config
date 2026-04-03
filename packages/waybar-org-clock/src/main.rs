@@ -3,7 +3,7 @@ use inotify::{Inotify, WatchMask};
 use serde::Serialize;
 use std::fs;
 use std::io::{self, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 const FILE_NAME: &str = "org-mode-clock.txt";
 
@@ -18,7 +18,7 @@ fn watch_dir() -> PathBuf {
     PathBuf::from(base).join("org-mode")
 }
 
-fn read_clock_state(dir: &PathBuf) -> WaybarOutput {
+fn read_clock_state(dir: &Path) -> WaybarOutput {
     let path = dir.join(FILE_NAME);
     match fs::read_to_string(&path) {
         Ok(contents) => {
@@ -42,25 +42,20 @@ fn read_clock_state(dir: &PathBuf) -> WaybarOutput {
     }
 }
 
-fn emit(output: &WaybarOutput) -> Result<()> {
-    let line = serde_json::to_string(output)?;
+fn emit(output: &WaybarOutput) -> Result<String> {
+    let json = serde_json::to_string(output)?;
     let mut stdout = io::stdout().lock();
-    writeln!(stdout, "{}", line)?;
+    writeln!(stdout, "{}", json)?;
     stdout.flush()?;
-    Ok(())
+    Ok(json)
 }
 
 fn main() -> Result<()> {
     let dir = watch_dir();
     fs::create_dir_all(&dir).context("failed to create watch directory")?;
 
-    let mut last_output: Option<String> = None;
-
     // Emit initial state
-    let state = read_clock_state(&dir);
-    let json = serde_json::to_string(&state)?;
-    emit(&state)?;
-    last_output = Some(json);
+    let mut last_output = emit(&read_clock_state(&dir))?;
 
     // Set up inotify on the directory
     let mut inotify = Inotify::init().context("failed to init inotify")?;
@@ -98,9 +93,9 @@ fn main() -> Result<()> {
 
         let state = read_clock_state(&dir);
         let json = serde_json::to_string(&state)?;
-        if last_output.as_ref() != Some(&json) {
+        if json != last_output {
             emit(&state)?;
-            last_output = Some(json);
+            last_output = json;
         }
     }
 }
