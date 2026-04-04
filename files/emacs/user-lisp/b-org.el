@@ -477,17 +477,23 @@
   (file-name-concat (or (getenv "XDG_RUNTIME_DIR") "/tmp")
                     "org-mode/org-mode-clock.txt"))
 
-(defun b/org-clock-in-hook ()
+(defun b/org-clock-write-heading-to-file (val)
   (with-temp-buffer
-    (insert org-clock-heading)
+    (insert val)
     (let ((inhibit-message t))
       (write-region (point-min) (point-max) b/org-clock-heading-file))))
 
-(defun b/org-clock-out-hook ()
+(defun b/org-clock-remove-heading-file ()
   (when (file-exists-p b/org-clock-heading-file)
     (delete-file b/org-clock-heading-file)))
 
-(add-hook 'org-clock-in-hook 'b/org-clock-in-hook)
-(add-hook 'org-clock-out-hook 'b/org-clock-out-hook)
+(defun b/org-clock-heading-watcher (sym newval operation where)
+  (ignore sym where)
+  (when (eq operation 'set)
+    (b/org-clock-write-heading-to-file newval)))
+
+(add-variable-watcher 'org-clock-heading 'b/org-clock-heading-watcher)
+
+(add-hook 'org-clock-out-hook 'b/org-clock-remove-heading-file)
 
 (provide 'b-org)
