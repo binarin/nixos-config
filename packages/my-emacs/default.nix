@@ -35,6 +35,7 @@ let
         kdl-mode
         magit
         marginalia
+        markdown-mode # markdown-ts-mode is already included, but this is for eglot/eldoc
         nix-mode
         orderless
         org-caldav
