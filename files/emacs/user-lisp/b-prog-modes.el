@@ -217,4 +217,14 @@
   (when-let* ((exe (file-truename (b/find-exe cmd))))
     (dired-jump t exe)))
 
+(use-package haskell
+  :ensure nil
+  :bind (:map haskell-mode-map
+              ("C-c i" . haskell-navigate-imports)
+
+              ("C-c C-M-c" . haskell-hide-toggle-all)
+              :map interactive-haskell-mode-map
+              ("C-c C-c" . haskell-hide-toggle))
+  :hook (haskell-mode . haskell-unicode-input-method-enable))
+
 (provide 'b-prog-modes)
