@@ -181,7 +181,7 @@ function properly")
 		(lambda (string)
 		  (string-replace "\0" ":" string)))
 
-  (remove-hook 'compilation-filter-hook 'ansi-color-compilation-filter t)
+  (setq-local ansi-color-for-compilation-mode nil)
   (add-hook 'compilation-filter-hook #'b/ripgrep-filter nil t))
 
 
