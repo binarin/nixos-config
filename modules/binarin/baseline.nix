@@ -206,6 +206,9 @@ in
         hidden = true;
       };
 
+      # this will build share/info/dir, emacs wants it
+      programs.info.enable = true;
+
       programs.atuin = {
         enable = true;
         enableZshIntegration = true;
