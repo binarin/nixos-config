@@ -1,6 +1,7 @@
 {
   lib,
   symlinkJoin,
+  buildEnv,
   yamllint,
   yamlfmt,
   nixfmt,
@@ -79,7 +80,7 @@ let
 
 in
 
-symlinkJoin {
+buildEnv {
   name = "emacs-from-nixos-config";
   paths = [
     yamllint
@@ -87,13 +88,13 @@ symlinkJoin {
     nixfmt
     fd
     ripgrep
-
     emacsWithPackages
     b-emacsclient
   ]
   ++ extraPackages;
 
   postBuild = ''
+    ls -la $out/share
     ln -sf "${lib.getExe emacsBinaryWrapper}" "$out/bin/emacs"
   '';
 

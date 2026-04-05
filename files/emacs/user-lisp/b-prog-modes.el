@@ -226,5 +226,10 @@
               :map interactive-haskell-mode-map
               ("C-c C-c" . haskell-hide-toggle))
   :hook (haskell-mode . haskell-unicode-input-method-enable))
+(use-package prolog
+  :ensure nil
+  :config
+  (setf prolog-electric-dot-flag t
+        prolog-electric-dot-full-predicate-template t))
 
 (provide 'b-prog-modes)

@@ -66,6 +66,7 @@ in
       nixpkgs.overlays = [
         inputs.emacs-overlay.overlays.default
         self.overlays.my-emacs
+        self.overlays.sicstus-manual
       ];
 
       environment.systemPackages = [
@@ -131,6 +132,7 @@ in
             pkgs.my-emacs.override {
               emacsBasePackage = pkgs.emacs-git-pgtk;
               extraPackages = with pkgs; [
+                sicstus-manual
                 emacs-all-the-icons-fonts
                 ghostscript
                 wtype

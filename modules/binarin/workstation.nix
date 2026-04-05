@@ -79,6 +79,7 @@
       };
 
       home.packages = with pkgs; [
+        swi-prolog
         gopass
         dos2unix
         sox
