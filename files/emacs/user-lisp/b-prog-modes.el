@@ -237,6 +237,7 @@
   :ensure nil
   :config
   (setf prolog-electric-dot-flag t
-        prolog-electric-dot-full-predicate-template t))
+        prolog-electric-dot-full-predicate-template t
+        prolog-help-function-i 'prolog-find-documentation))
 
 (provide 'b-prog-modes)
