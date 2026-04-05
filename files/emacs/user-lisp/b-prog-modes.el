@@ -219,13 +219,20 @@
 
 (use-package haskell
   :ensure nil
+  :commands (haskell-unicode-input-method-enable)
   :bind (:map haskell-mode-map
               ("C-c i" . haskell-navigate-imports)
 
               ("C-c C-M-c" . haskell-hide-toggle-all)
               :map interactive-haskell-mode-map
-              ("C-c C-c" . haskell-hide-toggle))
-  :hook (haskell-mode . haskell-unicode-input-method-enable))
+              ("C-c C-c" . haskell-hide-toggle)))
+
+(defun b/haskell-mode-hook ()
+  (haskell-unicode-input-method-enable)
+  (add-hook 'xref-backend-functions #'etags--xref-backend nil t))
+
+(add-hook 'haskell-mode-hook 'b/haskell-mode-hook)
+
 (use-package prolog
   :ensure nil
   :config
