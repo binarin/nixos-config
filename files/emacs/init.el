@@ -74,6 +74,12 @@
   :init
   (tab-bar-history-mode t))
 
+(autoload 'b/prolog-config "b-prolog")
+(use-package prolog
+  :ensure nil
+  :mode ("\\.prolog\\'" . prolog-mode)
+  :config (b/prolog-config))
+
 
 (which-key-mode t)
 (b/hide-ml-mode 'which-key-mode)
