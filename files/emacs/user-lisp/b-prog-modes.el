@@ -237,7 +237,25 @@
   "Consult file of current buffer."
   (interactive)
   (save-some-buffers t)
-  (prolog-consult-compile-file nil))
+  (let ((display-buffer-alist '((".*" (display-buffer-no-window) (allow-no-window t)))))
+    (prolog-consult-compile-file nil))
+
+  ;; prolog compilation-mode setup is a bit strange, as the output comes from inferior prolog process.
+
+  ;; prolog-consult-compile-file is semi-synchronous - when it
+  ;; returns, the consulting is already done/all content is inserted
+  ;; into the compilation buffer. But compilation parsing things are
+  ;; not done yet, so we can't just pick compilation-num-errors-found.
+  (let* ((buffer (get-buffer "*prolog-compilation*"))
+         (errors (with-current-buffer buffer
+                   (save-match-data
+                     (save-excursion
+                       (goto-char (point-min))
+                       (re-search-forward "ERROR:" nil t))))))
+    (if errors
+        (display-buffer buffer)
+      (message "Consulted."))))
+
 
 (use-package prolog
   :ensure nil
