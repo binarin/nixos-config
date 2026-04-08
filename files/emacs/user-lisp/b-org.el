@@ -496,4 +496,12 @@
 
 (add-hook 'org-clock-out-hook 'b/org-clock-remove-heading-file)
 
+(setf org-clock-persist 'history)
+(org-clock-persistence-insinuate)
+(add-hook 'org-clock-out-hook 'org-clock-save)
+
+
+(setf org-clock-auto-clockout-timer 600)
+(org-clock-auto-clockout-insinuate)
+
 (provide 'b-org)
