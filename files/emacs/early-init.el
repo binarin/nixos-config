@@ -15,6 +15,7 @@
   (ignore old-name)
   (let ((state-rx (rx bol
                       (or
+                       "tutorial/"
 		       "projects.eld"
 		       "custom.el"
                        "history"
