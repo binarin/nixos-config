@@ -36,6 +36,11 @@
       hardware.keyboard.qmk.enable = true;
 
       home-manager.users.binarin = self.homeModules.binarin-workstation;
+
+      nixpkgs.config.permittedInsecurePackages = [
+        "qtwebengine-5.15.19"
+      ];
+
     };
 
   flake.homeModules.binarin-workstation =
@@ -79,6 +84,9 @@
       };
 
       home.packages = with pkgs; [
+        (pkgs.callPackage "${self}/packages/aws-workspaces/package.nix" { })
+        globalprotect-openconnect
+        # aws-workspaces
         swi-prolog
         gopass
         dos2unix
