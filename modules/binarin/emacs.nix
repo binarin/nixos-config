@@ -67,6 +67,7 @@ in
         inputs.emacs-overlay.overlays.default
         self.overlays.my-emacs
         self.overlays.sicstus-manual
+        self.overlays.waybar-org-clock
       ];
 
       environment.systemPackages = [
