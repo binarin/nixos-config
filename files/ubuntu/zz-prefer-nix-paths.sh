@@ -1,0 +1,5 @@
+XDG_CONFIG_DIRS="${XDG_CONFIG_DIRS:+:$XDG_CONFIG_DIRS}":/etc/xdg/xdg-niri-uwsm:/etc/xdg:$HOME/.nix-profile/etc/xdg
+
+export XDG_CONFIG_DIRS="$(perl -E 'sub score($x) { if ($x =~ m|/home|) { return 10 } elsif ($x =~ m|/nix/var|) { return 20 } elsif ($x =~ m|/nix/store|) {return 30} elsif ($x =~ m|/usr/local|) {return 40} else {return 50;} }; my %p = map {$_ => 1} split /:/, $ENV{XDG_CONFIG_DIRS}; my @p = sort { score($a) <=> score($b) } keys %p; say join(q{:}, grep $_, @p)')"
+export XDG_DATA_DIRS="$(perl -E 'sub score($x) { if ($x =~ m|/home|) { return 10 } elsif ($x =~ m|/nix/var|) { return 20 } elsif ($x =~ m|/nix/store|) {return 30} elsif ($x =~ m|/usr/local|) {return 40} else {return 50;} }; my %p = map {$_ => 1} split /:/, $ENV{XDG_DATA_DIRS}; my @p = sort { score($a) <=> score($b) } keys %p; say join(q{:}, grep $_, @p)')"
+export PATH="$(perl -E 'sub score($x) { if ($x =~ m|/home|) { return 10 } elsif ($x =~ m|/nix/var|) { return 20 } elsif ($x =~ m|/nix/store|) {return 30} elsif ($x =~ m|/usr/local|) {return 40} else {return 50;} }; my %p = map {$_ => 1} split /:/, $ENV{PATH}; my @p = sort { score($a) <=> score($b) } keys %p; say join(q{:}, grep $_, @p)')"

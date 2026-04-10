@@ -1,0 +1,15 @@
+[Desktop Entry]
+Name=niri (with UWSM)
+Comment=niri, UWSM session
+
+# a reference to another entry (preferred since some DMs may fail on quoted arguments)
+Exec=/usr/local/bin/uwsm-niri
+
+# or a full command line with metadata and executable
+# Exec=/home/allebedev/.nix-profile/bin/nixGLIntel uwsm start -N niri -D niri -C niri -- /home/allebedev/.nix-profile/bin/niri-session
+
+# invalidates entry if uwsm is missing
+TryExec=uwsm
+
+DesktopNames=niri
+Type=Application

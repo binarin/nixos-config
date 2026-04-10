@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+__HM_SESS_VARS_SOURCED=
+__ETC_PROFILE_NIX_SOURCED=
+
+. /etc/profile.d/nix.sh
+. /home/allebedev/.profile
+
+XDG_DATA_DIRS="$XDG_DATA_DIRS":/usr/local/share:/usr/share
+
+. /etc/profile.d/zz-prefer-nix-paths.sh
+
+env > /tmp/ne
+
+DEBUG=1
+
+exec nixGLIntel uwsm start -N niri -D niri -C niri -e -- "$(which niri-session)"
