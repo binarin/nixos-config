@@ -67,12 +67,37 @@
   :commands (b/ripgrep)
   :bind (("C-x p r" . b/ripgrep-project)))
 
+
+(defun b/tab-1 () (interactive) (tab-bar-select-tab 1))
+(defun b/tab-2 () (interactive) (tab-bar-select-tab 2))
+(defun b/tab-3 () (interactive) (tab-bar-select-tab 3))
+(defun b/tab-4 () (interactive) (tab-bar-select-tab 4))
+(defun b/tab-5 () (interactive) (tab-bar-select-tab 5))
+(defun b/tab-6 () (interactive) (tab-bar-select-tab 6))
+(defun b/tab-7 () (interactive) (tab-bar-select-tab 7))
+(defun b/tab-8 () (interactive) (tab-bar-select-tab 8))
+(defun b/tab-9 () (interactive) (tab-bar-select-tab 9))
+
 (use-package tab-bar
   :ensure nil
   :bind (("C-c <left>" . tab-bar-history-back)
-         ("C-c <right>" . tab-bar-history-forward))
+         ("C-c <right>" . tab-bar-history-forward)
+         ("C-M-s-)" . tab-recent)
+         ("C-M-s-!" . b/tab-1)
+         ("C-M-s-@" . b/tab-2)
+         ("C-M-s-#" . b/tab-3)
+         ("C-M-s-$" . b/tab-4)
+         ("C-M-s-%" . b/tab-5)
+         ("C-M-s-^" . b/tab-6)
+         ("C-M-s-&" . b/tab-7)
+         ("C-M-s-*" . b/tab-8)
+         ("C-M-s-(" . b/tab-9))
+  :custom
+  ((tab-bar-define-keys nil)
+   (tab-bar-tab-hints t))
   :init
   (tab-bar-history-mode t))
+
 
 (autoload 'b/prolog-config "b-prolog")
 (use-package prolog
