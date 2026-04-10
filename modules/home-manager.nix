@@ -11,6 +11,10 @@
     home-manager-master.inputs.nixpkgs.follows = "nixpkgs";
   };
 
+  imports = [
+    inputs.home-manager.flakeModules.home-manager
+  ];
+
   flake.nixosModules.home-manager =
     {
       specialArgs,
