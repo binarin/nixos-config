@@ -18,6 +18,7 @@ in
       key = "nixos-config.modules.home.waybar";
       imports = [
         self.modules.generic.zenburn
+        self.homeModules.stylix
       ];
 
       options = {

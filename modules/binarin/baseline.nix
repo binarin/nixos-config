@@ -224,8 +224,6 @@ in
         ".local/share/atuin"
       ];
 
-      home.sessionVariables.EDITOR = "emacsclient -a 'emacs -nw' -nw";
-
       programs.starship = {
         enable = true;
         settings = {
@@ -288,6 +286,10 @@ in
               $EDITOR "$f"
             fi
           }
+
+          if [ -d $HOME/.cargo/bin ] && [[ ":$PATH:" != *"::"* ]]; then
+            PATH="$HOME/.cargo/bin''${PATH:+":$PATH"}"
+          fi
 
           # let a terminal/tmux to keep track of a current directory to open new window in the same place
           function osc7-pwd() {

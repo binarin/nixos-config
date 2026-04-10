@@ -85,8 +85,13 @@ in
     {
       key = "nixos-config.modules.home.emacs";
 
+      imports = [
+        self.homeModules.impermanence
+      ];
+
       config = lib.mkMerge [
         {
+
           home.file.".config/emacs/snippets".source = selfLib.dir "yasnippets";
 
           programs.emacs = {
@@ -103,8 +108,13 @@ in
             );
           };
 
+          home.sessionVariables.EDITOR = "emacs-as-console-editor";
+
           home.packages = [
             config.programs.emacs.package
+            (pkgs.writeShellScriptBin "emacs-as-console-editor" ''
+              exec emacsclient -a 'emacs -nw' -nw "$@"
+            '')
           ];
 
           impermanence.persist-directories = [
@@ -132,6 +142,7 @@ in
             pkgs.my-emacs.override {
               emacsBasePackage = pkgs.emacs-git-pgtk;
               extraPackages = with pkgs; [
+                direnv
                 sicstus-manual
                 emacs-all-the-icons-fonts
                 ghostscript

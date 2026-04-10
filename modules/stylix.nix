@@ -163,7 +163,6 @@ in
 
           home-manager.sharedModules = [
             self.homeModules.stylix
-            sharedConfig
           ];
         }
         (lib.mkIf config.services.graphical-desktop.enable {
@@ -191,7 +190,10 @@ in
     {
       key = "nixos-config.modules.home.stylix";
 
-      imports = [ inputs.stylix.homeModules.stylix ];
+      imports = [
+        inputs.stylix.homeModules.stylix
+        sharedConfig
+      ];
 
       config = lib.mkMerge [
         {

@@ -45,6 +45,9 @@ in
     }:
     {
       key = "nixos-config.modules.home.firefox";
+      imports = [
+        self.homeModules.stylix
+      ];
 
       config = {
         stylix.targets.firefox.enable = true;

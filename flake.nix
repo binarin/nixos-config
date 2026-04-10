@@ -9,7 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     clan-core = {
-      url = "git+https://forgejo.lynx-lizard.ts.net/binarin/clan-core?ref=25.11";
+      url = "https://git.clan.lol/clan/clan-core/archive/25.11.tar.gz";
       inputs = {
         disko.follows = "disko";
         flake-parts.follows = "flake-parts";
@@ -79,6 +79,10 @@
     };
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixgl = {
+      url = "github:nix-community/nixgl";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";

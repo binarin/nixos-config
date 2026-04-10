@@ -156,7 +156,9 @@ in
                 "image/jpeg" = "geeqie.desktop";
               };
             };
-            xdg.configFile."mimeapps.list".force = true;
+
+            # xdg.configFile."mimeapps.list".force = true;
+
             gtk = {
               enable = true;
               gtk3.bookmarks = [

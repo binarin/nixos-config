@@ -64,7 +64,7 @@
       });
 
       ncfRuntimeDeps = with pkgs; [
-        nix
+        # nix
         nix-output-monitor # nom for nicer build output
         git
         git-crypt-patched
