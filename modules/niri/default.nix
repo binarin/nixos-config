@@ -35,7 +35,6 @@ in
 
       nixpkgs.overlays = [
         inputs.niri.overlays.default
-        self.overlays.waybar-org-clock
       ];
 
       programs.niri.enable = true;
