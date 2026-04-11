@@ -3,6 +3,10 @@
 
 (require 'l-lib)
 
+;;; Remote code execution:
+;;; https://github.com/califio/publications/blob/main/MADBugs/vim-vs-emacs-vs-claude/Emacs.md
+(setopt vc-handled-backends nil)
+
 (set-language-environment "English")
 (set-language-environment-input-method "Russian")
 
