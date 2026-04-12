@@ -339,10 +339,10 @@
        (with-selected-frame ,frame-var
 	 ,@body
 	 (add-hook 'kill-buffer-hook
-		   #'(lambda ()
-		       (message "Want to clean-up")
-		       (delete-frame ,frame-var t))
-		   nil t)))))
+	           #'(lambda ()
+	               (message "Want to clean-up %s" ,frame-var)
+	               (delete-frame ,frame-var t))
+	           99 t)))))
 
 ;;;###autoload
 (defun b/full-frame-org-capture (&optional keys)
