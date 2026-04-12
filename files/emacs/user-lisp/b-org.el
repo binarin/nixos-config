@@ -387,6 +387,7 @@
 (defvar b/org-capture-gui-selection--body)
 (defun b/org-capture-gui-selection ()
   ;; (gui-selection-value) doesn't work on wayland, when emacs doesn't have focus
+  ;; XXX it's kinda interesting that `wl-paste` hangs when emacs HAS focus.
   (let* ((selection (shell-command-to-string "wl-paste -p")) 
 	 (lines (string-split (string-trim selection) "\n"))
 	 (heading (string-trim-left (car lines))))
