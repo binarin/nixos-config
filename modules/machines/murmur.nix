@@ -1,7 +1,13 @@
 { self, inputs, ... }:
 {
-  flake-file.inputs.nixgl.url = "github:nix-community/nixgl";
-  flake-file.inputs.nixgl.inputs.nixpkgs.follows = "nixpkgs";
+  flake-file.inputs.nixgl = {
+    url = "github:nix-community/nixgl";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  imports = [
+    inputs.home-manager.flakeModules.home-manager
+  ];
 
   flake.homeConfigurations.murmur = inputs.home-manager.lib.homeManagerConfiguration {
     pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
@@ -61,6 +67,8 @@
 
       services.ssh-agent.enable = true;
       home.packages = with pkgs; [
+        rclone
+        restic
         passage
         age
         wl-clipboard
@@ -115,11 +123,40 @@
         };
       };
 
+      dconf.enable = lib.mkForce false; # XXX no dbus or something
+
       nix.package = null;
 
       home.username = "allebedev";
       home.homeDirectory = "/home/allebedev";
       home.stateVersion = "25.11"; # Please read the comment before changing.
       programs.home-manager.enable = true;
+
+      services.restic = {
+        enable = true;
+        backups = {
+          localbackup = {
+            paths = [
+              "/home/allebedev/org"
+              "/home/allebedev/.passage"
+            ];
+            repository = "/backup/local";
+            passwordFile = "/home/allebedev/.config/restic/restic-password";
+            initialize = true;
+          };
+          gdrive = {
+            paths = [
+              "/home/allebedev/org"
+              "/home/allebedev/.passage"
+            ];
+            repository = "rclone:gdrive:";
+            passwordFile = "/home/allebedev/.config/restic/restic-password";
+            timerConfig = {
+              OnCalendar = "10:20";
+              RandomizedDelaySec = "5h";
+            };
+          };
+        };
+      };
     };
 }
