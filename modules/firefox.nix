@@ -99,6 +99,7 @@ in
               "layers.acceleration.force-enabled" = true;
               "media.autoplay.blocking_policy" = 2;
               "media.videocontrols.picture-in-picture.enable-when-switching-tabs.enabled" = true;
+              "network.protocol-handler.external.zoommtg" = false;
               "privacy.clearOnShutdown_v2.cookiesAndStorage" = false;
               "privacy.clearOnShutdown_v2.historyFormDataAndDownloads" = false;
               "privacy.sanitize.sanitizeOnShutdown" = false;
