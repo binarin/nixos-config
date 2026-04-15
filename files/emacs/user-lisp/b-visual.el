@@ -22,6 +22,17 @@
 (line-number-mode 1)
 (column-number-mode 1)
 
+
+;;; I use no RTL languages - perf improvement for large buffers
+(setq-default bidi-display-reordering 'left-to-right
+              bidi-paragraph-direction 'left-to-right)
+(setq bidi-inhibit-bpa t)
+
+(setq redisplay-skip-fontification-on-input t)
+
+
+(setq window-combination-resize t)
+
 (defun b/zenburn-all-colors ()
   (append zenburn-default-colors-alist
 	  zenburn-override-colors-alist))

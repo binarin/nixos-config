@@ -420,6 +420,9 @@
   (interactive)
   (org-clock-in '(4)))
 
+
+(autoload 'consult-org-agenda "consult-org")
+
 ;;;###autoload
 (defun b/org-goto-heading ()
   (interactive)

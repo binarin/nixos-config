@@ -117,4 +117,20 @@
 
 (setf remote-file-name-access-timeout 2)
 
+(setf save-interprogram-paste-before-kill t)
+
+;;; C-u C-SPC, but C-SPC can be repeated
+(setq set-mark-command-repeat-pop t)
+
+;;; No more `C-x o` after `C-h f` or `C-h v`!!!
+(setq help-window-select t)
+
+(use-package repeat
+  :ensure nil
+  :init
+  (setq repeat-exit-timeout 5)
+  (repeat-mode 1))
+
+
+
 (require 'b-server)

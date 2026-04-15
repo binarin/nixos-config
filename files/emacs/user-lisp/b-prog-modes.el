@@ -6,6 +6,20 @@
 (setq-default indent-tabs-mode nil)
 (ws-butler-global-mode)
 
+(add-hook 'after-save-hook
+          #'executable-make-buffer-file-executable-if-script-p)
+
+;;; no double quoting in re-builder anymore
+(use-package re-builder
+  :ensure nil
+  :config
+  (setq reb-re-syntax 'string))
+
+;;; The default read-process-output-max is 64KB, which is still quite
+;;; conservative. Modern LSP servers like rust-analyzer or clangd
+;;; routinely send multi-megabyte responses.
+(setq read-process-output-max (* 4 1024 1024)) ; 4MB
+
 (use-package cperl-mode
   :ensure nil
   :mode ("\\.\\(pl\\|pm\\)\\'"))

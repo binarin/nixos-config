@@ -29,7 +29,6 @@
   (dired-omit-mode 1))
 
 (add-hook 'dired-mode-hook 'b/dired-mode-hook)
-(ffap-bindings)
 
 (eval-when-compile
   (require 'auth-source-pass))
@@ -37,5 +36,14 @@
 (with-eval-after-load 'auth-source
     (auth-source-pass-enable))
 
+;;;  If the text under point looks like a hostname – say,
+;;;  something.com in a comment – ffap tries to ping it to check if
+;;;  it’s reachable. On a slow or firewalled network, that’s a
+;;;  multi-second hang.
+(use-package ffap
+  :ensure nil
+  :init
+  (ffap-bindings)
+  (setq ffap-machine-p-known 'reject))
 
 (provide 'b-files)

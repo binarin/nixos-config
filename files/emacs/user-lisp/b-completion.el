@@ -74,12 +74,12 @@
          ([remap goto-line] . consult-goto-line)
          ([remap repeat-complex-command] . consult-complex-command))
   :config
-  (advice-add #'register-preview :override #'consult-register-window)
+  (advice-add #'register-preview :override 'consult-register-window)
   (setf xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref
-        register-preview-function #'consult-register-format
+        register-preview-function 'consult-register-format
         consult-narrow-key ","
-        consult-buffer-list-function #'consult--frame-buffer-list))
+        consult-buffer-list-function 'consult--frame-buffer-list))
 
 (use-package marginalia
   :ensure t
