@@ -492,7 +492,8 @@
   (when (eq operation 'set)
     (b/org-clock-write-heading-to-file newval)))
 
-(add-variable-watcher 'org-clock-heading 'b/org-clock-heading-watcher)
+(add-variable-watcher 'org-mode-line-string 'b/org-clock-heading-watcher)
+
 
 (add-hook 'org-clock-out-hook 'b/org-clock-remove-heading-file)
 
