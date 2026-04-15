@@ -423,8 +423,7 @@
 ;;;###autoload
 (defun b/org-goto-heading ()
   (interactive)
-  (org-refile '(4))
-  (org-fold-show-entry))
+  (consult-org-agenda))
 
 ;;;###autoload
 (defun b/org-add-note-to-selected ()

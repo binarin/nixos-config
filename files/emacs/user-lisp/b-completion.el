@@ -68,10 +68,18 @@
 	 ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
 	 ([remap switch-to-buffer-other-tab] . consult-buffer-other-tab)
 	 ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
-	 ([remap yank-pop] . consult-yank-pop))
+	 ([remap yank-pop] . consult-yank-pop)
+         ([remap point-to-register] . consult-register-store)
+         ([remap insert-register] . consult-register-load)
+         ([remap goto-line] . consult-goto-line)
+         ([remap repeat-complex-command] . consult-complex-command))
   :config
+  (advice-add #'register-preview :override #'consult-register-window)
   (setf xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref))
+        xref-show-definitions-function #'consult-xref
+        register-preview-function #'consult-register-format
+        consult-narrow-key ","
+        consult-buffer-list-function #'consult--frame-buffer-list))
 
 (use-package marginalia
   :ensure t
