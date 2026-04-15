@@ -67,20 +67,27 @@
 
       services.ssh-agent.enable = true;
       home.packages = with pkgs; [
+        # age-plugin-yubikey
+        age
+        bpftrace
+        btop
+        chromium
+        gimp
+        google-chrome
+        htop
+        iftop
+        iotop
+        kanata
+        mosh
+        niri
+        nixfmt
+        nixgl.nixGLIntel
+        passage
         rclone
         restic
-        passage
-        age
-        wl-clipboard
-        # age-plugin-yubikey
-        niri
-        kanata
-        nixgl.nixGLIntel
-        nixfmt
         ripgrep
-        google-chrome
-        chromium
         slack
+        wl-clipboard
         xwayland-satellite
       ];
 
