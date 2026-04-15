@@ -6,6 +6,7 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 const FILE_NAME: &str = "org-mode-clock.txt";
+const DEFAULT_MAX_LEN: usize = 30;
 
 #[derive(Serialize)]
 struct WaybarOutput {
@@ -18,7 +19,23 @@ fn watch_dir() -> PathBuf {
     PathBuf::from(base).join("org-mode")
 }
 
-fn read_clock_state(dir: &Path) -> WaybarOutput {
+fn truncate(s: &str, max_len: usize) -> String {
+    if s.chars().count() <= max_len {
+        s.to_string()
+    } else {
+        let mut t: String = s.chars().take(max_len).collect();
+        t.push('…');
+        t
+    }
+}
+
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+}
+
+fn read_clock_state(dir: &Path, max_len: usize) -> WaybarOutput {
     let path = dir.join(FILE_NAME);
     match fs::read_to_string(&path) {
         Ok(contents) => {
@@ -30,7 +47,7 @@ fn read_clock_state(dir: &Path) -> WaybarOutput {
                 }
             } else {
                 WaybarOutput {
-                    text: trimmed.to_string(),
+                    text: html_escape(&truncate(trimmed, max_len)),
                     class: "clocked-in".to_string(),
                 }
             }
@@ -51,11 +68,16 @@ fn emit(output: &WaybarOutput) -> Result<String> {
 }
 
 fn main() -> Result<()> {
+    let max_len = std::env::args()
+        .nth(1)
+        .map(|s| s.parse::<usize>().expect("max length must be a number"))
+        .unwrap_or(DEFAULT_MAX_LEN);
+
     let dir = watch_dir();
     fs::create_dir_all(&dir).context("failed to create watch directory")?;
 
     // Emit initial state
-    let mut last_output = emit(&read_clock_state(&dir))?;
+    let mut last_output = emit(&read_clock_state(&dir, max_len))?;
 
     // Set up inotify on the directory
     let mut inotify = Inotify::init().context("failed to init inotify")?;
@@ -91,7 +113,7 @@ fn main() -> Result<()> {
             continue;
         }
 
-        let state = read_clock_state(&dir);
+        let state = read_clock_state(&dir, max_len);
         let json = serde_json::to_string(&state)?;
         if json != last_output {
             emit(&state)?;
