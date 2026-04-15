@@ -126,9 +126,31 @@
 	(when flake
 	  (make-b/flake-subproject :root-dir candidate :flake-dir flake))))))
 
+(cl-defstruct b/git-project
+  root-dir)
+
+(defun b/try-git-project (dir)
+  (when-let* ((candidate (locate-dominating-file dir ".git")))
+    (make-b/git-project :root-dir (expand-file-name (file-name-directory candidate)))))
+
+(cl-defmethod project-root ((project b/git-project))
+  (b/git-project-root-dir project))
+
+(cl-defmethod project-files ((project b/git-project) &optional dirs)
+  (let* ((expanded-dirs (or (and dirs (project-combine-directories dirs))
+			    (list (b/git-project-root-dir project))))
+	 (command
+	  (format
+	   "fd --print0 --absolute-path . %s"
+	   (string-join (mapcar (b/compose #'shell-quote-argument #'expand-file-name) expanded-dirs)
+			" ")))
+	 (files (string-split (shell-command-to-string command) "\0" t)))
+    files))
+
 (defvar project-buffers-viewer)
 (with-eval-after-load 'project
-  (add-hook 'project-find-functions #'b/try-flake-subproject)
+  (add-hook 'project-find-functions #'b/try-git-project 10)
+  (add-hook 'project-find-functions #'b/try-flake-subproject 20)
   (setf project-buffers-viewer 'project-list-buffers-ibuffer))
 
 (bind-key "<f21>" 'project-eshell)
