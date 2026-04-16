@@ -64,6 +64,7 @@ in
         inputs.nix-index-database.homeModules.nix-index
         self.homeModules.direnv
         self.homeModules.trezor-agent
+        self.homeModules.binarin-ssh
       ];
 
       options = {
@@ -108,36 +109,6 @@ in
             extraConfig = ''
               encoding.add=utf-8
             '';
-          };
-
-          programs.ssh = {
-            enable = true;
-            enableDefaultConfig = false;
-            matchBlocks = {
-              mail = {
-                match = ''
-                  host mail.lynx-lizard.ts.net,mail,${flakeConfig.inventory.ipAllocation.mail.home.primary.address}
-                '';
-                extraOptions = {
-                  ControlMaster = "auto";
-                  HostKeyAlias = "mail.lynx-lizard.ts.net";
-                };
-              };
-              "*" = {
-                extraOptions = {
-                  ForwardAgent = "no";
-                  AddKeysToAgent = "no";
-                  Compression = "no";
-                  ServerAliveInterval = "0";
-                  ServerAliveCountMax = "3";
-                  HashKnownHosts = "no";
-                  UserKnownHostsFile = "~/.ssh/known_hosts";
-                  ControlMaster = "no";
-                  ControlPath = "~/.ssh/master-%r@%k:%p";
-                  ControlPersist = "no";
-                };
-              };
-            };
           };
 
           services.ssh-agent.enable = pkgs.stdenv.isLinux;

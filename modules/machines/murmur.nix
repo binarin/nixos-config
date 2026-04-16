@@ -38,6 +38,7 @@
         self.homeModules.direnv
         self.homeModules.xdg-autostart
         self.homeModules.binarin-baseline
+        self.homeModules.binarin-ssh
       ];
 
       nixpkgs = {
