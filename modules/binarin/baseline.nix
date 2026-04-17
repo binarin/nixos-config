@@ -141,6 +141,11 @@ in
         self.homeModules.binarin-zsh
       ];
 
+      programs.btop.enable = true;
+      programs.jq.enable = true;
+      programs.lsd.enable = true;
+      programs.ripgrep.enable = true;
+
       programs.fzf = {
         enable = true;
         tmux = {

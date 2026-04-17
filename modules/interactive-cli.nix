@@ -74,7 +74,6 @@ in
       config = lib.mkMerge [
         {
 
-          programs.btop.enable = true;
           programs.darcs.enable = true;
           programs.doggo.enable = true;
 
@@ -92,10 +91,6 @@ in
           programs.helix.enable = true;
 
           programs.htop.enable = true;
-
-          programs.jq.enable = true;
-
-          programs.lsd.enable = true;
 
           programs.nix-index = {
             enable = true;
@@ -172,7 +167,6 @@ in
             pv
             python3
             recode
-            ripgrep
             socat
             sops
             ssh-to-age

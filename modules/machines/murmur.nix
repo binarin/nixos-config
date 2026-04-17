@@ -1,4 +1,9 @@
-{ self, inputs, ... }:
+{
+  self,
+  inputs,
+  lib,
+  ...
+}:
 {
   flake-file.inputs.home-manager-unstable = {
     url = "github:nix-community/home-manager/master";
@@ -192,6 +197,9 @@
       osConfig.services.graphical-desktop.enable = false;
       osConfig.impermanence.enable = false;
       self'.packages = self.packages.x86_64-linux;
+      inputs' = lib.mapAttrs (_: i: {
+        packages = i.packages.x86_64-linux;
+      }) inputs;
     };
   };
 
@@ -200,6 +208,7 @@
       config,
       lib,
       pkgs,
+      inputs',
       ...
     }:
     {
@@ -244,9 +253,9 @@
       home.stateVersion = "25.11";
       home.username = "allebedev";
       home.homeDirectory = "/home/allebedev";
-      home.packages = with pkgs; [
-        fd
-        ripgrep
+
+      home.packages = with inputs'.nix-ai-tools.packages; [
+        claude-code
       ];
     };
 
