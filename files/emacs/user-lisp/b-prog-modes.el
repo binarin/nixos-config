@@ -150,15 +150,10 @@
 (cl-defmethod project-root ((project b/git-project))
   (b/git-project-root-dir project))
 
-(cl-defmethod project-files ((project b/git-project) &optional dirs)
-  (let* ((expanded-dirs (or (and dirs (project-combine-directories dirs))
-			    (list (b/git-project-root-dir project))))
-	 (command
-	  (format
-	   "fd --print0 --absolute-path . %s"
-	   (string-join (mapcar (b/compose #'shell-quote-argument #'expand-file-name) expanded-dirs)
-			" ")))
-	 (files (string-split (shell-command-to-string command) "\0" t)))
+(cl-defmethod project-files ((project b/git-project) &optional _dirs)
+  (let* ((localdir (file-name-unquote (file-local-name (expand-file-name (b/git-project-root-dir project)))))
+	 (command "fd --color never --print0")
+	 (files (string-split (let ((default-directory (b/git-project-root-dir project))) (shell-command-to-string command)) "\0" t)))
     files))
 
 (defvar project-buffers-viewer)
