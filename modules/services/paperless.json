@@ -1,7 +1,7 @@
 {
-  "webserver": "2.20.13",
+  "webserver": "2.20.14",
   "db": "16.6",
   "broker": "7.4",
-  "gotenberg": "8.29.0",
+  "gotenberg": "8.30.1",
   "tika": "3.3.0.0"
 }
