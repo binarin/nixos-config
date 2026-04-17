@@ -18,9 +18,9 @@
 
         matchBlocks = {
           "originalhost *.k.b" = {
-            ForwardAgent = "yes";
-            ControlMaster = "yes";
-            ControlPersist = "yes";
+            forwardAgent = true;
+            controlMaster = "auto";
+            controlPersist = "yes";
           };
 
           "*" = {
