@@ -24,6 +24,7 @@ in
     };
     config = {
       lib.deploy-nixos = deployPkgs.deploy-rs.lib.activate.nixos;
+      lib.deploy-home-manager = deployPkgs.deploy-rs.lib.activate.home-manager;
 
       # This is highly advised, and will prevent many possible mistakes
       perSystem =

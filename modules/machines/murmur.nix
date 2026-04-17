@@ -1,5 +1,10 @@
 { self, inputs, ... }:
 {
+  flake-file.inputs.home-manager-unstable = {
+    url = "github:nix-community/home-manager/master";
+    inputs.nixpkgs.follows = "nixpkgs-unstable";
+  };
+
   flake-file.inputs.nixgl = {
     url = "github:nix-community/nixgl";
     inputs.nixpkgs.follows = "nixpkgs";
@@ -167,4 +172,76 @@
         };
       };
     };
+
+  flake.deploy.nodes.b-adb-k = {
+    hostname = "adb.k.b";
+    sshUser = "allebedev";
+    profiles.user = {
+      path = self.lib.deploy-home-manager self.homeConfigurations.b-dev-kvm;
+    };
+  };
+
+  flake.homeConfigurations.b-dev-kvm = inputs.home-manager-unstable.lib.homeManagerConfiguration {
+    pkgs = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
+
+    modules = [
+      self.homeModules.b-dev-kvm-configuration
+    ];
+
+    extraSpecialArgs = {
+      osConfig.services.graphical-desktop.enable = false;
+      osConfig.impermanence.enable = false;
+      self'.packages = self.packages.x86_64-linux;
+    };
+  };
+
+  flake.homeModules.b-dev-kvm-configuration =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      imports = [
+        self.homeModules.binarin-zsh
+        self.homeModules.binarin-baseline
+      ];
+
+      xdg.enable = false;
+      programs.zsh.dotDir = config.home.homeDirectory;
+
+      programs.zsh.envExtra = ''
+        if [[ -d $HOME/.local/bin && !( $PATH == *$HOME/.local/bin* ) ]]; then
+            export PATH="$HOME/.local/bin:$PATH"
+        fi
+
+        if [[ -f $HOME/.cargo/env ]] ; then
+            . "$HOME/.cargo/env"
+        fi
+
+        if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+            . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+        fi
+      '';
+
+      home.activation.we-own-zsh-configs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+        $DRY_RUN_CMD rm -f ~/.zshrc ~/.zshenv ~/.bash_profile ~/.bashrc
+      '';
+
+      home.activation.fix-permissions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        $DRY_RUN_CMD chmod 0755 ~/.cache/oh-my-zsh/completions
+      '';
+
+      programs.starship.settings.command_timeout = 2000;
+
+      home.stateVersion = "25.11";
+      home.username = "allebedev";
+      home.homeDirectory = "/home/allebedev";
+      home.packages = with pkgs; [
+        fd
+        ripgrep
+      ];
+    };
+
 }
