@@ -221,6 +221,10 @@
       programs.zsh.dotDir = config.home.homeDirectory;
 
       programs.zsh.envExtra = ''
+        if [[ -f $HOME/.nix-profile/bin/zsh ]]; then
+            export SHELL=$HOME/.nix-profile/bin/zsh
+        fi
+
         if [[ -d $HOME/.local/bin && !( $PATH == *$HOME/.local/bin* ) ]]; then
             export PATH="$HOME/.local/bin:$PATH"
         fi
@@ -232,6 +236,12 @@
         if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
             . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
         fi
+
+        if [[ -n $SSH_AUTH_SOCK && -e $SSH_AUTH_SOCK && $SSH_AUTH_SOCK != *ssh-agent-stable.sock ]]; then
+          ln -sf "$SSH_AUTH_SOCK" "$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
+        fi
+
+        export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
       '';
 
       programs.zsh.initContent = ''

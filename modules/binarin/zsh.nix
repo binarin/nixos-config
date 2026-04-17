@@ -81,8 +81,8 @@
           ${builtins.readFile ./atuin-zsh-widget.sh}
 
           # show help for built-ins
-          unalias run-help
-          autoload run-help
+          # unalias run-help
+          # autoload run-help
         '';
 
         history = {
