@@ -67,10 +67,22 @@
             swaylock = final.writeShellScriptBin "swaylock" ''
               exec /usr/bin/swaylock "$@"
             '';
-            slack = final.writeShellScriptBin "slack" ''
-              # /snap/slack/current/usr/bin/slack --enable-features=UseOzonePlatform --ozone-platform=wayland "$@"
-              ${lib.getExe prev.slack} --no-sandbox "$@"
-            '';
+            slack =
+              let
+                slackWrapper = final.writeShellScriptBin "slack" ''
+                  ${lib.getExe prev.slack} --no-sandbox "$@"
+                '';
+              in
+
+              final.buildEnv {
+                name = "slack";
+                ignoreCollisions = true;
+                paths = with prev; [
+                  slackWrapper
+                  slack
+                ];
+              };
+
             nix = inputs.determinate.packages.x86_64-linux.default;
           })
         ];
@@ -79,6 +91,7 @@
       services.ssh-agent.enable = true;
       home.packages = with pkgs; [
         # age-plugin-yubikey
+        geeqie
         age
         bpftrace
         btop
@@ -117,7 +130,17 @@
         Exec=${lib.getExe pkgs.slack} %U
         MimeType=x-scheme-handler/slack;
         Type=Application
+        Icon=${pkgs.slack}/share/pixmaps/slack.png
+      '';
 
+      xdg.dataFile."applications/ssh-adb-k-b.desktop".text = ''
+        [Desktop Entry]
+        Name=ssh to adb.k.b
+        Exec=foot-unique-window "SSH|adb.k.b" --override=colors.background=001800 -e ssh -t adb.k.b zsh -l -c "tmux new-session -A -s binarin"
+        Type=Application
+        Terminal=false
+        Categories=System;
+        Icon=foot
       '';
 
       xdg.mimeApps.defaultApplications."x-scheme-handler/slack" = "slack.desktop";
