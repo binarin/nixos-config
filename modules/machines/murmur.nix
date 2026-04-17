@@ -225,7 +225,13 @@
         fi
       '';
 
-      home.activation.we-own-zsh-configs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+      programs.zsh.initContent = ''
+        if type -p bk > /dev/null ; then
+          source <(bk completion zsh)
+        fi
+      '';
+
+      home.activation.we-own-the-configs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
         $DRY_RUN_CMD rm -f ~/.zshrc ~/.zshenv ~/.bash_profile ~/.bashrc
       '';
 
