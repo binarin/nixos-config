@@ -8,6 +8,7 @@
       ...
     }:
     {
+      key = "nixos-config.modules.home.binarin-ssh";
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;

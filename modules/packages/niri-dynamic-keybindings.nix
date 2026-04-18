@@ -37,6 +37,7 @@ in
       cfg = config.services.niri-dynamic-keybindings;
     in
     {
+      key = "nixos-config.modules.home.niri-dynamic-keybindings";
       options.services.niri-dynamic-keybindings = with lib; {
         enable = mkOption {
           type = types.bool;

@@ -8,6 +8,7 @@
       ...
     }:
     {
+      key = "nixos-config.modules.home.binarin-zsh";
       programs.zsh = {
         enable = true;
         autocd = true;

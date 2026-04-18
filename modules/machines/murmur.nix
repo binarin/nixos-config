@@ -40,6 +40,7 @@
       ...
     }:
     {
+      key = "nixos-config.modules.home.murmur-home-allebedev";
       imports = [
         self.homeModules.emacs
         self.homeModules.foot
@@ -261,6 +262,7 @@
       ...
     }:
     {
+      key = "nixos-config.modules.home.b-dev-kvm-configuration";
       imports = [
         self.homeModules.binarin-zsh
         self.homeModules.binarin-baseline
