@@ -142,6 +142,24 @@
         Categories=System;
         Icon=foot
       '';
+      xdg.dataFile."applications/ssh-db-k-b.desktop".text = ''
+        [Desktop Entry]
+        Name=ssh to db.k.b
+        Exec=foot-unique-window "SSH|db.k.b" --override=colors.background=001800 -e ssh -t db.k.b zsh -l -c "tmux new-session -A -s binarin"
+        Type=Application
+        Terminal=false
+        Categories=System;
+        Icon=foot
+      '';
+      xdg.dataFile."applications/ssh-db3-k-b.desktop".text = ''
+        [Desktop Entry]
+        Name=ssh to db3.k.b
+        Exec=foot-unique-window "SSH|db3.k.b" --override=colors.background=001800 -e ssh -t db3.k.b zsh -l -c "tmux new-session -A -s binarin"
+        Type=Application
+        Terminal=false
+        Categories=System;
+        Icon=foot
+      '';
 
       xdg.mimeApps.defaultApplications."x-scheme-handler/slack" = "slack.desktop";
 
@@ -203,6 +221,14 @@
 
   flake.deploy.nodes.b-adb-k = {
     hostname = "adb.k.b";
+    sshUser = "allebedev";
+    profiles.user = {
+      path = self.lib.deploy-home-manager self.homeConfigurations.b-dev-kvm;
+    };
+  };
+
+  flake.deploy.nodes.b-db-k = {
+    hostname = "db.k.b";
     sshUser = "allebedev";
     profiles.user = {
       path = self.lib.deploy-home-manager self.homeConfigurations.b-dev-kvm;
@@ -274,10 +300,11 @@
       '';
 
       home.activation.we-own-the-configs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-        $DRY_RUN_CMD rm -f ~/.zshrc ~/.zshenv ~/.bash_profile ~/.bashrc
+        $DRY_RUN_CMD rm -f ~/.zshrc ~/.zshenv ~/.bash_profile ~/.bashrc ~/.profile
       '';
 
       home.activation.fix-permissions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        $DRY_RUN_CMD mkdir -p ~/.cache/oh-my-zsh/completions
         $DRY_RUN_CMD chmod 0755 ~/.cache/oh-my-zsh/completions
       '';
 
@@ -289,6 +316,7 @@
 
       home.packages = with inputs'.nix-ai-tools.packages; [
         claude-code
+        workmux
       ];
     };
 
