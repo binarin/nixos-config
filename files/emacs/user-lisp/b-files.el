@@ -8,10 +8,12 @@
 ;; Mostly do not want to track down which sensitive files should be excluded from backups
 (setf make-backup-files nil)
 
-(with-eval-after-load 'tramp
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
-(setf tramp-ssh-controlmaster-options "")
-
+(use-package tramp
+  :ensure nil
+  :defines (tramp-ssh-controlmaster-options)
+  :config
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (setf tramp-ssh-controlmaster-options ""))
 
 (require 'recentf)
 (setf recentf-max-saved-items 200

@@ -151,7 +151,7 @@
   (b/git-project-root-dir project))
 
 (cl-defmethod project-files ((project b/git-project) &optional _dirs)
-  (let* ((localdir (file-name-unquote (file-local-name (expand-file-name (b/git-project-root-dir project)))))
+  (let* ((_localdir (file-name-unquote (file-local-name (expand-file-name (b/git-project-root-dir project)))))
 	 (command "fd --color never --print0")
 	 (files (string-split (let ((default-directory (b/git-project-root-dir project))) (shell-command-to-string command)) "\0" t)))
     files))
