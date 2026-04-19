@@ -23,6 +23,7 @@ let
     (emacsPackagesFor basePackage).emacsWithPackages (
       e: with e; [
         anki-editor
+        avy
         bazel
         consult
         corfu
