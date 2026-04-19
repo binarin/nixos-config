@@ -398,7 +398,6 @@ window-rule {
 
 binds {
   Ctrl+Shift+Alt+Super+A { spawn "b-emacsclient" "--eval" "(b/full-frame-org-agenda)"; }
-  Ctrl+Shift+Alt+Super+C { spawn "b-emacsclient" "--eval" "(b/full-frame-org-capture 't)"; }
   Ctrl+Shift+Alt+Super+D { spawn "b-emacsclient" "--eval" "(b/full-frame-org-roam-dailes-capture-today)"; }
   Ctrl+Shift+Alt+Super+F { spawn "firefox"; }
   Ctrl+Shift+Alt+Super+N { spawn "b-emacsclient" "--eval" "(b/new-emacs-frame)"; }
@@ -406,6 +405,7 @@ binds {
   Ctrl+Shift+Alt+Super+P { spawn "b-emacsclient" "--eval" "(b/org-capture-gui-selection)"; }
   Ctrl+Shift+Alt+Super+R { spawn "b-emacsclient" "--eval" "(b/full-frame-add-note-to-selected)"; }
   Ctrl+Shift+Alt+Super+S { spawn "b-emacsclient" "--eval" "(b/full-frame-org-capture 's)"; }
+  Ctrl+Shift+Alt+Super+T { spawn "b-emacsclient" "--eval" "(b/full-frame-org-capture 't)"; }
   Ctrl+Shift+Alt+Super+Z { spawn "b-emacsclient" "--eval" "(b/full-frame-org-note-on-running-clock)"; }
 
   // Ctrl+Shift+Alt+Super+P { spawn-sh "~/personal-workspace/nixos-config/scripts/org-capture-clipboard.sh"; }
