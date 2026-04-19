@@ -33,6 +33,7 @@ let
         embark-consult
         haskell-mode
         hledger-mode
+        hyperbole
         kdl-mode
         magit
         marginalia
