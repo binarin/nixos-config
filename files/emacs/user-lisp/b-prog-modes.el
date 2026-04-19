@@ -28,6 +28,10 @@
   :ensure t
   :hook ((emacs-lisp-mode . paredit-mode))
   :bind (:map paredit-mode-map
+              ("M-s" . nil)
+              ("M-?" . nil)
+              ("M-C" . paredit-convolute-sexp)
+              ("M-D" . paredit-splice-sexp)
 	      ("RET" . paredit-newline)
 	      ("C-j". nil))
   :config
