@@ -25,6 +25,7 @@ in
   clan.machines.web = {
     imports = [
       self.nixosModules.web-configuration
+      "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/librechat.nix"
     ];
     nixpkgs.hostPlatform = "x86_64-linux";
   };
@@ -39,6 +40,7 @@ in
           "unifi.home.binarin.info"
           "unifi.clan.binarin.info"
           "unifi.binarin.info"
+          "librechat.binarin.info"
         ];
       };
     };
@@ -183,6 +185,59 @@ in
             };
             default = "http_status:404";
           };
+        };
+      };
+
+      clan.core.vars.generators.librechat = {
+        files.creds-key = { };
+        files.creds-iv = { };
+        files.jwt-secret = { };
+        files.jwt-refresh-secret = { };
+        runtimeInputs = [ pkgs.openssl ];
+        script = ''
+          openssl rand -hex 32 > $out/creds-key
+          openssl rand -hex 16 > $out/creds-iv
+          openssl rand -hex 64 > $out/jwt-secret
+          openssl rand -hex 64 > $out/jwt-refresh-secret
+        '';
+      };
+
+      services.librechat = {
+        enable = true;
+        credentials = {
+          CREDS_KEY = config.clan.core.vars.generators.librechat.files.creds-key.path;
+          CREDS_IV = config.clan.core.vars.generators.librechat.files.creds-iv.path;
+          JWT_SECRET = config.clan.core.vars.generators.librechat.files.jwt-secret.path;
+          JWT_REFRESH_SECRET = config.clan.core.vars.generators.librechat.files.jwt-refresh-secret.path;
+        };
+        enableLocalDB = true;
+        env.PORT = 3080;
+        settings = {
+          registration = {
+            allowedDomains = [ "binarin.info" ];
+          };
+          endpoints = {
+            custom = [
+              {
+                name = "llm-runner";
+                baseURL = "https://llm-runner.lynx-lizard.ts.net/v1";
+                models = {
+                  default = [ "gemma3" ];
+                };
+                titleConvo = true;
+                titleModel = "current_model";
+                modelDisplayLabel = "llm-runner";
+              }
+            ];
+          };
+        };
+      };
+
+      services.nginx.virtualHosts."librechat.binarin.info" = {
+        sslCertificate = "/var/lib/ssl-cert/full.pem";
+        sslCertificateKey = "/var/lib/ssl-cert/full.pem";
+        locations."/" = {
+          proxyPass = "http://localhost:${config.services.librechat.env.PORT}";
         };
       };
 
