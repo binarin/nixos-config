@@ -21,10 +21,10 @@
         with inputs'.nix-ai-tools.packages;
         [
           claude-code
-          claude-code-acp
-          claude-code-router
-          gemini-cli
-          opencode
+          # claude-code-acp
+          # claude-code-router
+          # gemini-cli
+          # opencode
           pi
           workmux
         ]
