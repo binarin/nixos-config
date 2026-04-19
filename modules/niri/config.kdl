@@ -341,6 +341,21 @@ window-rule {
 }
 
 window-rule {
+  match app-id="gst-launch-1.0"
+  geometry-corner-radius 0
+  clip-to-geometry false
+  focus-ring {
+    off
+  }
+  min-width 3072
+  max-width 3072
+  // min-height 864
+  // max-height 864
+  min-height 1728
+  max-height 1728
+}
+
+window-rule {
   match title="Emacs\\(float\\)\\*$"
   open-floating true
 }
