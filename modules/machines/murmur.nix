@@ -29,6 +29,17 @@
       osConfig.services.graphical-desktop.enable = true;
       osConfig.impermanence.enable = false;
       self'.packages = self.packages.x86_64-linux;
+
+      inputs' =
+        with lib;
+        pipe inputs [
+          (lib.filterAttrs (_: v: v ? packages))
+          (lib.mapAttrs (
+            _: v: {
+              packages = v.packages.x86_64-linux;
+            }
+          ))
+        ];
     };
   };
 
@@ -37,6 +48,7 @@
       lib,
       pkgs,
       config,
+      inputs',
       ...
     }:
     {
@@ -50,6 +62,7 @@
         self.homeModules.xdg-autostart
         self.homeModules.binarin-baseline
         self.homeModules.binarin-ssh
+        self.homeModules.standalone-home-manager-zsh
       ];
 
       nixpkgs = {
@@ -90,31 +103,36 @@
       };
 
       services.ssh-agent.enable = true;
-      home.packages = with pkgs; [
-        # age-plugin-yubikey
-        geeqie
-        age
-        bpftrace
-        btop
-        chromium
-        gimp
-        google-chrome
-        htop
-        iftop
-        iotop
-        kanata
-        mosh
-        niri
-        nixfmt
-        nixgl.nixGLIntel
-        passage
-        rclone
-        restic
-        ripgrep
-        slack
-        wl-clipboard
-        xwayland-satellite
-      ];
+      home.packages =
+        (with pkgs; [
+          # age-plugin-yubikey
+          geeqie
+          age
+          bpftrace
+          btop
+          chromium
+          gimp
+          google-chrome
+          htop
+          iftop
+          iotop
+          kanata
+          mosh
+          niri
+          nixfmt
+          nixgl.nixGLIntel
+          passage
+          rclone
+          restic
+          ripgrep
+          slack
+          wl-clipboard
+          xwayland-satellite
+        ])
+        ++ (with inputs'.nix-ai-tools.packages; [
+          claude-code
+          workmux
+        ]);
 
       xdg.dataFile."applications/niri.desktop".text = ''
         [Desktop Entry]
@@ -253,25 +271,13 @@
     };
   };
 
-  flake.homeModules.b-dev-kvm-configuration =
+  flake.homeModules.standalone-home-manager-zsh =
+    { ... }:
     {
-      config,
-      lib,
-      pkgs,
-      inputs',
-      ...
-    }:
-    {
-      key = "nixos-config.modules.home.b-dev-kvm-configuration";
-      imports = [
-        self.homeModules.binarin-zsh
-        self.homeModules.binarin-baseline
-      ];
-
-      xdg.enable = false;
-      programs.zsh.dotDir = config.home.homeDirectory;
-
+      key = "nixos-config.modules.home.standalone-home-manager-zsh";
       programs.zsh.envExtra = ''
+        export BK_OTEL_ENABLED=false
+
         if [[ -f $HOME/.nix-profile/bin/zsh ]]; then
             export SHELL=$HOME/.nix-profile/bin/zsh
         fi
@@ -288,6 +294,29 @@
             . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
         fi
 
+      '';
+    };
+
+  flake.homeModules.b-dev-kvm-configuration =
+    {
+      config,
+      lib,
+      pkgs,
+      inputs',
+      ...
+    }:
+    {
+      key = "nixos-config.modules.home.b-dev-kvm-configuration";
+      imports = [
+        self.homeModules.binarin-zsh
+        self.homeModules.binarin-baseline
+        self.homeModules.standalone-home-manager-zsh
+      ];
+
+      xdg.enable = false;
+      programs.zsh.dotDir = config.home.homeDirectory;
+
+      programs.zsh.envExtra = ''
         if [[ -n $SSH_AUTH_SOCK && -e $SSH_AUTH_SOCK && $SSH_AUTH_SOCK != *ssh-agent-stable.sock ]]; then
           ln -sf "$SSH_AUTH_SOCK" "$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
         fi
