@@ -73,6 +73,7 @@
           self.overlays.my-emacs
           self.overlays.waybar-org-clock
           self.overlays.sicstus-manual
+          self.overlays.lan-mouse
           inputs.niri.overlays.default
           (final: prev: {
             # bubblewrap = final.writeShellScriptBin "bwrap" ''
@@ -95,9 +96,12 @@
                   slackWrapper
                   slack
                 ];
+                meta.mainProgram = "slack";
               };
 
-            nix = inputs.determinate.packages.x86_64-linux.default;
+            nix = inputs.determinate.packages.x86_64-linux.default.overrideAttrs {
+              meta.mainProgram = "nix";
+            };
           })
         ];
       };
@@ -106,6 +110,7 @@
       home.packages =
         (with pkgs; [
           # age-plugin-yubikey
+          lan-mouse
           geeqie
           age
           bpftrace
@@ -128,6 +133,7 @@
           slack
           wl-clipboard
           xwayland-satellite
+          go_1_26
         ])
         ++ (with inputs'.nix-ai-tools.packages; [
           claude-code

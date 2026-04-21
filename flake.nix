@@ -65,6 +65,7 @@
     };
     impermanence.url = "github:nix-community/impermanence";
     import-tree.url = "github:vic/import-tree";
+    lan-mouse.url = "github:feschber/lan-mouse";
     niks3 = {
       url = "github:Mic92/niks3";
       inputs = {
