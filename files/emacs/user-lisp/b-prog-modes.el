@@ -20,9 +20,16 @@
 ;;; routinely send multi-megabyte responses.
 (setq read-process-output-max (* 4 1024 1024)) ; 4MB
 
+(defun b/cperl-mode-hook ()
+  (indent-tabs-mode nil)
+  (setf fill-column 120))
+
 (use-package cperl-mode
   :ensure nil
-  :mode ("\\.\\(pl\\|pm\\)\\'"))
+  :mode ("\\.\\(pl\\|pm\\)\\'")
+  :hook (cperl-mode . b/cperl-mode-hook)
+  :config
+  (setf cperl-indent-level 4))
 
 (use-package paredit
   :ensure t
