@@ -533,7 +533,7 @@ in
           SECRET_KEY=${config.sops.placeholder."tandoor/postgres-password"}
 
           # allowed hosts (see documentation), should be set to your hostname(s) but might be * (default) for some proxies/providers
-          # ALLOWED_HOSTS=recipes.mydomain.com
+          ALLOWED_HOSTS=tandoor.binarin.info
 
           # add only a database password if you want to run with the default postgres, otherwise change settings accordingly
           DB_ENGINE=django.db.backends.postgresql
