@@ -262,9 +262,9 @@ in
         cudaSupport = true;
         packageOverrides = pkgs: {
           llama-cpp = pkgs.callPackage "${inputs.nixpkgs-unstable}/pkgs/by-name/ll/llama-cpp/package.nix" { };
-          llama-swap =
-            pkgs.callPackage "${inputs.nixpkgs-unstable}/pkgs/by-name/ll/llama-swap/package.nix"
-              { };
+          llama-swap = pkgs.callPackage "${inputs.nixpkgs-unstable}/pkgs/by-name/ll/llama-swap/package.nix" {
+            buildGoModule = pkgs.buildGo126Module;
+          };
         };
       };
 
@@ -299,13 +299,22 @@ in
       networking.hosts."${flakeConfig.inventory.ipAllocation.garage.home.primary.address}" = [
         "web.binarin.info"
       ];
-      llama-models.models."gemma-3-27b-it:Q4_K_M".url =
-        "http://web.binarin.info:3902/files/gemma-3-27b-it-Q4_K_M.gguf";
       llama-models.models."Qwen3-Coder-30B-A3B-Instruct:Q4_K_S".url =
         "http://web.binarin.info:3902/files/Qwen3-Coder-30B-A3B-Instruct-Q4_K_S.gguf";
       llama-models.models."unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0".url =
         "http://web.binarin.info:3902/files/unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0.gguf";
+      llama-models.models."gemma-4-26B-A4B-it:Q4_K_M".url =
+        "http://web.binarin.info:3902/files/gemma-4-26B-A4B-it-UD-Q4_K_M.gguf";
 
+      llama-models.configurations."gemma4" = {
+        model = "gemma-4-26B-A4B-it:Q4_K_M";
+        settings = {
+          ctx-size = 131072;
+          temp = 1.0;
+          top-p = 0.95;
+          top-k = 64;
+        };
+      };
       llama-models.configurations."qwen3-coder-30b" = {
         model = "Qwen3-Coder-30B-A3B-Instruct:Q4_K_S";
         settings = {
@@ -315,10 +324,6 @@ in
           top-k = 20;
           repeat-penalty = 1.05;
         };
-      };
-      llama-models.configurations."gemma3" = {
-        model = "gemma-3-27b-it:Q4_K_M";
-        settings.ctx-size = 262144;
       };
       llama-models.configurations."qwen3.5-9b" = {
         model = "unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0";
