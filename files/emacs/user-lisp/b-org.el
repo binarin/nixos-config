@@ -1,4 +1,7 @@
 ;; -*- lexical-binding: t; -*-
+(cl-eval-when (compile load eval)
+  (provide 'org-mouse))
+
 (require 'org)
 (require 'org-capture)
 (require 'org-tempo)
@@ -10,7 +13,7 @@
 (require 'b-lib)
 (require 'b-visual)
 (require 'ox)
-(require 'org-mouse)
+
 
 (setf org-startup-folded 'show2levels
       org-startup-shrink-all-tables t
