@@ -88,6 +88,7 @@
         globalprotect-openconnect
         # aws-workspaces
         swi-prolog
+        scryer-prolog
         gopass
         dos2unix
         sox
