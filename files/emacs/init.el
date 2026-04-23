@@ -131,6 +131,9 @@
   (setq repeat-exit-timeout 5)
   (repeat-mode 1))
 
+(use-package avy
+  :ensure nil
+  :bind (("<f23>" . avy-goto-char-timer)))
 
 
 (require 'b-server)
