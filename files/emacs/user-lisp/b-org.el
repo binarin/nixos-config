@@ -343,7 +343,6 @@
 	 ,@body
 	 (add-hook 'kill-buffer-hook
 	           #'(lambda ()
-	               (message "Want to clean-up %s" ,frame-var)
 	               (delete-frame ,frame-var t))
 	           99 t)))))
 
