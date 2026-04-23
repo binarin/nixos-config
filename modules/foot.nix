@@ -52,7 +52,7 @@
                   if find-and-focus-window "$title"; then
                       exit 0
                   else
-                      exec uwsm app -t service -a "sshmenu-$title" -- foot --title "$title" "$@"
+                      exec uwsm app -a "sshmenu-$title" -- foot --title "$title" "$@"
                   fi
               }
 
