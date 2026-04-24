@@ -14,6 +14,7 @@
         self.nixosModules.emacs
         self.nixosModules.binarin-nix-dev
         self.nixosModules.age-encryption
+        self.nixosModules.ai-tools
       ];
 
       users.users.binarin.extraGroups = [
