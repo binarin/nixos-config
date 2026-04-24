@@ -211,8 +211,13 @@ in
           JWT_REFRESH_SECRET = config.clan.core.vars.generators.librechat.files.jwt-refresh-secret.path;
         };
         enableLocalDB = true;
-        env.PORT = 3080;
+        env = {
+          PORT = 3080;
+          DEBUG_LOGGING = "true";
+
+        };
         settings = {
+          version = "1.3.0";
           registration = {
             allowedDomains = [ "binarin.info" ];
           };
@@ -222,8 +227,9 @@ in
                 name = "llm-runner";
                 baseURL = "https://llm-runner.lynx-lizard.ts.net/v1";
                 models = {
-                  default = [ "gemma3" ];
+                  default = [ "gemma4" ];
                 };
+                apiKey = "no";
                 titleConvo = true;
                 titleModel = "current_model";
                 modelDisplayLabel = "llm-runner";
