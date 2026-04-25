@@ -289,7 +289,9 @@ def get_matrix_entries() -> list[str]:
         for cfg in home_configs:
             result.append(f"h:{cfg}")
     except Exception as e:
-        console.print(f"[yellow]Warning: Could not get homeConfigurations: {e}[/yellow]")
+        console.print(
+            f"[yellow]Warning: Could not get homeConfigurations: {e}[/yellow]"
+        )
 
     # Get packages for x86_64-linux
     try:
@@ -335,7 +337,9 @@ def get_build_path(entry: str) -> str:
         prefix = parts[0]
         if prefix == "d":
             if len(parts) != 3:
-                raise ValueError(f"Invalid deploy entry format: {entry}, expected d:<profile>:<node>")
+                raise ValueError(
+                    f"Invalid deploy entry format: {entry}, expected d:<profile>:<node>"
+                )
             profile, node = parts[1], parts[2]
             return f".#deploy.nodes.{node}.profiles.{profile}.path"
         elif prefix == "c":

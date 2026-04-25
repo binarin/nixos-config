@@ -595,7 +595,9 @@ def run_all(
     build_targets: list[tuple[str, str, str]] = []
 
     for cfg in nixos_configs:
-        flake_ref = f"{repo_root}#nixosConfigurations.{cfg}.config.system.build.toplevel"
+        flake_ref = (
+            f"{repo_root}#nixosConfigurations.{cfg}.config.system.build.toplevel"
+        )
         build_targets.append(("nixos", cfg, flake_ref))
 
     for cfg in home_configs:
@@ -606,7 +608,9 @@ def run_all(
         console.print("[yellow]No configurations found[/yellow]")
         return
 
-    console.print(f"Found {len(nixos_configs)} NixOS + {len(home_configs)} home-manager = {len(build_targets)} configurations")
+    console.print(
+        f"Found {len(nixos_configs)} NixOS + {len(home_configs)} home-manager = {len(build_targets)} configurations"
+    )
 
     if dry_run:
         console.print("\n[yellow]Dry run - would build:[/yellow]")
@@ -665,7 +669,8 @@ def run_all(
     try:
         with ThreadPoolExecutor(max_workers=max_parallel) as executor:
             futures = {
-                executor.submit(build_config, target): target for target in build_targets
+                executor.submit(build_config, target): target
+                for target in build_targets
             }
 
             for future in as_completed(futures):

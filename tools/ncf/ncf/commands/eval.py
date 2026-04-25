@@ -145,7 +145,9 @@ def run_home(
             f"Available configurations: {', '.join(sorted(configurations))}",
         )
 
-    flake_ref = f"{repo_root}#homeConfigurations.{configuration}.activationPackage.drvPath"
+    flake_ref = (
+        f"{repo_root}#homeConfigurations.{configuration}.activationPackage.drvPath"
+    )
 
     if dry_run:
         console.print(f"[bold]Would evaluate:[/bold] {flake_ref}")
