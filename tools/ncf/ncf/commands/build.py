@@ -14,7 +14,7 @@ from typing import Optional
 
 from .. import config
 from ..external import ExternalToolError
-from ..nix import NixRunner, get_nixos_configurations
+from ..nix import NixRunner, get_nixos_configurations, get_home_configurations
 from ..secrets_inject import (
     gather_secrets_for_machine,
     decrypt_secrets_to_tempdir,
@@ -567,7 +567,7 @@ def run_all(
     dry_run: bool = False,
     extra_nix_args: Optional[list[str]] = None,
 ) -> None:
-    """Build all NixOS configurations.
+    """Build all NixOS and home-manager configurations.
 
     Args:
         verbosity: 0=quiet, 1=normal, 2=verbose
@@ -579,24 +579,46 @@ def run_all(
         extra_nix_args: Extra arguments to pass to nix build
     """
     repo_root = config.find_repo_root()
-
-    # Get all configurations
-    console.print("[bold]Discovering NixOS configurations...[/bold]")
     runner = NixRunner(verbosity=0, repo_root=repo_root)
-    configurations = get_nixos_configurations(runner)
 
-    if not configurations:
-        console.print("[yellow]No nixosConfigurations found[/yellow]")
+    # Get all NixOS configurations
+    console.print("[bold]Discovering configurations...[/bold]")
+    nixos_configs = get_nixos_configurations(runner)
+
+    # Get all home-manager configurations
+    try:
+        home_configs = get_home_configurations(runner)
+    except Exception:
+        home_configs = []
+
+    # Build list of (type, name, flake_ref) tuples
+    build_targets: list[tuple[str, str, str]] = []
+
+    for cfg in nixos_configs:
+        flake_ref = f"{repo_root}#nixosConfigurations.{cfg}.config.system.build.toplevel"
+        build_targets.append(("nixos", cfg, flake_ref))
+
+    for cfg in home_configs:
+        flake_ref = f"{repo_root}#homeConfigurations.{cfg}.activationPackage"
+        build_targets.append(("home", cfg, flake_ref))
+
+    if not build_targets:
+        console.print("[yellow]No configurations found[/yellow]")
         return
 
-    console.print(f"Found {len(configurations)} configurations to build")
+    console.print(f"Found {len(nixos_configs)} NixOS + {len(home_configs)} home-manager = {len(build_targets)} configurations")
 
     if dry_run:
         console.print("\n[yellow]Dry run - would build:[/yellow]")
-        for cfg in configurations:
+        console.print("\n[bold]NixOS configurations:[/bold]")
+        for cfg in nixos_configs:
             console.print(f"  - {cfg}")
+        if home_configs:
+            console.print("\n[bold]Home-manager configurations:[/bold]")
+            for cfg in home_configs:
+                console.print(f"  - {cfg}")
         if extra_nix_args:
-            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
+            console.print(f"\n[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
         return
 
     if max_parallel is None:
@@ -617,14 +639,13 @@ def run_all(
 
     old_handler = signal.signal(signal.SIGINT, signal_handler)
 
-    def build_config(cfg: str) -> tuple[str, bool, str]:
+    def build_config(target: tuple[str, str, str]) -> tuple[str, str, bool, str]:
         """Build a single configuration."""
-        if interrupted:
-            return (cfg, False, "Interrupted")
+        cfg_type, cfg_name, flake_ref = target
+        display_name = f"{cfg_type}:{cfg_name}"
 
-        flake_ref = (
-            f"{repo_root}#nixosConfigurations.{cfg}.config.system.build.toplevel"
-        )
+        if interrupted:
+            return (cfg_type, cfg_name, False, "Interrupted")
 
         build_runner = NixRunner(
             verbosity=0,  # Quiet for parallel builds
@@ -637,28 +658,29 @@ def run_all(
 
         try:
             build_runner.run_build(flake_ref, output=None, extra_args=extra_nix_args)
-            return (cfg, True, "")
+            return (cfg_type, cfg_name, True, "")
         except Exception as e:
-            return (cfg, False, str(e))
+            return (cfg_type, cfg_name, False, str(e))
 
     try:
         with ThreadPoolExecutor(max_workers=max_parallel) as executor:
             futures = {
-                executor.submit(build_config, cfg): cfg for cfg in configurations
+                executor.submit(build_config, target): target for target in build_targets
             }
 
             for future in as_completed(futures):
-                cfg, success, error = future.result()
+                cfg_type, cfg_name, success, error = future.result()
+                display_name = f"{cfg_type}:{cfg_name}"
                 with lock:
                     completed += 1
-                    results[cfg] = (success, error)
+                    results[display_name] = (success, error)
 
                     succeeded = sum(1 for s, _ in results.values() if s)
                     failed = sum(1 for s, _ in results.values() if not s)
 
                     # Progress line
                     progress = (
-                        f"{BLUE}Progress:{RESET} {completed}/{len(configurations)} "
+                        f"{BLUE}Progress:{RESET} {completed}/{len(build_targets)} "
                     )
                     progress += f"({GREEN}✓{succeeded}{RESET}"
                     if failed > 0:
@@ -681,29 +703,49 @@ def run_all(
     failed = 0
     failed_configs = []
 
-    for i, cfg in enumerate(configurations):
-        success, error = results.get(cfg, (False, "Not started"))
-        status_str = f"[{i+1:2d}/{len(configurations):2d}] {cfg}:"
+    # Display NixOS results first
+    if nixos_configs:
+        console.print("[bold]NixOS configurations:[/bold]")
+        for i, cfg in enumerate(nixos_configs):
+            display_name = f"nixos:{cfg}"
+            success, error = results.get(display_name, (False, "Not started"))
+            status_str = f"  [{i+1:2d}/{len(nixos_configs):2d}] {cfg}:"
 
-        if success:
-            console.print(f"{status_str} [green]✓ OK[/green]")
-            succeeded += 1
-        else:
-            console.print(f"{status_str} [red]✗ FAILED[/red]")
-            failed += 1
-            failed_configs.append(cfg)
+            if success:
+                console.print(f"{status_str} [green]✓ OK[/green]")
+                succeeded += 1
+            else:
+                console.print(f"{status_str} [red]✗ FAILED[/red]")
+                failed += 1
+                failed_configs.append(display_name)
+
+    # Display home-manager results
+    if home_configs:
+        console.print("\n[bold]Home-manager configurations:[/bold]")
+        for i, cfg in enumerate(home_configs):
+            display_name = f"home:{cfg}"
+            success, error = results.get(display_name, (False, "Not started"))
+            status_str = f"  [{i+1:2d}/{len(home_configs):2d}] {cfg}:"
+
+            if success:
+                console.print(f"{status_str} [green]✓ OK[/green]")
+                succeeded += 1
+            else:
+                console.print(f"{status_str} [red]✗ FAILED[/red]")
+                failed += 1
+                failed_configs.append(display_name)
 
     # Summary
     console.print()
     console.print("━" * 40)
     if failed == 0:
         console.print(
-            f"[bold]Summary:[/bold] [green]{succeeded}/{len(configurations)} succeeded[/green]"
+            f"[bold]Summary:[/bold] [green]{succeeded}/{len(build_targets)} succeeded[/green]"
         )
     else:
         console.print(
-            f"[bold]Summary:[/bold] [green]{succeeded}/{len(configurations)} succeeded[/green], "
-            f"[red]{failed}/{len(configurations)} failed[/red]"
+            f"[bold]Summary:[/bold] [green]{succeeded}/{len(build_targets)} succeeded[/green], "
+            f"[red]{failed}/{len(build_targets)} failed[/red]"
         )
         console.print()
         console.print("[red]Failed configurations:[/red]")
@@ -711,5 +753,6 @@ def run_all(
             console.print(f"  - {cfg}")
         console.print()
         console.print("To see detailed error for a specific configuration:")
-        console.print(f"  ncf build nixos <config>")
+        console.print("  ncf build nixos <config>")
+        console.print("  ncf build home <host> <user>")
         sys.exit(1)

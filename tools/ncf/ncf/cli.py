@@ -443,7 +443,7 @@ def build_all_cmd(
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
 ):
-    """Build all NixOS configurations in parallel.
+    """Build all NixOS and home-manager configurations in parallel.
 
     Extra arguments after -- are passed directly to nix build.
     """
