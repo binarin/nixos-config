@@ -33,7 +33,7 @@
         # claude-code-router
         # gemini-cli
         # opencode
-        pi
+        # pi
         workmux
       ];
 
