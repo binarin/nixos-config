@@ -14,7 +14,7 @@ from typing import Optional
 
 from .. import config
 from ..external import ExternalToolError
-from ..nix import NixRunner, get_nixos_configurations
+from ..nix import NixRunner, get_nixos_configurations, get_home_configurations
 from ..output import console
 
 
@@ -114,13 +114,66 @@ def run_nixos(
     return drv_path
 
 
+def run_home(
+    configuration: str,
+    verbosity: int = 1,
+    dry_run: bool = False,
+    extra_nix_args: Optional[list[str]] = None,
+) -> str:
+    """Evaluate a home-manager configuration and return the derivation path.
+
+    Primary use case: Debugging infinite recursion and evaluation errors.
+
+    Args:
+        configuration: The home-manager configuration name to evaluate.
+        verbosity: 0=quiet, 1=normal, 2=verbose
+        dry_run: Show what would be done without evaluating
+        extra_nix_args: Extra arguments to pass to nix eval
+
+    Returns:
+        The derivation path (.drv)
+    """
+    repo_root = config.find_repo_root()
+
+    # Validate that the configuration exists
+    runner = NixRunner(verbosity=0, repo_root=repo_root)
+    configurations = get_home_configurations(runner)
+    if configuration not in configurations:
+        raise ExternalToolError(
+            "nix",
+            f"Home configuration '{configuration}' not found. "
+            f"Available configurations: {', '.join(sorted(configurations))}",
+        )
+
+    flake_ref = f"{repo_root}#homeConfigurations.{configuration}.activationPackage.drvPath"
+
+    if dry_run:
+        console.print(f"[bold]Would evaluate:[/bold] {flake_ref}")
+        if extra_nix_args:
+            console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
+        return ""
+
+    runner = NixRunner(
+        verbosity=verbosity,
+        repo_root=repo_root,
+    )
+
+    result = runner.run_eval(flake_ref, raw=True, extra_args=extra_nix_args)
+    drv_path = result.stdout.strip()
+
+    if verbosity > 0:
+        console.print(drv_path)
+
+    return drv_path
+
+
 def run_all(
     verbosity: int = 1,
     max_parallel: Optional[int] = None,
     dry_run: bool = False,
     extra_nix_args: Optional[list[str]] = None,
 ) -> None:
-    """Evaluate all NixOS configurations in parallel.
+    """Evaluate all NixOS and home-manager configurations in parallel.
 
     Primary use case: Debugging infinite recursion and evaluation
     errors.  When `nix flake check` fails, it evaluates all outputs
@@ -138,33 +191,53 @@ def run_all(
 
     """
     repo_root = config.find_repo_root()
-
-    # Get all configurations
-    console.print("Discovering NixOS configurations...")
     runner = NixRunner(verbosity=0, repo_root=repo_root)
-    configurations = get_nixos_configurations(runner)
 
-    if not configurations:
-        console.print(f"{YELLOW}Warning: No nixosConfigurations found{RESET}")
+    # Get all NixOS configurations
+    console.print("Discovering NixOS configurations...")
+    nixos_configs = get_nixos_configurations(runner)
+
+    # Get all home-manager configurations
+    console.print("Discovering home-manager configurations...")
+    try:
+        home_configs = get_home_configurations(runner)
+    except Exception:
+        home_configs = []
+        console.print(f"{YELLOW}Warning: No homeConfigurations found{RESET}")
+
+    if not nixos_configs and not home_configs:
+        console.print(f"{YELLOW}Warning: No configurations found{RESET}")
         return
+
+    # Build list of (display_name, flake_ref) tuples
+    eval_targets: list[tuple[str, str]] = []
+
+    for cfg in nixos_configs:
+        flake_ref = f"{repo_root}#nixosConfigurations.{cfg}.config.system.build.toplevel.drvPath"
+        eval_targets.append((f"nixos:{cfg}", flake_ref))
+
+    for cfg in home_configs:
+        flake_ref = f"{repo_root}#homeConfigurations.{cfg}.activationPackage.drvPath"
+        eval_targets.append((f"home:{cfg}", flake_ref))
 
     if max_parallel is None:
         max_parallel = get_default_parallelism()
 
     console.print(
-        f"Found {len(configurations)} configurations to evaluate (parallelism: {max_parallel})"
+        f"Found {len(nixos_configs)} NixOS + {len(home_configs)} home-manager "
+        f"= {len(eval_targets)} configurations to evaluate (parallelism: {max_parallel})"
     )
     console.print()
 
     if dry_run:
         console.print("[yellow]Dry run - would evaluate:[/yellow]")
-        for cfg in configurations:
-            console.print(f"  - {cfg}")
+        for name, _ in eval_targets:
+            console.print(f"  - {name}")
         if extra_nix_args:
             console.print(f"[bold]Extra nix args:[/bold] {' '.join(extra_nix_args)}")
         return
 
-    # Track results: config -> (success, time_seconds, error_msg)
+    # Track results: display_name -> (success, time_seconds, error_msg)
     results: dict[str, tuple[bool, float, str]] = {}
     completed = 0
     lock = threading.Lock()
@@ -180,13 +253,12 @@ def run_all(
 
     old_handler = signal.signal(signal.SIGINT, signal_handler)
 
-    def eval_config(cfg: str) -> tuple[str, bool, float, str]:
+    def eval_config(name: str, flake_ref: str) -> tuple[str, bool, float, str]:
         """Evaluate a single configuration."""
         if interrupted:
-            return (cfg, False, 0.0, "Interrupted")
+            return (name, False, 0.0, "Interrupted")
 
         cfg_start = time.time()
-        flake_ref = f"{repo_root}#nixosConfigurations.{cfg}.config.system.build.toplevel.drvPath"
 
         eval_runner = NixRunner(
             verbosity=verbosity,
@@ -196,28 +268,31 @@ def run_all(
         try:
             eval_runner.run_eval(flake_ref, raw=True, extra_args=extra_nix_args)
             elapsed = time.time() - cfg_start
-            return (cfg, True, elapsed, "")
+            return (name, True, elapsed, "")
         except Exception as e:
             elapsed = time.time() - cfg_start
-            return (cfg, False, elapsed, str(e))
+            return (name, False, elapsed, str(e))
 
     try:
         with ThreadPoolExecutor(max_workers=max_parallel) as executor:
-            futures = {executor.submit(eval_config, cfg): cfg for cfg in configurations}
+            futures = {
+                executor.submit(eval_config, name, flake_ref): name
+                for name, flake_ref in eval_targets
+            }
 
             first_update = True
             for future in as_completed(futures):
-                cfg, success, elapsed, error = future.result()
+                name, success, elapsed, error = future.result()
                 with lock:
                     completed += 1
-                    results[cfg] = (success, elapsed, error)
+                    results[name] = (success, elapsed, error)
 
                     succeeded = sum(1 for s, _, _ in results.values() if s)
                     failed = sum(1 for s, _, _ in results.values() if not s)
 
                     # Progress line
                     progress = (
-                        f"{BLUE}Progress:{RESET} {completed}/{len(configurations)} "
+                        f"{BLUE}Progress:{RESET} {completed}/{len(eval_targets)} "
                     )
                     progress += f"({GREEN}✓{succeeded}{RESET}"
                     if failed > 0:
@@ -242,15 +317,15 @@ def run_all(
     # Display results
     print()
     print("Results:")
-    print("━" * 40)
+    print("━" * 50)
 
     succeeded = 0
     failed = 0
     failed_configs = []
 
-    for i, cfg in enumerate(configurations):
-        success, elapsed, error = results.get(cfg, (False, 0.0, "Not started"))
-        status_str = f"[{i+1:2d}/{len(configurations):2d}] {cfg:30s}:"
+    for i, (name, _) in enumerate(eval_targets):
+        success, elapsed, error = results.get(name, (False, 0.0, "Not started"))
+        status_str = f"[{i+1:2d}/{len(eval_targets):2d}] {name:40s}:"
 
         if success:
             print(f"{status_str} {GREEN}✓ OK    {RESET} ({int(elapsed):3d}s)")
@@ -258,32 +333,35 @@ def run_all(
         else:
             print(f"{status_str} {RED}✗ FAILED{RESET} ({int(elapsed):3d}s)")
             failed += 1
-            failed_configs.append(cfg)
+            failed_configs.append(name)
 
     # Summary
     print()
-    print("━" * 40)
+    print("━" * 50)
     total_min = int(total_time) // 60
     total_sec = int(total_time) % 60
 
     if failed == 0:
         print(
-            f"{BOLD}Summary:{RESET} {GREEN}{succeeded}/{len(configurations)} succeeded{RESET} "
+            f"{BOLD}Summary:{RESET} {GREEN}{succeeded}/{len(eval_targets)} succeeded{RESET} "
             f"in {total_min}m{total_sec}s (parallel)"
         )
     else:
         print(
-            f"{BOLD}Summary:{RESET} {GREEN}{succeeded}/{len(configurations)} succeeded{RESET}, "
-            f"{RED}{failed}/{len(configurations)} failed{RESET} in {total_min}m{total_sec}s (parallel)"
+            f"{BOLD}Summary:{RESET} {GREEN}{succeeded}/{len(eval_targets)} succeeded{RESET}, "
+            f"{RED}{failed}/{len(eval_targets)} failed{RESET} in {total_min}m{total_sec}s (parallel)"
         )
         print()
         print(f"{RED}Failed configurations:{RESET}")
-        for cfg in failed_configs:
-            print(f"  - {cfg}")
+        for name in failed_configs:
+            print(f"  - {name}")
         print()
         print("To see detailed error for a specific configuration:")
         print(
             f"  nix eval '{repo_root}#nixosConfigurations.<config>.config.system.build.toplevel.drvPath'"
+        )
+        print(
+            f"  nix eval '{repo_root}#homeConfigurations.<config>.activationPackage.drvPath'"
         )
         sys.exit(1)
 

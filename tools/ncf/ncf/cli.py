@@ -75,7 +75,7 @@ app.add_typer(build_app, name="build")
 
 eval_app = typer.Typer(
     name="eval",
-    help="Evaluate NixOS configurations (for debugging)",
+    help="Evaluate NixOS and home-manager configurations (for debugging)",
     no_args_is_help=True,
 )
 app.add_typer(eval_app, name="eval")
@@ -495,6 +495,36 @@ def eval_nixos_cmd(
 
 
 @eval_app.command(
+    "home",
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
+)
+def eval_home_cmd(
+    ctx: typer.Context,
+    configuration: str = typer.Argument(
+        help="Home-manager configuration name to evaluate"
+    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+):
+    """Evaluate a home-manager configuration (get .drv path without building).
+
+    Useful for debugging infinite recursion and evaluation errors.
+
+    Extra arguments after -- are passed directly to nix eval.
+    Example: ncf eval home myconfig -- --debugger
+    """
+    verbosity = 0 if quiet else (2 if verbose else 1)
+    extra_nix_args = list(ctx.args) if ctx.args else None
+    eval.run_home(
+        configuration=configuration,
+        verbosity=verbosity,
+        dry_run=dry_run,
+        extra_nix_args=extra_nix_args,
+    )
+
+
+@eval_app.command(
     "all",
     context_settings={"allow_extra_args": True, "allow_interspersed_args": True},
 )
@@ -510,7 +540,7 @@ def eval_all_cmd(
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
 ):
-    """Evaluate all NixOS configurations in parallel.
+    """Evaluate all NixOS and home-manager configurations in parallel.
 
     Useful for debugging which configuration is causing evaluation errors.
 

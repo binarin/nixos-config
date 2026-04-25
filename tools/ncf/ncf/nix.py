@@ -300,3 +300,18 @@ def get_nixos_configurations(runner: Optional[NixRunner] = None) -> list[str]:
         apply="builtins.attrNames",
     )
     return json.loads(result.stdout)
+
+
+def get_home_configurations(runner: Optional[NixRunner] = None) -> list[str]:
+    """Get list of all homeConfigurations from the flake."""
+    import json
+
+    if runner is None:
+        runner = NixRunner()
+
+    result = runner.run_eval(
+        ".#homeConfigurations",
+        json_output=True,
+        apply="builtins.attrNames",
+    )
+    return json.loads(result.stdout)
