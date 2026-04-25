@@ -1,6 +1,7 @@
 """Deploy commands for ncf."""
 
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -333,6 +334,7 @@ def run_all(
     jobs: str = "auto",
     dry_run: bool = False,
     extra_nix_args: Optional[list[str]] = None,
+    exclude_pattern: Optional[str] = None,
 ) -> bool:
     """Deploy all deployable machines.
 
@@ -350,6 +352,23 @@ def run_all(
     if not deploy_nodes:
         console.print("[yellow]No deploy nodes found[/yellow]")
         return True
+
+    # Filter out excluded nodes
+    if exclude_pattern:
+        try:
+            exclude_re = re.compile(exclude_pattern)
+        except re.error as e:
+            console.print(f"[red]Invalid exclude pattern: {e}[/red]")
+            return False
+        excluded = [n for n in deploy_nodes if exclude_re.search(n)]
+        deploy_nodes = [n for n in deploy_nodes if not exclude_re.search(n)]
+        if excluded:
+            console.print(
+                f"[dim]Excluding {len(excluded)} machines: {', '.join(excluded)}[/dim]"
+            )
+        if not deploy_nodes:
+            console.print("[yellow]No machines left after exclusions[/yellow]")
+            return True
 
     console.print(f"[bold]Deploying {len(deploy_nodes)} machines[/bold]")
     for node in deploy_nodes:

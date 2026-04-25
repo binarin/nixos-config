@@ -1280,6 +1280,9 @@ def deploy_all_cmd(
     ),
     jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+    exclude: str | None = typer.Option(
+        None, "--exclude", "-x", help="Regexp to exclude configurations from deployment"
+    ),
 ):
     """Deploy all deployable machines sequentially.
 
@@ -1294,6 +1297,7 @@ def deploy_all_cmd(
         ncf deploy-all
         ncf deploy-all --boot
         ncf deploy-all --no-rollback --no-stop-on-failure
+        ncf deploy-all --exclude 'test-.*'
     """
     import sys
 
@@ -1319,6 +1323,7 @@ def deploy_all_cmd(
         jobs=jobs,
         dry_run=dry_run,
         extra_nix_args=extra_nix_args,
+        exclude_pattern=exclude,
     )
 
     if not success:
