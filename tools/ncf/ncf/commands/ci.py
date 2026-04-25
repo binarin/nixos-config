@@ -149,6 +149,33 @@ def get_deploy_nodes() -> list[str]:
     return json.loads(result.stdout)
 
 
+def get_deploy_profiles() -> list[tuple[str, str]]:
+    """Get list of all deploy profiles as (node, profile) tuples."""
+    repo_root = config.find_repo_root()
+    result = run_command(
+        [
+            "nix",
+            "eval",
+            "--json",
+            ".#deploy.nodes",
+            "--apply",
+            """
+            nodes: builtins.concatLists (
+              builtins.attrValues (
+                builtins.mapAttrs (nodeName: node:
+                  map (profileName: { inherit nodeName profileName; })
+                      (builtins.attrNames (node.profiles or {}))
+                ) nodes
+              )
+            )
+            """,
+        ],
+        cwd=repo_root,
+    )
+    profiles = json.loads(result.stdout)
+    return [(p["nodeName"], p["profileName"]) for p in profiles]
+
+
 def get_packages(system: str = "x86_64-linux") -> list[str]:
     """Get list of all packages from the flake for a given system."""
     repo_root = config.find_repo_root()
@@ -200,37 +227,69 @@ def get_checks(system: str = "x86_64-linux") -> list[str]:
     return json.loads(result.stdout)
 
 
+def get_home_configurations() -> list[str]:
+    """Get list of all homeConfigurations from the flake."""
+    repo_root = config.find_repo_root()
+    result = run_command(
+        [
+            "nix",
+            "eval",
+            "--json",
+            ".#homeConfigurations",
+            "--apply",
+            "builtins.attrNames",
+        ],
+        cwd=repo_root,
+    )
+    return json.loads(result.stdout)
+
+
 def get_matrix_entries() -> list[str]:
     """Get list of prefixed matrix entries for CI.
 
     Returns entries with prefixes:
-    - d:<name> for deployable configurations (have deploy-rs nodes)
-    - c:<name> for regular configurations (no deploy-rs nodes)
+    - d:<profile>:<node> for deploy-rs profiles (e.g., d:system:acme, d:user:b-adb-k)
+    - c:<name> for nixosConfigurations not in any deploy node
+    - h:<name> for homeConfigurations (standalone builds)
     - p:<name> for x86_64-linux packages
     - s:<name> for x86_64-linux devshells
+    - k:<name> for x86_64-linux checks
     """
     result = []
-    deploy_nodes = get_deploy_nodes()
 
-    # Get NixOS configurations
+    # Get all deploy profiles
+    try:
+        deploy_profiles = get_deploy_profiles()
+        deployed_nodes = {node for node, _ in deploy_profiles}
+        for node, profile in deploy_profiles:
+            result.append(f"d:{profile}:{node}")
+    except Exception as e:
+        console.print(f"[yellow]Warning: Could not get deploy profiles: {e}[/yellow]")
+        deployed_nodes = set()
+
+    # Get NixOS configurations not covered by deploy nodes
     configs = get_nixos_configurations()
     for cfg in configs:
+        if cfg in deployed_nodes:
+            continue
         try:
             ci_config = get_ci_config(cfg)
             if ci_config.get("doBuild", True):
-                if cfg in deploy_nodes:
-                    result.append(f"d:{cfg}")
-                else:
-                    result.append(f"c:{cfg}")
+                result.append(f"c:{cfg}")
         except Exception as e:
             # If we can't get CI config, include it by default
             console.print(
                 f"[yellow]Warning: Could not get CI config for {cfg}: {e}[/yellow]"
             )
-            if cfg in deploy_nodes:
-                result.append(f"d:{cfg}")
-            else:
-                result.append(f"c:{cfg}")
+            result.append(f"c:{cfg}")
+
+    # Get homeConfigurations (standalone builds)
+    try:
+        home_configs = get_home_configurations()
+        for cfg in home_configs:
+            result.append(f"h:{cfg}")
+    except Exception as e:
+        console.print(f"[yellow]Warning: Could not get homeConfigurations: {e}[/yellow]")
 
     # Get packages for x86_64-linux
     try:
@@ -263,23 +322,36 @@ def get_build_path(entry: str) -> str:
     """Get the nix build path for a matrix entry.
 
     Handles prefixed entries:
-    - d:<name> -> deploy-rs path
+    - d:<profile>:<node> -> deploy-rs profile path (e.g., d:system:acme, d:user:b-adb-k)
     - c:<name> -> nixosConfiguration toplevel
+    - h:<name> -> homeConfiguration activationPackage
     - p:<name> -> package for x86_64-linux
     - s:<name> -> devShell for x86_64-linux
+    - k:<name> -> check for x86_64-linux
     - <name> (no prefix) -> legacy behavior, check deploy nodes
     """
     if ":" in entry:
-        prefix, name = entry.split(":", 1)
+        parts = entry.split(":", 2)
+        prefix = parts[0]
         if prefix == "d":
-            return f".#deploy.nodes.{name}.profiles.system.path"
+            if len(parts) != 3:
+                raise ValueError(f"Invalid deploy entry format: {entry}, expected d:<profile>:<node>")
+            profile, node = parts[1], parts[2]
+            return f".#deploy.nodes.{node}.profiles.{profile}.path"
         elif prefix == "c":
+            name = parts[1]
             return f".#nixosConfigurations.{name}.config.system.build.toplevel"
+        elif prefix == "h":
+            name = parts[1]
+            return f".#homeConfigurations.{name}.activationPackage"
         elif prefix == "p":
+            name = parts[1]
             return f".#packages.x86_64-linux.{name}"
         elif prefix == "s":
+            name = parts[1]
             return f".#devShells.x86_64-linux.{name}"
         elif prefix == "k":
+            name = parts[1]
             return f".#checks.x86_64-linux.{name}"
         else:
             raise ValueError(f"Unknown prefix: {prefix}")
@@ -296,23 +368,31 @@ def expand_matrix_entry(entry: str) -> str:
     """Expand a matrix entry prefix to a human-readable name.
 
     Expands prefixes to descriptive names:
-    - d:<name> -> deployable-<name>
+    - d:<profile>:<node> -> deploy-<profile>-<node>
     - c:<name> -> nixos-config-<name>
+    - h:<name> -> home-config-<name>
     - p:<name> -> package-<name>
     - s:<name> -> devshell-<name>
+    - k:<name> -> check-<name>
     """
     if ":" in entry:
-        prefix, name = entry.split(":", 1)
+        parts = entry.split(":", 2)
+        prefix = parts[0]
         if prefix == "d":
-            return f"deployable-{name}"
+            if len(parts) != 3:
+                raise ValueError(f"Invalid deploy entry format: {entry}")
+            profile, node = parts[1], parts[2]
+            return f"deploy-{profile}-{node}"
         elif prefix == "c":
-            return f"nixos-config-{name}"
+            return f"nixos-config-{parts[1]}"
+        elif prefix == "h":
+            return f"home-config-{parts[1]}"
         elif prefix == "p":
-            return f"package-{name}"
+            return f"package-{parts[1]}"
         elif prefix == "s":
-            return f"devshell-{name}"
+            return f"devshell-{parts[1]}"
         elif prefix == "k":
-            return f"check-{name}"
+            return f"check-{parts[1]}"
         else:
             raise ValueError(f"Unknown prefix: {prefix}")
     else:
