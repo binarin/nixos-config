@@ -32,6 +32,7 @@ in
 
       config = {
         nixpkgs.overlays = [
+          inputs.hyprland.overlays.default
           inputs.hyprland-contrib.overlays.default
         ];
 
@@ -42,7 +43,7 @@ in
 
         programs.hyprlock.enable = true;
         programs.hyprland.enable = true;
-        programs.hyprland.package = inputs.hyprland.packages."${pkgs.stdenv.hostPlatform.system}".hyprland;
+        # programs.hyprland.package = inputs.hyprland.packages."${pkgs.stdenv.hostPlatform.system}".hyprland;
         programs.hyprland.withUWSM = true;
 
         home-manager.sharedModules = [
@@ -61,7 +62,7 @@ in
       ...
     }:
     let
-      shellevents = inputs.hyprland-contrib.packages."${pkgs.stdenv.hostPlatform.system}".shellevents;
+      shellevents = pkgs.shellevents; # inputs.hyprland-contrib.packages."${pkgs.stdenv.hostPlatform.system}".shellevents;
       out-u4025qw = "Dell Inc. DELL U4025QW J7Q6FP3";
       out-lg-dualup-left = "LG Electronics LG SDQHD 311NTQDAC572";
       out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
