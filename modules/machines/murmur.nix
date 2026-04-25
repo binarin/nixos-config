@@ -75,6 +75,7 @@
           self.overlays.sicstus-manual
           self.overlays.lan-mouse
           inputs.niri.overlays.default
+          inputs.nix-ai-tools.overlays.shared-nixpkgs
           (final: prev: {
             # bubblewrap = final.writeShellScriptBin "bwrap" ''
             #   exec /usr/bin/bwrap "$@"
@@ -135,7 +136,7 @@
           xwayland-satellite
           go_1_26
         ])
-        ++ (with inputs'.nix-ai-tools.packages; [
+        ++ (with pkgs.llm-agents; [
           claude-code
           workmux
         ]);
@@ -351,7 +352,7 @@
       home.username = "allebedev";
       home.homeDirectory = "/home/allebedev";
 
-      home.packages = with inputs'.nix-ai-tools.packages; [
+      home.packages = with pkgs.llm-agents; [
         claude-code
         workmux
       ];

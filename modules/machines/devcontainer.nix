@@ -22,6 +22,7 @@
       imports = [
         self.nixosModules.baseline
         self.nixosModules.impermanence
+        self.nixosModules.ai-tools
         {
           home-manager.users.binarin = self.homeModules.ai-tools;
         }
