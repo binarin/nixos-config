@@ -211,7 +211,6 @@ in
                 "tmux"
                 "btop"
                 "fzf"
-                "zellij"
               ]
               (_nm: {
                 enable = true;

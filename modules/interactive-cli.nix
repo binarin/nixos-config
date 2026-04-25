@@ -108,10 +108,6 @@ in
 
           services.ssh-agent.enable = pkgs.stdenv.isLinux;
 
-          programs.zellij = {
-            enable = true;
-          };
-
           programs.zsh = {
             shellAliases = {
               o = "xdg-open";
