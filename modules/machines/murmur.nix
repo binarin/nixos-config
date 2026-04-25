@@ -320,6 +320,11 @@
         self.homeModules.standalone-home-manager-zsh
       ];
 
+      nixpkgs.config.allowUnfree = true;
+      nixpkgs.overlays = [
+        inputs.nix-ai-tools.overlays.shared-nixpkgs
+      ];
+
       xdg.enable = false;
       programs.zsh.dotDir = config.home.homeDirectory;
 

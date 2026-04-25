@@ -26,7 +26,10 @@
       services.syncthing = {
         enable = true;
         # tray.enable = true;
-        passwordFile = config.sops.secrets."syncthing-ui-password".path;
+        guiCredentials = {
+          username = "binarin";
+          passwordFile = config.sops.secrets."syncthing-ui-password".path;
+        };
         settings = {
           devices = {
             pixel8.id = "ROLQIQ6-OEAMVJA-KRM4IDA-KOGUXR6-RZW3LRR-C6VZSAF-LZL5ZEV-PWAQTQL";
