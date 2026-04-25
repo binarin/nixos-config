@@ -56,7 +56,7 @@ let
   emacsBinaryWrapper = writeShellApplication {
     name = "emacs-env-aware-wrapper";
     text = ''
-      init_directory="${flakyConfigDir}"
+      init_directory="${flakyConfigDir { inherit emacsWithPackages; }}"
       if [[ -n ''${HOME+x} && -d "$HOME/${impureConfigDir}" ]]; then
          init_directory="$HOME/${impureConfigDir}"
       fi

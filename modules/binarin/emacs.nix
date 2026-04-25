@@ -21,7 +21,20 @@ in
         base:
         final.callPackage ../../packages/my-emacs {
           emacsBasePackage = base;
-          flakyConfigDir = selfLib.dir "emacs";
+          flakyConfigDir =
+            { emacsWithPackages, ... }:
+            final.stdenv.mkDerivation {
+              name = "user-init-dir";
+              src = selfLib.dir "emacs";
+              buildPhase = ''
+                mkdir "$out"
+                ${final.lib.getExe final.rsync} -a "$src/" "$out/"
+                chmod -R u+rwX "$out"
+                ${final.lib.getExe emacsWithPackages} --init-directory "$out" --batch --eval \
+                   '(let ((no-native-compile t))
+                      (prepare-user-lisp nil "'"$out"'/user-lisp/.user-lisp-autoloads.el" t))'
+              '';
+            };
         };
     in
     {
