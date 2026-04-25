@@ -29,12 +29,6 @@
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-    hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-      inputs.pre-commit-hooks.follows = "pre-commit-hooks";
-    };
-
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
 
     waybar.url = "github:Alexays/Waybar";

@@ -11,8 +11,8 @@ in
 {
   flake-file.inputs = {
     hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      url = "github:hyprwm/Hyprland/v0.54.3";
+      inputs.nixpkgs.follows = "nixpkgs";
       inputs.pre-commit-hooks.follows = "pre-commit-hooks";
     };
     hyprland-contrib = {

@@ -53,9 +53,9 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     hyprland = {
-      url = "github:hyprwm/Hyprland";
+      url = "github:hyprwm/Hyprland/v0.54.3";
       inputs = {
-        nixpkgs.follows = "nixpkgs-unstable";
+        nixpkgs.follows = "nixpkgs";
         pre-commit-hooks.follows = "pre-commit-hooks";
       };
     };
@@ -80,7 +80,7 @@
     };
     nix-ai-tools = {
       url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
@@ -100,7 +100,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-    nixpkgs-lib.follows = "nixpkgs";
     nixpkgs-trezor-agent.url = "github:nixos/nixpkgs?rev=41e216c0ca66c83b12ab7a98cc326b5db01db646";
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
