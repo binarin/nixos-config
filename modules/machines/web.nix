@@ -204,6 +204,7 @@ in
 
       services.librechat = {
         enable = true;
+        package = inputs.nixpkgs-unstable.legacyPackages."${pkgs.stdenv.hostPlatform.system}".librechat;
         credentials = {
           CREDS_KEY = config.clan.core.vars.generators.librechat.files.creds-key.path;
           CREDS_IV = config.clan.core.vars.generators.librechat.files.creds-iv.path;
