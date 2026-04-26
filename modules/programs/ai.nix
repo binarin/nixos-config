@@ -49,6 +49,7 @@
 
       impermanence.persist-directories = [
         ".claude"
+        ".pi"
       ];
     };
 }
