@@ -121,7 +121,7 @@ def create_auth_key(
     token: str,
     tags: list[str],
     reusable: bool = False,
-    ephemeral: bool = True,
+    ephemeral: bool = False,
     preauthorized: bool = True,
     expiry_seconds: int = 3600,
     description: str = "ncf-generated",
@@ -302,7 +302,7 @@ def load_oauth_credentials(secrets_file: Optional[Path] = None) -> tuple[str, st
 
 def run_auth_key(
     reusable: bool = False,
-    ephemeral: bool = True,
+    ephemeral: bool = False,
     preauthorized: bool = True,
     expiry_seconds: int = 3600,
     tags: Optional[list[str]] = None,
