@@ -27,15 +27,20 @@
         self.homeModules.claude-completion
       ];
 
-      home.packages = with pkgs.llm-agents; [
-        claude-code
-        # claude-code-acp
-        # claude-code-router
-        # gemini-cli
-        # opencode
-        # pi
-        workmux
-      ];
+      home.packages =
+        with pkgs.llm-agents;
+        [
+          claude-code
+          # claude-code-acp
+          # claude-code-router
+          # gemini-cli
+          # opencode
+          # pi
+          workmux
+        ]
+        ++ [
+          inputs'.nix-ai-tools.packages.pi
+        ];
 
       home.file.".claude/skills/".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/claude-skills";
