@@ -5,10 +5,46 @@
       pkgs,
       lib,
       config,
+      osConfig,
       ...
     }:
+    let
+      sshHosts = {
+        pi-box = {
+          overrides = {
+            "colors.background" = "001800";
+          };
+        };
+      };
+    in
+
     {
       key = "nixos-config.modules.home.binarin-ssh";
+
+      xdg.dataFile = lib.mkIf osConfig.services.graphical-desktop.enable (
+        with lib;
+        (flip mapAttrs') sshHosts (
+          host: opts:
+          let
+            overridesStr = pipe opts.overrides [
+              (mapAttrsToList (k: v: "--override=${escapeShellArg k}=${escapeShellArg v}"))
+              (concatStringsSep " ")
+            ];
+          in
+          nameValuePair "applications/ssh-${host}.desktop" {
+            text = ''
+              [Desktop Entry]
+              Name=ssh to ${host}
+              Exec=foot-unique-window "SSH|${host}" ${overridesStr} -e mosh ${host} -- tmux new-session -A -s binarin
+              Type=Application
+              Terminal=false
+              Categories=System;
+              Icon=foot
+            '';
+          }
+        )
+      );
+
       programs.ssh = {
         enable = true;
         enableDefaultConfig = false;
