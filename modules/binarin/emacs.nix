@@ -12,6 +12,9 @@ in
     emacs-overlay.url = "emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
+
+    emacs-tramp-rpc.url = "github:ArthurHeymans/emacs-tramp-rpc?rev=91074e16f34d405479760b8d85d36c2436bf3e4f";
+    emacs-tramp-rpc.flake = false;
   };
 
   flake.overlays.my-emacs =
@@ -21,6 +24,16 @@ in
         base:
         final.callPackage ../../packages/my-emacs {
           emacsBasePackage = base;
+          emacsPackagesFn = epkgs: [
+            (epkgs.melpaBuild {
+              pname = "tramp-rpc";
+              version = "0.8.0";
+              src = inputs.emacs-tramp-rpc;
+              packageRequires = with epkgs; [
+                msgpack
+              ];
+            })
+          ];
           flakyConfigDir =
             { emacsWithPackages, ... }:
             final.stdenv.mkDerivation {
@@ -41,6 +54,7 @@ in
       my-emacs = emacsMaker final.emacs-git-nox;
       my-emacs-nox = emacsMaker final.emacs-git-nox;
       my-emacs-pgtk = emacsMaker final.emacs-git-pgtk;
+      tramp-rpc-server = final.callPackage "${inputs.emacs-tramp-rpc}/default.nix" { };
     };
 
   perSystem =
@@ -83,8 +97,9 @@ in
         self.overlays.waybar-org-clock
       ];
 
-      environment.systemPackages = [
-        pkgs.my-emacs
+      environment.systemPackages = with pkgs; [
+        my-emacs
+        tramp-rpc-server
       ];
     };
 

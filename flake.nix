@@ -35,6 +35,10 @@
         nixpkgs-stable.follows = "nixpkgs";
       };
     };
+    emacs-tramp-rpc = {
+      url = "github:ArthurHeymans/emacs-tramp-rpc?rev=91074e16f34d405479760b8d85d36c2436bf3e4f";
+      flake = false;
+    };
     flake-file.url = "github:vic/flake-file";
     flake-parts = {
       url = "github:hercules-ci/flake-parts";

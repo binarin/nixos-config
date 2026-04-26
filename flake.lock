@@ -402,6 +402,23 @@
         "type": "indirect"
       }
     },
+    "emacs-tramp-rpc": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776974183,
+        "narHash": "sha256-Gvf8d593nwiCsXKmzvZFwGTL8pRepkCBMY1+U/q5ZdE=",
+        "owner": "ArthurHeymans",
+        "repo": "emacs-tramp-rpc",
+        "rev": "91074e16f34d405479760b8d85d36c2436bf3e4f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ArthurHeymans",
+        "repo": "emacs-tramp-rpc",
+        "rev": "91074e16f34d405479760b8d85d36c2436bf3e4f",
+        "type": "github"
+      }
+    },
     "firefox-gnome-theme": {
       "flake": false,
       "locked": {
@@ -1794,6 +1811,7 @@
         "direnv-instant": "direnv-instant",
         "disko": "disko",
         "emacs-overlay": "emacs-overlay",
+        "emacs-tramp-rpc": "emacs-tramp-rpc",
         "flake-file": "flake-file",
         "flake-parts": "flake-parts_4",
         "home-manager": "home-manager",

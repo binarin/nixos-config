@@ -12,6 +12,7 @@
   emacsPackagesFor,
 
   emacsBasePackage,
+  emacsPackagesFn ? (_: [ ]),
   extraPackages ? [ ],
   impureConfigDir ? "personal-workspace/nixos-config/files/emacs",
   flakyConfigDir,
@@ -21,7 +22,9 @@ let
   mkEmacsWithPackages =
     basePackage:
     (emacsPackagesFor basePackage).emacsWithPackages (
-      e: with e; [
+      e:
+      with e;
+      [
         anki-editor
         avy
         bazel
@@ -49,6 +52,7 @@ let
         zenburn-theme
         treesit-grammars.with-all-grammars
       ]
+      ++ emacsPackagesFn e
     );
 
   emacsWithPackages = mkEmacsWithPackages emacsBasePackage;
