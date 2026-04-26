@@ -2,7 +2,12 @@
 {
 
   flake.nixosModules.binarin-podman =
-    { pkgs, ... }:
+    {
+      pkgs,
+      config,
+      lib,
+      ...
+    }:
     {
       key = "nixos-config.modules.nixos.binarin-podman";
 
@@ -26,6 +31,26 @@
       environment.systemPackages = with pkgs; [
         distrobox
       ];
+
+      environment.etc."distrobox/distrobox.conf".text =
+        let
+          roVolumes = [
+            "/nix/store"
+          ]
+          ++ (lib.optionals config.impermanence.enable [
+            "/persist"
+            "/local"
+          ]);
+          volumesStr =
+            with lib;
+            pipe roVolumes [
+              (map (v: "${v}:${v}:ro"))
+              (concatStringsSep " ")
+            ];
+        in
+        ''
+          container_additional_volumes="${volumesStr}"
+        '';
 
       home-manager.users.binarin = self.homeModules.binarin-podman;
     };
