@@ -134,7 +134,10 @@ in
           '';
         };
         networking.hostId = lib.mkForce (
-          lib.trim config.clan.core.vars.generators.hostId.files.hostId.value
+          if config.clan.core.vars.generators.hostId.files.hostId ? value then
+            lib.trim config.clan.core.vars.generators.hostId.files.hostId.value
+          else
+            "00000000"
         );
       };
     };

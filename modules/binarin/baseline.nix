@@ -233,6 +233,7 @@ in
       programs.starship = {
         enable = true;
         settings = {
+          container.disabled = true; # that one is kinda strange, i.e. showing 'Systemd' on proxmox LXC containers
           username = {
             style_user = "blue bold";
             style_root = "red bold";

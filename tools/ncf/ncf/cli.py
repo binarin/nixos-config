@@ -22,6 +22,7 @@ from .commands import (
     eval,
     generate,
     init_machine,
+    ip_allocate,
     ipam_cmd,
     iso,
     iso_installer,
@@ -654,6 +655,51 @@ def ci_external_deps_cmd():
     showing which modules use each tool and for what purpose.
     """
     ci.run_external_deps()
+
+
+@machine_app.command("ip-allocate")
+def machine_ip_allocate_cmd(
+    hostname: str = typer.Argument(help="Hostname to allocate an IP for"),
+    network: str = typer.Option(
+        "home", "--network", "-n", help="Network name for IP allocation"
+    ),
+    tag: list[str] = typer.Option(
+        ["primary"],
+        "--tag",
+        "-t",
+        help="Allocation tags (repeatable, default: primary)",
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be done without making changes"
+    ),
+):
+    """Allocate an IP for a machine in a network.
+
+    Checks if the hostname is already allocated with the given tags in the
+    specified network's .toml file. If it is, reports the existing allocation
+    and optionally updates the MAC address from the host ID.
+
+    If not allocated, finds the first available IP address and adds the
+    allocation to the network file.
+
+    If the machine has a non-zero hostId (evaluated from
+    nix eval .#nixosConfigurations.<hostname>.config.networking.hostId),
+    the MAC address is automatically set to 02:00:<host-id-4-bytes> format.
+    If the hostId cannot be evaluated (missing or error), a short warning
+    is printed and the MAC is left untouched.
+
+    Examples:
+        ncf machine ip-allocate myhost
+        ncf machine ip-allocate myhost --network home
+        ncf machine ip-allocate myhost --tag primary --tag eth
+        ncf machine ip-allocate myhost --dry-run
+    """
+    ip_allocate.run(
+        hostname=hostname,
+        network=network,
+        tags=list(tag) if tag else None,
+        dry_run=dry_run,
+    )
 
 
 @machine_app.command("add")
