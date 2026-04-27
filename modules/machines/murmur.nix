@@ -279,7 +279,7 @@
   };
 
   flake.homeModules.standalone-home-manager-zsh =
-    { ... }:
+    { lib, ... }:
     {
       key = "nixos-config.modules.home.standalone-home-manager-zsh";
       programs.zsh.envExtra = ''
@@ -336,11 +336,20 @@
         export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
       '';
 
-      programs.zsh.initContent = ''
-        if type -p bk > /dev/null ; then
-          source <(bk completion zsh)
-        fi
-      '';
+      programs.zsh.initContent = lib.mkMerge [
+        (lib.mkOrder 500 ''
+          if [[ $TERM == "dumb" ]]; then
+            unsetopt zle
+            PS1='$ '
+            return
+          fi
+        '')
+        ''
+          if type -p bk > /dev/null ; then
+            source <(bk completion zsh)
+          fi
+        ''
+      ];
 
       home.activation.we-own-the-configs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
         $DRY_RUN_CMD rm -f ~/.zshrc ~/.zshenv ~/.bash_profile ~/.bashrc ~/.profile
