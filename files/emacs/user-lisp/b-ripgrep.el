@@ -185,6 +185,7 @@ function properly")
   (add-hook 'compilation-filter-hook #'b/ripgrep-filter nil t))
 
 
+(autoload 'map-delete "map")
 (cl-defun b/ripgrep (needle &rest command-args &key name-function &allow-other-keys)
   (interactive
    (let ((pattern (read-from-minibuffer "Ripgrep: " nil nil nil 'b/ripgrep-history)))
@@ -193,6 +194,7 @@ function properly")
                             (map-delete command-args :name-function))
 		     #'b/ripgrep-mode
                      name-function))
+
 
 (defvar b/ripgrep-main-target "/rpc:murmur:/usr/local/git_tree/main")
 (cl-defun b/ripgrep-main (needle)
