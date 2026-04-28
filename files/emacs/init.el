@@ -137,7 +137,7 @@
 
 (use-package hyperbole
   :ensure nil
+  :no-require t
   :bind (("<f22>" . hkey-either)))
-
 
 (require 'b-server)
