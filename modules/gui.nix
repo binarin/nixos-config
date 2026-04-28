@@ -13,7 +13,6 @@ in
     {
       key = "nixos-config.modules.nixos.gui";
       config = {
-
         services.avahi = lib.mkIf (!config.networking.useNetworkd) {
           enable = true;
           nssmdns4 = true;

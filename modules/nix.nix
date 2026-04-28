@@ -23,6 +23,7 @@ in
         overlays = [
           inputs.emacs-overlay.overlays.default
           self.overlays.my-emacs
+          self.overlays.my-google-chrome
         ];
         config = nixpkgsConfig;
       };

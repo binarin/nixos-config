@@ -42,6 +42,9 @@
         "qtwebengine-5.15.19"
       ];
 
+      nixpkgs.overlays = [
+        self.overlays.my-google-chrome
+      ];
     };
 
   flake.homeModules.binarin-workstation =
