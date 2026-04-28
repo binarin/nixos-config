@@ -84,6 +84,7 @@ in
       guiPackages = with pkgs; [
         slack
         chromium
+        google-chrome
         element-desktop
         evince
         flacon

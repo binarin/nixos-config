@@ -15,6 +15,17 @@
             "colors.background" = "001800";
           };
         };
+        murmur = {
+          overrides = {
+            "colors.background" = "001800";
+          };
+        };
+        "db.k.b" = {
+          remoteShell = "ssh -t";
+          overrides = {
+            "colors.background" = "180000";
+          };
+        };
       };
     in
 
@@ -24,7 +35,11 @@
       xdg.dataFile = lib.mkIf osConfig.services.graphical-desktop.enable (
         with lib;
         (flip mapAttrs') sshHosts (
-          host: opts:
+          host:
+          opts@{
+            remoteShell ? "mosh",
+            ...
+          }:
           let
             overridesStr = pipe opts.overrides [
               (mapAttrsToList (k: v: "--override=${escapeShellArg k}=${escapeShellArg v}"))
@@ -35,7 +50,7 @@
             text = ''
               [Desktop Entry]
               Name=ssh to ${host}
-              Exec=foot-unique-window "SSH|${host}" ${overridesStr} -e mosh ${host} -- tmux new-session -A -s binarin
+              Exec=foot-unique-window "SSH|${host}" ${overridesStr} -e ${remoteShell} ${host} -- tmux -u new-session -A -D -s binarin
               Type=Application
               Terminal=false
               Categories=System;
