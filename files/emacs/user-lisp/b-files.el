@@ -15,6 +15,13 @@
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (setf tramp-ssh-controlmaster-options ""))
 
+(use-package tramp-rpc
+  :ensure nil
+  :no-require t
+  :defines (tramp-rpc-deploy-never-deploy)
+  :config
+  (setf tramp-rpc-deploy-never-deploy t))
+
 (require 'recentf)
 (setf recentf-max-saved-items 200
       recentf-auto-cleanup 300
