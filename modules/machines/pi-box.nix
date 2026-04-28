@@ -56,5 +56,50 @@ in
       };
 
       nixos-config.export-metrics.enable = false;
+      home-manager.users.binarin = self.homeModules.pi-box-binarin;
+
+      clan.core.vars.generators.forgejo = {
+        prompts.api-key.description = "forgejo api key";
+        files.api-key = { };
+        script = ''
+          cat $prompts/api-key > $out/api-key
+        '';
+      };
+
+      clan.core.vars.generators.binarin-git-credentials = {
+        dependencies = [ "forgejo" ];
+        files.credentials = {
+          owner = "binarin";
+          group = "binarin";
+          mode = "0600";
+        };
+        script = ''
+          api_key="$(cat $in/forgejo/api-key)"
+          cat <<EOF > $out/credentials
+          https://pi-box:$api_key@forgejo.lynx-lizard.ts.net
+          EOF
+        '';
+      };
     };
+
+  flake.homeModules.pi-box-binarin =
+    {
+      osConfig,
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      key = "nixos-config.modules.home.pi-box-binarin";
+
+      home.sessionVariables.FJ_FALLBACK_HOST = "https://forgejo.lynx-lizard.ts.net";
+
+      programs.git.settings = {
+        credential.helper = "store --file ${osConfig.clan.core.vars.generators.binarin-git-credentials.files.credentials.path}";
+
+      };
+
+    };
+
 }
