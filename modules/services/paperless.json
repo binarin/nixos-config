@@ -1,5 +1,5 @@
 {
-  "webserver": "2.20.14",
+  "webserver": "2.20.15",
   "db": "16.6",
   "broker": "7.4",
   "gotenberg": "8.31.0",
