@@ -135,5 +135,9 @@
   :ensure nil
   :bind (("<f23>" . avy-goto-char-timer)))
 
+(use-package hyperbole
+  :ensure nil
+  :bind (("<f22>" . hkey-either)))
+
 
 (require 'b-server)

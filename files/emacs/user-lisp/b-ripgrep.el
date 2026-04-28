@@ -185,12 +185,22 @@ function properly")
   (add-hook 'compilation-filter-hook #'b/ripgrep-filter nil t))
 
 
-(defun b/ripgrep (needle)
+(cl-defun b/ripgrep (needle &rest command-args &key name-function &allow-other-keys)
   (interactive
    (let ((pattern (read-from-minibuffer "Ripgrep: " nil nil nil 'b/ripgrep-history)))
      (list pattern)))
-  (compilation-start (b/ripgrep-command needle :heading b/ripgrep-use-headings)
-		     #'b/ripgrep-mode))
+  (compilation-start (apply #'b/ripgrep-command needle :heading b/ripgrep-use-headings
+                            (map-delete command-args :name-function))
+		     #'b/ripgrep-mode
+                     name-function))
+
+(defvar b/ripgrep-main-target "/rpc:murmur:/usr/local/git_tree/main")
+(cl-defun b/ripgrep-main (needle)
+  (interactive "sPattern: ")
+  (let ((default-directory b/ripgrep-main-target))
+    (b/ripgrep needle
+               :name-function #'(lambda (_mode) (format "*ripgrep-main: %s*" needle))
+               :pattern-type 'auto)))
 
 (defun b/ripgrep-project (project)
   (interactive
