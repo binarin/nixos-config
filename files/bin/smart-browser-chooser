@@ -3,15 +3,20 @@ set -euo pipefail
 
 url="$1"
 
-# Strip protocol, path, and port to get the bare hostname
-host="${url#*://}"
-host="${host%%/*}"
-host="${host%%:*}"
+# Split into host and path
+url_no_proto="${url#*://}"
+hostpart="${url_no_proto%%/*}"
+host="${hostpart%%:*}"    # strip port from host only
+rest="${url_no_proto#*/}"
+if [[ "$rest" != "$url_no_proto" ]]; then
+    path="/$rest"
+else
+    path=""
+fi
 
-# List of ERE patterns for Chrome routing.
-# Each pattern is matched against the hostname via [[ $host =~ pattern ]].
-# Add new routes as additional entries in this array.
-chrome_patterns=(
+# List of ERE patterns for Chrome routing against the hostname alone.
+# Add new host-only routes here.
+chrome_host_patterns=(
     # 'okta' as any dot-separated component of the hostname
     # e.g. mycompany.okta.com, okta.example.com, foo.okta.bar.com
     '(^|\.)okta(\.|$)'
@@ -27,8 +32,22 @@ chrome_patterns=(
     '\.booking\.com$'
 )
 
-for pattern in "${chrome_patterns[@]}"; do
+for pattern in "${chrome_host_patterns[@]}"; do
     if [[ "$host" =~ $pattern ]]; then
+        exec google-chrome-stable "$@"
+    fi
+done
+
+# List of ERE patterns for Chrome routing against "$host$path".
+# Each pattern is matched against the combined "host/path" string.
+# Add new host+path routes here.
+chrome_hostpath_patterns=(
+    '^gitlab\.com/b......-..m'
+)
+
+combined="${host}${path}"
+for pattern in "${chrome_hostpath_patterns[@]}"; do
+    if [[ "$combined" =~ $pattern ]]; then
         exec google-chrome-stable "$@"
     fi
 done
