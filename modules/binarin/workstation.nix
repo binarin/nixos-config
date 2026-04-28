@@ -128,5 +128,17 @@
         ".config/gopass"
         ".config/qmk"
       ];
+
+      systemd.user.services.ssh-agent-alt-1 = {
+        Install.WantedBy = [ "default.target" ];
+        Unit = {
+          Description = "SSH authentication agent - alternative no. 1";
+          Documentation = "man:ssh-agent(1)";
+        };
+        Service = {
+          ExecStart = "${lib.getExe' pkgs.openssh "ssh-agent"} -D -a %h/.ssh/ssh-agent-alt-1.socket";
+          SuccessExitStatus = 2;
+        };
+      };
     };
 }
