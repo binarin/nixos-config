@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+url="$1"
+
+# Strip protocol, path, and port to get the bare hostname
+host="${url#*://}"
+host="${host%%/*}"
+host="${host%%:*}"
+
+# List of ERE patterns for Chrome routing.
+# Each pattern is matched against the hostname via [[ $host =~ pattern ]].
+# Add new routes as additional entries in this array.
+chrome_patterns=(
+    # 'okta' as any dot-separated component of the hostname
+    # e.g. mycompany.okta.com, okta.example.com, foo.okta.bar.com
+    '(^|\.)okta(\.|$)'
+
+    # exact hostnames
+    '^mail\.google\.com$'
+    '^docs\.google\.com$'
+
+    # any subdomain of atlassian.net
+    '\.atlassian\.net$'
+
+    # any subdomain of booking.com
+    '\.booking\.com$'
+)
+
+for pattern in "${chrome_patterns[@]}"; do
+    if [[ "$host" =~ $pattern ]]; then
+        exec google-chrome-stable "$@"
+    fi
+done
+
+# default: firefox
+exec firefox "$@"

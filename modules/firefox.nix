@@ -60,11 +60,19 @@ in
           (pkgs.writeShellScriptBin "x-www-browser" ''
             exec firefox "$@"
           '')
+          (pkgs.writeShellApplication {
+            name = "smart-browser-chooser";
+            runtimeInputs = [ pkgs.google-chrome pkgs.gnugrep ];
+            text = selfLib.read "bin/smart-browser-chooser";
+          })
         ];
 
+        home.file.".local/share/applications/smart-browser-chooser.desktop".source =
+          selfLib.file "smart-browser-chooser.desktop";
+
         xdg.mimeApps.defaultApplications = {
-          "x-scheme-handler/http" = "firefox.desktop";
-          "x-scheme-handler/https" = "firefox.desktop";
+          "x-scheme-handler/http" = "smart-browser-chooser.desktop";
+          "x-scheme-handler/https" = "smart-browser-chooser.desktop";
         };
 
         programs.firefox = {
