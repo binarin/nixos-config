@@ -135,6 +135,7 @@
           wl-clipboard
           xwayland-satellite
           go_1_26
+          tramp-rpc-server
         ])
         ++ (with pkgs.llm-agents; [
           claude-code
