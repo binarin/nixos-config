@@ -23,7 +23,7 @@
   (setf tramp-rpc-deploy-never-deploy t))
 
 (require 'recentf)
-(setf recentf-max-saved-items 200
+(setf recentf-max-saved-items 1000
       recentf-auto-cleanup 300
       recentf-show-messages nil)
 (setopt recentf-autosave-interval 180)
