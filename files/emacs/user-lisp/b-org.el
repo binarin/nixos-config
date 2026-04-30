@@ -503,6 +503,9 @@
   (when (file-exists-p b/org-clock-heading-file)
     (delete-file b/org-clock-heading-file)))
 
+(defun b/force-mode-line-update-all ()
+  (force-mode-line-update t))
+
 (defun b/org-clock-heading-watcher (sym newval operation where)
   (ignore sym where)
   (when (eq operation 'set)
@@ -512,6 +515,8 @@
 
 
 (add-hook 'org-clock-out-hook 'b/org-clock-remove-heading-file)
+(add-hook 'org-clock-out-hook 'b/force-mode-line-update-all)
+(add-hook 'org-clock-in-hook 'b/force-mode-line-update-all)
 
 (setf org-clock-persist 'history)
 (org-clock-persistence-insinuate)
