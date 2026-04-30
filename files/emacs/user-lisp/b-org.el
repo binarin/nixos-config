@@ -138,6 +138,7 @@
           ")
 	 :clock-in t
 	 :clock-keep t
+         :clock-resume t ;; only for cancel case
 	 :hook org-fold-hide-drawer-all
 	 :prepare-finalize b/org-remove-empty-properties-from-capture
 	 :after-finalize b/org-capture-fold-after
@@ -330,6 +331,14 @@
     (message "Syncing org mode changes.")
     (async-shell-command "./push.sh" buffer-name)))
 
+(defun b/full-frame-org-capture--handle-delete-frame (frame)
+  (when-let* ((buffer (frame-parameter frame 'b/full-frame-org-capture-buffer)))
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (message "Killing capture %s" buffer)
+        (org-capture-kill)))))
+
+(add-hook 'delete-frame-functions #'b/full-frame-org-capture--handle-delete-frame)
 
 (defmacro b/with-org-capture-frame (&rest body)
   "BODY should leave org-capture buffer as current"
@@ -341,8 +350,10 @@
 					display-buffer-alist)))
        (with-selected-frame ,frame-var
 	 ,@body
+         (modify-frame-parameters ,frame-var (list (cons 'b/full-frame-org-capture-buffer (current-buffer))))
 	 (add-hook 'kill-buffer-hook
 	           #'(lambda ()
+                       (modify-frame-parameters ,frame-var '((b/full-frame-org-capture-buffer . nil)))
 	               (delete-frame ,frame-var t))
 	           99 t)))))
 
