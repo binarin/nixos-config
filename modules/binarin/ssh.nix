@@ -16,6 +16,7 @@
           };
         };
         murmur = {
+          remoteShell = "ssh -t";
           overrides = {
             "colors.background" = "001800";
           };
