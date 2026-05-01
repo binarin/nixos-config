@@ -42,6 +42,7 @@
 (use-package org
   :ensure nil
   :bind (("C-c a" . org-agenda)
+         ("C-c o b" . b/org-capture-clocked-hypr-ripgrep)
          ("C-c o c" . org-clock-goto)
          ("C-c o g" . b/org-goto-heading)
 	 ("C-c o i" . b/org-clock-in-select)

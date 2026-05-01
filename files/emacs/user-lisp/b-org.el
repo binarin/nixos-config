@@ -106,6 +106,16 @@
     :prepare-finalize b/org-remove-empty-properties-from-capture
     :after-finalize b/org-capture-fold-after))
 
+(defun b/active-region-or-symbol-at-point ()
+  (if (region-active-p)
+      (buffer-substring-no-properties (point) (mark))
+    (current-word)))
+
+;;;###autoload
+(defun b/org-capture-clocked-hypr-ripgrep ()
+  (interactive)
+  (org-capture-string (format "<b/ripgrep-main %s>" (prin1-to-string (b/active-region-or-symbol-at-point))) "Z"))
+
 (setf org-capture-templates
       `(("a" ,@b/anki-basic-card-template)
         ("t" "TODO" entry (file "~/org/refile.org")
