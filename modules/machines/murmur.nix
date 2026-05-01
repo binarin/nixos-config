@@ -323,6 +323,8 @@
 
       nixpkgs.config.allowUnfree = true;
       nixpkgs.overlays = [
+        inputs.emacs-overlay.overlays.default
+        self.overlays.my-emacs
         inputs.nix-ai-tools.overlays.shared-nixpkgs
       ];
 
@@ -367,10 +369,14 @@
       home.username = "allebedev";
       home.homeDirectory = "/home/allebedev";
 
-      home.packages = with pkgs.llm-agents; [
-        claude-code
-        workmux
-      ];
+      home.packages =
+        (with pkgs.llm-agents; [
+          claude-code
+          workmux
+        ])
+        ++ (with pkgs; [
+          tramp-rpc-server
+        ]);
     };
 
 }
