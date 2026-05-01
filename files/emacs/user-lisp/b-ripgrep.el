@@ -201,7 +201,7 @@ function properly")
   (interactive "sPattern: ")
   (let ((default-directory b/ripgrep-main-target))
     (b/ripgrep needle
-               :name-function #'(lambda (_mode) (format "*ripgrep-main: %s*" needle))
+               :name-function #'(lambda (_mode) (format "*ripgrep-main*"))
                :pattern-type 'auto)))
 
 (defun b/ripgrep-project (project)
