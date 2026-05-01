@@ -62,9 +62,6 @@ in
       services.avahi.enable = true;
       nixos-config.export-metrics.enable = true;
       home-manager.users.binarin = self.homeModules.furfur-binarin;
-      environment.systemPackages = with pkgs; [
-        zoom-us
-      ];
 
       nixos-config.nix.accessTokens = {
         "github.com" = "extra-access-tokens/github.com";
