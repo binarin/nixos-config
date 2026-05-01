@@ -24,6 +24,8 @@
   (indent-tabs-mode nil)
   (setf fill-column 120))
 
+(fset 'perl-mode 'cperl-mode)
+
 (use-package cperl-mode
   :ensure nil
   :mode ("\\.\\(pl\\|pm\\)\\'")
