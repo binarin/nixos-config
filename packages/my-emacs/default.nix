@@ -25,6 +25,14 @@ let
       e:
       with e;
       [
+        # experiments
+        apheleia
+        indent-bars
+        persist-text-scale
+        smartparens
+        dumb-jump
+        gptel
+
         anki-editor
         avy
         bazel

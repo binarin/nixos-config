@@ -34,6 +34,7 @@
 (require 'b-compilation)
 (require 'b-version-control)
 (require 'b-ledger)
+(require 'b-gptel)
 
 (use-package b-org
   :ensure nil
