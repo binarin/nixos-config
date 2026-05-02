@@ -165,6 +165,7 @@ in
             pv
             python3
             recode
+            s3cmd
             socat
             sops
             ssh-to-age
