@@ -65,6 +65,14 @@ in
           theme = "sddm-astronaut-theme";
         };
 
+        environment.etc."opt/chrome/policies/managed/extra.json".text = builtins.toJSON {
+          ExternalProtocolDialogShowAlwaysOpenCheckbox = true;
+          URLAllowlist = [
+            "org-protocol://*"
+            "bmeeting://*"
+          ];
+        };
+
         services.flatpak.enable = true;
       };
     };
