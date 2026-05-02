@@ -74,6 +74,8 @@ in
       config = lib.mkMerge [
         {
 
+          programs.aria2.enable = true;
+
           programs.darcs.enable = true;
           programs.doggo.enable = true;
 
