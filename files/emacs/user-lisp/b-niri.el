@@ -7,9 +7,16 @@
 ;;
 ;; --- Frame Visibility Tracking ---
 ;;
-;; Uses the niri IPC `WindowsOnScreenChanged` event which directly reports
-;; per-window `visible_percentage` (0-100). No complex workspace/layout
-;; computation needed — niri tells us exactly which windows are on screen.
+;; Visibility is tracked from two event sources:
+;;
+;; 1. `WindowsOnScreenChanged` — niri reports per-window `visible_percentage`
+;;    (0-100) for scroll-driven changes (viewport panning, window moves).
+;;
+;; 2. `WorkspaceActivated` — workspace switches.  niri does NOT emit
+;;    `WindowsOnScreenChanged` during workspace switches because
+;;    `on_screen_fraction` is computed per-workspace-viewport which
+;;    doesn't change.  Instead we use `WorkspaceActivated` to infer
+;;    which windows became visible/invisible.
 ;;
 ;; Each Emacs frame encodes its `frame-id` as invisible zero-width
 ;; characters (ZWNJ/ZWJ) appended to the xdg_toplevel title. This
@@ -25,8 +32,13 @@
 ;;    decoding the zero-width suffix in the window title.
 ;; 3. On `WindowsOnScreenChanged`, per-frame visibility is updated and
 ;;    `binarin/niri-visibility-changed-functions` is invoked.
-;; 4. On `WindowClosed`, mappings are cleaned up.
-;; 5. A retry timer handles the race between niri's window-open event
+;; 4. On `WorkspacesChanged`, the full workspace table is synced
+;;    (which workspaces exist, which are active, which output each is on).
+;; 5. On `WorkspaceActivated`, visibility is recomputed: all frames on
+;;    the activated workspace are marked visible; all on the same-output
+;;    previously-active workspace are marked invisible.
+;; 6. On `WindowClosed`, mappings are cleaned up.
+;; 7. A retry timer handles the race between niri's window-open event
 ;;    and Emacs setting the frame title (via redisplay).
 
 ;;; Code:
@@ -137,8 +149,16 @@ HANDLER is a function receiving the parsed alist for that event body."
   "Our own PID, used to identify our windows in niri IPC.")
 
 (defvar binarin/niri--windows (make-hash-table :test #'eql)
-  "Hash: niri-window-id (integer) -> plist (:title :app-id :pid :visible-pct).
+  "Hash: niri-window-id -> plist (:title :app-id :pid :workspace-id :visible-pct).
 Tracks every window that niri knows about which belongs to this Emacs.")
+
+(defvar binarin/niri--workspace-active (make-hash-table :test #'eql)
+  "Hash: workspace-id -> t if active (the workspace rendered on its output).")
+
+(defvar binarin/niri--workspace-output (make-hash-table :test #'eql)
+  "Hash: workspace-id -> output name string.
+Used to determine which other workspaces share an output with a newly
+activated workspace, so they can be marked invisible.")
 
 (defvar binarin/niri--window->frame (make-hash-table :test #'eql)
   "Hash: niri-window-id -> Emacs frame.")
@@ -335,11 +355,16 @@ Returns the frame if matched, nil otherwise."
               (binarin/niri--update-visibility window-id pct)))
           frame)))))
 
-(defun binarin/niri--track-window (id app-id pid title)
-  "Record niri window ID and try to match it to an Emacs frame."
+(defun binarin/niri--track-window (id app-id pid title &optional workspace-id)
+  "Record niri window ID and try to match it to an Emacs frame.
+WORKSPACE-ID is the niri workspace id this window belongs to."
   (when (binarin/niri--app-is-ours-p app-id pid)
     (let* ((existing (gethash id binarin/niri--windows))
            (rec (list :title title :app-id app-id :pid pid
+                      :workspace-id (or workspace-id
+                                        (if existing
+                                            (plist-get existing :workspace-id)
+                                          nil))
                       :visible-pct (if existing
                                        (plist-get existing :visible-pct)
                                      nil))))
@@ -438,7 +463,8 @@ Populates the initial window table and matches known Emacs frames."
                for app-id = (alist-get 'app_id w)
                for pid = (alist-get 'pid w)
                for title = (alist-get 'title w)
-               do (binarin/niri--track-window id app-id pid title))
+               for ws-id = (alist-get 'workspace_id w)
+               do (binarin/niri--track-window id app-id pid title ws-id))
       (message "b-niri: synced %d windows from niri" (hash-table-count binarin/niri--windows)))))
 
 (defun binarin/niri--on-window-opened-or-changed (data)
@@ -447,8 +473,9 @@ Populates the initial window table and matches known Emacs frames."
          (id (alist-get 'id w))
          (app-id (alist-get 'app_id w))
          (pid (alist-get 'pid w))
-         (title (alist-get 'title w)))
-    (binarin/niri--track-window id app-id pid title)))
+         (title (alist-get 'title w))
+         (ws-id (alist-get 'workspace_id w)))
+    (binarin/niri--track-window id app-id pid title ws-id)))
 
 (defun binarin/niri--on-window-closed (data)
   "Handle `WindowClosed' event."
@@ -465,6 +492,66 @@ DATA has key `changes' -> vector of {window_id, visible_percentage}."
                for id = (alist-get 'window_id change)
                for pct = (alist-get 'visible_percentage change)
                do (binarin/niri--update-visibility id (or pct 0))))))
+
+(defun binarin/niri--on-workspaces-changed (data)
+  "Handle `WorkspacesChanged' event.
+DATA has key `workspaces' -> vector of workspace objects.
+Populates `binarin/niri--workspace-active' and `binarin/niri--workspace-output'."
+  (let ((workspaces (alist-get 'workspaces data)))
+    (when workspaces
+      (clrhash binarin/niri--workspace-active)
+      (clrhash binarin/niri--workspace-output)
+      (cl-loop for ws across workspaces
+               for id = (alist-get 'id ws)
+               for output = (alist-get 'output ws)
+               for active = (alist-get 'is_active ws)
+               do (when active
+                    (puthash id t binarin/niri--workspace-active))
+               do (when output
+                    (puthash id output binarin/niri--workspace-output)))
+      ;; After syncing workspace state, recompute frame visibility
+      (binarin/niri--apply-workspace-visibility))))
+
+(defun binarin/niri--on-workspace-activated (data)
+  "Handle `WorkspaceActivated' event.
+DATA has keys `id' (workspace id) and `focused' (bool).
+Updates the active-workspace table and recomputes per-frame visibility."
+  (let* ((id (alist-get 'id data))
+         (output (gethash id binarin/niri--workspace-output)))
+    ;; Mark this workspace active.
+    (puthash id t binarin/niri--workspace-active)
+    ;; Deactivate all other workspaces on the same output.
+    (when output
+      (let ((to-deactivate nil))
+        (maphash (lambda (ws-id _active)
+                   (unless (= ws-id id)
+                     (when (equal (gethash ws-id binarin/niri--workspace-output) output)
+                       (push ws-id to-deactivate))))
+                 binarin/niri--workspace-active)
+        (dolist (ws-id to-deactivate)
+          (remhash ws-id binarin/niri--workspace-active))))
+    ;; Recompute visibility for all tracked frames.
+    (binarin/niri--apply-workspace-visibility)))
+
+(defun binarin/niri--apply-workspace-visibility ()
+  "Recompute per-frame visibility from the active-workspace table.
+Each tracked window gets VISIBLE-PCT = 100 if its workspace is active,
+0 otherwise.  Does NOT override more precise pct values from
+`WindowsOnScreenChanged' for windows on the active workspace — if we
+already have a non-zero pct from that event on an active workspace,
+we keep it (the coarse 0 vs 100 from the workspace table is only
+enough to establish visible/invisible; scroll updates refine it)."
+  (maphash
+   (lambda (window-id rec)
+     (let* ((ws-id (plist-get rec :workspace-id))
+            (active-p (and ws-id (gethash ws-id binarin/niri--workspace-active)))
+            (new-pct (if active-p
+                         ;; Keep existing fine-grained pct if > 0, else assume 100.
+                         (let ((cur (plist-get rec :visible-pct)))
+                           (if (and cur (> cur 0)) cur 100))
+                       0)))
+       (binarin/niri--update-visibility window-id new-pct)))
+   binarin/niri--windows))
 
 
 ;;; Setup / teardown
@@ -497,6 +584,10 @@ to ORIG-FUN (the real `frame-visible-p')."
                                  #'binarin/niri--on-window-closed)
   (binarin/niri-register-handler "WindowsOnScreenChanged"
                                  #'binarin/niri--on-windows-on-screen-changed)
+  (binarin/niri-register-handler "WorkspacesChanged"
+                                 #'binarin/niri--on-workspaces-changed)
+  (binarin/niri-register-handler "WorkspaceActivated"
+                                 #'binarin/niri--on-workspace-activated)
   ;; 3. Proactive matching: when Emacs creates a new frame, scan pending niri windows
   (add-hook 'after-make-frame-functions #'binarin/niri--scan-pending-for-frame)
   ;; 4. Advise `frame-visible-p' to use niri data when available
@@ -521,6 +612,8 @@ to ORIG-FUN (the real `frame-visible-p')."
   (binarin/niri-unregister-handler "WindowOpenedOrChanged")
   (binarin/niri-unregister-handler "WindowClosed")
   (binarin/niri-unregister-handler "WindowsOnScreenChanged")
+  (binarin/niri-unregister-handler "WorkspacesChanged")
+  (binarin/niri-unregister-handler "WorkspaceActivated")
   ;; Remove frame-creation hook
   (remove-hook 'after-make-frame-functions #'binarin/niri--scan-pending-for-frame)
   ;; Cancel pending retries
@@ -535,6 +628,8 @@ to ORIG-FUN (the real `frame-visible-p')."
   (clrhash binarin/niri--windows)
   (clrhash binarin/niri--window->frame)
   (clrhash binarin/niri--frame->window)
+  (clrhash binarin/niri--workspace-active)
+  (clrhash binarin/niri--workspace-output)
   (message "b-niri: disabled"))
 
 (provide 'b-niri)

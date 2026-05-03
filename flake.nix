@@ -79,8 +79,8 @@
       };
     };
     niri = {
-      url = "github:niri-wm/niri?rev=b07bde3ee82dd73115e6b949e4f3f63695da35ea";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:binarin/niri?rev=d74236edca0b08b8624c8825c555d69138a8b84d";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     nix-ai-tools = {
       url = "github:numtide/llm-agents.nix";

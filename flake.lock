@@ -1311,22 +1311,22 @@
     "niri": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ],
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1773130184,
-        "narHash": "sha256-3bwx4WqCB06yfQIGB+OgIckOkEDyKxiTD5pOo4Xz2rI=",
-        "owner": "niri-wm",
+        "lastModified": 1777828160,
+        "narHash": "sha256-EbPPdvbpd4seCNKQSmXOpZIW3kedyU6BctGZ+HEzGRM=",
+        "owner": "binarin",
         "repo": "niri",
-        "rev": "b07bde3ee82dd73115e6b949e4f3f63695da35ea",
+        "rev": "d74236edca0b08b8624c8825c555d69138a8b84d",
         "type": "github"
       },
       "original": {
-        "owner": "niri-wm",
+        "owner": "binarin",
         "repo": "niri",
-        "rev": "b07bde3ee82dd73115e6b949e4f3f63695da35ea",
+        "rev": "d74236edca0b08b8624c8825c555d69138a8b84d",
         "type": "github"
       }
     },

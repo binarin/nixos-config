@@ -10,7 +10,7 @@ let
       src = selfLib.dir' "packages/niri-dynamic-keybindings";
       cargoLock = {
         lockFile = selfLib.file' "packages/niri-dynamic-keybindings/Cargo.lock";
-        outputHashes."niri-ipc-25.11.0" = niriCargo.dependencies.niri-ipc.ipcHash;
+        outputHashes."niri-ipc-26.4.0" = niriCargo.dependencies.niri-ipc.ipcHash;
       };
       meta.mainProgram = "niri-dynamic-keybindings";
     };

@@ -11,6 +11,7 @@ include "dynamic-outputs.kdl"
 include "dynamic-binds.kdl"
 
 input {
+  mod-key-nested "Alt"
   disable-power-key-handling
   keyboard {
     track-layout "window"

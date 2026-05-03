@@ -5,8 +5,8 @@ let
 in
 {
   flake-file.inputs.niri = {
-    url = "github:niri-wm/niri?rev=${niriCargo.dependencies.niri-ipc.rev}";
-    inputs.nixpkgs.follows = "nixpkgs";
+    url = "github:binarin/niri?rev=${niriCargo.dependencies.niri-ipc.rev}";
+    inputs.nixpkgs.follows = "nixpkgs-unstable";
   };
 
   flake.nixosModules.niri =
