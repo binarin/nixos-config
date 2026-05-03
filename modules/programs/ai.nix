@@ -48,6 +48,9 @@
       home.file.".pi/agent/models.json".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/pi-agent/models.json";
 
+      home.file.".pi/agent/keybindings.json".source =
+        config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/pi-agent/keybindings.json";
+
       impermanence.persist-files = [
         ".claude.json"
       ];
