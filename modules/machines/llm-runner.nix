@@ -305,6 +305,12 @@ in
         "http://web.binarin.info:3902/files/unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0.gguf";
       llama-models.models."gemma-4-26B-A4B-it:Q4_K_M".url =
         "http://web.binarin.info:3902/files/gemma-4-26B-A4B-it-UD-Q4_K_M.gguf";
+      llama-models.models."granite-4.1-8b:Q4_K_XL".url =
+        "http://web.binarin.info:3902/files/granite-4.1-8b-UD-Q4_K_XL.gguf";
+      llama-models.models."granite-4.1-30b:Q4_K_XL".url =
+        "http://web.binarin.info:3902/files/granite-4.1-30b-UD-Q4_K_XL.gguf";
+      llama-models.models."Qwen3.6-27B:Q4_K_XL".url =
+        "http://web.binarin.info:3902/files/Qwen3.6-27B-UD-Q4_K_XL.gguf";
 
       llama-models.configurations."gemma4" = {
         model = "gemma-4-26B-A4B-it:Q4_K_M";
@@ -328,6 +334,34 @@ in
       llama-models.configurations."qwen3.5-9b" = {
         model = "unsloth_Qwen3.5-9B-GGUF_Qwen3.5-9B-Q8_0";
         settings.ctx-size = 262144;
+      };
+      llama-models.configurations."granite-4.1-8b" = {
+        model = "granite-4.1-8b:Q4_K_XL";
+        settings = {
+          ctx-size = 32768;
+          temp = 0.7;
+          top-p = 0.9;
+          top-k = 40;
+        };
+      };
+      llama-models.configurations."granite-4.1-30b" = {
+        model = "granite-4.1-30b:Q4_K_XL";
+        settings = {
+          ctx-size = 32768;
+          temp = 0.7;
+          top-p = 0.9;
+          top-k = 40;
+        };
+      };
+      llama-models.configurations."qwen3.6-27b" = {
+        model = "Qwen3.6-27B:Q4_K_XL";
+        settings = {
+          ctx-size = 131072;
+          temp = 0.7;
+          top-p = 0.8;
+          top-k = 20;
+          repeat-penalty = 1.05;
+        };
       };
 
       services.llama-swap = {

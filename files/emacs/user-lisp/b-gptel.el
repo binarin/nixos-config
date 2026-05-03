@@ -15,7 +15,7 @@
     :protocol "https"
     :host "llm-runner.lynx-lizard.ts.net"
     ;; nix eval .#nixosConfigurations.llm-runner.config.llama-models.configurations --json 2>/dev/null | jq 'keys|join(" ")' -r
-    :models '(gemma4 qwen3-coder-30b qwen3.5-9b))
+    :models '(gemma4 granite-4.1-30b granite-4.1-8b qwen3-coder-30b qwen3.5-9b qwen3.6-27b))
 
   (gptel-make-gemini "Gemini"
     :key 'gptel-api-key-from-auth-source
