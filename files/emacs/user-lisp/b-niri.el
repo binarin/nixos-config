@@ -166,7 +166,7 @@ activated workspace, so they can be marked invisible.")
 (defvar binarin/niri--frame->window (make-hash-table :test #'eq)
   "Hash: Emacs frame -> niri-window-id.")
 
-(defvar binarin/niri-visible-threshold 0
+(defvar binarin/niri-visible-threshold 50
   "Minimum `visible_percentage' for a frame to be considered visible.
 0 means any non-zero on-screen area counts as visible.
 50 would require at least half the window to be on screen.")
@@ -411,7 +411,7 @@ Cleans up any previous mappings for either side."
   "Update visibility state for niri WINDOW-ID based on VISIBLE-PCT.
 VISIBLE-PCT is an integer 0-100.  The frame is considered visible
 when VISIBLE-PCT >= `binarin/niri-visible-threshold'."
-  (let* ((visible-p (>= visible-pct binarin/niri-visible-threshold))
+  (let* ((visible-p (> visible-pct binarin/niri-visible-threshold))
          (rec (gethash window-id binarin/niri--windows))
          (frame (gethash window-id binarin/niri--window->frame)))
     ;; Always store the pct even if we don't have a frame yet
