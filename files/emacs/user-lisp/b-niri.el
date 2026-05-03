@@ -3,270 +3,31 @@
 (require 'cl-lib)
 
 ;;; Commentary:
-;; Asynchronous niri compositor event stream listener.
-;; Runs "niri msg --json event-stream" and processes each JSON line
-;; using the built-in Emacs JSON parser.
+;; Asynchronous niri compositor event stream listener ("niri msg --json event-stream").
 ;;
 ;; --- Frame Visibility Tracking ---
 ;;
-;; Goal: make Emacs aware of which of its frames are currently visible
-;; in the niri Wayland compositor.
+;; Uses the niri IPC `WindowsOnScreenChanged` event which directly reports
+;; per-window `visible_percentage` (0-100). No complex workspace/layout
+;; computation needed — niri tells us exactly which windows are on screen.
 ;;
-;; --- Relevant Event Types (from niri-ipc/src/lib.rs) ---
+;; Each Emacs frame encodes its `frame-id` as invisible zero-width
+;; characters (ZWNJ/ZWJ) appended to the xdg_toplevel title. This
+;; allows reliable identification of Emacs frames from niri's window
+;; list, regardless of buffer names or frame-title-format changes.
 ;;
-;; WindowsChanged (initial state)
-;;   { "windows": [ Window, ... ] }
-;;   Sent once on connection. Contains the full current window list.
-;;   "Window" objects have fields: id (u64), title (Option<String>),
-;;   app_id (Option<String>), pid (Option<i32>), workspace_id (Option<u64>),
-;;   is_focused, is_floating, is_urgent, layout, focus_timestamp.
+;; --- Architecture ---
 ;;
-;; WindowOpenedOrChanged
-;;   { "window": Window }
-;;   A new toplevel opened or an existing one changed (title, workspace, etc.).
-;;
-;; WindowClosed
-;;   { "id": u64 }
-;;   A toplevel window was closed.
-;;
-;; WindowFocusChanged
-;;   { "id": u64 | null }
-;;   Focus moved to a different window (or none).
-;;
-;; WindowLayoutsChanged
-;;   { "changes": [[id, WindowLayout], ...] }
-;;   Window moved between workspaces, resized, etc.
-;;   Useful because workspace_id can change when moving a window.
-;;
-;; WorkspacesChanged (initial state)
-;;   { "workspaces": [ Workspace, ... ] }
-;;   Full workspace list. "Workspace" has: id, idx, name, output,
-;;   is_active, is_focused, is_urgent, active_window_id.
-;;   "is_active" means "visible on its output".
-;;
-;; WorkspaceActivated
-;;   { "id": u64, "focused": bool }
-;;   A workspace was activated (made visible) or deactivated.
-;;   When workspace X becomes active on an output, the previously
-;;   active workspace on that output becomes inactive (= not visible).
-;;
-;; WorkspaceActiveWindowChanged
-;;   { "workspace_id": u64, "active_window_id": u64 | null }
-;;
-;; OverviewOpenedOrClosed
-;;   { "is_open": bool }
-;;   The overview shows all workspaces at once. When open, windows on
-;;   non-active workspaces also become visible.
-;;
-;; --- Data Available from IPC ---
-;;
-;; WindowLayout (from niri-ipc/src/lib.rs):
-;;   pub struct WindowLayout {
-;;       pos_in_scrolling_layout: Option<(usize, usize)>,
-;;         -- (column, tile) index, 1-based. Only set for tiled windows.
-;;       tile_size: (f64, f64),
-;;         -- width and height of the tile (including decorations).
-;;       window_size: (i32, i32),
-;;         -- actual window geometry, without decorations.
-;;       tile_pos_in_workspace_view: Option<(f64, f64)>,
-;;         -- position within the workspace view. Only set for floating
-;;            windows (src/layout/floating.rs:336). For tiled windows,
-;;            this is always None (src/layout/tile.rs:869).
-;;       window_offset_in_tile: (f64, f64),
-;;         -- window geometry offset within the tile (borders etc).
-;;   }
-;;
-;; NOT available from IPC:
-;;   - view_pos (scroll offset) -- ScrollingSpace internal field
-;;   - view_size (monitor visible area) -- only #[cfg(test)] getter
-;;   - working_area -- not exposed
-;;   - column widths and gaps -- not exposed
-;;
-;; --- Multiple Monitors ---
-;;
-;; In niri, each monitor independently shows one workspace at a time.
-;; Workspace.is_active == true means that workspace is the one currently
-;; shown on its output. The focused workspace is the one with keyboard
-;; focus (Workspace.is_focused). A window on ANY active workspace (on
-;; any monitor) is visible.
-;;
-;; The WorkspaceActivated event fires when a workspace becomes active
-;; on its output. This implicitly deactivates the previously active
-;; workspace on that same output.
-;;
-;; Workspace has fields: id, idx, name, output (output name, or None
-;; if no outputs are connected), is_active, is_focused, is_urgent,
-;; active_window_id.
-;;
-;; The "output" field lets us group workspaces by monitor. When a
-;; WorkspaceActivated arrives for workspace X (with output="eDP-1"),
-;; we know the previously active workspace on "eDP-1" is now hidden.
-;;
-;; --- Viewports (Scrollable Workspaces) ---
-;;
-;; In niri, each workspace is a scrollable 2D space. Each monitor shows
-;; a viewport (its visible area) over that workspace. The viewport
-;; scrolls horizontally as the user navigates between columns.
-;;
-;; Critical limitation: the IPC event stream does NOT expose:
-;;   1. The viewport's scroll offset (view_pos)
-;;   2. The viewport's visible size (view_size / working_area)
-;;   3. The gaps or column widths needed to reconstruct absolute
-;;      positions for tiled windows from their column/tile indices
-;;
-;; What we DO get per window:
-;;   - Floating: tile_pos_in_workspace_view = Some((x, y)) gives the
-;;     position in the workspace. Combined with tile_size we have the
-;;     full bounding rect in workspace coordinates.
-;;   - Tiled: pos_in_scrolling_layout = Some((col, tile)) gives the
-;;     logical position in the grid. But without column widths, gaps,
-;;     and viewport position, we cannot compute the on-screen rect.
-;;
-;; --- Strategy for Viewport-Aware Visibility ---
-;;
-;; Because niri's IPC doesn't expose viewport position, we use a
-;; multi-tier approach:
-;;
-;; Tier 1 (always accurate):
-;;   A window whose workspace is NOT active is definitely NOT visible
-;;   (its entire workspace is off-screen). This is the only case we
-;;   can determine with 100% certainty from the event stream.
-;;
-;; Tier 2 (approximate, good enough for tiled WM):
-;;   A window whose workspace IS active is treated as visible.
-;;   Rationale: in a scrollable tiling WM like niri, windows on the
-;;   active workspace are virtually always at least partially visible.
-;;   The viewport automatically scrolls to keep the focused column
-;;   in view, and columns have roughly the same width as the viewport.
-;;
-;; Tier 3 (exact, for floating windows):
-;;   For floating windows specifically, we HAVE tile_pos_in_workspace_view
-;;   (position) and tile_size (dimensions). If we also had viewport
-;;   info, we could compute exact visibility. Options to get viewport
-;;   data:
-;;     a) Patch niri to expose view_pos and view_size in the IPC
-;;        (/src/layout/scrolling.rs:2294 has view_pos() already public,
-;;        but view_size() at line 3717 is #[cfg(test)] only)
-;;     b) Estimate viewport position from the focused window's
-;;        position (the viewport is scrolled to show the focused column)
-;;     c) Periodically query "niri msg windows --json" and cross-
-;;        reference tile positions against a heuristically determined
-;;        viewport rect
-;;
-;; Tier 4 (best, for precise 50% threshold):
-;;   In the future, we could add a small niri patch to expose:
-;;      - Each workspace's current viewport rect (scroll offset + size)
-;;      - Maybe a "visible_ratio" field on each window layout
-;;   For now, the Tier 2 approximation (active workspace = visible)
-;;   is the pragmatic choice for a scrollable tiling WM.
-;;
-;; Concrete approach:
-;;   binarin/niri--visible-threshold :: float, default 0.0 (whole
-;;     tile/window must be off-screen to count as invisible). User
-;;     can set to 0.5 for "at least 50% visible" requirement.
-;;   However, without viewport data, the threshold is only meaningful
-;;     for floating windows (where we have position + size). For tiled
-;;     windows, any window on the active workspace is assumed visible.
-;;
-;; --- Multiple Monitors + Viewport Combined ---
-;;
-;; Each monitor has its own viewport over its active workspace.
-;; A window is visible if:
-;;   1. Its workspace is the active workspace on SOME monitor, AND
-;;   2. The window's tile rect overlaps the viewport of that monitor
-;;      by at least the configured threshold
-;;
-;; Since we lack viewport info, we reduce to condition 1 only.
-;;
-;; --- Strategy to Map Niri Window IDs to Emacs Frames ---
-;;
-;; 1. Filter by app_id and pid:
-;;    Emacs on Wayland/PGTK sets app_id to "emacs". We also filter
-;;    by our own PID (from (emacs-pid)) to avoid matching frames from
-;;    other Emacs instances.
-;;
-;; 2. Match by title:
-;;    Niri's Window.title for Emacs frames corresponds to the
-;;    xdg_toplevel title, which Emacs derives from the frame's `name`
-;;    parameter (set via frame-title-format). Default format:
-;;    "%b - GNU Emacs at %U" (buffer-name, hostname).
-;;
-;;    We compare (frame-parameter f 'name) against the niri title.
-;;
-;; 3. Mapping table:
-;;    binarin/niri--window->frame :: hash niri-window-id -> emacs-frame
-;;    binarin/niri--frame->window :: hash emacs-frame -> niri-window-id
-;;
-;;    On WindowOpenedOrChanged with app_id="emacs" and matching pid,
-;;    we look up the Emacs frame whose name matches the niri title.
-;;    On WindowClosed, we clean up.
-;;
-;; 4. Initial bootstrapping:
-;;    When connecting, we get WindowsChanged (full snapshot). We iterate
-;;    all emacs-app_id windows, match by title against all live Emacs
-;;    frames, and populate the mapping.
-;;
-;; --- Strategy to Determine Frame Visibility ---
-;;
-;; We maintain:
-;;   binarin/niri--workspaces
-;;     :: hash workspace-id -> (output-name, is-active, is-focused, ...)
-;;   binarin/niri--active-workspaces
-;;     :: set of workspace-ids that are active (one per output)
-;;   binarin/niri--windows
-;;     :: hash niri-window-id -> window data (workspace-id, layout, ...)
-;;   binarin/niri--overview-open :: bool
-;;   binarin/niri--window->frame  :: inverse of above
-;;   binarin/niri--frame->window  :: hash frame -> niri-window-id
-;;   binarin/niri--visible-threshold :: float (configurable, default 0.0)
-;;
-;; Visible region (per monitor) is approximated as the working area
-;; of the monitor's active workspace. Without viewport position, we
-;; can't compute scroll-dependent overlap. The threshold applies
-;; directly only if we augment niri's IPC with viewport data.
-;;
-;; Visibility check for a frame:
-;;   (1) Look up niri-window-id via binarin/niri--frame->window
-;;   (2) Look up that window's workspace_id
-;;   (3) Check if that workspace_id is active on any output:
-;;       (binarin/niri--active-workspaces contains it)
-;;       OR if binarin/niri--overview-open is t (overview shows all)
-;;   (4) For floating windows: additionally check if the window rect
-;;       overlaps the viewport by >= visible-threshold (requires
-;;       viewport data from future niri IPC extension)
-;;
-;; When visibility changes for any emacs frame, we call:
-;;   binarin/niri-visibility-changed-functions (abnormal hook, like
-;;   window-state-change hooks in Emacs), called with the affected
-;;   frame and a boolean (visible-p).
-;;
-;; --- Edge Cases ---
-;;
-;; * Title mismatch during frame creation:
-;;   When a new Emacs frame is created, the niri WindowOpenedOrChanged
-;;   event may arrive before Emacs updates its frame-parameter 'name.
-;;   Mitigation: use a short timer to re-attempt matching.
-;;
-;; * Floating windows on non-active workspaces:
-;;   Floating windows are only rendered on the active workspace.
-;;   Therefore, workspace-is-active check is sufficient.
-;;
-;; * Multiple outputs:
-;;   Each output has one active workspace. Handled by tracking
-;;   per-output active workspace via the output-name field.
-;;
-;; * Overview:
-;;   When overview opens, all workspaces' windows become visible.
-;;   When overview closes, only the active workspace's windows are
-;;   visible.
-;;
-;; * WindowLayoutsChanged:
-;;   This event includes updated WindowLayout per window. We update
-;;   our local window state to reflect new workspace_id and positions.
-;;   The event fires when windows move between workspaces, resize,
-;;   etc. However, it does NOT fire when the viewport scrolls, so
-;;   we cannot detect viewport-scroll-induced visibility changes
-;;   without extra IPC data.
+;; 1. `binarin/niri-enable` turns on frame-id encoding, registers event
+;;    handlers, and connects to the event stream.
+;; 2. On `WindowsChanged` and `WindowOpenedOrChanged`, windows with
+;;    app_id="emacs" and our PID are matched to Emacs frames by
+;;    decoding the zero-width suffix in the window title.
+;; 3. On `WindowsOnScreenChanged`, per-frame visibility is updated and
+;;    `binarin/niri-visibility-changed-functions` is invoked.
+;; 4. On `WindowClosed`, mappings are cleaned up.
+;; 5. A retry timer handles the race between niri's window-open event
+;;    and Emacs setting the frame title (via redisplay).
 
 ;;; Code:
 
@@ -275,6 +36,8 @@
 
 (defvar binarin/niri--partial-line ""
   "Incomplete line accumulated across filter calls.")
+
+(defvar binarin/niri--visibility-seen-p nil)
 
 (defvar binarin/niri-event-handlers (make-hash-table :test #'equal)
   "Hash table mapping event type (string) to handler function.
@@ -335,7 +98,8 @@ complete JSON lines."
   "Sentinel for the niri event stream process."
   (when (memq (process-status proc) '(exit signal))
     (setq binarin/niri--event-process nil
-          binarin/niri--partial-line "")
+          binarin/niri--partial-line ""
+          binarin/niri--visibility-seen-p nil)
     (message "Niri event stream disconnected: %s" event)))
 
 (defun binarin/niri--handle-event (json)
@@ -367,6 +131,55 @@ HANDLER is a function receiving the parsed alist for that event body."
   (remhash event-type binarin/niri-event-handlers))
 
 
+;;; Window/Frame mapping state
+
+(defvar binarin/niri--our-pid (emacs-pid)
+  "Our own PID, used to identify our windows in niri IPC.")
+
+(defvar binarin/niri--windows (make-hash-table :test #'eql)
+  "Hash: niri-window-id (integer) -> plist (:title :app-id :pid :visible-pct).
+Tracks every window that niri knows about which belongs to this Emacs.")
+
+(defvar binarin/niri--window->frame (make-hash-table :test #'eql)
+  "Hash: niri-window-id -> Emacs frame.")
+
+(defvar binarin/niri--frame->window (make-hash-table :test #'eq)
+  "Hash: Emacs frame -> niri-window-id.")
+
+(defvar binarin/niri-visible-threshold 0
+  "Minimum `visible_percentage' for a frame to be considered visible.
+0 means any non-zero on-screen area counts as visible.
+50 would require at least half the window to be on screen.")
+
+(defvar binarin/niri-visibility-changed-functions nil
+  "Abnormal hook called when an Emacs frame's niri visibility changes.
+Each function receives two arguments: FRAME and VISIBLE-P (boolean).
+
+Example:
+  (add-hook \='binarin/niri-visibility-changed-functions
+            (lambda (frame visible-p)
+              (if visible-p
+                  (set-frame-parameter frame \='alpha 100)
+                (set-frame-parameter frame \='alpha 50))))")
+
+
+;;; Retry machinery for new-window frame matching
+
+(defvar binarin/niri--pending-matches (make-hash-table :test #'eql)
+  "Hash: niri-window-id -> (retries-left . timer).
+Windows that haven't been matched to an Emacs frame yet.")
+
+(defvar binarin/niri--visibility-seen-p nil
+  "Non-nil once the first `WindowsOnScreenChanged' event has arrived.
+Guards `frame-visible-p' advice so we don't use stale/uninitialized data.")
+
+(defconst binarin/niri--max-match-retries 20
+  "Maximum retry attempts to match a niri window to an Emacs frame.")
+
+(defconst binarin/niri--match-retry-delay 0.1
+  "Delay in seconds between matching retries.")
+
+
 ;;; Frame-ID encoding in window title
 ;;; Uses zero-width characters invisible in all rendering contexts.
 ;;; ZWNJ (U+200C) = 0, ZWJ (U+200D) = 1.
@@ -389,7 +202,7 @@ Binary digits: 0 -> ZWNJ, 1 -> ZWJ, most significant bit first."
         (setq bits (list ?0))
       (while (> num 0)
         (push (if (zerop (logand num 1)) ?0 ?1) bits)
-        (setq num (lsh num -1))))
+        (setq num (ash num -1))))
     (apply #'concat
            (mapcar (lambda (c)
                      (if (eq c ?1) binarin/niri--zw-1 binarin/niri--zw-0))
@@ -456,10 +269,10 @@ with explicit names (which bypass `frame-title-format')."
   (message "Frame-id encoding enabled in frame titles"))
 
 (defun binarin/niri--after-modify-frame-params (frame alist)
-  "After `modify-frame-parameters', ensure 'title includes frame-id.
-When 'name is set (non-nil) and 'title is not also being set, update
-'title to include the zero-width encoded frame-id.  When 'name is
-cleared (nil), clear 'title so that `frame-title-format' takes over."
+  "After `modify-frame-parameters', ensure \='title includes frame-id.
+When \='name is set (non-nil) and \='title is not also being set, update
+\='title to include the zero-width encoded frame-id.  When \='name is
+cleared (nil), clear \='title so that `frame-title-format' takes over."
   (let ((name-entry (assq 'name alist))
         (title-entry (assq 'title alist)))
     (when name-entry
@@ -475,6 +288,254 @@ cleared (nil), clear 'title so that `frame-title-format' takes over."
         ;; unless 'title is also explicitly set in the same call.
         (unless title-entry
           (set-frame-parameter frame 'title nil))))))
+
+
+;;; Window tracking
+
+(defun binarin/niri--app-is-ours-p (app-id pid)
+  "Return t if APP-ID and PID belong to this Emacs instance."
+  (and (stringp app-id)
+       (string= app-id "emacs")
+       (integerp pid)
+       (= pid binarin/niri--our-pid)))
+
+(defun binarin/niri--cancel-pending-match (window-id)
+  "Cancel any pending retry timer for WINDOW-ID."
+  (let ((entry (gethash window-id binarin/niri--pending-matches)))
+    (when entry
+      (cancel-timer (cdr entry))
+      (remhash window-id binarin/niri--pending-matches))))
+
+(defun binarin/niri--schedule-match-retry (window-id _title retries-left)
+  "Schedule a retry to match WINDOW-ID to an Emacs frame."
+  (when (> retries-left 0)
+    (let ((timer (run-at-time
+                  binarin/niri--match-retry-delay nil
+                  (lambda (id)
+                    (let ((entry (gethash id binarin/niri--pending-matches)))
+                      (when entry
+                        (remhash id binarin/niri--pending-matches)
+                        (binarin/niri--try-match-frame
+                         id (gethash id binarin/niri--windows)))))
+                  window-id)))
+      (puthash window-id (cons retries-left timer)
+               binarin/niri--pending-matches))))
+
+(defun binarin/niri--try-match-frame (window-id rec)
+  "Try to match niri WINDOW-ID (with plist REC) to an Emacs frame.
+Returns the frame if matched, nil otherwise."
+  (let ((title (plist-get rec :title)))
+    (when title
+      (let ((frame (binarin/niri--find-frame-by-title title)))
+        (when frame
+          (binarin/niri--map-window-to-frame window-id frame)
+          ;; Apply any visibility we already know about
+          (let ((pct (plist-get rec :visible-pct)))
+            (when pct
+              (binarin/niri--update-visibility window-id pct)))
+          frame)))))
+
+(defun binarin/niri--track-window (id app-id pid title)
+  "Record niri window ID and try to match it to an Emacs frame."
+  (when (binarin/niri--app-is-ours-p app-id pid)
+    (let* ((existing (gethash id binarin/niri--windows))
+           (rec (list :title title :app-id app-id :pid pid
+                      :visible-pct (if existing
+                                       (plist-get existing :visible-pct)
+                                     nil))))
+      (puthash id rec binarin/niri--windows)
+      ;; Try to match
+      (unless (binarin/niri--try-match-frame id rec)
+        ;; Schedule retries
+        (binarin/niri--cancel-pending-match id)
+        (binarin/niri--schedule-match-retry id title
+                                            binarin/niri--max-match-retries)))))
+
+(defun binarin/niri--untrack-window (id)
+  "Remove all state for niri window ID."
+  (binarin/niri--cancel-pending-match id)
+  (let ((frame (gethash id binarin/niri--window->frame)))
+    (when frame
+      (binarin/niri--set-frame-visible frame nil)
+      (remhash frame binarin/niri--frame->window)))
+  (remhash id binarin/niri--window->frame)
+  (remhash id binarin/niri--windows))
+
+(defun binarin/niri--map-window-to-frame (window-id frame)
+  "Establish bidirectional mapping between niri WINDOW-ID and Emacs FRAME.
+Cleans up any previous mappings for either side."
+  ;; If this niri window was previously mapped to a different frame
+  (let ((old-frame (gethash window-id binarin/niri--window->frame)))
+    (when (and old-frame (not (eq old-frame frame)))
+      (remhash old-frame binarin/niri--frame->window)
+      (binarin/niri--set-frame-visible old-frame nil)))
+  ;; If this Emacs frame was previously mapped to a different window
+  (let ((old-wid (gethash frame binarin/niri--frame->window)))
+    (when (and old-wid (not (eql old-wid window-id)))
+      (remhash old-wid binarin/niri--window->frame)))
+  ;; Clear any pending retry for this window
+  (binarin/niri--cancel-pending-match window-id)
+  ;; Establish mapping
+  (puthash window-id frame binarin/niri--window->frame)
+  (puthash frame window-id binarin/niri--frame->window))
+
+
+;;; Visibility
+
+(defun binarin/niri--update-visibility (window-id visible-pct)
+  "Update visibility state for niri WINDOW-ID based on VISIBLE-PCT.
+VISIBLE-PCT is an integer 0-100.  The frame is considered visible
+when VISIBLE-PCT >= `binarin/niri-visible-threshold'."
+  (let* ((visible-p (>= visible-pct binarin/niri-visible-threshold))
+         (rec (gethash window-id binarin/niri--windows))
+         (frame (gethash window-id binarin/niri--window->frame)))
+    ;; Always store the pct even if we don't have a frame yet
+    (when rec
+      (puthash window-id (plist-put rec :visible-pct visible-pct)
+               binarin/niri--windows))
+    ;; Notify if we have a mapped frame
+    (when frame
+      (binarin/niri--set-frame-visible frame visible-p))))
+
+(defun binarin/niri--set-frame-visible (frame visible-p)
+  "Set FRAME's visibility state and run hooks if changed."
+  (let ((current (frame-parameter frame 'binarin/niri-visible-p)))
+    (unless (eq current visible-p)
+      (set-frame-parameter frame 'binarin/niri-visible-p visible-p)
+      (run-hook-with-args 'binarin/niri-visibility-changed-functions
+                          frame visible-p))))
+
+(defun binarin/niri-frame-visible-p (frame)
+  "Return t if FRAME is currently visible according to niri.
+An unregistered frame returns nil."
+  (frame-parameter frame 'binarin/niri-visible-p))
+
+
+;;; Scan all pending niri windows (called when a new Emacs frame appears)
+
+(defun binarin/niri--scan-pending-for-frame (_frame)
+  "Check all unmatched niri windows to see if any match FRAME.
+Called from `after-make-frame-functions'."
+  (let ((matched nil))
+    (maphash
+     (lambda (window-id rec)
+       (unless (or matched (gethash window-id binarin/niri--window->frame))
+         (when (binarin/niri--try-match-frame window-id rec)
+           (setq matched t))))
+     binarin/niri--windows)))
+
+
+;;; Event handlers
+
+(defun binarin/niri--on-windows-changed (data)
+  "Handle the initial `WindowsChanged' event from niri.
+DATA is an alist with key `windows' mapping to a vector of window objects.
+Populates the initial window table and matches known Emacs frames."
+  (let ((windows (alist-get 'windows data)))
+    (when windows
+      (cl-loop for w across windows
+               for id = (alist-get 'id w)
+               for app-id = (alist-get 'app_id w)
+               for pid = (alist-get 'pid w)
+               for title = (alist-get 'title w)
+               do (binarin/niri--track-window id app-id pid title))
+      (message "b-niri: synced %d windows from niri" (hash-table-count binarin/niri--windows)))))
+
+(defun binarin/niri--on-window-opened-or-changed (data)
+  "Handle `WindowOpenedOrChanged' event."
+  (let* ((w (alist-get 'window data))
+         (id (alist-get 'id w))
+         (app-id (alist-get 'app_id w))
+         (pid (alist-get 'pid w))
+         (title (alist-get 'title w)))
+    (binarin/niri--track-window id app-id pid title)))
+
+(defun binarin/niri--on-window-closed (data)
+  "Handle `WindowClosed' event."
+  (let ((id (alist-get 'id data)))
+    (binarin/niri--untrack-window id)))
+
+(defun binarin/niri--on-windows-on-screen-changed (data)
+  "Handle `WindowsOnScreenChanged' event.
+DATA has key `changes' -> vector of {window_id, visible_percentage}."
+  (setq binarin/niri--visibility-seen-p t)
+  (let ((changes (alist-get 'changes data)))
+    (when changes
+      (cl-loop for change across changes
+               for id = (alist-get 'window_id change)
+               for pct = (alist-get 'visible_percentage change)
+               do (binarin/niri--update-visibility id (or pct 0))))))
+
+
+;;; Setup / teardown
+
+(defvar binarin/niri--enabled nil
+  "Non-nil when b-niri is fully active (frame-ids + handlers + stream).")
+
+(defun binarin/niri--frame-visible-p-advice (orig-fun frame)
+  "Around-advice for `frame-visible-p'.
+If b-niri is active, visibility data has arrived, and FRAME is tracked
+by niri, return t/nil from niri's perspective.  Otherwise delegate
+to ORIG-FUN (the real `frame-visible-p')."
+  (if (and binarin/niri--enabled
+           binarin/niri--visibility-seen-p
+           (gethash frame binarin/niri--frame->window))
+      (if (binarin/niri-frame-visible-p frame) t nil)
+    (funcall orig-fun frame)))
+
+(defun binarin/niri-enable ()
+  "Enable niri integration: frame-id encoding, event handlers, event stream."
+  (interactive)
+  ;; 1. Ensure frame-id encoding is active
+  (binarin/niri-enable-frame-id-in-title)
+  ;; 2. Register event handlers
+  (binarin/niri-register-handler "WindowsChanged"
+                                 #'binarin/niri--on-windows-changed)
+  (binarin/niri-register-handler "WindowOpenedOrChanged"
+                                 #'binarin/niri--on-window-opened-or-changed)
+  (binarin/niri-register-handler "WindowClosed"
+                                 #'binarin/niri--on-window-closed)
+  (binarin/niri-register-handler "WindowsOnScreenChanged"
+                                 #'binarin/niri--on-windows-on-screen-changed)
+  ;; 3. Proactive matching: when Emacs creates a new frame, scan pending niri windows
+  (add-hook 'after-make-frame-functions #'binarin/niri--scan-pending-for-frame)
+  ;; 4. Advise `frame-visible-p' to use niri data when available
+  (advice-add 'frame-visible-p :around #'binarin/niri--frame-visible-p-advice)
+  ;; 5. Connect to niri event stream
+  (binarin/niri-connect)
+  (setq binarin/niri--enabled t
+        binarin/niri--visibility-seen-p nil)
+  (message "b-niri: enabled"))
+
+(defun binarin/niri-disable ()
+  "Disable niri integration: disconnect, unregister handlers, clean up."
+  (interactive)
+  (setq binarin/niri--enabled nil
+        binarin/niri--visibility-seen-p nil)
+  ;; Remove advice
+  (advice-remove 'frame-visible-p #'binarin/niri--frame-visible-p-advice)
+  ;; Disconnect stream
+  (binarin/niri-disconnect)
+  ;; Unregister handlers
+  (binarin/niri-unregister-handler "WindowsChanged")
+  (binarin/niri-unregister-handler "WindowOpenedOrChanged")
+  (binarin/niri-unregister-handler "WindowClosed")
+  (binarin/niri-unregister-handler "WindowsOnScreenChanged")
+  ;; Remove frame-creation hook
+  (remove-hook 'after-make-frame-functions #'binarin/niri--scan-pending-for-frame)
+  ;; Cancel pending retries
+  (maphash (lambda (window-id _entry)
+             (binarin/niri--cancel-pending-match window-id))
+           binarin/niri--pending-matches)
+  (clrhash binarin/niri--pending-matches)
+  ;; Clear all mappings (reset visibility flags)
+  (maphash (lambda (_window-id frame)
+             (set-frame-parameter frame 'binarin/niri-visible-p nil))
+           binarin/niri--window->frame)
+  (clrhash binarin/niri--windows)
+  (clrhash binarin/niri--window->frame)
+  (clrhash binarin/niri--frame->window)
+  (message "b-niri: disabled"))
 
 (provide 'b-niri)
 
