@@ -201,7 +201,6 @@ function properly")
   (interactive "sPattern: ")
   (let ((default-directory b/ripgrep-main-target))
     (b/ripgrep needle
-               :name-function #'(lambda (_mode) (format "*ripgrep-main*"))
                :pattern-type 'auto)))
 
 (defun b/ripgrep-project (project)
@@ -210,6 +209,24 @@ function properly")
   (let ((default-directory (project-root project)))
     (call-interactively #'b/ripgrep)))
 
+(defun b/visible-non-selected-frame-p (frame)
+  (and (not (eq (selected-frame) frame))
+       (frame-visible-p frame)))
 
+(defun b/car-compare (a b)
+  (and (consp a)
+       (consp b)
+       (equal (car a) (car b))))
+
+(add-to-list
+ 'display-buffer-alist
+ `(,(rx "*b/ripgrep*")
+   . (display-buffer-use-some-frame
+      (inhibit-switch-frame . t)
+      (frame-predicate . b/visible-non-selected-frame-p)
+      ;; inhibit-same-window below makes it fail when there is only
+      ;; one frame, thuse falling back to display-buffer-base-action
+      ;; or display-buffer-fallback-action
+      (inhibit-same-window . t))))
 
 (provide 'b-ripgrep)
