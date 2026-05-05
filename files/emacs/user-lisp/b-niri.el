@@ -49,8 +49,6 @@
 (defvar binarin/niri--partial-line ""
   "Incomplete line accumulated across filter calls.")
 
-(defvar binarin/niri--visibility-seen-p nil)
-
 (defvar binarin/niri-event-handlers (make-hash-table :test #'equal)
   "Hash table mapping event type (string) to handler function.
 Each handler is called with a single argument: the parsed JSON object
@@ -110,8 +108,7 @@ complete JSON lines."
   "Sentinel for the niri event stream process."
   (when (memq (process-status proc) '(exit signal))
     (setq binarin/niri--event-process nil
-          binarin/niri--partial-line ""
-          binarin/niri--visibility-seen-p nil)
+          binarin/niri--partial-line "")
     (message "Niri event stream disconnected: %s" event)))
 
 (defun binarin/niri--handle-event (json)
@@ -188,10 +185,6 @@ Example:
 (defvar binarin/niri--pending-matches (make-hash-table :test #'eql)
   "Hash: niri-window-id -> (retries-left . timer).
 Windows that haven't been matched to an Emacs frame yet.")
-
-(defvar binarin/niri--visibility-seen-p nil
-  "Non-nil once the first `WindowsOnScreenChanged' event has arrived.
-Guards `frame-visible-p' advice so we don't use stale/uninitialized data.")
 
 (defconst binarin/niri--max-match-retries 20
   "Maximum retry attempts to match a niri window to an Emacs frame.")
@@ -485,7 +478,6 @@ Populates the initial window table and matches known Emacs frames."
 (defun binarin/niri--on-windows-on-screen-changed (data)
   "Handle `WindowsOnScreenChanged' event.
 DATA has key `changes' -> vector of {window_id, visible_percentage}."
-  (setq binarin/niri--visibility-seen-p t)
   (let ((changes (alist-get 'changes data)))
     (when changes
       (cl-loop for change across changes
@@ -565,7 +557,6 @@ If b-niri is active, visibility data has arrived, and FRAME is tracked
 by niri, return t/nil from niri's perspective.  Otherwise delegate
 to ORIG-FUN (the real `frame-visible-p')."
   (if (and binarin/niri--enabled
-           binarin/niri--visibility-seen-p
            (gethash frame binarin/niri--frame->window))
       (if (binarin/niri-frame-visible-p frame) t nil)
     (funcall orig-fun frame)))
@@ -594,15 +585,13 @@ to ORIG-FUN (the real `frame-visible-p')."
   (advice-add 'frame-visible-p :around #'binarin/niri--frame-visible-p-advice)
   ;; 5. Connect to niri event stream
   (binarin/niri-connect)
-  (setq binarin/niri--enabled t
-        binarin/niri--visibility-seen-p nil)
+  (setq binarin/niri--enabled t)
   (message "b-niri: enabled"))
 
 (defun binarin/niri-disable ()
   "Disable niri integration: disconnect, unregister handlers, clean up."
   (interactive)
-  (setq binarin/niri--enabled nil
-        binarin/niri--visibility-seen-p nil)
+  (setq binarin/niri--enabled nil)
   ;; Remove advice
   (advice-remove 'frame-visible-p #'binarin/niri--frame-visible-p-advice)
   ;; Disconnect stream
