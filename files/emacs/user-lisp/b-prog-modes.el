@@ -21,6 +21,10 @@
 (setq read-process-output-max (* 4 1024 1024)) ; 4MB
 
 (defun b/cperl-mode-hook ()
+  (setq-local cperl-hairy t
+     	      cperl-indent-level 4
+     	      cperl-indent-parens-as-block t
+     	      cperl-close-paren-offset -4)
   (indent-tabs-mode nil)
   (setf fill-column 120))
 
