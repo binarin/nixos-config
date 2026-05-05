@@ -556,10 +556,11 @@ enough to establish visible/invisible; scroll updates refine it)."
 If b-niri is active, visibility data has arrived, and FRAME is tracked
 by niri, return t/nil from niri's perspective.  Otherwise delegate
 to ORIG-FUN (the real `frame-visible-p')."
-  (if (and binarin/niri--enabled
-           (gethash frame binarin/niri--frame->window))
-      (if (binarin/niri-frame-visible-p frame) t nil)
-    (funcall orig-fun frame)))
+  (if (eq frame (selected-frame)) t
+    (if (and binarin/niri--enabled
+             (gethash frame binarin/niri--frame->window))
+        (if (binarin/niri-frame-visible-p frame) t nil)
+      (funcall orig-fun frame))))
 
 (defun binarin/niri-enable ()
   "Enable niri integration: frame-id encoding, event handlers, event stream."
