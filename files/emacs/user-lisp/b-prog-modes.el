@@ -25,7 +25,7 @@
      	      cperl-indent-level 4
      	      cperl-indent-parens-as-block t
      	      cperl-close-paren-offset -4)
-  (indent-tabs-mode nil)
+  (indent-tabs-mode -1)
   (setf fill-column 120))
 
 (fset 'perl-mode 'cperl-mode)
