@@ -325,6 +325,7 @@
       nixpkgs.overlays = [
         inputs.emacs-overlay.overlays.default
         self.overlays.my-emacs
+        self.overlays.git-2_54
         inputs.nix-ai-tools.overlays.shared-nixpkgs
       ];
 
@@ -369,13 +370,19 @@
       home.username = "allebedev";
       home.homeDirectory = "/home/allebedev";
 
+      # doesn't have effect yet
+      programs.git.package = lib.mkForce pkgs.git-2_54;
+
       home.packages =
         (with pkgs.llm-agents; [
           claude-code
           workmux
         ])
         ++ (with pkgs; [
+          delta
           tramp-rpc-server
+          glab
+          git-2_54
         ]);
     };
 
