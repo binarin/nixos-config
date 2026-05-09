@@ -145,4 +145,9 @@
 
 (keymap-global-set "C-g" #'prot/keyboard-quit-dwim)
 
+(use-package delsel
+  :ensure nil
+  :config
+  (delete-selection-mode t))
+
 (require 'b-server)
