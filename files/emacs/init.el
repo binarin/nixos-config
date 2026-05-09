@@ -35,6 +35,7 @@
 (require 'b-version-control)
 (require 'b-ledger)
 (require 'b-gptel)
+(require 'b-commands)
 
 (use-package b-org
   :ensure nil
@@ -141,5 +142,7 @@
   :ensure nil
   :no-require t
   :bind (("<f22>" . hkey-either)))
+
+(keymap-global-set "C-g" #'prot/keyboard-quit-dwim)
 
 (require 'b-server)
