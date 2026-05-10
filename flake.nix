@@ -9,7 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     clan-core = {
-      url = "git+file:/home/binarin/personal-workspace/nix/clan-core";
+      url = "git+https://git.clan.lol/clan/clan-core";
       inputs = {
         disko.follows = "disko";
         flake-parts.follows = "flake-parts";
