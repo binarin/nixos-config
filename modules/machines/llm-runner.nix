@@ -26,7 +26,7 @@ in
     imports = [
       self.nixosModules.llm-runner-configuration
     ];
-    nixpkgs.hostPlatform = "x86_64-linux";
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
 
   flake.nixosConfigurations.llm-runner = lib.mkForce (
@@ -257,16 +257,6 @@ in
       hardware.nvidia-container-toolkit.enable = true;
       hardware.graphics.enable = true;
       hardware.graphics.enable32Bit = true;
-
-      nixpkgs.config = {
-        cudaSupport = true;
-        packageOverrides = pkgs: {
-          llama-cpp = pkgs.callPackage "${inputs.nixpkgs-unstable}/pkgs/by-name/ll/llama-cpp/package.nix" { };
-          llama-swap = pkgs.callPackage "${inputs.nixpkgs-unstable}/pkgs/by-name/ll/llama-swap/package.nix" {
-            buildGoModule = pkgs.buildGo126Module;
-          };
-        };
-      };
 
       environment.persistence."/persist".directories = [
         "/var/lib/private/llama-swap"

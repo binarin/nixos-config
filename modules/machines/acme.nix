@@ -40,7 +40,7 @@ in
     imports = [
       self.nixosModules.acme-configuration
     ];
-    nixpkgs.hostPlatform = "x86_64-linux";
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
 
   flake.nixosModules.acme-configuration =

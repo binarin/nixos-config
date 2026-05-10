@@ -6,6 +6,8 @@
   yamlfmt,
   nixfmt,
   fd,
+  hugo,
+  go_1_26,
   ripgrep,
   coreutils,
   writeShellApplication,
@@ -32,6 +34,7 @@ let
         smartparens
         dumb-jump
         gptel
+        ox-hugo
 
         anki-editor
         avy
@@ -97,6 +100,8 @@ in
 buildEnv {
   name = "emacs-from-nixos-config";
   paths = [
+    hugo
+    go_1_26
     yamllint
     yamlfmt
     nixfmt

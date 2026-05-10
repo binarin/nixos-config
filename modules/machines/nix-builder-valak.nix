@@ -18,7 +18,8 @@ in
   };
 
   flake.nixosConfigurations.nix-builder-valak = inputs.nixpkgs.lib.nixosSystem {
-    inherit system;
+    # inherit system;
+    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
     specialArgs = {
       inherit inventoryHostName;
       flake = {

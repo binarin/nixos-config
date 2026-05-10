@@ -14,7 +14,8 @@
   };
 
   flake.nixosConfigurations.forgejo = inputs.nixpkgs.lib.nixosSystem {
-    system = "x86_64-linux";
+    # system = "x86_64-linux";
+    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
     specialArgs.inventoryHostName = "forgejo";
     modules = [
       self.nixosModules.forgejo-configuration

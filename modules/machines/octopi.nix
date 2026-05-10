@@ -14,6 +14,7 @@
   # };
 
   flake.nixosConfigurations.octopi = inputs.nixos-raspberrypi.lib.nixosSystem {
+    pkgs = self.configured-pkgs.aarch64-linux.nixpkgs;
     specialArgs = {
       nixos-raspberrypi = inputs.nixos-raspberrypi;
       inventoryHostName = "octopi";
@@ -121,8 +122,8 @@
       networking.firewall.enable = true;
       nixos-config.export-metrics.enable = false;
 
-      nixpkgs.buildPlatform = "x86_64-linux";
-      nixpkgs.hostPlatform = "aarch64-linux";
+      # nixpkgs.buildPlatform = "x86_64-linux";
+      # nixpkgs.hostPlatform = "aarch64-linux";
 
       # Disable CI builds for octopi (Raspberry Pi cross-compilation)
       ci.doBuild = false;

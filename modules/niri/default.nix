@@ -33,9 +33,9 @@ in
         self.nixosModules.swayidle
       ];
 
-      nixpkgs.overlays = [
-        inputs.niri.overlays.default
-      ];
+      # nixpkgs.overlays = [
+      #   inputs.niri.overlays.default
+      # ];
 
       programs.niri.enable = true;
 

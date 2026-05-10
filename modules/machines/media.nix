@@ -17,7 +17,8 @@ in
   };
 
   flake.nixosConfigurations.media = inputs.nixpkgs.lib.nixosSystem {
-    system = "x86_64-linux";
+    # system = "x86_64-linux";
+    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
     specialArgs.inventoryHostName = "media";
     modules = [
       self.nixosModules.media-configuration

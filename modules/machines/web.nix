@@ -27,7 +27,7 @@ in
       self.nixosModules.web-configuration
       "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/librechat.nix"
     ];
-    nixpkgs.hostPlatform = "x86_64-linux";
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
 
   clan.inventory.instances.acme = {
@@ -51,6 +51,18 @@ in
       specialArgs.inventoryHostName = "web";
     }
   );
+
+  # flake.nixosConfigurations.web = lib.mkForce (
+  #   inputs.nixpkgs.lib.nixosSystem {
+  #     pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+  #     specialArgs = {
+  #       inventoryHostName = "web";
+  #     };
+  #     modules = [
+  #       flakeConfig.clan.outputs.moduleForMachine.web
+  #     ];
+  #   }
+  # );
 
   flake.nixosModules.web-configuration =
     {

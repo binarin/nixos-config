@@ -26,7 +26,7 @@ in
     imports = [
       self.nixosModules.social-configuration
     ];
-    nixpkgs.hostPlatform = "x86_64-linux";
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
 
   clan.inventory.instances.acme = {

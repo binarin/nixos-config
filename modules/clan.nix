@@ -11,8 +11,8 @@ let
 in
 {
   flake-file.inputs.clan-core = {
-    url = "https://git.clan.lol/clan/clan-core/archive/25.11.tar.gz";
-    # url = "git+file:/home/binarin/personal-workspace/nix/clan-core";
+    # url = "https://git.clan.lol/clan/clan-core/archive/25.11.tar.gz";
+    url = "git+file:/home/binarin/personal-workspace/nix/clan-core";
     # url = "git+https://forgejo.lynx-lizard.ts.net/binarin/clan-core?ref=25.11";
     inputs.nixpkgs.follows = "nixpkgs";
     inputs.disko.follows = "disko";
@@ -28,6 +28,7 @@ in
   clan = {
     meta.name = "binarin-nixos-config";
     meta.domain = "clan.binarin.info";
+    pkgsForSystem = system: self.configured-pkgs."${system}".nixpkgs;
   };
 
   flake.nixosModules.clan-baseline =
@@ -44,6 +45,8 @@ in
         self.nixosModules.clan-hostId
         self.nixosModules.clan-hosts
       ];
+
+      hardware.facter.report.system = lib.mkForce false;
 
       clan.core.vars.generators.tailscale-admin = {
         share = true;

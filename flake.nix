@@ -9,7 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     clan-core = {
-      url = "https://git.clan.lol/clan/clan-core/archive/25.11.tar.gz";
+      url = "git+file:/home/binarin/personal-workspace/nix/clan-core";
       inputs = {
         disko.follows = "disko";
         flake-parts.follows = "flake-parts";
@@ -23,6 +23,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+    devenv = {
+      url = "github:cachix/devenv";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
     direnv-instant.url = "github:Mic92/direnv-instant";
     disko = {
       url = "github:nix-community/disko";
@@ -104,7 +108,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-    nixpkgs-trezor-agent.url = "github:nixos/nixpkgs?rev=daf6dc47aa4b44791372d6139ab7b25269184d55";
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     sops-nix = {

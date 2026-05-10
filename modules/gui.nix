@@ -13,9 +13,9 @@ in
     {
       key = "nixos-config.modules.nixos.gui";
       config = {
-        nixpkgs.overlays = [
-          self.overlays.slack
-        ];
+        # nixpkgs.overlays = [
+        #   self.overlays.slack
+        # ];
         services.avahi = lib.mkIf (!config.networking.useNetworkd) {
           enable = true;
           nssmdns4 = true;

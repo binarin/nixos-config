@@ -63,7 +63,7 @@ in
       imports = [
         inputs.nix-index-database.homeModules.nix-index
         self.homeModules.direnv
-        self.homeModules.trezor-agent
+        # self.homeModules.trezor-agent
         self.homeModules.binarin-ssh
       ];
 
@@ -139,7 +139,7 @@ in
             eternal-terminal
             file
             git-annex
-            self'.packages.git-crypt-patched
+            # self'.packages.git-crypt-patched
             gnum4
             gnumake
             gnupg

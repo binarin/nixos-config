@@ -18,7 +18,8 @@ in
   };
 
   flake.nixosConfigurations.nix-builder-raum = inputs.nixpkgs.lib.nixosSystem {
-    inherit system;
+    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    # inherit system;
     specialArgs = {
       inherit inventoryHostName;
       flake = {

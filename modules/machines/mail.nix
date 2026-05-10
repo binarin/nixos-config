@@ -14,7 +14,7 @@
   };
 
   flake.nixosConfigurations.mail = inputs.nixpkgs.lib.nixosSystem {
-    system = "x86_64-linux";
+    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
     specialArgs.inventoryHostName = "mail";
     modules = [
       self.nixosModules.mail-configuration

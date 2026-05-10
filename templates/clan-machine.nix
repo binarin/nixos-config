@@ -30,7 +30,8 @@ in
     imports = [
       self.nixosModules.template-configuration
     ];
-    nixpkgs.hostPlatform = "x86_64-linux";
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    # nixpkgs.hostPlatform = "x86_64-linux";
   };
 
   flake.nixosModules.template-configuration =

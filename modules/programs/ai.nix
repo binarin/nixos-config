@@ -7,9 +7,9 @@
     { ... }:
     {
       key = "nixos-config.modules.nixos.ai-tools";
-      nixpkgs.overlays = [
-        inputs.nix-ai-tools.overlays.shared-nixpkgs
-      ];
+      # nixpkgs.overlays = [
+      #   inputs.nix-ai-tools.overlays.shared-nixpkgs
+      # ];
     };
 
   flake.homeModules.ai-tools =
@@ -39,7 +39,7 @@
           workmux
         ]
         ++ [
-          inputs'.nix-ai-tools.packages.pi
+          pkgs.bleeding.llm-agents.pi
         ];
 
       home.file.".claude/skills/".source =

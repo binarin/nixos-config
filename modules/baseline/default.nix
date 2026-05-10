@@ -20,27 +20,31 @@ in
     {
       key = "nixos-config.modules.nixos.baseline";
 
-      imports = [
-        "${inputs.srvos}/nixos/common/update-diff.nix"
+      imports =
+        (lib.optional (
+          specialArgs ? inventoryHostName && inventoryHostName != "iso" && inventoryHostName != "octopi"
+        ) inputs.nixpkgs.nixosModules.readOnlyPkgs)
+        ++ [
+          "${inputs.srvos}/nixos/common/update-diff.nix"
 
-        self.nixosModules.ci
-        self.nixosModules.emacs
-        self.nixosModules.eternal-terminal
-        self.nixosModules.git
-        self.nixosModules.interactive-cli
-        self.nixosModules.inventory
-        self.nixosModules.monitored
-        self.nixosModules.nix
-        self.nixosModules.security
-        self.nixosModules.sops
-        self.nixosModules.ssh-known-hosts
-        self.nixosModules.sshd
-        self.nixosModules.tailscale
-        self.nixosModules.use-nix-cache
+          self.nixosModules.ci
+          self.nixosModules.emacs
+          self.nixosModules.eternal-terminal
+          self.nixosModules.git
+          self.nixosModules.interactive-cli
+          self.nixosModules.inventory
+          self.nixosModules.monitored
+          self.nixosModules.nix
+          self.nixosModules.security
+          self.nixosModules.sops
+          self.nixosModules.ssh-known-hosts
+          self.nixosModules.sshd
+          self.nixosModules.tailscale
+          self.nixosModules.use-nix-cache
 
-        self.nixosModules.binarin-baseline
-      ]
-      ++ (lib.optional (specialArgs ? clan-core) self.nixosModules.clan-baseline);
+          self.nixosModules.binarin-baseline
+        ]
+        ++ (lib.optional (specialArgs ? clan-core) self.nixosModules.clan-baseline);
 
       _module.args.self' = {
         packages = self.packages."${pkgs.stdenv.hostPlatform.system}" // {

@@ -90,12 +90,12 @@ in
     {
       key = "nixos-config.modules.nixos.emacs";
 
-      nixpkgs.overlays = [
-        inputs.emacs-overlay.overlays.default
-        self.overlays.my-emacs
-        self.overlays.sicstus-manual
-        self.overlays.waybar-org-clock
-      ];
+      # nixpkgs.overlays = [
+      #   inputs.emacs-overlay.overlays.default
+      #   self.overlays.my-emacs
+      #   self.overlays.sicstus-manual
+      #   self.overlays.waybar-org-clock
+      # ];
 
       environment.systemPackages = with pkgs; [
         my-emacs

@@ -2,16 +2,18 @@
   self,
   inputs,
   lib,
+  config,
   ...
 }:
 let
   selfLib = self.lib.self;
+  flakeConfig = config;
 in
 {
   flake.furfur = self.nixosConfigurations.furfur.pkgs;
 
   flake.nixosConfigurations.furfur = inputs.nixpkgs.lib.nixosSystem {
-    system = "x86_64-linux";
+    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
     specialArgs = {
       inventoryHostName = "furfur";
     };

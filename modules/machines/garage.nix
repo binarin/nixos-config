@@ -18,7 +18,7 @@ in
   };
 
   flake.nixosConfigurations.garage = inputs.nixpkgs.lib.nixosSystem {
-    inherit system;
+    pkgs = self.configured-pkgs."${system}".nixpkgs;
     specialArgs = {
       inherit inventoryHostName;
       flake = {

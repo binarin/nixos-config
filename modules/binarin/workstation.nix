@@ -15,6 +15,7 @@
         self.nixosModules.binarin-nix-dev
         self.nixosModules.age-encryption
         self.nixosModules.ai-tools
+        self.nixosModules.devenv
       ];
 
       users.users.binarin.extraGroups = [
@@ -38,13 +39,13 @@
 
       home-manager.users.binarin = self.homeModules.binarin-workstation;
 
-      nixpkgs.config.permittedInsecurePackages = [
-        "qtwebengine-5.15.19"
-      ];
+      # nixpkgs.config.permittedInsecurePackages = [
+      #   "qtwebengine-5.15.19"
+      # ];
 
-      nixpkgs.overlays = [
-        self.overlays.my-google-chrome
-      ];
+      # nixpkgs.overlays = [
+      #   self.overlays.my-google-chrome
+      # ];
     };
 
   flake.homeModules.binarin-workstation =
@@ -98,7 +99,7 @@
         sox
         inputs.nixpkgs-unstable.legacyPackages."${pkgs.stdenv.hostPlatform.system}".forgejo-cli
         inputs'.niks3.packages.niks3
-        inputs.nixpkgs-unstable.legacyPackages."${pkgs.stdenv.hostPlatform.system}".devenv
+        # inputs.nixpkgs-unstable.legacyPackages."${pkgs.stdenv.hostPlatform.system}".devenv
       ];
 
       impermanence.local-files = [
