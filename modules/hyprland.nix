@@ -11,7 +11,7 @@ in
 {
   flake-file.inputs = {
     hyprland = {
-      url = "github:hyprwm/Hyprland/v0.54.3";
+      url = "github:hyprwm/Hyprland/v0.55.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.pre-commit-hooks.follows = "pre-commit-hooks";
     };
@@ -31,10 +31,10 @@ in
       key = "nixos-config.modules.nixos.hyprland";
 
       config = {
-        nixpkgs.overlays = [
-          inputs.hyprland.overlays.default
-          inputs.hyprland-contrib.overlays.default
-        ];
+        # nixpkgs.overlays = [
+        #   inputs.hyprland.overlays.default
+        #   inputs.hyprland-contrib.overlays.default
+        # ];
 
         services.displayManager.defaultSession = "hyprland-uwsm";
 

@@ -356,11 +356,12 @@ in
 
       services.llama-swap = {
         enable = true;
+        package = pkgs.bleeding-cuda.llama-swap;
         settings = {
           models =
             with lib;
             let
-              llama-server = lib.getExe' pkgs.llama-cpp "llama-server";
+              llama-server = lib.getExe' pkgs.bleeding-cuda.llama-cpp "llama-server";
               opts =
                 s:
                 with lib;

@@ -15,20 +15,21 @@ let
       "python3.12-ecdsa-0.19.1"
       "python3.13-ecdsa-0.19.1"
     ];
-    cudaSupport = true;
-    packageOverrides = pkgs: {
-      llama-cpp = pkgs.callPackage "${inputs.nixpkgs-unstable}/pkgs/by-name/ll/llama-cpp/package.nix" { };
-      llama-swap = pkgs.callPackage "${inputs.nixpkgs-unstable}/pkgs/by-name/ll/llama-swap/package.nix" {
-        buildGoModule = pkgs.buildGo126Module;
-      };
-    };
   };
 
   defaultOverlays = [
     inputs.emacs-overlay.overlays.default
     inputs.nix-ai-tools.overlays.shared-nixpkgs
     inputs.niri.overlays.default
+
+    # devenv 2.1
     inputs.devenv.overlays.default
+
+    # hyprland 0.55
+    inputs.hyprland.overlays.hyprland-packages
+    inputs.hyprland.overlays.hyprland-extras
+    inputs.hyprland-contrib.overlays.default
+
     self.overlays.sicstus-manual
     self.overlays.slack
     self.overlays.my-emacs
@@ -41,10 +42,11 @@ let
       input,
       system,
       extraOverlays ? [ ],
+      extraConfig ? { },
     }:
     import input {
       inherit system;
-      config = nixpkgsConfig;
+      config = nixpkgsConfig // extraConfig;
       overlays = defaultOverlays ++ extraOverlays;
     };
 
@@ -61,6 +63,12 @@ in
         input = inputs.nixpkgs-unstable;
       };
 
+      nixpkgs-unstable-cuda = importNixpkgs {
+        inherit system;
+        input = inputs.nixpkgs-unstable;
+        extraConfig.cudaSupport = true;
+      };
+
       nixpkgs = importNixpkgs {
         inherit system;
         input = inputs.nixpkgs;
@@ -68,9 +76,11 @@ in
           (_final: _prev: {
             bleeding = nixpkgs-unstable;
             trezor-agent = nixpkgs-unstable.trezor-agent;
+            bleeding-cuda = nixpkgs-unstable-cuda;
           })
         ];
       };
+
     });
 
     perSystem =
