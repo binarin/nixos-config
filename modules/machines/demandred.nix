@@ -28,7 +28,6 @@ in
       self.nixosModules.demandred-configuration
     ];
     nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    # nixpkgs.hostPlatform = "x86_64-linux";
   };
 
   flake.nixosModules.demandred-configuration =
@@ -43,6 +42,7 @@ in
 
       imports = [
         self.nixosModules.baseline
+        self.nixosModules.hyprland
       ];
 
       config = {
