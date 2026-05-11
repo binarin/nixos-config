@@ -100,8 +100,6 @@ in
 buildEnv {
   name = "emacs-from-nixos-config";
   paths = [
-    hugo
-    go_1_26
     yamllint
     yamlfmt
     nixfmt
