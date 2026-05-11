@@ -82,10 +82,6 @@
         treefmt-nix.follows = "treefmt-nix";
       };
     };
-    niri = {
-      url = "github:binarin/niri?rev=d74236edca0b08b8624c8825c555d69138a8b84d";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
     nix-ai-tools = {
       url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
