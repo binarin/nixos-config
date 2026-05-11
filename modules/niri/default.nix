@@ -4,10 +4,10 @@ let
   niriCargo = builtins.fromTOML (selfLib.read' "packages/niri-dynamic-keybindings/Cargo.toml");
 in
 {
-  flake-file.inputs.niri = {
-    url = "github:binarin/niri?rev=${niriCargo.dependencies.niri-ipc.rev}";
-    inputs.nixpkgs.follows = "nixpkgs-unstable";
-  };
+  # flake-file.inputs.niri = {
+  #   url = "github:binarin/niri?rev=${niriCargo.dependencies.niri-ipc.rev}";
+  #   inputs.nixpkgs.follows = "nixpkgs-unstable";
+  # };
 
   flake.nixosModules.niri =
     {
@@ -32,10 +32,6 @@ in
         self.nixosModules.wayland
         self.nixosModules.swayidle
       ];
-
-      # nixpkgs.overlays = [
-      #   inputs.niri.overlays.default
-      # ];
 
       programs.niri.enable = true;
 

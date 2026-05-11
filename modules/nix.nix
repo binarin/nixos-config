@@ -20,7 +20,6 @@ let
   defaultOverlays = [
     inputs.emacs-overlay.overlays.default
     inputs.nix-ai-tools.overlays.shared-nixpkgs
-    inputs.niri.overlays.default
 
     # devenv 2.1
     inputs.devenv.overlays.default
@@ -74,6 +73,7 @@ in
         input = inputs.nixpkgs;
         extraOverlays = [
           (_final: _prev: {
+            niri = nixpkgs-unstable.niri; # 26.04
             bleeding = nixpkgs-unstable;
             trezor-agent = nixpkgs-unstable.trezor-agent;
             bleeding-cuda = nixpkgs-unstable-cuda;

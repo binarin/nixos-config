@@ -7,16 +7,10 @@ edition = "2024"
 anyhow = "1.0.102"
 clap = { version = "4.6.0", features = ["derive"] }
 log = "0.4.29"
+niri-ipc = "26.4.0"
 
-
-niri-ipc.git = "https://github.com/binarin/niri"
-
-# 15c52bfb4318f3b2452f511d5367b4bfe6335242(tag) = 15c52bfb4318f3b2452f511d5367b4bfe6335242 = v25.11
+# niri-ipc.git = "https://github.com/binarin/niri"
 # niri-ipc.rev = "b35bcae35b3f9665043c335e55ed5828af77db85"
 # niri-ipc.ipcHash = "sha256-FhVj2U3Vy9XZmCdBUUn5Q7YMsnXgQgmmeoLxQkTFohw"
-
-# # b07bde3ee82dd73115e6b949e4f3f63695da35ea - git from 2026-03-09
-niri-ipc.rev = "d74236edca0b08b8624c8825c555d69138a8b84d"
-niri-ipc.ipcHash = "sha256-EbPPdvbpd4seCNKQSmXOpZIW3kedyU6BctGZ+HEzGRM"
 
 pretty_env_logger = "0.5.0"

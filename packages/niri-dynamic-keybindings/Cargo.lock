@@ -199,7 +199,8 @@ dependencies = [
 [[package]]
 name = "niri-ipc"
 version = "26.4.0"
-source = "git+https://github.com/binarin/niri?rev=d74236edca0b08b8624c8825c555d69138a8b84d#d74236edca0b08b8624c8825c555d69138a8b84d"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a4adbddf4037ce047854d36a60b5bf80a7990b8db2f0a0b9ede7534b0bae09a"
 dependencies = [
  "serde",
  "serde_json",
