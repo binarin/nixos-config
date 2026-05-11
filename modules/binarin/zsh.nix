@@ -27,6 +27,10 @@
           # cd ~Dir
           setopt cdablevars
 
+          # if type -p devenv > /dev/null; then
+          #   eval "$(devenv hook zsh)"
+          # fi
+
           rr() {
             readlink -f $(type -p $1 | awk '{print $3}')
           }
