@@ -447,6 +447,7 @@
       org-caldav-calendar-id "binarin"
       org-caldav-inbox "~/org/caldav.org"
       org-icalendar-timezone "Europe/Amsterdam"
+      org-caldav-backup-file (locate-user-emacs-file "org-caldav-backup.org")
       org-caldav-files (cl-set-difference org-agenda-files '("~/org/archive.org" "~/org/caldav.org") :test #'equal)
       org-caldav-save-directory "~/org")
 

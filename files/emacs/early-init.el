@@ -32,6 +32,7 @@
 		       "org-roam.db"
 		       "org-clock-save.el"
                        ".org-id-locations"
+                       "org-caldav-backup.org"
                        "diary")
                       (or eol "/")))
         (cache-rx (rx bol
