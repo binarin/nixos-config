@@ -16,8 +16,7 @@
   flake-file.inputs = {
     flake-file.url = lib.mkForce "github:vic/flake-file";
 
-    # nixpkgs.url = "path:/home/binarin/personal-workspace/nixpkgs";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs";
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
 
     import-tree.url = "github:vic/import-tree";
@@ -30,12 +29,6 @@
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
 
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
-
-    waybar.url = "github:Alexays/Waybar";
-    waybar.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    hyprland-contrib.url = "github:hyprwm/contrib";
-    hyprland-contrib.inputs.nixpkgs.follows = "nixpkgs";
 
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";

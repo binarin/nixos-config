@@ -691,22 +691,6 @@
         "type": "github"
       }
     },
-    "flake-compat_10": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1767039857,
-        "narHash": "sha256-vNpUSpF5Nuw8xvDLj2KCwwksIbjua2LZCqhV1LNRDns=",
-        "owner": "edolstra",
-        "repo": "flake-compat",
-        "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
-        "type": "github"
-      },
-      "original": {
-        "owner": "edolstra",
-        "repo": "flake-compat",
-        "type": "github"
-      }
-    },
     "flake-compat_2": {
       "flake": false,
       "locked": {
@@ -2293,16 +2277,15 @@
     },
     "nixpkgs_11": {
       "locked": {
-        "lastModified": 1777673416,
-        "narHash": "sha256-5c2POKPOjU40Kh0MirOdScBLG0bu9TAuPYAtPRNZMBs=",
+        "lastModified": 1778997929,
+        "narHash": "sha256-yL4g/+z5ngUi9l04l5WQHcLmQXQsGgPyKgsI1lPma6k=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "26ef669cffa904b6f6832ab57b77892a37c1a671",
+        "rev": "114007098e5c0b4212fd2e03598c01cc8f0c8b97",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
-        "ref": "nixos-25.11",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -2612,8 +2595,7 @@
         "sops-nix": "sops-nix",
         "srvos": "srvos",
         "stylix": "stylix",
-        "treefmt-nix": "treefmt-nix_4",
-        "waybar": "waybar"
+        "treefmt-nix": "treefmt-nix_4"
       }
     },
     "rust-overlay": {
@@ -3018,27 +3000,6 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "waybar": {
-      "inputs": {
-        "flake-compat": "flake-compat_10",
-        "nixpkgs": [
-          "nixpkgs-unstable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1777807672,
-        "narHash": "sha256-xlNiNx9wsYdlJUTo30F6DWgKIG3Is8PzLYVRcW+Fg4w=",
-        "owner": "Alexays",
-        "repo": "Waybar",
-        "rev": "4c105f7cd7a5d8db077bdd26f1b25b3d993d9402",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Alexays",
-        "repo": "Waybar",
         "type": "github"
       }
     },
