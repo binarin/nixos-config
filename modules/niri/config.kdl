@@ -416,6 +416,7 @@ binds {
   Ctrl+Shift+Alt+Super+A { spawn "b-emacsclient" "--eval" "(b/full-frame-org-agenda)"; }
   Ctrl+Shift+Alt+Super+D { spawn "b-emacsclient" "--eval" "(b/full-frame-org-roam-dailes-capture-today)"; }
   Ctrl+Shift+Alt+Super+F { spawn "firefox"; }
+  Ctrl+Shift+Alt+Super+I { spawn "b-emacsclient" "--eval" "(b/full-frame-clock-in-select)"; }
   Ctrl+Shift+Alt+Super+N { spawn "b-emacsclient" "--eval" "(b/new-emacs-frame)"; }
   Ctrl+Shift+Alt+Super+O { spawn "b-emacsclient" "--eval" "(org-clock-out)"; }
   Ctrl+Shift+Alt+Super+P { spawn "b-emacsclient" "--eval" "(b/org-capture-gui-selection)"; }

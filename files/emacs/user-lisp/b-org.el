@@ -350,6 +350,18 @@
 
 (add-hook 'delete-frame-functions #'b/full-frame-org-capture--handle-delete-frame)
 
+;;;###autoload
+(defun b/full-frame-clock-in-select ()
+  (let ((frame (make-frame '((name . "*org-clock-in - Emacs(float)*")
+                             (width . 119)
+                             (height . 30)))))
+    (unwind-protect
+        (with-selected-frame frame
+          (let ((display-buffer-alist `((,(rx "*Clock Task Select*")
+                                         (display-buffer-full-frame)))))
+            (b/org-clock-in-select)))
+      (delete-frame frame))))
+
 (defmacro b/with-org-capture-frame (&rest body)
   "BODY should leave org-capture buffer as current"
   (declare (indent 0))
