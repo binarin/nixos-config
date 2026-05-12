@@ -196,7 +196,9 @@ function properly")
                      name-function))
 
 
-(defvar b/ripgrep-main-target "/rpc:murmur:/usr/local/git_tree/main")
+(defvar b/ripgrep-main-target "/rpc:adb.k.b:/usr/local/git_tree/main")
+
+;;;###autoload
 (cl-defun b/ripgrep-main (needle)
   (interactive "sPattern: ")
   (let ((default-directory b/ripgrep-main-target))
