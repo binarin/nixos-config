@@ -97,6 +97,7 @@
         gopass
         dos2unix
         sox
+        brownnoise
         inputs.nixpkgs-unstable.legacyPackages."${pkgs.stdenv.hostPlatform.system}".forgejo-cli
         inputs'.niks3.packages.niks3
         # inputs.nixpkgs-unstable.legacyPackages."${pkgs.stdenv.hostPlatform.system}".devenv

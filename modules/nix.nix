@@ -34,6 +34,7 @@ let
     self.overlays.my-emacs
     self.overlays.my-google-chrome
     self.overlays.waybar-org-clock
+    self.overlays.brownnoise
 
     self.overlays.niri
   ];
