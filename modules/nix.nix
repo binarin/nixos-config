@@ -35,6 +35,7 @@ let
     self.overlays.my-google-chrome
     self.overlays.waybar-org-clock
     self.overlays.brownnoise
+    self.overlays.git-crypt-patched
 
     self.overlays.niri
   ];

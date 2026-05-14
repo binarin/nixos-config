@@ -139,7 +139,7 @@ in
             eternal-terminal
             file
             git-annex
-            # self'.packages.git-crypt-patched
+            git-crypt-patched
             gnum4
             gnumake
             gnupg
