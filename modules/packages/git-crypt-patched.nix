@@ -2,6 +2,7 @@ let
   packageFn =
     { git-crypt, fetchpatch }:
     git-crypt.overrideAttrs (_prev: {
+      pname = "git-crypt-patched";
       patches = [
         (fetchpatch {
           url = "https://github.com/AGWA/git-crypt/commit/2da5e0016e53aba381046063c24c07f1bee3d824.diff";
