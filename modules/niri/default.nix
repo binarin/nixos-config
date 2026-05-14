@@ -41,7 +41,7 @@ in
         fuzzel
 
         # automatically started if installed
-        # xwayland-satellite # XXX leak debugging
+        xwayland-satellite
       ];
 
       services.gnome.gcr-ssh-agent.enable = false;

@@ -72,8 +72,22 @@ in
         inherit system;
         input = inputs.nixpkgs;
         extraOverlays = [
-          (_final: _prev: {
-            niri = nixpkgs-unstable.niri; # 26.04
+          (final: _prev: {
+            # from unstable to get 26.04
+            niri = nixpkgs-unstable.niri.overrideAttrs (prevAttrs: {
+              patches = prevAttrs.patches ++ [
+                # my experimental patch for tile coords exposure
+                (final.fetchpatch {
+                  url = "https://github.com/binarin/niri/commit/a9d49bfe15502e5d9db99ff5209073e16ee06495.patch";
+                  sha256 = "05d5659jplvxj6xqn4xg429p7iy8q5dbq6sp48ngir2a07dlb5lj";
+                })
+                # https://github.com/niri-wm/niri/pull/3910
+                (final.fetchpatch {
+                  url = "https://github.com/niri-wm/niri/commit/164c9575cdb37ee8e57951eea7dac3ce957579c2.patch";
+                  sha256 = "149srx1y03jgig35icx6py1h7yqfgm5v5jnfvl940c8hxmcyp9yr";
+                })
+              ];
+            });
             bleeding = nixpkgs-unstable;
             trezor-agent = nixpkgs-unstable.trezor-agent;
             bleeding-cuda = nixpkgs-unstable-cuda;
