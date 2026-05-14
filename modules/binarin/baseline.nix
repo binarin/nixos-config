@@ -22,10 +22,10 @@ in
   };
 
   clan.inventory.instances.binarin-admin = {
-    module.name = "admin";
-    roles.default.tags.all = { };
-    roles.default.settings = {
-      allowedKeys =
+    module.name = "sshd";
+    roles.server.tags.all = { };
+    roles.server.settings = {
+      authorizedKeys =
         with lib;
         pipe (import "${self}/inventory/public-keys.nix") [
           (filterAttrs (
