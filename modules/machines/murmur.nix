@@ -19,29 +19,77 @@
     inputs.home-manager.flakeModules.home-manager
   ];
 
-  flake.homeConfigurations.murmur = inputs.home-manager.lib.homeManagerConfiguration {
-    pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
-    modules = [
-      self.homeModules.murmur-home-allebedev
-    ];
-
-    extraSpecialArgs = {
-      osConfig.services.graphical-desktop.enable = true;
-      osConfig.impermanence.enable = false;
-      self'.packages = self.packages.x86_64-linux;
-
-      inputs' =
-        with lib;
-        pipe inputs [
-          (lib.filterAttrs (_: v: v ? packages))
-          (lib.mapAttrs (
-            _: v: {
-              packages = v.packages.x86_64-linux;
-            }
-          ))
-        ];
+  flake.deploy.nodes.murmur = {
+    hostname = "murmur";
+    sshUser = "allebedev";
+    profiles.user = {
+      path = self.lib.deploy-home-manager self.homeConfigurations.murmur;
     };
   };
+
+  flake.homeConfigurations.murmur =
+    let
+      murmurPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays [
+        inputs.nixgl.overlay
+        (final: prev: {
+          # bubblewrap = final.writeShellScriptBin "bwrap" ''
+          #   exec /usr/bin/bwrap "$@"
+          # '';
+          swaylock = final.writeShellScriptBin "swaylock" ''
+            exec /usr/bin/swaylock "$@"
+          '';
+          slack =
+            let
+              slackWrapper = final.writeShellScriptBin "slack" ''
+                ${lib.getExe prev.slack} --no-sandbox "$@"
+              '';
+            in
+
+            final.buildEnv {
+              name = "slack";
+              ignoreCollisions = true;
+              paths = with prev; [
+                slackWrapper
+                slack
+              ];
+              meta.mainProgram = "slack";
+            };
+
+          nix = inputs.determinate.packages.x86_64-linux.default.overrideAttrs {
+            meta.mainProgram = "nix";
+          };
+        })
+      ];
+    in
+    inputs.home-manager.lib.homeManagerConfiguration {
+      pkgs = murmurPkgs;
+      modules = [
+        self.homeModules.murmur-home-allebedev
+        {
+          _module.args = {
+            pkgs = lib.mkForce murmurPkgs;
+            pkgs_i686 = lib.mkForce murmurPkgs.pkgsi686Linux;
+          };
+        }
+      ];
+
+      extraSpecialArgs = {
+        osConfig.services.graphical-desktop.enable = true;
+        osConfig.impermanence.enable = false;
+        self'.packages = self.packages.x86_64-linux;
+
+        inputs' =
+          with lib;
+          pipe inputs [
+            (lib.filterAttrs (_: v: v ? packages))
+            (lib.mapAttrs (
+              _: v: {
+                packages = v.packages.x86_64-linux;
+              }
+            ))
+          ];
+      };
+    };
 
   flake.homeModules.murmur-home-allebedev =
     {
@@ -64,48 +112,6 @@
         self.homeModules.binarin-ssh
         self.homeModules.standalone-home-manager-zsh
       ];
-
-      nixpkgs = {
-        config.allowUnfree = true;
-        overlays = [
-          inputs.emacs-overlay.overlays.default
-          inputs.nixgl.overlay
-          self.overlays.my-emacs
-          self.overlays.waybar-org-clock
-          self.overlays.sicstus-manual
-          self.overlays.lan-mouse
-          inputs.niri.overlays.default
-          inputs.nix-ai-tools.overlays.shared-nixpkgs
-          (final: prev: {
-            # bubblewrap = final.writeShellScriptBin "bwrap" ''
-            #   exec /usr/bin/bwrap "$@"
-            # '';
-            swaylock = final.writeShellScriptBin "swaylock" ''
-              exec /usr/bin/swaylock "$@"
-            '';
-            slack =
-              let
-                slackWrapper = final.writeShellScriptBin "slack" ''
-                  ${lib.getExe prev.slack} --no-sandbox "$@"
-                '';
-              in
-
-              final.buildEnv {
-                name = "slack";
-                ignoreCollisions = true;
-                paths = with prev; [
-                  slackWrapper
-                  slack
-                ];
-                meta.mainProgram = "slack";
-              };
-
-            nix = inputs.determinate.packages.x86_64-linux.default.overrideAttrs {
-              meta.mainProgram = "nix";
-            };
-          })
-        ];
-      };
 
       services.ssh-agent.enable = true;
       home.packages =
