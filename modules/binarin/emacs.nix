@@ -13,8 +13,12 @@ in
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-    emacs-tramp-rpc.url = "github:ArthurHeymans/emacs-tramp-rpc?rev=91074e16f34d405479760b8d85d36c2436bf3e4f";
+    # emacs-tramp-rpc.url = "github:ArthurHeymans/emacs-tramp-rpc?rev=61e87253d0423e2633cee6213e0e66e06a846160";
+    emacs-tramp-rpc.url = "github:binarin/emacs-tramp-rpc?rev=d1dc9610ff5607d76b54ac6b8b9b7896253a9c87";
     emacs-tramp-rpc.flake = false;
+
+    emacs-niri-awareness.url = "github:binarin/emacs-niri-awareness";
+    emacs-niri-awareness.flake = false;
   };
 
   flake.overlays.my-emacs =
@@ -26,8 +30,13 @@ in
           emacsBasePackage = base;
           emacsPackagesFn = epkgs: [
             (epkgs.melpaBuild {
+              pname = "niri-rpc";
+              version = "0.0.0";
+              src = inputs.emacs-niri-awareness;
+            })
+            (epkgs.melpaBuild {
               pname = "tramp-rpc";
-              version = "0.8.0";
+              version = "0.9.1";
               src = inputs.emacs-tramp-rpc;
               packageRequires = with epkgs; [
                 msgpack

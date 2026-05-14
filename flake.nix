@@ -32,6 +32,10 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+    emacs-niri-awareness = {
+      url = "github:binarin/emacs-niri-awareness";
+      flake = false;
+    };
     emacs-overlay = {
       url = "emacs-overlay";
       inputs = {
@@ -40,7 +44,7 @@
       };
     };
     emacs-tramp-rpc = {
-      url = "github:ArthurHeymans/emacs-tramp-rpc?rev=91074e16f34d405479760b8d85d36c2436bf3e4f";
+      url = "github:binarin/emacs-tramp-rpc?rev=d1dc9610ff5607d76b54ac6b8b9b7896253a9c87";
       flake = false;
     };
     flake-file.url = "github:vic/flake-file";
