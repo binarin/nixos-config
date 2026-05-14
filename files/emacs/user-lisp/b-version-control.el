@@ -15,6 +15,7 @@
               (rev (magit-git-string "rev-parse" "HEAD"))
               (file-prefix
                (pcase forge
+                 ("github.com" (format "blob/%s" rev))
                  ("gitlab.com" (format "-/blob/%s" rev))
                  ("forgejo.lynx-lizard.ts.net" (format "src/commit/%s" rev))))
               (line-range (if (region-active-p)
