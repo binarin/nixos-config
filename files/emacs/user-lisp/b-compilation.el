@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 (require 'l-lib)
+(require 'l-windows)
 (require 'cl-lib)
 
 (global-set-key (kbd "<f16>") 'recompile)
@@ -48,6 +49,11 @@
 
 (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
 
+(advice-add 'compilation-goto-locus :around #'b/display-buffer-from-dedicated-frame-around-advice)
+
+;;; send compilation buffer to a dedicated frame (if one is designated)
+(setf (alist-get (rx "*compilation*") display-buffer-alist nil nil #'equal)
+      '(b/display-buffer-use-dedicated-frame))
+
+
 (provide 'b-compilation)
-
-
