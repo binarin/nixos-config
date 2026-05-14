@@ -117,6 +117,7 @@
       home.packages =
         (with pkgs; [
           # age-plugin-yubikey
+          sox
           lan-mouse
           geeqie
           age
