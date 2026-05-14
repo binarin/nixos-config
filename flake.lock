@@ -645,17 +645,17 @@
     "emacs-tramp-rpc": {
       "flake": false,
       "locked": {
-        "lastModified": 1778781316,
+        "lastModified": 1778782233,
         "narHash": "sha256-qpjZb8u6EWhi2CxXdHC2fEcU3zfLS5RV28p1obWwui0=",
         "owner": "binarin",
         "repo": "emacs-tramp-rpc",
-        "rev": "d1dc9610ff5607d76b54ac6b8b9b7896253a9c87",
+        "rev": "95a6c3dab3e675df3324e7ea5481420748e0237d",
         "type": "github"
       },
       "original": {
         "owner": "binarin",
         "repo": "emacs-tramp-rpc",
-        "rev": "d1dc9610ff5607d76b54ac6b8b9b7896253a9c87",
+        "rev": "95a6c3dab3e675df3324e7ea5481420748e0237d",
         "type": "github"
       }
     },

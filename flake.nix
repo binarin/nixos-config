@@ -44,7 +44,7 @@
       };
     };
     emacs-tramp-rpc = {
-      url = "github:binarin/emacs-tramp-rpc?rev=d1dc9610ff5607d76b54ac6b8b9b7896253a9c87";
+      url = "github:binarin/emacs-tramp-rpc?rev=95a6c3dab3e675df3324e7ea5481420748e0237d";
       flake = false;
     };
     flake-file.url = "github:vic/flake-file";
