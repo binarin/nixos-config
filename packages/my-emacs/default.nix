@@ -112,7 +112,6 @@ buildEnv {
   ++ extraPackages;
 
   postBuild = ''
-    ls -la $out/share
     ln -sf "${lib.getExe emacsBinaryWrapper}" "$out/bin/emacs"
   '';
 
