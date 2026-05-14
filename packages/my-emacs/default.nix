@@ -34,6 +34,7 @@ let
         smartparens
         dumb-jump
         gptel
+        gptel-agent
         ox-hugo
 
         anki-editor
