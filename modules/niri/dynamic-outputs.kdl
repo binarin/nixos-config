@@ -7,9 +7,9 @@ output "Philips Consumer Electronics Company PHL 346B1C UK02142038885" {
     always-center-single-column
 
     preset-column-widths {
-      proportion 0.3333
+      proportion 0.25
       proportion 0.5
-      proportion 0.6666
+      proportion 0.75
     }
 
     preset-window-heights {
@@ -18,7 +18,7 @@ output "Philips Consumer Electronics Company PHL 346B1C UK02142038885" {
       proportion 0.6666
     }
 
-    default-column-width { proportion 0.33; }
+    default-column-width { proportion 0.5; }
   }
 }
 
