@@ -188,9 +188,11 @@ function properly")
 
 
 (autoload 'map-delete "map")
+
 (cl-defun b/ripgrep (needle &rest command-args &key name-function &allow-other-keys)
   (interactive
-   (let ((pattern (read-from-minibuffer "Ripgrep: " nil nil nil 'b/ripgrep-history)))
+   (let* ((default (b/active-region-or-symbol-at-point))
+          (pattern (read-from-minibuffer "Ripgrep: " default nil nil 'b/ripgrep-history)))
      (list pattern)))
   (compilation-start (apply #'b/ripgrep-command needle :heading b/ripgrep-use-headings
                             (map-delete command-args :name-function))

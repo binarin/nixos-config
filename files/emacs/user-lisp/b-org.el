@@ -10,7 +10,7 @@
 (require 'org-clock)
 (require 'org-archive)
 (require 'org-agenda)
-(require 'b-lib)
+(require 'l-lib)
 (require 'b-visual)
 (require 'ox)
 
@@ -105,11 +105,6 @@
     :hook org-fold-hide-drawer-all
     :prepare-finalize b/org-remove-empty-properties-from-capture
     :after-finalize b/org-capture-fold-after))
-
-(defun b/active-region-or-symbol-at-point ()
-  (if (region-active-p)
-      (buffer-substring-no-properties (point) (mark))
-    (current-word)))
 
 ;;;###autoload
 (defun b/org-capture-clocked-hypr-ripgrep ()

@@ -24,4 +24,22 @@
 (defun b/hide-ml-mode (mode)
   (add-to-list 'mode-line-collapse-minor-modes mode))
 
+;;;###autoload
+(defun b/active-region-or-symbol-at-point ()
+  (if (region-active-p)
+      (buffer-substring-no-properties (point) (mark))
+    (current-word)))
+
+;;;#autoload
+(defun b/strip-indentation (string)
+  (let* ((lines (cdr (string-lines string)))
+	 (indentation (string-match (rx (not " ")) (car lines)))
+	 (strip-re (rx-to-string `(seq line-start (** 0 ,indentation " ")))))
+    (string-join
+     (cl-loop
+      for line in lines
+      collect (concat (string-trim-right
+		       (replace-regexp-in-string strip-re "" line))
+		      "\n")))))
+
 (provide 'l-lib)
