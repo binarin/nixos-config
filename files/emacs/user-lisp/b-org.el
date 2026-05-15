@@ -116,6 +116,10 @@
   (interactive)
   (org-capture-string (format "<b/ripgrep-main %s>" (prin1-to-string (b/active-region-or-symbol-at-point))) "Z"))
 
+(defvar b/murmur-home-path (pcase (system-name)
+                             ("murmur" (expand-file-name "~"))
+                             (_ "/rpc:murmur:~")))
+
 (setf org-capture-templates
       `(("a" ,@b/anki-basic-card-template)
         ("t" "TODO" entry (file "~/org/refile.org")
@@ -179,8 +183,49 @@
 	   (ignore-errors
 	     (notifications-notify :title "Link captured"
 				   :body (caar org-stored-links)))))
-	("P" "Capture clipboard contents" entry (file "~/org/refile.org")
+        ("bl" "b.capture link" entry (file+headline ,(file-name-concat b/murmur-home-path "org/bkng.org") "Refile")
 	 ,(b/strip-indentation "
+           * %a
+             :PROPERTIES:
+             :ID: %(org-id-new)
+             :capture-clocked: %K
+             :capture-timestamp: %U
+             :END:
+
+             %i
+          ")
+	 :immediate-finish t
+	 :prepare-finalize
+	 (lambda ()
+	   (b/org-remove-empty-properties-from-capture)
+	   (ignore-errors
+	     (notifications-notify :title "Link captured"
+				   :body (caar org-stored-links)))))
+	("bls" "b.start working on a task from capture" entry
+         (file+headline ,(file-name-concat b/murmur-home-path "org/bkng.org") "Refile")
+	 ,(b/strip-indentation "
+           * NEXT %a
+             :PROPERTIES:
+             :ID: %(org-id-new)
+             :capture-clocked: %K
+             :capture-timestamp: %U
+             :END:
+
+             %i
+          ")
+	 :immediate-finish t
+	 :clock-in t
+	 :clock-keep t
+         :clock-resume t ;; only for cancel case
+	 :hook org-fold-hide-drawer-all
+	 :prepare-finalize (lambda ()
+	   (b/org-remove-empty-properties-from-capture)
+	   (ignore-errors
+	     (notifications-notify :title "Link captured"
+				   :body (caar org-stored-links))))
+	 :after-finalize b/org-capture-fold-after)
+        ("P" "Capture clipboard contents" entry (file "~/org/refile.org")
+         ,(b/strip-indentation "
            * %i
              :PROPERTIES:
              :ID: %(org-id-new)
@@ -190,13 +235,13 @@
 
              %(progn b/org-capture-gui-selection--body)
           ")
-	 :immediate-finish t
-	 :prepare-finalize
-	 (lambda ()
-	   (b/org-remove-empty-properties-from-capture)
-	   (ignore-errors
-	     (notifications-notify :title "Clipboard captured"
-				   :body (org-get-heading)))))))
+         :immediate-finish t
+         :prepare-finalize
+         (lambda ()
+           (b/org-remove-empty-properties-from-capture)
+           (ignore-errors
+             (notifications-notify :title "Clipboard captured"
+			           :body (org-get-heading)))))))
 
 (defun b/org-capture-fold-after ()
   (unless org-note-abort
