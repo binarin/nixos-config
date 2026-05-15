@@ -7,6 +7,7 @@
 
 ;; Mostly do not want to track down which sensitive files should be excluded from backups
 (setf make-backup-files nil)
+(setf create-lockfiles nil)
 
 (use-package tramp
   :ensure nil
