@@ -83,4 +83,12 @@
 ;; disable legacy behaviour when 'C-x C-x' highlights region, even if nothing was highlighted
 (setf exchange-point-and-mark-highlight-region nil)
 
+;;; upstream fix https://github.com/emacsorphanage/htmlize/pull/61
+(advice-add 'htmlize-face-color-internal :around
+            (defun b/htmlize-face-reset-workaround (orig-fun face bg)
+              (pcase (funcall orig-fun face bg)
+                ('reset (funcall orig-fun 'default bg))
+                (val))))
+
+
 (provide 'b-visual)
