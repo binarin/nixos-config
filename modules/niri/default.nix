@@ -22,8 +22,9 @@ in
         patches = prevAttrs.patches ++ [
           # my experimental patch for tile coords exposure
           (final.fetchpatch {
-            url = "https://github.com/binarin/niri/commit/a9d49bfe15502e5d9db99ff5209073e16ee06495.patch";
-            sha256 = "05d5659jplvxj6xqn4xg429p7iy8q5dbq6sp48ngir2a07dlb5lj";
+            url = "https://github.com/binarin/niri/commit/8845282c78d1c2742c0adf53bdfadbf5d87e503d.patch";
+            sha256 = "1rqz8a5ks1hl2azl0j64slp2i7jyck5wlq1vzfz7jdmadhyld03i";
+            #
           })
           # https://github.com/niri-wm/niri/pull/3910
           (final.fetchpatch {
