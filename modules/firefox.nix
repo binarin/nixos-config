@@ -54,7 +54,7 @@ in
         stylix.targets.firefox.profileNames = [ "clean" ];
         stylix.targets.firefox.firefoxGnomeTheme.enable = true;
 
-        impermanence.local-directories = [ "${config.xdg.configHome}/mozilla/firefox" ];
+        impermanence.local-directories = [ ".config/mozilla/firefox" ];
 
         home.packages = [
           (pkgs.writeShellScriptBin "x-www-browser" ''
@@ -62,7 +62,10 @@ in
           '')
           (pkgs.writeShellApplication {
             name = "smart-browser-chooser";
-            runtimeInputs = [ pkgs.google-chrome pkgs.gnugrep ];
+            runtimeInputs = [
+              pkgs.google-chrome
+              pkgs.gnugrep
+            ];
             text = selfLib.read "bin/smart-browser-chooser";
           })
         ];
