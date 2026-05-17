@@ -54,7 +54,7 @@ in
         stylix.targets.firefox.profileNames = [ "clean" ];
         stylix.targets.firefox.firefoxGnomeTheme.enable = true;
 
-        impermanence.local-directories = [ ".mozilla/firefox" ];
+        impermanence.local-directories = [ "${config.xdg.configHome}/mozilla/firefox" ];
 
         home.packages = [
           (pkgs.writeShellScriptBin "x-www-browser" ''
@@ -77,6 +77,7 @@ in
 
         programs.firefox = {
           enable = true;
+          configPath = "${config.xdg.configHome}/mozilla/firefox";
           profiles.clean = {
             id = 0;
             isDefault = true;
