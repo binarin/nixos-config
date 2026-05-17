@@ -22,7 +22,7 @@
   flake.deploy.nodes.murmur = {
     hostname = "murmur";
     sshUser = "allebedev";
-    profiles.user = {
+    profiles.system = {
       path = self.lib.deploy-home-manager self.homeConfigurations.murmur;
     };
   };

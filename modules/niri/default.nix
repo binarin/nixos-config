@@ -18,7 +18,7 @@ in
     final: prev:
     lib.optionalAttrs (prev ? bleeding) {
       # from unstable to get 26.04
-      niri = prev.bleeding.niri.overrideAttrs (prevAttrs: {
+      niri = final.bleeding.niri.overrideAttrs (prevAttrs: {
         patches = prevAttrs.patches ++ [
           # my experimental patch for tile coords exposure
           (final.fetchpatch {
