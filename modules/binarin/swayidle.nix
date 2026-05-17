@@ -147,20 +147,11 @@
               "-w"
               "-d"
             ];
-            events = [
-              {
-                event = "before-sleep";
-                command = "${lib.getExe' pkgs.systemd "loginctl"} lock-session";
-              }
-              {
-                event = "after-resume";
-                command = "${lib.getExe pkgs.niri} msg action power-on-monitors";
-              }
-              {
-                event = "lock";
-                command = "${lib.getExe doSessionLock}";
-              }
-            ];
+            events = {
+              before-sleep = "${lib.getExe' pkgs.systemd "loginctl"} lock-session";
+              after-resume = "${lib.getExe pkgs.niri} msg action power-on-monitors";
+              lock = "${lib.getExe doSessionLock}";
+            };
             timeouts = [
               # Brightness dimming - AC power
               {
