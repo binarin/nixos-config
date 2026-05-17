@@ -23,8 +23,7 @@ in
           # my experimental patch for tile coords exposure
           (final.fetchpatch {
             url = "https://github.com/binarin/niri/commit/8845282c78d1c2742c0adf53bdfadbf5d87e503d.patch";
-            sha256 = "1rqz8a5ks1hl2azl0j64slp2i7jyck5wlq1vzfz7jdmadhyld03i";
-            #
+            hash = "sha256-qQ8CPDIHUzX5cGAsdTiyC3vSjyfyDYjOROQ0K9NgZRg=";
           })
           # https://github.com/niri-wm/niri/pull/3910
           (final.fetchpatch {
