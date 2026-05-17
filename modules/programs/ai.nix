@@ -1,7 +1,11 @@
 { self, inputs, ... }:
 {
   flake-file.inputs.nix-ai-tools.url = "github:numtide/llm-agents.nix";
-  flake-file.inputs.nix-ai-tools.inputs.nixpkgs.follows = "nixpkgs-unstable";
+  flake-file.inputs.nix-ai-tools.inputs = {
+    nixpkgs.follows = "nixpkgs";
+    flake-parts.follows = "flake-parts";
+    # treefmt-nix.follows = "treemft-nix";
+  };
 
   flake.nixosModules.ai-tools =
     { ... }:

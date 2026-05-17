@@ -100,7 +100,10 @@
     };
     nix-ai-tools = {
       url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        nixpkgs.follows = "nixpkgs";
+      };
     };
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
@@ -132,7 +135,10 @@
     };
     stylix = {
       url = "github:nix-community/stylix?rev=e8ea85b4f7dddda9603e0f1ac86cd92cee3b2819";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        nixpkgs.follows = "nixpkgs";
+      };
     };
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };
