@@ -807,26 +807,6 @@
         "type": "github"
       }
     },
-    "home-manager-master": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1777852249,
-        "narHash": "sha256-XdbGWnFlX4McOEG5NioVsp35Ic6XL/rXnp8as71cu6o=",
-        "owner": "nix-community",
-        "repo": "home-manager",
-        "rev": "c909892de502b4de9e92838a503c09a9c8ebe4aa",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "home-manager",
-        "type": "github"
-      }
-    },
     "home-manager-unstable": {
       "inputs": {
         "nixpkgs": [
@@ -1732,7 +1712,6 @@
         "flake-file": "flake-file",
         "flake-parts": "flake-parts_4",
         "home-manager": "home-manager",
-        "home-manager-master": "home-manager-master",
         "home-manager-unstable": "home-manager-unstable",
         "hyprland": "hyprland",
         "hyprland-contrib": "hyprland-contrib",

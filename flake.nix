@@ -58,10 +58,6 @@
       url = "github:nix-community/home-manager?rev=26aaab785b0bab4af60a2c42b22760fa906ef22a";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    home-manager-master = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     home-manager-unstable = {
       url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
