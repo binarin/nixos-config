@@ -28,7 +28,7 @@ in
 
       programs.wireshark.enable = true;
       programs.wireshark.package =
-        if config.services.graphical-desktop.enable then pkgs.wireshark-qt else pkgs.tshark;
+        if config.services.graphical-desktop.enable then pkgs.wireshark else pkgs.tshark;
 
       environment.systemPackages = with pkgs; [
         ripgrep
