@@ -21,9 +21,6 @@ let
     inputs.emacs-overlay.overlays.default
     inputs.nix-ai-tools.overlays.shared-nixpkgs
 
-    # devenv 2.1
-    inputs.devenv.overlays.default
-
     # hyprland 0.55
     inputs.hyprland.overlays.hyprland-packages
     inputs.hyprland.overlays.hyprland-extras
