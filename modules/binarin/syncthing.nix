@@ -5,11 +5,7 @@
     {
       key = "nixos-config.modules.home.syncthing";
 
-      disabledModules = [
-        "${inputs.home-manager}/modules/services/syncthing.nix"
-      ];
       imports = [
-        "${inputs.home-manager-master}/modules/services/syncthing.nix"
         self.homeModules.impermanence
       ];
 
