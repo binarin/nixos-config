@@ -72,7 +72,7 @@
             url = {
               osc8-underline = "always";
             };
-            colors = {
+            colors-dark = {
               background = "000000";
               regular0 = "000000";
               regular1 = "cd0000";
