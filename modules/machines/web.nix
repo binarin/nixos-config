@@ -25,7 +25,6 @@ in
   clan.machines.web = {
     imports = [
       self.nixosModules.web-configuration
-      "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/librechat.nix"
     ];
     nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
