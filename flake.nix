@@ -53,7 +53,7 @@
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager?rev=26aaab785b0bab4af60a2c42b22760fa906ef22a";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager-master = {
@@ -119,7 +119,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     stylix = {
-      url = "github:danth/stylix/release-25.11";
+      url = "github:nix-community/stylix?rev=e8ea85b4f7dddda9603e0f1ac86cd92cee3b2819";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     treefmt-nix.url = "github:numtide/treefmt-nix";
