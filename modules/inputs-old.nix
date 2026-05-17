@@ -22,11 +22,7 @@
     import-tree.url = "github:vic/import-tree";
 
     disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    emacs-overlay.url = "emacs-overlay";
-    emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
-    emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
 
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
 

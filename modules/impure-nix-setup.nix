@@ -24,7 +24,7 @@
         nix.registry.nixpkgs-unstable = {
           from = {
             type = "indirect";
-            id = "nixpkgs-unstable";
+            id = "nixpkgs";
           };
           to = {
             type = "path";

@@ -12,8 +12,7 @@ in
 {
   flake-file.inputs.niks3 = {
     url = "github:Mic92/niks3";
-    inputs.nixpkgs.follows = "nixpkgs-unstable";
-    inputs.flake-parts.follows = "flake-parts";
+    inputs.nixpkgs.follows = "nixpkgs";
     inputs.treefmt-nix.follows = "treefmt-nix";
   };
 

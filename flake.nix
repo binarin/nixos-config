@@ -46,14 +46,14 @@
     };
     disko = {
       url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     emacs-niri-awareness = {
       url = "github:binarin/emacs-niri-awareness";
       flake = false;
     };
     emacs-overlay = {
-      url = "emacs-overlay";
+      url = "github:nix-community/emacs-overlay";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         nixpkgs-stable.follows = "nixpkgs";
@@ -72,10 +72,6 @@
       url = "github:nix-community/home-manager?rev=26aaab785b0bab4af60a2c42b22760fa906ef22a";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    home-manager-unstable = {
-      url = "github:nix-community/home-manager/master";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
     hyprland = {
       url = "github:hyprwm/Hyprland/v0.55.0";
       inputs = {
@@ -93,8 +89,7 @@
     niks3 = {
       url = "github:Mic92/niks3";
       inputs = {
-        flake-parts.follows = "flake-parts";
-        nixpkgs.follows = "nixpkgs-unstable";
+        nixpkgs.follows = "nixpkgs";
         treefmt-nix.follows = "treefmt-nix";
       };
     };

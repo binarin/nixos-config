@@ -5,11 +5,6 @@
   ...
 }:
 {
-  flake-file.inputs.home-manager-unstable = {
-    url = "github:nix-community/home-manager/master";
-    inputs.nixpkgs.follows = "nixpkgs-unstable";
-  };
-
   flake-file.inputs.nixgl = {
     url = "github:nix-community/nixgl";
     inputs.nixpkgs.follows = "nixpkgs";
@@ -271,7 +266,7 @@
     };
   };
 
-  flake.homeConfigurations.b-dev-kvm = inputs.home-manager-unstable.lib.homeManagerConfiguration {
+  flake.homeConfigurations.b-dev-kvm = inputs.home-manager.lib.homeManagerConfiguration {
     pkgs = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
 
     modules = [
