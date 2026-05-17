@@ -139,6 +139,8 @@ in
               "niri"
             ];
 
+            xdg.userDirs.setSessionVariables = false;
+
             xdg.dataFile =
               with lib;
               (pipe "${self}/files/xdg-applications" [
