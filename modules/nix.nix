@@ -18,6 +18,8 @@ let
   };
 
   defaultOverlays = [
+    inputs.deploy-rs.overlays.default
+
     inputs.emacs-overlay.overlays.default
     inputs.nix-ai-tools.overlays.shared-nixpkgs
 

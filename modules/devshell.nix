@@ -65,7 +65,7 @@
         ssh-to-age
         yamlfmt
         apg
-        deploy-rs # For ncf deploy commands
+        deploy-rs.deploy-rs # For ncf deploy commands
         libarchive # bsdtar for efficient tarball manipulation
         zstd # Fast compression for LXC tarballs
         pv # Progress monitoring for data pipelines

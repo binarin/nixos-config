@@ -129,7 +129,7 @@ in
             binutils # 'strings' mostly
             curl
             curlie
-            deploy-rs
+            deploy-rs.deploy-rs
             docker-compose
             docker-credential-helpers
             doggo
