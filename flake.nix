@@ -6,7 +6,10 @@
   inputs = {
     arion = {
       url = "github:hercules-ci/arion";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        nixpkgs.follows = "nixpkgs";
+      };
     };
     clan-core = {
       url = "git+https://git.clan.lol/clan/clan-core";
@@ -26,13 +29,21 @@
       url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
       inputs = {
         nix.inputs = {
+          flake-parts.follows = "flake-parts";
           nixpkgs-23-11.follows = "nixpkgs";
           nixpkgs-regression.follows = "nixpkgs";
         };
         nixpkgs.follows = "nixpkgs";
       };
     };
-    direnv-instant.url = "github:Mic92/direnv-instant";
+    direnv-instant = {
+      url = "github:Mic92/direnv-instant";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        nixpkgs.follows = "nixpkgs";
+        treefmt-nix.follows = "treefmt-nix";
+      };
+    };
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs-unstable";

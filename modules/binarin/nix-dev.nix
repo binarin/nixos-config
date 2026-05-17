@@ -3,7 +3,13 @@ let
   selfLib = self.lib.self;
 in
 {
-  flake-file.inputs.direnv-instant.url = "github:Mic92/direnv-instant";
+  flake-file.inputs.direnv-instant = {
+    url = "github:Mic92/direnv-instant";
+    inputs.flake-parts.follows = "flake-parts";
+    inputs.nixpkgs.follows = "nixpkgs";
+    inputs.treefmt-nix.follows = "treefmt-nix";
+  };
+
   flake.nixosModules.binarin-nix-dev =
     {
       config,
