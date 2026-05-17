@@ -22,7 +22,13 @@
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+    determinate = {
+      url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+      inputs = {
+        nix = { };
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
     direnv-instant.url = "github:Mic92/direnv-instant";
     disko = {
       url = "github:nix-community/disko";

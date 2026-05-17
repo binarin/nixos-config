@@ -57,6 +57,13 @@ in
   config = {
     flake-file.inputs = {
       determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+      determinate.inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nix.inputs = {
+          # XXX something wrong with functional-tests here
+          # nixpkgs.follows = "nixpkgs";
+        };
+      };
     };
 
     flake.lib.importNixpkgs = importNixpkgs;
