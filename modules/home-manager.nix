@@ -45,6 +45,7 @@
       key = "nixos-config.modules.home.home-misc";
 
       config = {
+        xdg.userDirs.setSessionVariables = false; # 26.05 default
         home.keyboard = lib.mkDefault null;
         home.activation = {
           removeCommonConfictingFiles = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
