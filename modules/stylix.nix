@@ -204,6 +204,11 @@ in
             size = 16;
           };
 
+          # XXX should stylix handle this? this is alternative suggested by home-manager to keep legacy behavior:
+          #   gtk.gtk4.theme = config.gtk.theme;
+          # And this is the new default with stateVersion 26.05
+          gtk.gtk4.theme = null;
+
           stylix.targets =
             lib.genAttrs
               [
