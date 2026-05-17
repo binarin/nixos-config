@@ -25,7 +25,10 @@
     determinate = {
       url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
       inputs = {
-        nix = { };
+        nix.inputs = {
+          nixpkgs-23-11.follows = "nixpkgs";
+          nixpkgs-regression.follows = "nixpkgs";
+        };
         nixpkgs.follows = "nixpkgs";
       };
     };

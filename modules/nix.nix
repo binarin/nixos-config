@@ -62,6 +62,10 @@ in
         nix.inputs = {
           # XXX something wrong with functional-tests here
           # nixpkgs.follows = "nixpkgs";
+
+          # stop downloading those 2 old inputs
+          nixpkgs-23-11.follows = "nixpkgs";
+          nixpkgs-regression.follows = "nixpkgs";
         };
       };
     };
