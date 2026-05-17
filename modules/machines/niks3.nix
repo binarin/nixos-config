@@ -123,9 +123,9 @@ in
         ];
       };
 
-      services.tailscale.serve.enable = true;
-      services.tailscale.serve.configs.niks3 = {
-        target = "5751";
+      services.tailscale.serve = {
+        enable = true;
+        services.niks3.endpoints."tcp:443" = "https://localhost:5751";
       };
 
       nixos-config.export-metrics.enable = true;

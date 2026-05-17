@@ -141,11 +141,7 @@ in
         # Expose ArchiveBox as a tailscale service
         services.tailscale.serve = {
           enable = mkDefault true;
-          services.archivebox = {
-            serviceName = "archivebox";
-            protocol = "https";
-            target = "localhost:8000";
-          };
+          services.archivebox.endpoints."tcp:443" = "https://localhost:8000";
         };
       };
     };
