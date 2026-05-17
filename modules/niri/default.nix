@@ -28,7 +28,7 @@ in
           # https://github.com/niri-wm/niri/pull/3910
           (final.fetchpatch {
             url = "https://github.com/niri-wm/niri/commit/164c9575cdb37ee8e57951eea7dac3ce957579c2.patch";
-            sha256 = "149srx1y03jgig35icx6py1h7yqfgm5v5jnfvl940c8hxmcyp9yr";
+            hash = "sha256-at6S/DeGwdhsJ+zicSFezE71/KbiNo8FMTsZ6hVYN9c=";
           })
         ];
       });
