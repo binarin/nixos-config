@@ -119,6 +119,10 @@ in
           '';
         };
 
+        imports = [
+          inputs.determinate.nixosModules.default
+        ];
+
         config = lib.mkMerge [
           {
             # nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
