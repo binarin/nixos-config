@@ -201,6 +201,8 @@
       #   "niri"
       # ];
 
+      programs.zsh.dotDir = "${config.xdg.configHome}/zsh";
+
       xdg.autostart.override."nvidia-settings-autostart".notShownIn = [
         "niri"
       ];
