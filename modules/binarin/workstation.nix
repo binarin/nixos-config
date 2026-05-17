@@ -90,7 +90,6 @@
 
       home.packages = with pkgs; [
         (pkgs.callPackage "${self}/packages/aws-workspaces/package.nix" { })
-        globalprotect-openconnect
         # aws-workspaces
         swi-prolog
         scryer-prolog
