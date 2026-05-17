@@ -63,6 +63,9 @@ in
           ))
         ];
 
+      # new default starting from nixos 26.05
+      boot.zfs.forceImportRoot = lib.mkDefault false;
+
       services.dbus.implementation = lib.mkDefault "broker";
       environment.enableAllTerminfo = true;
 
