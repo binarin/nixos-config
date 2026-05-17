@@ -97,9 +97,8 @@
         dos2unix
         sox
         brownnoise
-        inputs.nixpkgs-unstable.legacyPackages."${pkgs.stdenv.hostPlatform.system}".forgejo-cli
+        bleeding.forgejo-cli
         inputs'.niks3.packages.niks3
-        # inputs.nixpkgs-unstable.legacyPackages."${pkgs.stdenv.hostPlatform.system}".devenv
       ];
 
       impermanence.local-files = [
