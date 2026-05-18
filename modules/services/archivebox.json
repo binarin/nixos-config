@@ -1,4 +1,5 @@
 {
-  "archivebox": "0.7.3",
-  "sonic": "1.4.9"
+  "archivebox": "0.7.4",
+  "sonic": "1.4.9",
+  "archivebox_scheduler": "0.7.4"
 }
