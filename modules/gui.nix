@@ -13,9 +13,6 @@ in
     {
       key = "nixos-config.modules.nixos.gui";
       config = {
-        # nixpkgs.overlays = [
-        #   self.overlays.slack
-        # ];
         services.avahi = lib.mkIf (!config.networking.useNetworkd) {
           enable = true;
           nssmdns4 = true;
@@ -92,9 +89,7 @@ in
       texlive-combined = pkgs.texlive.combine { inherit (pkgs.texlive) scheme-full beamer ps2eps; };
 
       guiPackages = with pkgs; [
-        slack
         chromium
-        google-chrome
         element-desktop
         evince
         flacon
@@ -128,11 +123,17 @@ in
 
       options = {
         programs.telegram-desktop.enable = lib.mkEnableOption "Enable telegram";
+        programs.slack = {
+          enable = lib.mkEnableOption "Enable slack";
+          package = lib.mkPackageOption pkgs [ "slack" ] { };
+        };
       };
 
       config = (
         lib.mkMerge [
           {
+            programs.google-chrome.enable = lib.mkDefault true;
+            programs.slack.enable = lib.mkDefault true;
 
             xdg.autostart.override."org.kde.xwaylandvideobridge".notShownIn = [
               "Hyprland"
@@ -178,6 +179,19 @@ in
             };
             home.packages = guiPackages;
           }
+          (lib.mkIf config.programs.slack.enable {
+            home.packages = [
+              config.programs.slack.package
+            ];
+            impermanence.local-directories = [
+              ".config/Slack"
+            ];
+          })
+          (lib.mkIf config.programs.google-chrome.enable {
+            impermanence.local-directories = [
+              ".config/google-chrome"
+            ];
+          })
           (lib.mkIf config.programs.telegram-desktop.enable {
             home.packages = with pkgs; [ telegram-desktop ];
             impermanence.local-directories = [ ".local/share/TelegramDesktop" ];
