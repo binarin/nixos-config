@@ -50,7 +50,10 @@
   :config
   (b/hide-ml-mode 'paredit-mode))
  
-
+(use-package smartparens
+  :ensure nil
+  :bind (:map smartparens-mode-map
+              ("M-(" . sp-wrap-round)))
 
 ;;; emacs-lisp
 (add-to-list 'trusted-content "~/personal-workspace/nixos-config/files/emacs")
@@ -104,6 +107,7 @@
    :args (list "-f" (file-name-nondirectory (buffer-file-name)))))
 
 (defun b/nix-mode-hook ()
+  (smartparens-mode t)
   (add-hook 'before-save-hook #'b/format-nix nil t))
 
 ;;; Go
