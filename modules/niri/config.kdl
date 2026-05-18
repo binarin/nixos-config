@@ -357,7 +357,7 @@ window-rule {
 }
 
 window-rule {
-  match title="Emacs\\(float\\)\\*$"
+  match title="Emacs\\(float\\)\\*"
   open-floating true
 }
 
