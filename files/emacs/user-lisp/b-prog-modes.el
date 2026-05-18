@@ -52,6 +52,7 @@
  
 (use-package smartparens
   :ensure nil
+  :commands (smartparens-mode)
   :bind (:map smartparens-mode-map
               ("M-(" . sp-wrap-round)))
 
