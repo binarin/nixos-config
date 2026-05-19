@@ -143,6 +143,9 @@
   :no-require t
   :bind (("<f22>" . hkey-either)))
 
+(advice-add 'hyperb:autoloads-exist-p
+            :override (defun b/i-know-there-is-no-kotl-autloads-should-fix-nixpkgs-packaging (&rest args) t))
+
 (keymap-global-set "C-g" #'prot/keyboard-quit-dwim)
 
 (use-package delsel
