@@ -75,11 +75,13 @@ in
                 networking.firewall.allowedTCPPorts = [
                   443
                 ];
+
                 services.nginx = {
                   enable = true;
                   virtualHosts."${config.networking.hostName}.${config.clan.core.settings.domain}" = {
                     forceSSL = true;
                     enableACME = true;
+                    acmeRoot = null; # https://github.com/NixOS/nixpkgs/issues/210807
                     serverAliases = [
                       "${config.networking.hostName}.home.binarin.info"
                     ];
