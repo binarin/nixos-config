@@ -144,7 +144,7 @@
   :bind (("<f22>" . hkey-either)))
 
 (advice-add 'hyperb:autoloads-exist-p
-            :override (defun b/i-know-there-is-no-kotl-autloads-should-fix-nixpkgs-packaging (&rest args) t))
+            :override (defun b/i-know-there-is-no-kotl-autloads-should-fix-nixpkgs-packaging (&rest _) t))
 
 (keymap-global-set "C-g" #'prot/keyboard-quit-dwim)
 
