@@ -342,6 +342,7 @@
         fi
 
         export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
+        export BK_DISABLE_EVENTS=true
       '';
 
       programs.zsh.initContent = lib.mkMerge [
@@ -385,7 +386,22 @@
         ++ (with pkgs; [
           delta
           tramp-rpc-server
-          glab
+          ((pkgs.writeShellApplication {
+            name = "glab";
+            runtimeInputs = [ pkgs.glab ];
+            text = ''
+              export HTTP_PROXY=http://127.0.0.1:18080
+              export HTTPS_PROXY=http://127.0.0.1:18080
+              if [ -f "$HOME/.mitmproxy/mitmproxy-ca-cert.pem" ]; then
+                if ! cmp -s "$HOME/.mitmproxy/mitmproxy-ca-cert.pem" /etc/pki/tls/certs/mitmproxy-ca-cert.pem 2>/dev/null; then
+                  sudo cp "$HOME/.mitmproxy/mitmproxy-ca-cert.pem" /etc/pki/tls/certs/
+                fi
+              fi
+              exec ${lib.getExe pkgs.glab} "$@"
+            '';
+          }).overrideAttrs (_: {
+            name = "cursed-glab";
+          }))
           git-2_54
         ]);
     };
