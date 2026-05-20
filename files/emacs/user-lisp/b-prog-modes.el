@@ -281,7 +281,6 @@
               ("C-c C-c" . haskell-hide-toggle)))
 
 (defun b/haskell-mode-hook ()
-  (haskell-unicode-input-method-enable)
   (add-hook 'xref-backend-functions #'etags--xref-backend nil t))
 
 (add-hook 'haskell-mode-hook 'b/haskell-mode-hook)
