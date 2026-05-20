@@ -28,4 +28,7 @@
                                  (magit-file-relative-name (buffer-file-name))
                                  line-range))))
 
+(setf (alist-get (rx bol "magit-diff:") display-buffer-alist nil nil #'equal)
+      '(b/display-buffer-use-dedicated-frame))
+
 (provide 'b-version-control)
