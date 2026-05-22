@@ -109,6 +109,7 @@ function properly")
 			     (pattern-type 'fixed) ;; fixed/default/pcre2/auto
 			     follow
 			     (heading t)
+                             paths
 			     search-zip
 			     invert-match
 			     (binary t)
@@ -150,6 +151,9 @@ function properly")
 
     (push "--regexp" parts)
     (push pattern parts)
+
+    (dolist (path paths)
+      (push path parts))
 
     (setf parts (nreverse parts))
     (string-join (mapcar #'shell-quote-argument parts) " ")))
@@ -203,10 +207,11 @@ function properly")
 (defvar b/ripgrep-main-target "/rpc:adb.k.b:/usr/local/git_tree/main")
 
 ;;;###autoload
-(cl-defun b/ripgrep-main (needle)
+(cl-defun b/ripgrep-main (needle &rest paths)
   (interactive "sPattern: ")
   (let ((default-directory b/ripgrep-main-target))
     (b/ripgrep needle
+               :paths paths
                :pattern-type 'auto)))
 
 (defun b/ripgrep-project (project)
