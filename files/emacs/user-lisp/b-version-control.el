@@ -11,7 +11,7 @@
               (_ (string-match (rx bol "git@" (group-n 1 (+ (not ":"))) ":" (group-n 2 (* nonl)) eol)
                                remote-url))
               (forge (match-string 1 remote-url))
-              (project (match-string 2 remote-url))
+              (project (string-remove-suffix ".git" (match-string 2 remote-url)))
               (rev (magit-git-string "rev-parse" "HEAD"))
               (file-prefix
                (pcase forge
