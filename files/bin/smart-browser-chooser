@@ -30,6 +30,8 @@ chrome_host_patterns=(
 
     # any subdomain of booking.com
     '\.booking\.com$'
+
+    'repostat-.*\.gitlab\.io$'
 )
 
 for pattern in "${chrome_host_patterns[@]}"; do
@@ -43,6 +45,7 @@ done
 # Add new host+path routes here.
 chrome_hostpath_patterns=(
     '^gitlab\.com/b......-..m'
+    '^gitlab\.com/oauth/authorize\?client_id=790b322'
 )
 
 combined="${host}${path}"
