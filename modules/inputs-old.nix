@@ -16,7 +16,7 @@
   flake-file.inputs = {
     flake-file.url = lib.mkForce "github:vic/flake-file";
 
-    nixpkgs.url = "github:nixos/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/release-26.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
 
     import-tree.url = "github:vic/import-tree";
