@@ -80,8 +80,16 @@ let
       if [[ -n ''${INFOPATH+x} && ! $INFOPATH =~ :$ ]]; then
         export INFOPATH="$INFOPATH:"
       fi
+      extra_args=()
+
+      # 9 years and couting:
+      # https://emacs.stackexchange.com/questions/34022/error-initialization-user-has-no-home-directory
+      if [[ -f /etc/centos-release ]]; then
+        extra_args=(--user "")
+      fi
       exec "${lib.getExe emacsWithPackages}" \
         --init-directory="$init_directory" \
+        "''${extra_args[@]}" \
         "$@"
     '';
   };

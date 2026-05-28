@@ -65,6 +65,7 @@ in
         self.homeModules.direnv
         # self.homeModules.trezor-agent
         self.homeModules.binarin-ssh
+        self.homeModules.emacs
       ];
 
       options = {

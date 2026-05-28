@@ -267,7 +267,7 @@
   };
 
   flake.homeConfigurations.b-dev-kvm = inputs.home-manager.lib.homeManagerConfiguration {
-    pkgs = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
+    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
 
     modules = [
       self.homeModules.b-dev-kvm-configuration
@@ -323,7 +323,16 @@
         self.homeModules.binarin-zsh
         self.homeModules.binarin-baseline
         self.homeModules.standalone-home-manager-zsh
+        self.homeModules.interactive-cli
       ];
+
+      programs.ssh.enable = lib.mkForce false;
+
+      services.emacs = {
+        enable = true;
+        startWithUserSession = true;
+        package = lib.mkForce config.programs.emacs.package;
+      };
 
       nixpkgs.config.allowUnfree = true;
       nixpkgs.overlays = [
@@ -343,6 +352,23 @@
 
         export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
         export BK_DISABLE_EVENTS=true
+
+        # all of this only makes sense when I don't manage my configs with home-manager
+        local -a slow_scripts=(
+           /etc/profile.d/dotfiles.sh
+           /etc/profile.d/bk_completion.sh
+           /etc/profile.d/nvm.sh
+           /etc/profile.d/ssh_warn.sh
+           /etc/profile.d/completion.sh
+           /etc/profile.d/puppet_warn.sh
+         )
+
+         for f in $slow_scripts; do
+           if [[ -s $f ]]; then
+             sudo tee $slow_scripts < /dev/null > /dev/null
+             break
+           fi
+         done
       '';
 
       programs.zsh.initContent = lib.mkMerge [
