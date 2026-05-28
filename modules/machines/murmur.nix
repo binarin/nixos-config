@@ -334,6 +334,8 @@
         package = lib.mkForce config.programs.emacs.package;
       };
 
+      services.ssh-agent.enable = lib.mkForce false;
+
       nixpkgs.config.allowUnfree = true;
       nixpkgs.overlays = [
         inputs.emacs-overlay.overlays.default
