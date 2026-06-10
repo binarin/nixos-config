@@ -33,6 +33,7 @@
 		       "org-clock-save.el"
                        ".org-id-locations"
                        "org-caldav-backup.org"
+                       "magit-githooks"
                        "diary")
                       (or eol "/")))
         (cache-rx (rx bol
