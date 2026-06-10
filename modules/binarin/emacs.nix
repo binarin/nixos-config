@@ -13,8 +13,8 @@ in
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-    # emacs-tramp-rpc.url = "github:ArthurHeymans/emacs-tramp-rpc?rev=61e87253d0423e2633cee6213e0e66e06a846160";
-    emacs-tramp-rpc.url = "github:binarin/emacs-tramp-rpc?rev=95a6c3dab3e675df3324e7ea5481420748e0237d";
+    emacs-tramp-rpc.url = "github:ArthurHeymans/emacs-tramp-rpc";
+    # emacs-tramp-rpc.url = "github:binarin/emacs-tramp-rpc?rev=95a6c3dab3e675df3324e7ea5481420748e0237d";
     emacs-tramp-rpc.flake = false;
 
     emacs-niri-awareness.url = "github:binarin/emacs-niri-awareness";
@@ -36,7 +36,7 @@ in
             })
             (epkgs.melpaBuild {
               pname = "tramp-rpc";
-              version = "0.9.1";
+              version = "0.10.0";
               src = inputs.emacs-tramp-rpc;
               packageRequires = with epkgs; [
                 msgpack

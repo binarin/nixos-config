@@ -60,7 +60,7 @@
       };
     };
     emacs-tramp-rpc = {
-      url = "github:binarin/emacs-tramp-rpc?rev=95a6c3dab3e675df3324e7ea5481420748e0237d";
+      url = "github:ArthurHeymans/emacs-tramp-rpc";
       flake = false;
     };
     flake-file.url = "github:vic/flake-file";
@@ -69,11 +69,11 @@
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
     home-manager = {
-      url = "github:nix-community/home-manager?rev=26aaab785b0bab4af60a2c42b22760fa906ef22a";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland = {
-      url = "github:hyprwm/Hyprland/v0.55.0";
+      url = "github:hyprwm/Hyprland/v0.55.3";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         pre-commit-hooks.follows = "pre-commit-hooks";
@@ -117,7 +117,7 @@
       url = "github:nix-community/NixOS-WSL/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixpkgs.url = "github:nixos/nixpkgs/release-26.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs";
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     sops-nix = {
@@ -129,7 +129,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     stylix = {
-      url = "github:nix-community/stylix?rev=e8ea85b4f7dddda9603e0f1ac86cd92cee3b2819";
+      url = "github:nix-community/stylix/release-26.05";
       inputs = {
         flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
