@@ -109,7 +109,7 @@
 ;;;###autoload
 (defun b/org-capture-clocked-hypr-ripgrep ()
   (interactive)
-  (org-capture-string (format "<b/ripgrep-main %s>" (prin1-to-string (b/active-region-or-symbol-at-point))) "Z"))
+  (org-capture-string (format "(b/ripgrep-main %s)" (prin1-to-string (b/active-region-or-symbol-at-point))) "Z"))
 
 (defvar b/murmur-home-path (pcase (system-name)
                              ("murmur" (expand-file-name "~"))
