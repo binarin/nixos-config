@@ -2,10 +2,12 @@
   self,
   inputs,
   config,
+  lib,
   ...
 }:
 let
   selfLib = self.lib.self;
+  flakeConfig = config;
 in
 {
   flake.deploy.nodes.docker-on-nixos = {
@@ -16,13 +18,35 @@ in
     };
   };
 
-  flake.nixosConfigurations.docker-on-nixos = inputs.nixpkgs.lib.nixosSystem {
-    # system = "x86_64-linux";
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    specialArgs.inventoryHostName = "docker-on-nixos";
-    modules = [
+  clan.inventory.machines.docker-on-nixos = {
+    deploy.targetHost = flakeConfig.inventory.ipAllocation.docker-on-nixos.home.primary.address;
+  };
+
+  clan.machines.docker-on-nixos = {
+    imports = [
       self.nixosModules.docker-on-nixos-configuration
     ];
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+  };
+
+  flake.nixosConfigurations.docker-on-nixos = lib.mkForce (
+    self.clan.nixosConfigurations.docker-on-nixos.extendModules {
+      specialArgs.inventoryHostName = "docker-on-nixos";
+    }
+  );
+
+  clan.inventory.instances.acme = {
+    roles.client.machines.docker-on-nixos = {
+      settings = {
+        domain = "docker-on-nixos.clan.binarin.info";
+        extraDomainNames = [
+          "brick-tracker.binarin.info"
+          "homebox.binarin.info"
+          "karakeep.binarin.info"
+          "archivebox.binarin.info"
+        ];
+      };
+    };
   };
 
   flake.nixosModules.docker-on-nixos-configuration =
@@ -31,43 +55,6 @@ in
       pkgs,
       ...
     }:
-    let
-      create = lxcId: ''
-        pct create ${lxcId} /var/lib/vz/template/cache/proxmox-lxc-docker-on-nixos.tar.xz \
-          --hostname docker-on-nixos \
-          --onboot 1 \
-          --cores 4 --features nesting=1 --memory 8192 --swap 0 \
-          --unprivileged 1 --ostype unmanaged --arch amd64 \
-          --rootfs local-zfs:8 \
-          --mp0 local-zfs:1,mp=/sbin,backup=1 \
-          --mp1 local-zfs:8,mp=/nix,backup=1 \
-          --mp2 local-zfs:8,mp=/persist,backup=1 \
-          --mp3 local-zfs:1,mp=/local,backup=0 \
-          --net0 name=eth0,bridge=vmbr0,firewall=1,ip=dhcp,type=veth
-
-        cat <<EOF >> /etc/pve/lxc/${lxcId}.conf
-        lxc.cgroup2.devices.allow: c 10:200 rwm
-        lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file
-        EOF
-
-        ROOTFS=rpool/data/subvol-${lxcId}-disk-0
-        zfs destroy $ROOTFS
-        zfs create $ROOTFS
-        chown -v 100000:100000 /$ROOTFS
-        zfs snapshot rpool/data/subvol-${lxcId}-disk-0@blank
-
-        touch /$ROOTFS/nix-path-registration
-        chown -Rv 100000:100000 /$ROOTFS
-
-        cat <<"EOF" | tee /var/lib/vz/snippets/pve-impermanence-hook.pl > /dev/null
-        ${selfLib.read "pve-impermanence-hook.pl"}
-        EOF
-        chmod +x /var/lib/vz/snippets/pve-impermanence-hook.pl
-        pct set 116 --hookscript local:snippets/pve-impermanence-hook.pl
-
-        pct start ${lxcId}
-      '';
-    in
     {
       key = "nixos-config.modules.nixos.docker-on-nixos-configuration";
 
@@ -75,10 +62,11 @@ in
         self.nixosModules.baseline
         self.nixosModules.lxc
         self.nixosModules.impermanence
-        self.nixosModules.expose-local-http
         "${inputs.nixpkgs}/nixos/modules/profiles/minimal.nix"
         inputs.arion.nixosModules.arion
 
+        self.nixosModules.bricktracker
+        self.nixosModules.homebox
         self.nixosModules.karakeep
         self.nixosModules.archivebox
       ];
@@ -89,7 +77,55 @@ in
         impermanence.enable = true;
         system.stateVersion = "24.11";
 
-        lib.lxc.createCommand = create;
+        proxmoxLXC = {
+          cores = 8;
+          memory = 16384;
+          rootfs.size = "8G";
+          mounts = lib.mkForce [
+            {
+              mountPoint = "/sbin";
+              size = "1G";
+              backup = true;
+            }
+            {
+              mountPoint = "/nix";
+              size = "32G";
+              backup = true;
+            }
+            {
+              mountPoint = "/persist";
+              size = "64G";
+              backup = true;
+            }
+            {
+              mountPoint = "/local";
+              size = "1G";
+              backup = false;
+            }
+            {
+              mountPoint = "/mnt/archivebox/data";
+              size = "1T";
+              pool = "spinning-zfs";
+              backup = true;
+            }
+            {
+              mountPoint = "/mnt/archivebox/var";
+              size = "10G";
+              backup = true;
+            }
+            {
+              mountPoint = "/mnt/karakeep/var";
+              size = "8G";
+              backup = true;
+            }
+            {
+              mountPoint = "/mnt/karakeep/data";
+              size = "1T";
+              pool = "spinning-zfs";
+              backup = true;
+            }
+          ];
+        };
 
         virtualisation.docker.enable = true;
         virtualisation.docker.autoPrune.enable = true;
@@ -99,90 +135,51 @@ in
           "/var/lib/docker"
         ];
 
-        services.caddy.expose-local-http.enable = true;
+        # nginx reverse proxy with clan ACME certs (replaces caddy + cloudflare)
+        services.nginx.enable = true;
+        networking.firewall.allowedTCPPorts = [
+          80
+          443
+        ];
 
-        # brick-tracker configuration
-        services.caddy.expose-local-http.virtualHosts."brick-tracker.binarin.info" = "localhost:3333";
+        services.nginx.virtualHosts."brick-tracker.binarin.info" = {
+          addSSL = true;
+          sslCertificate = "/var/lib/ssl-cert/full.pem";
+          sslCertificateKey = "/var/lib/ssl-cert/full.pem";
+          locations."/" = {
+            proxyPass = "http://localhost:3333";
+          };
+        };
+
+        services.nginx.virtualHosts."homebox.binarin.info" = {
+          addSSL = true;
+          sslCertificate = "/var/lib/ssl-cert/full.pem";
+          sslCertificateKey = "/var/lib/ssl-cert/full.pem";
+          locations."/" = {
+            proxyPass = "http://localhost:7745";
+          };
+        };
+
+        services.nginx.virtualHosts."karakeep.binarin.info" = {
+          addSSL = true;
+          sslCertificate = "/var/lib/ssl-cert/full.pem";
+          sslCertificateKey = "/var/lib/ssl-cert/full.pem";
+          locations."/" = {
+            proxyPass = "http://localhost:3000";
+          };
+        };
+
+        services.nginx.virtualHosts."archivebox.binarin.info" = {
+          addSSL = true;
+          sslCertificate = "/var/lib/ssl-cert/full.pem";
+          sslCertificateKey = "/var/lib/ssl-cert/full.pem";
+          locations."/" = {
+            proxyPass = "http://localhost:8000";
+          };
+        };
 
         environment.systemPackages = with pkgs; [ litecli ];
 
-        sops.secrets."bricktracker/rebrickable-api-key" = { };
-        sops.templates."bricktracker-env".content = ''
-          BK_REBRICKABLE_API_KEY="${config.sops.placeholder."bricktracker/rebrickable-api-key"}"
-        '';
-
-        virtualisation.arion.projects.bricktracker = {
-          serviceName = "bricktracker-docker-compose";
-          settings = {
-            services =
-              let
-                tags = builtins.fromJSON (builtins.readFile ./bricktracker.json);
-              in
-              {
-                bricktracker = {
-                  service = {
-                    container_name = "BrickTracker";
-                    restart = "unless-stopped";
-                    image = "gitea.baerentsen.space/frederikbaerentsen/bricktracker:${tags.bricktracker}";
-                    ports = [ "3333:3333" ];
-                    volumes = [
-                      "/persist/BrickTracker/data:/data/"
-                      "/persist/BrickTracker/instructions:/app/static/instructions/"
-                      "/persist/BrickTracker/minifigures:/app/static/minifigures/"
-                      "/persist/BrickTracker/parts:/app/static/parts/"
-                      "/persist/BrickTracker/sets:/app/static/sets/"
-                    ];
-                    environment = {
-                      BK_DATABASE_PATH = "/data/app.db";
-                      BK_MINIFIGURES_FOLDER = "minifigures";
-                      BK_RETIRED_SETS_PATH = "/data/retired_sets.csv";
-                      BK_THEMES_PATH = "/data/themes.csv";
-                    };
-                    env_file = [
-                      config.sops.templates.bricktracker-env.path
-                    ];
-                  };
-                };
-              };
-          };
-        };
-
-        # homebox configuration
-        services.caddy.expose-local-http.virtualHosts."homebox.binarin.info" = "http://localhost:7745";
-        virtualisation.arion.projects.homebox = {
-          serviceName = "home-box-docker-compose";
-          settings = {
-            services =
-              let
-                tags = builtins.fromJSON (builtins.readFile ./homebox.json);
-              in
-              {
-                homebox = {
-                  service = {
-                    image = "ghcr.io/sysadminsmedia/homebox:${tags.homebox}";
-                    container_name = "homebox";
-                    restart = "unless-stopped";
-                    environment = {
-                      HBOX_LOG_LEVEL = "info";
-                      HBOX_LOG_FORMAT = "text";
-                      HBOX_WEB_MAX_FILE_UPLOAD = "10";
-                      HBOX_OPTIONS_ALLOW_REGISTRATION = "false";
-                      HBOX_MODE = "production";
-                      HBOX_STORAGE_DATA = "/data";
-                      HBOX_DATABASE_DRIVER = "sqlite3";
-                      HBOX_STORAGE_SQLITE_PATH = "/data/homebox.db?_pragma=busy_timeout=999&_pragma=journal_mode=WAL&_fk=1";
-                    };
-                    volumes = [
-                      "/persist/homebox/data:/data/"
-                    ];
-                    ports = [
-                      "7745:7745"
-                    ];
-                  };
-                };
-              };
-          };
-        };
         nixos-config.export-metrics.enable = true;
       };
     };

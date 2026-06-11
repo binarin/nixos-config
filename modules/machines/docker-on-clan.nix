@@ -64,6 +64,8 @@ in
         "${inputs.nixpkgs}/nixos/modules/profiles/minimal.nix"
         inputs.arion.nixosModules.arion
 
+        self.nixosModules.bricktracker
+        self.nixosModules.homebox
         self.nixosModules.karakeep
         self.nixosModules.archivebox
       ];
@@ -131,84 +133,6 @@ in
         };
 
         environment.systemPackages = with pkgs; [ litecli ];
-
-        # brick-tracker configuration
-        sops.secrets."bricktracker/rebrickable-api-key" = { };
-        sops.templates."bricktracker-env".content = ''
-          BK_REBRICKABLE_API_KEY="${config.sops.placeholder."bricktracker/rebrickable-api-key"}"
-        '';
-
-        virtualisation.arion.projects.bricktracker = {
-          serviceName = "bricktracker-docker-compose";
-          settings = {
-            services =
-              let
-                tags = builtins.fromJSON (builtins.readFile ./bricktracker.json);
-              in
-              {
-                bricktracker = {
-                  service = {
-                    container_name = "BrickTracker";
-                    restart = "unless-stopped";
-                    image = "gitea.baerentsen.space/frederikbaerentsen/bricktracker:${tags.bricktracker}";
-                    ports = [ "3333:3333" ];
-                    volumes = [
-                      "/persist/BrickTracker/data:/data/"
-                      "/persist/BrickTracker/instructions:/app/static/instructions/"
-                      "/persist/BrickTracker/minifigures:/app/static/minifigures/"
-                      "/persist/BrickTracker/parts:/app/static/parts/"
-                      "/persist/BrickTracker/sets:/app/static/sets/"
-                    ];
-                    environment = {
-                      BK_DATABASE_PATH = "/data/app.db";
-                      BK_MINIFIGURES_FOLDER = "minifigures";
-                      BK_RETIRED_SETS_PATH = "/data/retired_sets.csv";
-                      BK_THEMES_PATH = "/data/themes.csv";
-                    };
-                    env_file = [
-                      config.sops.templates.bricktracker-env.path
-                    ];
-                  };
-                };
-              };
-          };
-        };
-
-        # homebox configuration
-        virtualisation.arion.projects.homebox = {
-          serviceName = "home-box-docker-compose";
-          settings = {
-            services =
-              let
-                tags = builtins.fromJSON (builtins.readFile ./homebox.json);
-              in
-              {
-                homebox = {
-                  service = {
-                    image = "ghcr.io/sysadminsmedia/homebox:${tags.homebox}";
-                    container_name = "homebox";
-                    restart = "unless-stopped";
-                    environment = {
-                      HBOX_LOG_LEVEL = "info";
-                      HBOX_LOG_FORMAT = "text";
-                      HBOX_WEB_MAX_FILE_UPLOAD = "10";
-                      HBOX_OPTIONS_ALLOW_REGISTRATION = "false";
-                      HBOX_MODE = "production";
-                      HBOX_STORAGE_DATA = "/data";
-                      HBOX_DATABASE_DRIVER = "sqlite3";
-                      HBOX_STORAGE_SQLITE_PATH = "/data/homebox.db?_pragma=busy_timeout=999&_pragma=journal_mode=WAL&_fk=1";
-                    };
-                    volumes = [
-                      "/persist/homebox/data:/data/"
-                    ];
-                    ports = [
-                      "7745:7745"
-                    ];
-                  };
-                };
-              };
-          };
-        };
 
         nixos-config.export-metrics.enable = true;
       };
