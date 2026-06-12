@@ -45,8 +45,12 @@ in
   flake.deploy.nodes.murmur = {
     hostname = "murmur";
     sshUser = "allebedev";
-    profiles.system = {
+    profiles.home = {
       path = self.lib.deploy-home-manager self.homeConfigurations.murmur;
+    };
+    profiles.system = {
+      user = "root";
+      path = self.lib.deploy-system-manager self.systemConfigs.murmur;
     };
   };
 
