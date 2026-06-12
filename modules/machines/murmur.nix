@@ -27,10 +27,6 @@ let
           ];
           meta.mainProgram = "slack";
         };
-
-      nix = inputs.determinate.packages.x86_64-linux.default.overrideAttrs {
-        meta.mainProgram = "nix";
-      };
     })
   ];
   murmurPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays murmurOverlays;
