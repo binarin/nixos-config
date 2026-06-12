@@ -35,12 +35,19 @@ in
       self.systemModules.bubuntu
       self.systemModules.sshd
       {
-        services.openssh.managedUsers = [ "root" "allebedev" ];
+        services.openssh.managedUsers = [ "root" "allebedev" "binarin" ];
         users.users.allebedev = {
           isNormalUser = true;
           group = "allebedev";
+          openssh.authorizedPrincipals = [ "allebedev" "binarin" "root" ];
+        };
+        users.users.binarin = {
+          isNormalUser = true;
+          group = "binarin";
+          openssh.authorizedPrincipals = [ "binarin" ];
         };
         users.groups.allebedev = { };
+        users.groups.binarin = { };
       }
     ];
   };
