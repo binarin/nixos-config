@@ -28,12 +28,17 @@
     determinate = {
       url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
       inputs = {
-        nix.inputs = {
-          flake-parts.follows = "flake-parts";
-          nixpkgs-23-11.follows = "nixpkgs";
-          nixpkgs-regression.follows = "nixpkgs";
-        };
+        nix.follows = "determinate-nix";
         nixpkgs.follows = "nixpkgs";
+      };
+    };
+    determinate-nix = {
+      url = "https://flakehub.com/f/DeterminateSystems/nix-src/*";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        git-hooks-nix.inputs.flake-compat.follows = "flake-compat";
+        nixpkgs-23-11.follows = "nixpkgs";
+        nixpkgs-regression.follows = "nixpkgs";
       };
     };
     direnv-instant = {
@@ -63,6 +68,7 @@
       url = "github:ArthurHeymans/emacs-tramp-rpc";
       flake = false;
     };
+    flake-compat.url = "github:NixOS/flake-compat";
     flake-file.url = "github:vic/flake-file";
     flake-parts = {
       url = "github:hercules-ci/flake-parts";

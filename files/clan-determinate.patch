@@ -1,0 +1,20 @@
+diff --git i/clan_lib/machines/update.py w/clan_lib/machines/update.py
+--- i/clan_lib/machines/update.py
++++ w/clan_lib/machines/update.py
+@@ -605,12 +605,10 @@ def run_machine_update(
+         if isinstance(_build_host, Remote):
+             flake_store_path = upload_sources(machine, _build_host, upload_inputs)
+         else:
+-            flake_url = (
+-                str(machine.flake.path)
+-                if machine.flake.is_local
+-                else machine.flake.identifier
+-            )
+-            flake_store_path = nix_metadata(flake_url)["path"]
++            flake_store_path = machine.flake.store_path
++            if flake_store_path is None:
++                msg = "flake store_path is None"
++                raise ClanError(msg)
+ 
+         if machine._class_ == "nixos":
+             _update_nixos(

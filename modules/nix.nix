@@ -28,6 +28,11 @@ let
     inputs.hyprland.overlays.hyprland-extras
     inputs.hyprland-contrib.overlays.default
 
+    # inputs.determinate-nix.overlays.default
+    (final: prev: {
+      nix = inputs.determinate-nix.packages."${prev.stdenv.hostPlatform.system}".default;
+    })
+
     self.overlays.sicstus-manual
     self.overlays.slack
     self.overlays.my-emacs
@@ -56,11 +61,14 @@ in
 {
   config = {
     flake-file.inputs = {
-      determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
-      determinate.inputs = {
-        nixpkgs.follows = "nixpkgs";
-        nix.inputs = {
-          # XXX something wrong with functional-tests here
+      flake-compat = {
+        url = "github:NixOS/flake-compat";
+      };
+
+      determinate-nix = {
+        url = "https://flakehub.com/f/DeterminateSystems/nix-src/*";
+        inputs = {
+          # XXX nix-functional-tests are broken
           # nixpkgs.follows = "nixpkgs";
 
           flake-parts.follows = "flake-parts";
@@ -68,6 +76,16 @@ in
           # stop downloading those 2 old inputs
           nixpkgs-23-11.follows = "nixpkgs";
           nixpkgs-regression.follows = "nixpkgs";
+
+          git-hooks-nix.inputs.flake-compat.follows = "flake-compat";
+        };
+      };
+
+      determinate = {
+        url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+        inputs = {
+          nixpkgs.follows = "nixpkgs";
+          nix.follows = "determinate-nix";
         };
       };
     };
@@ -111,6 +129,7 @@ in
         lib,
         config,
         modulesPath,
+        pkgs,
         ...
       }:
       let
@@ -141,6 +160,7 @@ in
             # nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
             nix = {
+              package = lib.mkForce pkgs.nix; # from determinate-nix overlay
               settings = {
                 sandbox = true;
                 substituters = [ "https://cache.nixos.org" ];

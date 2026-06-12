@@ -1,12 +1,26 @@
+{ self, inputs, ... }:
 {
   perSystem =
     {
       self',
       inputs',
       pkgs,
+      system,
       ...
     }:
     let
+      selfLib = self.lib.self;
+
+      clan-cli-determinate-compatible =
+        (inputs'.clan-core.packages.clan-cli-full.override {
+          nix = pkgs.nix;
+        }).overrideAttrs
+          (old: {
+            patches = (old.patches or [ ]) ++ [
+              (selfLib.file "clan-determinate.patch")
+            ];
+          });
+
       # Environment variables to preserve when using --ignore-env with nix
       # Essential for nix operations in CI environments
       envVarsToKeep = [
@@ -55,7 +69,6 @@
       '';
 
       ncfRuntimeDeps = with pkgs; [
-        # nix
         nix-output-monitor # nom for nicer build output
         git
         git-crypt-patched
@@ -94,7 +107,7 @@
           tomlkit
           proxmoxer
           paramiko
-          inputs'.clan-core.packages.clan-cli
+          clan-cli-determinate-compatible
         ];
 
         postFixup = ''
@@ -188,7 +201,7 @@
             PATH_FAILED=0
             while IFS= read -r SRC; do
               if is_our_flake_source "$SRC"; then
-                echo "FAIL $STORE_PATH — flake source leaked: $SRC"
+                echo "FAIL $STORE_PATH - flake source leaked: $SRC"
                 # Show what references it
                 REFERRERS=$(nix-store -q --referrers "$SRC" 2>/dev/null \
                   | grep -v '\.drv$' \
@@ -255,6 +268,7 @@
             nixd
             nixfmt
             dnscontrol
+            clan-cli-determinate-compatible
             # (terraform_1.withPlugins (p: with p; [ dmacvicar_libvirt ])) # too expensive to build
             cloud-init
             ansible
@@ -269,7 +283,6 @@
             monitoring
             monitoringPythonEnv
             grafanactl
-            inputs'.clan-core.packages.clan-cli
           ]
           ++ ncfRuntimeDeps;
         shellHook = ''
