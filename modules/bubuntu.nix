@@ -19,6 +19,7 @@
         [
           self.systemModules.sysctl
           self.systemModules.nix-path
+          self.systemModules.logind
 
           "${inputs.system-manager}/nix/modules/upstream/nixpkgs/firewall.nix"
           "${inputs.system-manager}/nix/modules/upstream/nixpkgs/nix.nix"
@@ -69,6 +70,9 @@
           "kernel.unprivileged_userns_clone" = lib.mkDefault 1;
           "kernel.apparmor_restrict_unprivileged_userns" = lib.mkDefault 0;
         };
+
+        services.logind.lidSwitchExternalPower = lib.mkDefault "ignore";
+        services.logind.lidSwitchDocked = lib.mkDefault "ignore";
       };
     };
 }
