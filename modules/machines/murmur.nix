@@ -61,6 +61,8 @@ in
             export XDG_DATA_DIRS="''${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}/usr/local/share:/usr/share"
           '';
         };
+
+        bubuntu.apt.packages = [ "swaylock" ];
       }
     ];
   };

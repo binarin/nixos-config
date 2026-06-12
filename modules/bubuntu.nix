@@ -21,6 +21,7 @@
           self.systemModules.nix-path
           self.systemModules.logind
           self.systemModules.uwsm
+          self.systemModules.apt-packages
 
           "${inputs.system-manager}/nix/modules/upstream/nixpkgs/firewall.nix"
           "${inputs.system-manager}/nix/modules/upstream/nixpkgs/nix.nix"
