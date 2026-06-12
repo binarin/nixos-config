@@ -141,6 +141,10 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    system-manager = {
+      url = "github:numtide/system-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 }

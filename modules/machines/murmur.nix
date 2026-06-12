@@ -4,6 +4,37 @@
   lib,
   ...
 }:
+let
+  murmurOverlays = [
+    inputs.nixgl.overlay
+    (final: prev: {
+      swaylock = final.writeShellScriptBin "swaylock" ''
+        exec /usr/bin/swaylock "$@"
+      '';
+      slack =
+        let
+          slackWrapper = final.writeShellScriptBin "slack" ''
+            ${lib.getExe prev.slack} --no-sandbox "$@"
+          '';
+        in
+
+        final.buildEnv {
+          name = "slack";
+          ignoreCollisions = true;
+          paths = with prev; [
+            slackWrapper
+            slack
+          ];
+          meta.mainProgram = "slack";
+        };
+
+      nix = inputs.determinate.packages.x86_64-linux.default.overrideAttrs {
+        meta.mainProgram = "nix";
+      };
+    })
+  ];
+  murmurPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays murmurOverlays;
+in
 {
   flake-file.inputs.nixgl = {
     url = "github:nix-community/nixgl";
@@ -14,6 +45,9 @@
     inputs.home-manager.flakeModules.home-manager
   ];
 
+  flake.lib.murmurPkgs = murmurPkgs;
+  flake.lib.murmurOverlays = murmurOverlays;
+
   flake.deploy.nodes.murmur = {
     hostname = "murmur";
     sshUser = "allebedev";
@@ -23,39 +57,6 @@
   };
 
   flake.homeConfigurations.murmur =
-    let
-      murmurPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays [
-        inputs.nixgl.overlay
-        (final: prev: {
-          # bubblewrap = final.writeShellScriptBin "bwrap" ''
-          #   exec /usr/bin/bwrap "$@"
-          # '';
-          swaylock = final.writeShellScriptBin "swaylock" ''
-            exec /usr/bin/swaylock "$@"
-          '';
-          slack =
-            let
-              slackWrapper = final.writeShellScriptBin "slack" ''
-                ${lib.getExe prev.slack} --no-sandbox "$@"
-              '';
-            in
-
-            final.buildEnv {
-              name = "slack";
-              ignoreCollisions = true;
-              paths = with prev; [
-                slackWrapper
-                slack
-              ];
-              meta.mainProgram = "slack";
-            };
-
-          nix = inputs.determinate.packages.x86_64-linux.default.overrideAttrs {
-            meta.mainProgram = "nix";
-          };
-        })
-      ];
-    in
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = murmurPkgs;
       modules = [
