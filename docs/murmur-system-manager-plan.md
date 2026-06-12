@@ -64,22 +64,50 @@ HandleLidSwitchDocked=ignore
 
 ## 3. Full SSHD Setup
 
-**Goal:** Manage sshd_config with trusted user CA keys, host certificates, etc.
+**Goal:** Reuse the existing SSH policy (CA keys, principals, authorized keys) on murmur via system-manager, with the same generic module that NixOS machines use.
 
-**Current state:**
-- `/etc/ssh/sshd_config` has minor tweaks (KbdInteractiveAuthentication=no, X11Forwarding=yes)
-- No drop-in configs in `sshd_config.d/`
-- Standard Ubuntu sshd
+**Decision:** Full takeover on murmur (system-manager replaces sshd_config and manages the service). NOT part of the bubuntu baseline — explicit opt-in per machine.
 
-**Approach:**
-- Create `systemModules.sshd` that generates `/etc/ssh/sshd_config.d/50-system-manager.conf`
-- Options: `services.openssh.settings` (matching NixOS `services.openssh.settings` attrset)
-- For CA keys: `services.openssh.authorizedKeysFiles`, `TrustedUserCAKeys` pointing to a managed file
-- Restart sshd service after config changes
+**Current architecture in this repo:**
+- `modules/public-keys.nix` → `flake.modules.generic.public-keys` — generic module providing `config.lib.publicKeys` helpers (works in any module system context)
+- `modules/sshd.nix` → `flake.nixosModules.sshd` — NixOS-specific: enables openssh, sets TrustedUserCaKeys from public-keys, configures root authorized keys/principals
+- system-manager already ships a full `services.openssh` module (same option interface as NixOS) at `upstream/nixpkgs/openssh.nix` — already imported by bubuntu
 
-**Open questions:**
-- Do we want to fully own sshd_config or just use drop-ins? Drop-ins are safer (don't break SSH access if config is wrong), but `Include` is at the top of the main config so drop-ins override.
-- CA key distribution: static file via `environment.etc` or sops-managed secret?
+**Plan:**
+
+1. **Extract generic SSH policy** from `modules/sshd.nix` into `flake.modules.generic.sshd-policy`:
+   ```nix
+   # Works in both NixOS and system-manager contexts
+   {
+     services.openssh.settings.PermitRootLogin = "prohibit-password";
+     services.openssh.settings.TrustedUserCaKeys = "/etc/ssh/trusted_user_ca_keys";
+     services.openssh.settings.AuthorizedPrincipalsFile = "/etc/ssh/authorized_principals.d/%u";
+     environment.etc."ssh/trusted_user_ca_keys".text = /* from public-keys */;
+   }
+   ```
+
+2. **Keep `nixosModules.sshd`** as a thin wrapper that imports the generic policy + adds NixOS-specific bits (firewall, `users.users.root.openssh`, `authorizedKeysInHomedir`).
+
+3. **Create `systemModules.sshd`** (flake-parts wrapper) that:
+   - Imports `modules.generic.sshd-policy`
+   - Sets `services.openssh.enable = true`
+   - Adds system-manager-specific config (authorized keys for `allebedev` user via `users.users`)
+
+4. **In murmur config:** import `self.systemModules.sshd` — NOT imported by bubuntu baseline.
+
+**Dependencies:**
+- `modules.generic.public-keys` must work in system-manager context (it already uses only `lib` and `config.lib` — should be fine)
+- system-manager's openssh module needs `programs.ssh` (already provided by `upstream/nixpkgs/programs/ssh.nix` which bubuntu imports)
+
+**Safety:**
+- deploy-rs confirm-timeout acts as rollback safety net
+- system-manager openssh module includes `sshd -t` validation check before activation
+- Test: deploy system profile first, verify SSH still works, then confirm
+
+**Files to create/modify:**
+- `modules/sshd.nix` — refactor: extract generic part, keep NixOS wrapper
+- New: generic sshd-policy module (could be inline in sshd.nix or separate file)
+- `modules/machines/murmur.nix` — add `self.systemModules.sshd` to systemConfigs modules list
 
 ---
 
