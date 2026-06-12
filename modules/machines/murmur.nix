@@ -28,6 +28,20 @@ in
   flake.lib.murmurPkgs = murmurPkgs;
   flake.lib.murmurOverlays = murmurOverlays;
 
+  flake.systemConfigs.murmur = inputs.system-manager.lib.makeSystemConfig {
+    overlays = murmurOverlays;
+    modules = [
+      { nixpkgs.hostPlatform = "x86_64-linux"; }
+      self.systemModules.bubuntu
+      {
+        boot.kernel.sysctl = {
+          "kernel.unprivileged_userns_clone" = 1;
+          "kernel.apparmor_restrict_unprivileged_userns" = 0;
+        };
+      }
+    ];
+  };
+
   flake.deploy.nodes.murmur = {
     hostname = "murmur";
     sshUser = "allebedev";
