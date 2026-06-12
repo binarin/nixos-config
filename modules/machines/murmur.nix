@@ -34,6 +34,7 @@ in
       { nixpkgs.hostPlatform = "x86_64-linux"; }
       self.systemModules.bubuntu
       self.systemModules.sshd
+      self.systemModules.sops
       {
         services.openssh.managedUsers = [ "root" "allebedev" "binarin" ];
         users.users.allebedev = {
@@ -63,7 +64,21 @@ in
         };
 
         bubuntu.apt.packages = [ "swaylock" ];
+
+        sops.defaultSopsFile = "${self}/secrets/murmur/secrets.yaml";
+        sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
+        sops.secrets.nix-extra-access-tokens = { };
       }
+      ({ config, ... }: {
+        sops.templates."nix-custom-conf" = {
+          path = "/etc/nix/nix.custom.conf";
+          content = ''
+            extra-access-tokens = ${config.sops.placeholder.nix-extra-access-tokens}
+            trusted-users = root allebedev
+          '';
+        };
+      })
     ];
   };
 
