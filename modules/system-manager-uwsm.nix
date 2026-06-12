@@ -29,8 +29,9 @@
         name: value:
         let
           wrapper = pkgs.writeShellScript "uwsm-${name}" ''
+            export UWSM_BIN="${lib.getExe uwsmPkg}"
             ${value.preExec}
-            exec ${if value.execCommand != null then value.execCommand else "${lib.getExe uwsmPkg} start -N ${name} -D ${name} -C ${name} -e -- ${value.binPath} ${lib.escapeShellArgs value.extraArgs}"}
+            exec ${if value.execCommand != null then value.execCommand else "$UWSM_BIN start -N ${name} -D ${name} -C ${name} -e -- ${value.binPath} ${lib.escapeShellArgs value.extraArgs}"}
           '';
           desktop = pkgs.writeTextFile {
             name = "${name}-uwsm-desktop";

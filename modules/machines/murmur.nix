@@ -52,7 +52,7 @@ in
         programs.uwsm.waylandCompositors.niri = {
           prettyName = "niri";
           comment = "niri scrollable-tiling Wayland compositor";
-          execCommand = "nixGLIntel uwsm start -N niri -D niri -C niri -e -- \"$(which niri-session)\"";
+          execCommand = "nixGLIntel \${UWSM_BIN} start -N niri -D niri -C niri -e -- \"$(which niri-session)\"";
           preExec = ''
             __HM_SESS_VARS_SOURCED=
             __ETC_PROFILE_NIX_SOURCED=
