@@ -18,6 +18,7 @@
       imports =
         [
           self.systemModules.sysctl
+          self.systemModules.nix-path
 
           "${inputs.system-manager}/nix/modules/upstream/nixpkgs/firewall.nix"
           "${inputs.system-manager}/nix/modules/upstream/nixpkgs/nix.nix"
