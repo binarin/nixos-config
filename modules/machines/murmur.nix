@@ -33,6 +33,15 @@ in
     modules = [
       { nixpkgs.hostPlatform = "x86_64-linux"; }
       self.systemModules.bubuntu
+      self.systemModules.sshd
+      {
+        services.openssh.managedUsers = [ "root" "allebedev" ];
+        users.users.allebedev = {
+          isNormalUser = true;
+          group = "allebedev";
+        };
+        users.groups.allebedev = { };
+      }
     ];
   };
 

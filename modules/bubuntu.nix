@@ -43,6 +43,12 @@
         ];
 
       options = {
+        lib = lib.mkOption {
+          type = lib.types.attrsOf lib.types.raw;
+          default = { };
+          internal = true;
+        };
+
         system.activationScripts.users = lib.mkOption {
           type = lib.types.str;
           default = "";
