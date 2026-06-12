@@ -15,7 +15,7 @@
 
       config = lib.mkIf cfg.enable {
         environment.etc."environment.d/50-nix.conf".text = ''
-          PATH=${nixBin}:''${PATH}
+          PATH=''${HOME}/.local/bin:${nixBin}:''${PATH}
         '';
 
         environment.etc."sudoers.d/nix-path" = {
