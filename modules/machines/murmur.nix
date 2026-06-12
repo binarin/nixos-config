@@ -174,6 +174,7 @@ in
           ripgrep
           slack
           wl-clipboard
+          xdg-utils
           xwayland-satellite
           go_1_26
           tramp-rpc-server
