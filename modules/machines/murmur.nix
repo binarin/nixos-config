@@ -33,12 +33,6 @@ in
     modules = [
       { nixpkgs.hostPlatform = "x86_64-linux"; }
       self.systemModules.bubuntu
-      {
-        boot.kernel.sysctl = {
-          "kernel.unprivileged_userns_clone" = 1;
-          "kernel.apparmor_restrict_unprivileged_userns" = 0;
-        };
-      }
     ];
   };
 
