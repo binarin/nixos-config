@@ -65,7 +65,7 @@
       };
     };
     emacs-tramp-rpc = {
-      url = "github:binarin/emacs-tramp-rpc/0743f58a07a16e917a22da8983a327d4d002944f";
+      url = "github:binarin/emacs-tramp-rpc/957223e408d024d51c406a37378abcf9acec2fa1";
       flake = false;
     };
     flake-compat.url = "github:NixOS/flake-compat";

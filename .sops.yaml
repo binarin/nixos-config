@@ -30,6 +30,7 @@ keys:
   - &user_paperless-nixos_binarin age1060ltfpahffk9l8glr654cvg99gnrszvpeflckcjsw9339utuumqe4awpg
   - &server_llm-runner age178x9rjyjfznxxfkshkyltzg3tqjpvgch4d684wajxdvwfp0p6ffsz6wh7j
   - &user_llm-runner_binarin age1sykl9pmp3hvlrx0axmt6dz902smr4g2q773n6lk80hjzwurm0g9swl5u8r
+  - &server_murmur age1jyfyczqyt6a20um7jlzrvd0p85qslqvkycm4d8kqkwey24543egqwwqha2
 creation_rules:
   - path_regex: secrets/tailscale/oauth.yaml
     key_groups:
@@ -339,3 +340,10 @@ creation_rules:
         age:
           - *admin_demandred_binarin
           - *user_llm-runner_binarin
+  - path_regex: secrets/murmur/secrets.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_binarin
+          - *server_murmur

@@ -13,7 +13,7 @@ in
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-    emacs-tramp-rpc.url = "github:binarin/emacs-tramp-rpc/0743f58a07a16e917a22da8983a327d4d002944f";
+    emacs-tramp-rpc.url = "github:binarin/emacs-tramp-rpc/957223e408d024d51c406a37378abcf9acec2fa1";
     emacs-tramp-rpc.flake = false;
 
     emacs-niri-awareness.url = "github:binarin/emacs-niri-awareness";
