@@ -107,7 +107,7 @@
     :after-finalize b/org-capture-fold-after))
 
 ;;;###autoload
-(defun b/org-capture-clocked-hypr-ripgrep ()
+(defun b/org-capture-to-ripgrep-elisp-form ()
   (interactive)
   (org-capture-string (format "(b/ripgrep-main %s)" (prin1-to-string (b/active-region-or-symbol-at-point))) "Z"))
 
