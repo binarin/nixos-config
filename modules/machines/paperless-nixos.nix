@@ -264,7 +264,11 @@ in
         # Expose Paperless as a Tailscale service
         services.tailscale.serve = {
           enable = mkDefault true;
-          services.paperless.endpoints."tcp:443" = "https://localhost:8000";
+          services.paperless = {
+            serviceName = "paperless";
+            protocol = "https";
+            target = "localhost:8000";
+          };
         };
       };
     };

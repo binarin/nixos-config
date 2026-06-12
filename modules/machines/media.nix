@@ -762,13 +762,20 @@ in
           mediaLocation = "/mnt/immich";
         };
 
-        services.tailscale.serve = {
-          enable = true;
-          services.immich.endpoints."tcp:443" = "https://localhost:${builtins.toString config.services.immich.port}";
-          services.commafeed.endpoints."tcp:443" = "https://localhost:${builtins.toString config.services.commafeed.environment.QUARKUS_HTTP_PORT}";
+        services.tailscale.serve.enable = true;
+        services.tailscale.serve.services.immich = {
+          serviceName = "immich";
+          protocol = "https";
+          target = "localhost:${builtins.toString config.services.immich.port}";
         };
 
         nixos-config.export-metrics.enable = true;
+
+        services.tailscale.serve.services.commafeed = {
+          serviceName = "commafeed";
+          protocol = "https";
+          target = "localhost:${builtins.toString config.services.commafeed.environment.QUARKUS_HTTP_PORT}";
+        };
 
         services.commafeed = {
           enable = true;

@@ -141,10 +141,28 @@ in
         # Tailscale services
         services.tailscale.serve = {
           enable = true;
-          services.garage-api.endpoints."tcp:443" = "https://localhost:3903"; # Admin API
-          services.s3.endpoints."tcp:443" = "https://localhost:3900"; # S3 API
-          services.niks3-storage.endpoints."tcp:443" = "https://localhost:3902";
-          services.forgejo-artifacts.endpoints."tcp:443" = "https://localhost:3902";
+          services = {
+            garage = {
+              serviceName = "garage-api";
+              protocol = "https";
+              target = "localhost:3903"; # Admin API
+            };
+            s3 = {
+              serviceName = "s3";
+              protocol = "https";
+              target = "localhost:3900"; # S3 API
+            };
+            niks3-storage = {
+              serviceName = "niks3-storage";
+              protocol = "https";
+              target = "localhost:3902";
+            };
+            forgejo-artifacts = {
+              serviceName = "forgejo-artifacts";
+              protocol = "https";
+              target = "localhost:3902";
+            };
+          };
         };
       };
     };

@@ -281,9 +281,9 @@ in
       systemd.services.llama-swap.serviceConfig.StateDirectory = "llama-swap";
       systemd.services.llama-swap.environment.HOME = "/var/lib/llama-swap";
 
-      services.tailscale.serve = {
-        enable = true;
-        services.llama-swap.endpoints."tcp:443" = "https://localhost:8080";
+      services.tailscale.serve.enable = true;
+      services.tailscale.serve.configs.llama-swap = {
+        target = "8080";
       };
 
       networking.hosts."${flakeConfig.inventory.ipAllocation.garage.home.primary.address}" = [

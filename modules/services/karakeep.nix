@@ -145,7 +145,11 @@ in
         # Expose Karakeep as a tailscale service
         services.tailscale.serve = {
           enable = mkDefault true;
-          services.karakeep.endpoints."tcp:443" = "https://localhost:3000";
+          services.karakeep = {
+            serviceName = "karakeep";
+            protocol = "https";
+            target = "localhost:3000";
+          };
         };
       };
     };
