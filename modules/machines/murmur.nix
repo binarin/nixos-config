@@ -48,6 +48,19 @@ in
         };
         users.groups.allebedev = { };
         users.groups.binarin = { };
+
+        programs.uwsm.waylandCompositors.niri = {
+          prettyName = "niri";
+          comment = "niri scrollable-tiling Wayland compositor";
+          execCommand = "nixGLIntel uwsm start -N niri -D niri -C niri -e -- \"$(which niri-session)\"";
+          preExec = ''
+            __HM_SESS_VARS_SOURCED=
+            __ETC_PROFILE_NIX_SOURCED=
+            . /etc/profile.d/nix.sh
+            . /home/allebedev/.profile
+            export XDG_DATA_DIRS="''${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}/usr/local/share:/usr/share"
+          '';
+        };
       }
     ];
   };
