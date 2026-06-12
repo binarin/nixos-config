@@ -196,7 +196,20 @@ function properly")
 (cl-defun b/ripgrep (needle &rest command-args &key name-function &allow-other-keys)
   (interactive
    (let* ((default (b/active-region-or-symbol-at-point))
-          (pattern (read-from-minibuffer "Ripgrep: " default nil nil 'b/ripgrep-history)))
+          (pattern
+           (minibuffer-with-setup-hook
+               (lambda ()
+                 (when default
+                   (push-mark (minibuffer-prompt-end) t t)
+                   (goto-char (point-max))
+                   (add-hook 'pre-command-hook
+                             (lambda ()
+                               (unless (eq this-command 'self-insert-command)
+                                 (deactivate-mark)
+                                 (remove-hook 'pre-command-hook t)))
+                             nil t)))
+             (read-from-minibuffer "Ripgrep: " (or default "") nil nil
+                                   'b/ripgrep-history default))))
      (list pattern)))
   (compilation-start (apply #'b/ripgrep-command needle :heading b/ripgrep-use-headings
                             (map-delete command-args :name-function))
