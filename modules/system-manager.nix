@@ -13,15 +13,13 @@
     overlays = self.lib.murmurOverlays;
     modules = [
       { nixpkgs.hostPlatform = "x86_64-linux"; }
-      (
-        { nixosModulesPath, ... }:
-        {
-          disabledModules = [
-            (nixosModulesPath + "/services/web-servers/nginx/")
-            "${inputs.system-manager}/nix/modules/upstream/nixpkgs/nginx.nix"
-          ];
-        }
-      )
+      self.systemModules.bubuntu
+      {
+        boot.kernel.sysctl = {
+          "kernel.unprivileged_userns_clone" = 1;
+          "kernel.apparmor_restrict_unprivileged_userns" = 0;
+        };
+      }
     ];
   };
 }
