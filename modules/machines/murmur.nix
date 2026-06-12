@@ -11,22 +11,6 @@ let
       swaylock = final.writeShellScriptBin "swaylock" ''
         exec /usr/bin/swaylock "$@"
       '';
-      slack =
-        let
-          slackWrapper = final.writeShellScriptBin "slack" ''
-            ${lib.getExe prev.slack} --no-sandbox "$@"
-          '';
-        in
-
-        final.buildEnv {
-          name = "slack";
-          ignoreCollisions = true;
-          paths = with prev; [
-            slackWrapper
-            slack
-          ];
-          meta.mainProgram = "slack";
-        };
     })
   ];
   murmurPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays murmurOverlays;
