@@ -43,4 +43,4 @@ runs:
           echo "Error: failed to obtain OIDC token from Forgejo"
           exit 1
         fi
-        cat "$PATHS_FILE" | xargs --max-chars=1944546 --max-args=20000 niks3 push --debug
+        cat "$PATHS_FILE" | xargs --max-chars=1944546 --max-args=20000 niks3 push
