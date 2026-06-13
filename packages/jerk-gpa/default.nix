@@ -44,7 +44,7 @@ writeShellApplication {
 
     # Ensure chromium is running (GPA uses it for the captive portal)
     has_chromium_window() {
-      niri msg --json windows 2>/dev/null | jq -e 'any(.[]; .app_id == "Chromium-browser")' >/dev/null 2>&1
+      niri msg --json windows 2>/dev/null | jq -e 'any(.[]; .app_id == "Chromium-browser" or .app_id == "chromium-browser")' >/dev/null 2>&1
     }
 
     echo >&2 "Checking for chromium window..."

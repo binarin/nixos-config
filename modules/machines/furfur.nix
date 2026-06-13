@@ -181,6 +181,10 @@ in
     {
       key = "nixos-config.modules.home.furfur-binarin";
 
+      home.sessionVariables = {
+        GOOGLE_CHROME_SOCKS_PROXY = "socks5://localhost:3128";
+      };
+
       programs.waybar.battery = {
         enable = true;
         name = "BAT1";
