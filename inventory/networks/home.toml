@@ -42,7 +42,7 @@ searchdomain = "localdomain"
 "192.168.2.32" = { hostname = "social", mac = "02:00:ae:b2:53:00" }
 "192.168.2.33" = { hostname = "pi-box", mac = "02:00:41:EB:0B:C1" }
 "192.168.2.34" = { hostname = "murmur-wifi", mac = "10:5F:AD:FE:D6:E3" }
-"192.168.2.35" = { hostname = "docker-on-clan", mac = "02:00:10:47:81:4e" }
+# "192.168.2.35" = # unallocated
 # "192.168.2.36" = # unallocated
 # "192.168.2.37" = # unallocated
 # "192.168.2.38" = # unallocated
