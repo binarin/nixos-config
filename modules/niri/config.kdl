@@ -370,8 +370,18 @@ window-rule {
 }
 
 window-rule {
+  match app-id="google-chrome" at-startup=true
+  open-on-workspace "misc"
+}
+
+window-rule {
   match app-id="firefox" at-startup=true
   open-on-workspace "browser"
+}
+
+window-rule {
+  match app-id="google-chrome" at-startup=true
+  open-on-workspace "misc"
 }
 
 
