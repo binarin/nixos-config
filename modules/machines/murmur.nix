@@ -186,6 +186,18 @@ in
       inputs',
       ...
     }:
+    let
+      globalprotect-callback = pkgs.writeShellApplication {
+        name = "globalprotect-callback";
+        runtimeInputs = [ pkgs.systemd ];
+        text = ''
+          echo "$(date): called with: $*" >> /tmp/globalprotect-callback.log
+          systemd-run --user --collect --quiet \
+            /usr/bin/globalprotect defaultbrowser "$1"
+          echo "$(date): systemd-run exit=$?" >> /tmp/globalprotect-callback.log
+        '';
+      };
+    in
     {
       key = "nixos-config.modules.home.murmur-home-allebedev";
       imports = [
@@ -287,6 +299,16 @@ in
       '';
 
       xdg.mimeApps.defaultApplications."x-scheme-handler/slack" = "slack.desktop";
+      xdg.mimeApps.defaultApplications."x-scheme-handler/globalprotectcallback" = "globalprotectcallback.desktop";
+
+      xdg.dataFile."applications/globalprotectcallback.desktop".text = ''
+        [Desktop Entry]
+        Name=GlobalProtect Callback
+        Exec=${lib.getExe globalprotect-callback} %u
+        Type=Application
+        NoDisplay=true
+        MimeType=x-scheme-handler/globalprotectcallback;
+      '';
 
       # xdg.autostart.override."remotesupport".notShownIn = [
       #   "niri"
