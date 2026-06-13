@@ -12,7 +12,13 @@ in
     }:
     {
       key = "nixos-config.modules.nixos.gui";
+
+      imports = [
+        self.modules.generic.chrome-policies
+      ];
+
       config = {
+        programs.chromium.enable = true;
         services.avahi = lib.mkIf (!config.networking.useNetworkd) {
           enable = true;
           nssmdns4 = true;
@@ -63,14 +69,6 @@ in
             sddm-astronaut
           ];
           theme = "sddm-astronaut-theme";
-        };
-
-        environment.etc."opt/chrome/policies/managed/extra.json".text = builtins.toJSON {
-          ExternalProtocolDialogShowAlwaysOpenCheckbox = true;
-          URLAllowlist = [
-            "org-protocol://*"
-            "bmeeting://*"
-          ];
         };
 
         services.flatpak.enable = true;
