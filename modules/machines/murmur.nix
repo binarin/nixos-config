@@ -5,6 +5,7 @@
   ...
 }:
 let
+  selfLib = self.lib.self;
   makeSystemConfig = (import "${self}/lib/make-system-config.nix" {
     inherit lib;
     nixos = "${inputs.nixpkgs}/nixos";
@@ -101,6 +102,16 @@ in
           [Service]
           Slice=corporate-bloat.slice
         '';
+
+        systemd.services.kanata = {
+          wantedBy = [ "system-manager.target" ];
+          serviceConfig = {
+            Type = "simple";
+            Restart = "on-failure";
+            RestartSec = 1;
+            ExecStart = "${pkgs.kanata}/bin/kanata --cfg ${selfLib.file "kanata.config"}";
+          };
+        };
         }
       )
       ({ config, ... }: {
