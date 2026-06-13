@@ -1,7 +1,8 @@
 ;; -*- lexical-binding: t; -*-
+(require 'project)
 (use-package magit
   :ensure t
-  :commands (magit-file-relative-name magit-git-string)
+  :commands (magit-file-relative-name magit-git-string magit-file-delete)
   :bind (("C-x g" . magit)))
 
 ;;;###autoload
@@ -38,7 +39,7 @@
 If the buffer has unsaved changes, asks for confirmation first.
 If the file has uncommitted git changes, Magit will prompt."
   (interactive)
-  (if-let ((filename (buffer-file-name))
+  (if-let* ((filename (buffer-file-name))
            (project (project-current)))
       (when (or (not (buffer-modified-p))
                 (y-or-n-p (format "File %s has unsaved changes; discard? "

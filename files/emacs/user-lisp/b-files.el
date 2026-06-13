@@ -67,12 +67,15 @@
 (defun b/copy-project-relative-filename ()
   "Kill the current buffer filename relative to the project root."
   (interactive)
-  (if-let ((project (project-current))
+  (if-let* ((project (project-current))
            (filename (buffer-file-name)))
       (let ((rel-name (file-relative-name filename (project-root project))))
         (kill-new rel-name)
         (message "Copied: %s" rel-name))
     (user-error "Not visiting a file in a project")))
+
+(declare-function magit-file-delete "magit-files")
+(declare-function dired-get-marked-files "dired")
 
 ;;;###autoload
 (defun b/dired-git-delete ()
