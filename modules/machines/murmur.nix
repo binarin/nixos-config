@@ -72,6 +72,7 @@ in
             . /etc/profile.d/nix.sh
             . /home/allebedev/.profile
             export XDG_DATA_DIRS="''${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}/usr/local/share:/usr/share"
+            . /etc/profile.d/zz-prefer-nix-paths.sh
           '';
         };
 
