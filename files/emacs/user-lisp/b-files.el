@@ -42,7 +42,8 @@
 (autoload 'dired-omit-mode "dired-x")
 (defun b/dired-mode-hook ()
   (toggle-truncate-lines t)
-  (dired-omit-mode 1))
+  (dired-omit-mode 1)
+  (keymap-local-set "M-k" #'b/dired-git-delete))
 
 (add-hook 'dired-mode-hook 'b/dired-mode-hook)
 
@@ -72,5 +73,15 @@
         (kill-new rel-name)
         (message "Copied: %s" rel-name))
     (user-error "Not visiting a file in a project")))
+
+;;;###autoload
+(defun b/dired-git-delete ()
+  "Delete marked files (or file at point) via `magit-file-delete'.
+
+After deletion, revert the dired buffer."
+  (interactive nil dired-mode)
+  (let ((files (dired-get-marked-files)))
+    (magit-file-delete files)
+    (revert-buffer)))
 
 (provide 'b-files)
