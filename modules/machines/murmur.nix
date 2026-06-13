@@ -5,6 +5,13 @@
   ...
 }:
 let
+  makeSystemConfig = (import "${self}/lib/make-system-config.nix" {
+    inherit lib;
+    nixos = "${inputs.nixpkgs}/nixos";
+    userborn = inputs.system-manager.inputs.userborn;
+    system-manager-src = inputs.system-manager;
+  }).makeSystemConfig;
+
   murmurOverlays = [
     inputs.nixgl.overlay
     inputs.system-manager.overlays.default
@@ -29,10 +36,9 @@ in
   flake.lib.murmurPkgs = murmurPkgs;
   flake.lib.murmurOverlays = murmurOverlays;
 
-  flake.systemConfigs.murmur = inputs.system-manager.lib.makeSystemConfig {
-    overlays = murmurOverlays;
+  flake.systemConfigs.murmur = makeSystemConfig {
+    pkgs = murmurPkgs;
     modules = [
-      { nixpkgs.hostPlatform = "x86_64-linux"; }
       self.systemModules.bubuntu
       self.systemModules.sshd
       self.systemModules.sops

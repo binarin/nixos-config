@@ -21,7 +21,7 @@
 
         environment.etc."sudoers.d/nix-path" = {
           text = ''
-            Defaults secure_path="${nixBin}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+            Defaults secure_path="${swBin}:${nixBin}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
           '';
           mode = "0440";
         };
