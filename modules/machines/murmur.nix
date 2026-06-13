@@ -80,6 +80,27 @@ in
         sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
         sops.secrets.nix-extra-access-tokens = { };
+
+        # Pin corporate security agents to a single E-core (CPU 12)
+        environment.etc."systemd/system/corporate-bloat.slice".text = ''
+          [Slice]
+          AllowedCPUs=12
+        '';
+
+        environment.etc."systemd/system/falcon-sensor.service.d/cpu-pin.conf".text = ''
+          [Service]
+          Slice=corporate-bloat.slice
+        '';
+
+        environment.etc."systemd/system/nix.service.d/cpu-pin.conf".text = ''
+          [Service]
+          Slice=corporate-bloat.slice
+        '';
+
+        environment.etc."systemd/system/epp-client-daemon.service.d/cpu-pin.conf".text = ''
+          [Service]
+          Slice=corporate-bloat.slice
+        '';
         }
       )
       ({ config, ... }: {
