@@ -72,6 +72,8 @@ writeShellApplication {
     systemctl --user stop gpa.service
     echo >&2 "Cleaning GPA state..."
     rm -rf ~/.GlobalProtect
+    echo >&2 "Removing SSH mux sockets..."
+    rm -f ~/.ssh/master-allebedev*
     echo >&2 "Starting GPA..."
     systemctl --user start gpa.service
     echo >&2 "Waiting for GPA to settle..."
