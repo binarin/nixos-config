@@ -3,6 +3,11 @@ set -euo pipefail
 
 url="$1"
 
+# Local files: route GP SAML pages to Chrome
+if [[ "$url" == file://*GP_HTML*.html || "$url" == /*GP_HTML*.html ]]; then
+    exec google-chrome-stable "$@"
+fi
+
 # Split into host and path
 url_no_proto="${url#*://}"
 hostpart="${url_no_proto%%/*}"

@@ -5,6 +5,7 @@
   ...
 }:
 let
+  selfLib = self.lib.self;
   makeSystemConfig = (import "${self}/lib/make-system-config.nix" {
     inherit lib;
     nixos = "${inputs.nixpkgs}/nixos";
@@ -71,10 +72,18 @@ in
             . /etc/profile.d/nix.sh
             . /home/allebedev/.profile
             export XDG_DATA_DIRS="''${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}/usr/local/share:/usr/share"
+            . /etc/profile.d/zz-prefer-nix-paths.sh
           '';
         };
 
         bubuntu.apt.packages = [ "swaylock" ];
+
+        programs.chromium.extraOpts.AutoLaunchProtocolsFromOrigins = [
+          {
+            allowed_origins = [ "*" ];
+            protocol = "globalprotectcallback";
+          }
+        ];
 
         sops.defaultSopsFile = "${self}/secrets/murmur/secrets.yaml";
         sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
@@ -101,6 +110,16 @@ in
           [Service]
           Slice=corporate-bloat.slice
         '';
+
+        systemd.services.kanata = {
+          wantedBy = [ "system-manager.target" ];
+          serviceConfig = {
+            Type = "simple";
+            Restart = "on-failure";
+            RestartSec = 1;
+            ExecStart = "${pkgs.kanata}/bin/kanata --cfg ${selfLib.file "kanata.config"}";
+          };
+        };
         }
       )
       ({ config, ... }: {
@@ -131,6 +150,7 @@ in
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = murmurPkgs;
       modules = [
+        self.homeModules.home-misc
         self.homeModules.murmur-home-allebedev
         {
           _module.args = {
@@ -166,6 +186,18 @@ in
       inputs',
       ...
     }:
+    let
+      globalprotect-callback = pkgs.writeShellApplication {
+        name = "globalprotect-callback";
+        runtimeInputs = [ pkgs.systemd ];
+        text = ''
+          echo "$(date): called with: $*" >> /tmp/globalprotect-callback.log
+          systemd-run --user --collect --quiet \
+            /usr/bin/globalprotect defaultbrowser "$1"
+          echo "$(date): systemd-run exit=$?" >> /tmp/globalprotect-callback.log
+        '';
+      };
+    in
     {
       key = "nixos-config.modules.home.murmur-home-allebedev";
       imports = [
@@ -267,6 +299,16 @@ in
       '';
 
       xdg.mimeApps.defaultApplications."x-scheme-handler/slack" = "slack.desktop";
+      xdg.mimeApps.defaultApplications."x-scheme-handler/globalprotectcallback" = "globalprotectcallback.desktop";
+
+      xdg.dataFile."applications/globalprotectcallback.desktop".text = ''
+        [Desktop Entry]
+        Name=GlobalProtect Callback
+        Exec=${lib.getExe globalprotect-callback} %u
+        Type=Application
+        NoDisplay=true
+        MimeType=x-scheme-handler/globalprotectcallback;
+      '';
 
       # xdg.autostart.override."remotesupport".notShownIn = [
       #   "niri"
@@ -275,6 +317,20 @@ in
       programs.zsh.dotDir = "${config.xdg.configHome}/zsh";
 
       xdg.autostart.override."epp-client".hidden = true;
+      xdg.autostart.override."org.gnome.DejaDup.Monitor".hidden = true;
+      xdg.autostart.override."snap-userd-autostart".hidden = true;
+
+      xdg.configFile."autostart/google-chrome.desktop".text = ''
+        [Desktop Entry]
+        Name=Google Chrome
+        Exec=${lib.getExe pkgs.google-chrome}
+        Type=Application
+        OnlyShowIn=niri;
+      '';
+
+      home.activation.mask-unwanted-user-services = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        $DRY_RUN_CMD /usr/bin/systemctl --user mask snap.snapd-desktop-integration.snapd-desktop-integration.service
+      '';
 
       xdg.autostart.override."nvidia-settings-autostart".notShownIn = [
         "niri"

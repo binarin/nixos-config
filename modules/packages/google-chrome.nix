@@ -4,8 +4,8 @@
     google-chrome =
       let
         chromeWrapper = final.writeShellScriptBin "google-chrome-stable" ''
-          if [[ -n "''${GOOGLE_CHROME_SOCKS_PROXY:-}" ]]; then
-            exec ${lib.getExe prev.google-chrome} --proxy-server="''${GOOGLE_CHROME_SOCKS_PROXY}" "$@"
+          if [[ -n "''${CHROME_PROXY:-}" ]]; then
+            exec ${lib.getExe prev.google-chrome} --proxy-server="$CHROME_PROXY" "$@"
           else
             exec ${lib.getExe prev.google-chrome} "$@"
           fi
