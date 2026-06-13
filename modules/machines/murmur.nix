@@ -35,13 +35,17 @@ in
       self.systemModules.bubuntu
       self.systemModules.sshd
       self.systemModules.sops
-      {
-        services.openssh.managedUsers = [ "root" "allebedev" "binarin" ];
-        users.users.allebedev = {
-          isNormalUser = true;
-          group = "allebedev";
-          openssh.authorizedPrincipals = [ "allebedev" "binarin" "root" ];
-        };
+      (
+        { pkgs, lib, ... }:
+        {
+          services.openssh.managedUsers = [ "root" "allebedev" "binarin" ];
+          users.users.allebedev = {
+            isNormalUser = true;
+            group = "allebedev";
+            shell = lib.mkForce pkgs.zsh;
+            ignoreShellProgramCheck = true;
+            openssh.authorizedPrincipals = [ "allebedev" "binarin" "root" ];
+          };
         users.users.binarin = {
           isNormalUser = true;
           group = "binarin";
@@ -69,7 +73,8 @@ in
         sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
         sops.secrets.nix-extra-access-tokens = { };
-      }
+        }
+      )
       ({ config, ... }: {
         sops.templates."nix-custom-conf" = {
           path = "/etc/nix/nix.custom.conf";

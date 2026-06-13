@@ -49,6 +49,31 @@
             fi
           }
 
+          sync-systemd-env() {
+            local verbose=0 arg var val current_val changed=0
+            for arg in "$@"; do
+              case "$arg" in
+                --verbose|-v) verbose=1 ;;
+                *) echo >&2 "Usage: sync-systemd-env [--verbose|-v]"; return 1 ;;
+              esac
+            done
+            while IFS= read -r line; do
+              [[ -z "$line" ]] && continue
+              [[ "$line" != *=* ]] && continue
+              var="''${line%%=*}"
+              val="''${line#*=}"
+              current_val="''${(P)var}"
+              if [[ "$current_val" != "$val" ]]; then
+                export "$var"="$val"
+                changed=1
+                (( verbose )) && echo >&2 "+ $var=$val"
+              fi
+            done < <(systemctl show-environment --user 2>/dev/null)
+            if (( changed == 0 )) && (( verbose )); then
+              echo >&2 "# systemd environment already in sync"
+            fi
+          }
+
           if [ -d $HOME/.cargo/bin ] && [[ ":$PATH:" != *"::"* ]]; then
             PATH="$HOME/.cargo/bin''${PATH:+":$PATH"}"
           fi
