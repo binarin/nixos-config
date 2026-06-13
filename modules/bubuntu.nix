@@ -74,6 +74,10 @@
       };
 
       config = {
+        environment.systemPackages = [
+          pkgs.system-manager
+        ];
+
         boot.kernel.sysctl = {
           "kernel.unprivileged_userns_clone" = lib.mkDefault 1;
           "kernel.apparmor_restrict_unprivileged_userns" = lib.mkDefault 0;
