@@ -87,27 +87,27 @@ tmux-command() {
 
 mosh-amon() {
     local prefix="$4"
-    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh binarin@amon.ts.binarin.info -- tmux new-session -A -s binarin
+    switch-or-run-foot "$prefix" --override=colors-dark.background=001800 -e mosh binarin@amon.ts.binarin.info -- tmux new-session -A -s binarin
 }
 
 mosh-amon-root() {
     local prefix="$4"
-    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh root@amon.ts.binarin.info -- tmux new-session -A -s binarin
+    switch-or-run-foot "$prefix" --override=colors-dark.background=001800 -e mosh root@amon.ts.binarin.info -- tmux new-session -A -s binarin
 }
 
 mosh-naberius-root() {
     local prefix="$4"
-    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh root@barbatos.ts.binarin.info -- tmux new-session -A -s binarin
+    switch-or-run-foot "$prefix" --override=colors-dark.background=001800 -e mosh root@barbatos.ts.binarin.info -- tmux new-session -A -s binarin
 }
 
 mosh-raum-root() {
     local prefix="$4"
-    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh root@raum.ts.binarin.info -- tmux new-session -c /usr/local/bin/zsh -A -s binarin
+    switch-or-run-foot "$prefix" --override=colors-dark.background=001800 -e mosh root@raum.ts.binarin.info -- tmux new-session -c /usr/local/bin/zsh -A -s binarin
 }
 
 mosh-bael-root() {
     local prefix="$4"
-    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh root@192.168.2.68 -- tmux new-session -c /usr/local/bin/zsh -A -s binarin
+    switch-or-run-foot "$prefix" --override=colors-dark.background=001800 -e mosh root@192.168.2.68 -- tmux new-session -c /usr/local/bin/zsh -A -s binarin
 }
 
 mosh-ts() {
@@ -122,7 +122,7 @@ mosh-ts() {
         host="${match[1]}"
     fi
 
-    switch-or-run-foot "$prefix" --override=colors.background=001800 -e mosh $user_part$host.lynx-lizard.ts.net -- tmux new-session -A -s binarin
+    switch-or-run-foot "$prefix" --override=colors-dark.background=001800 -e mosh $user_part$host.lynx-lizard.ts.net -- tmux new-session -A -s binarin
 }
 
 et-ts() {
@@ -137,7 +137,7 @@ et-ts() {
         host="${match[1]}"
     fi
 
-    switch-or-run-foot "$prefix" --override=colors.background=001800 -e et $user_part$host.lynx-lizard.ts.net -c "tmux new-session -A -s binarin"
+    switch-or-run-foot "$prefix" --override=colors-dark.background=001800 -e et $user_part$host.lynx-lizard.ts.net -c "tmux new-session -A -s binarin"
 }
 
 
