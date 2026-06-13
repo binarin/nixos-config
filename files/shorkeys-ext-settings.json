@@ -1,0 +1,24 @@
+[
+  {
+    "id": "a1535185-4b46-434b-a38b-aead77a3e931",
+    "key": "alt+c",
+    "action": "javascript",
+    "enabled": true,
+    "code": "var uri = 'org-protocol://capture?template=bl'+\n           '&url='+encodeURIComponent(window.location.href)+\n           '&title='+encodeURIComponent(document.title)+\n           '&body='+encodeURIComponent(window.getSelection());\n\nwindow.location = uri;\n",
+    "sites": "",
+    "sitesArray": [
+      ""
+    ]
+  },
+  {
+    "id": "04ea7bf4-07b2-4321-a8f1-3a07d85326f7",
+    "enabled": true,
+    "key": "alt+shift+c",
+    "action": "javascript",
+    "code": "var uri = 'org-protocol://capture?template=bls'+\n           '&url='+encodeURIComponent(window.location.href)+\n           '&title='+encodeURIComponent(document.title)+\n           '&body='+encodeURIComponent(window.getSelection());\n\nwindow.location = uri;\n",
+    "sites": "",
+    "sitesArray": [
+      ""
+    ]
+  }
+]
