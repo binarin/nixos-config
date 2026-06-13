@@ -43,6 +43,7 @@
       key = "nixos-config.modules.home.home-misc";
 
       config = {
+        news.display = "silent";
         xdg.userDirs.setSessionVariables = false; # 26.05 default
         home.keyboard = lib.mkDefault null;
         home.activation = {
