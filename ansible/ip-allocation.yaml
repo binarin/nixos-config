@@ -56,6 +56,12 @@ ip_allocation:
         _type: leaf
         address: 192.168.2.77
         mac: null
+  docker-on-clan:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.35
+        mac: 02:00:10:47:81:4e
   docker-on-nixos:
     home:
       primary:
