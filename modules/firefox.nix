@@ -76,6 +76,7 @@ in
         xdg.mimeApps.defaultApplications = {
           "x-scheme-handler/http" = "smart-browser-chooser.desktop";
           "x-scheme-handler/https" = "smart-browser-chooser.desktop";
+          "text/html" = "smart-browser-chooser.desktop";
         };
 
         programs.firefox = {
