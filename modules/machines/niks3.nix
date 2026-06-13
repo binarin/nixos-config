@@ -16,6 +16,14 @@ in
     inputs.treefmt-nix.follows = "treefmt-nix";
   };
 
+  flake.deploy.nodes.niks3 = {
+    hostname = flakeConfig.inventory.ipAllocation."${inventoryHostName}".home.primary.address;
+    profiles.system = {
+      sshUser = "root";
+      path = self.lib.deploy-nixos self.nixosConfigurations.niks3;
+    };
+  };
+
   flake.nixosConfigurations.niks3 = lib.mkForce (
     self.clan.nixosConfigurations.niks3.extendModules {
       specialArgs.inventoryHostName = "niks3";
