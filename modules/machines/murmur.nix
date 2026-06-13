@@ -7,7 +7,6 @@
 let
   murmurOverlays = [
     inputs.nixgl.overlay
-    self.overlays.jerk-gpa
     (final: prev: {
       swaylock = final.writeShellScriptBin "swaylock" ''
         exec /usr/bin/swaylock "$@"
@@ -157,6 +156,8 @@ in
       home.packages =
         (with pkgs; [
           jerk-gpa
+          ksso
+          klaude
           # age-plugin-yubikey
           sox
           lan-mouse

@@ -33,6 +33,10 @@ let
       nix = inputs.determinate-nix.packages."${prev.stdenv.hostPlatform.system}".default;
     })
 
+    self.overlays.jerk-gpa
+    self.overlays.ksso
+    self.overlays.klaude
+
     self.overlays.sicstus-manual
     self.overlays.slack
     self.overlays.my-emacs
