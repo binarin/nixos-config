@@ -142,6 +142,7 @@ in
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = murmurPkgs;
       modules = [
+        self.homeModules.home-misc
         self.homeModules.murmur-home-allebedev
         {
           _module.args = {
