@@ -111,7 +111,7 @@
   (interactive)
   (org-capture-string (format "(b/ripgrep-main %s)" (prin1-to-string (b/active-region-or-symbol-at-point))) "Z"))
 
-(defvar b/murmur-home-path (if (string-match-p (rx bos "LL" (* any) "44" eos) (system-name))
+(defvar b/murmur-home-path (if (string-match-p (rx bos "LL" (* nonl) "44" eos) (system-name))
                                (expand-file-name "~")
                              (pcase (system-name)
                                ("murmur" (expand-file-name "~"))
