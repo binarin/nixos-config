@@ -85,7 +85,7 @@ in
           }
         ];
 
-        sops.defaultSopsFile = "${self}/secrets/murmur/secrets.yaml";
+        sops.defaultSopsFile = selfLib.file' "secrets/murmur/secrets.yaml";
         sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
         sops.secrets.nix-extra-access-tokens = { };
