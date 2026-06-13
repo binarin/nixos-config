@@ -140,6 +140,8 @@ in
               "niri"
             ];
 
+            xdg.autostart.override."update-notifier".hidden = true;
+
             xdg.dataFile =
               with lib;
               (pipe "${self}/files/xdg-applications" [
