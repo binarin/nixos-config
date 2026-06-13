@@ -72,7 +72,8 @@
 (use-package b-ripgrep
   :ensure nil
   :commands (b/ripgrep)
-  :bind (("C-x p r" . b/ripgrep-project)))
+  :bind (("C-x p r" . b/ripgrep-project)
+         ("C-x p y" . b/copy-project-relative-filename)))
 
 
 (defun b/tab-1 () (interactive) (tab-bar-select-tab 1))

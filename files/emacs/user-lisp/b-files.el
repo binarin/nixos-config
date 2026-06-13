@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 (require 'b-xdg)
+(require 'project)
 
 (setf auto-save-list-file-prefix (file-name-concat b/xdg-runtime-dir))
 
@@ -60,5 +61,16 @@
   :init
   (ffap-bindings)
   (setq ffap-machine-p-known 'reject))
+
+;;;###autoload
+(defun b/copy-project-relative-filename ()
+  "Kill the current buffer filename relative to the project root."
+  (interactive)
+  (if-let ((project (project-current))
+           (filename (buffer-file-name)))
+      (let ((rel-name (file-relative-name filename (project-root project))))
+        (kill-new rel-name)
+        (message "Copied: %s" rel-name))
+    (user-error "Not visiting a file in a project")))
 
 (provide 'b-files)
