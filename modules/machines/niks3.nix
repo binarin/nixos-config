@@ -98,7 +98,7 @@ in
         httpAddr = "127.0.0.1:5751";
 
         oidc.providers.gitlab = {
-          issuer = "https://forgejo.lynx-lizard.ts.net";
+          issuer = "https://forgejo.lynx-lizard.ts.net/api/actions";
           audience = "https://niks3.lynx-lizard.ts.net";
           boundClaims = {
             repository_owner = [ "binarin" ];

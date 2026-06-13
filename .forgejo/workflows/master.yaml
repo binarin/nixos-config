@@ -38,7 +38,6 @@ jobs:
       - uses: ./.forgejo/actions/sign-and-push-cache
         with:
           paths-file: ${{ runner.temp }}/flake-inputs.paths
-          niks3-api-token: ${{ secrets.NIKS3_API_TOKEN }}
       - uses: actions/upload-artifact@v3
         with:
           name: cached-paths-flake-inputs
@@ -69,7 +68,6 @@ jobs:
       - uses: ./.forgejo/actions/sign-and-push-cache
         with:
           paths-file: ${{ runner.temp }}/${{ steps.artifact.outputs.name }}.paths
-          niks3-api-token: ${{ secrets.NIKS3_API_TOKEN }}
       - uses: actions/upload-artifact@v3
         with:
           name: cached-paths-${{ steps.artifact.outputs.name }}
