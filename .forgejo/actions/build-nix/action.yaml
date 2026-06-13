@@ -32,8 +32,8 @@ runs:
           STORE_PATH=$(nix build "$BUILD_PATH" --no-link --print-out-paths)
         fi
 
-        # For nixos configurations, check that the flake source doesn't leak into the closure
-        if [[ "$CONFIG_NAME" == d:* ]] || [[ "$CONFIG_NAME" == c:* ]]; then
+        # For nixos/system-manager configurations, check that the flake source doesn't leak into the closure
+        if [[ "$CONFIG_NAME" == c:* ]] || [[ "$CONFIG_NAME" == d:* ]]; then
           # For deploy-rs entries, resolve the activatable wrapper to the real system path
           if [[ "$CONFIG_NAME" == d:* ]] && [[ -L "$STORE_PATH/activate" ]]; then
             STORE_PATH=$(dirname "$(readlink "$STORE_PATH/activate")")

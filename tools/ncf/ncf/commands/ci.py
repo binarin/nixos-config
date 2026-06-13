@@ -210,15 +210,15 @@ def get_devshells(system: str = "x86_64-linux") -> list[str]:
     return json.loads(result.stdout)
 
 
-def get_checks(system: str = "x86_64-linux") -> list[str]:
-    """Get list of all checks from the flake for a given system."""
+def get_system_configs() -> list[str]:
+    """Get list of all systemConfigs from the flake."""
     repo_root = config.find_repo_root()
     result = run_command(
         [
             "nix",
             "eval",
             "--json",
-            f".#checks.{system}",
+            ".#systemConfigs",
             "--apply",
             "builtins.attrNames",
         ],
@@ -253,7 +253,7 @@ def get_matrix_entries() -> list[str]:
     - h:<name> for homeConfigurations (standalone builds)
     - p:<name> for x86_64-linux packages
     - s:<name> for x86_64-linux devshells
-    - k:<name> for x86_64-linux checks
+    - m:<name> for systemConfigs not covered by deploy nodes
     """
     result = []
 
@@ -309,13 +309,14 @@ def get_matrix_entries() -> list[str]:
     except Exception as e:
         console.print(f"[yellow]Warning: Could not get devShells: {e}[/yellow]")
 
-    # Get checks for x86_64-linux
+    # Get system-manager configs not covered by deploy nodes
     try:
-        checks = get_checks("x86_64-linux")
-        for check in checks:
-            result.append(f"k:{check}")
+        system_configs = get_system_configs()
+        for cfg in system_configs:
+            if cfg not in deployed_nodes:
+                result.append(f"m:{cfg}")
     except Exception as e:
-        console.print(f"[yellow]Warning: Could not get checks: {e}[/yellow]")
+        console.print(f"[yellow]Warning: Could not get systemConfigs: {e}[/yellow]")
 
     return result
 
@@ -329,7 +330,7 @@ def get_build_path(entry: str) -> str:
     - h:<name> -> homeConfiguration activationPackage
     - p:<name> -> package for x86_64-linux
     - s:<name> -> devShell for x86_64-linux
-    - k:<name> -> check for x86_64-linux
+    - m:<name> -> systemConfig for x86_64-linux
     - <name> (no prefix) -> legacy behavior, check deploy nodes
     """
     if ":" in entry:
@@ -354,9 +355,9 @@ def get_build_path(entry: str) -> str:
         elif prefix == "s":
             name = parts[1]
             return f".#devShells.x86_64-linux.{name}"
-        elif prefix == "k":
+        elif prefix == "m":
             name = parts[1]
-            return f".#checks.x86_64-linux.{name}"
+            return f".#systemConfigs.{name}"
         else:
             raise ValueError(f"Unknown prefix: {prefix}")
     else:
@@ -377,7 +378,7 @@ def expand_matrix_entry(entry: str) -> str:
     - h:<name> -> home-config-<name>
     - p:<name> -> package-<name>
     - s:<name> -> devshell-<name>
-    - k:<name> -> check-<name>
+    - m:<name> -> system-config-<name>
     """
     if ":" in entry:
         parts = entry.split(":", 2)
@@ -395,8 +396,8 @@ def expand_matrix_entry(entry: str) -> str:
             return f"package-{parts[1]}"
         elif prefix == "s":
             return f"devshell-{parts[1]}"
-        elif prefix == "k":
-            return f"check-{parts[1]}"
+        elif prefix == "m":
+            return f"system-config-{parts[1]}"
         else:
             raise ValueError(f"Unknown prefix: {prefix}")
     else:
