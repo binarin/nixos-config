@@ -6,6 +6,16 @@ on:
       - reopened
 
 jobs:
+  flake-check:
+    name: nix flake check
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: ./.forgejo/actions/fake-unlock
+      - run: nix flake check
+
   define-matrix:
     runs-on: native
     outputs:

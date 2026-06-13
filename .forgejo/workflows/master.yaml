@@ -6,6 +6,16 @@ on:
       - master
 
 jobs:
+  flake-check:
+    name: nix flake check
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.forgejo/actions/git-crypt-unlock
+        with:
+          git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
+      - run: nix flake check
+
   define-matrix:
     runs-on: native
     outputs:
