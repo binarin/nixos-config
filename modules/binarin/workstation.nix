@@ -89,6 +89,7 @@
       };
 
       home.packages = with pkgs; [
+        self.packages.${pkgs.system}.ksso
         (pkgs.callPackage "${self}/packages/aws-workspaces/package.nix" { })
         # aws-workspaces
         swi-prolog

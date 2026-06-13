@@ -1,4 +1,4 @@
-{ ... }:
+{ self, ... }:
 {
   flake.homeModules.binarin-zsh =
     {
@@ -7,6 +7,10 @@
       pkgs,
       ...
     }:
+    let
+      protectedVars = import (self + "/lib/systemd-env-protected.nix");
+      protectedArray = "(${builtins.concatStringsSep " " protectedVars})";
+    in
     {
       key = "nixos-config.modules.home.binarin-zsh";
       programs.zsh = {
@@ -50,7 +54,8 @@
           }
 
           sync-systemd-env() {
-            local verbose=0 arg var val current_val changed=0
+            local verbose=0 arg var val current_val changed=0 p
+            local -a protected=${protectedArray}
             for arg in "$@"; do
               case "$arg" in
                 --verbose|-v) verbose=1 ;;
@@ -61,6 +66,11 @@
               [[ -z "$line" ]] && continue
               [[ "$line" != *=* ]] && continue
               var="''${line%%=*}"
+              for p in $protected; do
+                if [[ "$var" == $p ]] || { [[ $p == *_ && ''${#p} -gt 1 ]] && [[ "$var" == $p* ]]; }; then
+                  continue 2
+                fi
+              done
               val="''${line#*=}"
               current_val="''${(P)var}"
               if [[ "$current_val" != "$val" ]]; then

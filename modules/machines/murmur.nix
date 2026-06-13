@@ -7,6 +7,7 @@
 let
   murmurOverlays = [
     inputs.nixgl.overlay
+    self.overlays.jerk-gpa
     (final: prev: {
       swaylock = final.writeShellScriptBin "swaylock" ''
         exec /usr/bin/swaylock "$@"
@@ -155,6 +156,7 @@ in
       services.ssh-agent.enable = true;
       home.packages =
         (with pkgs; [
+          jerk-gpa
           # age-plugin-yubikey
           sox
           lan-mouse
@@ -337,6 +339,13 @@ in
 
         if [[ -f $HOME/.nix-profile/bin/zsh ]]; then
             export SHELL=$HOME/.nix-profile/bin/zsh
+        fi
+
+        # Ensure system-manager's /run/current-system/sw/bin is in PATH
+        # (not guaranteed via /etc/environment on non-NixOS when PAM skips it)
+        local sw_bin="/run/current-system/sw/bin"
+        if [[ -d $sw_bin && ":$PATH:" != *":$sw_bin:"* ]]; then
+            export PATH="$sw_bin:$PATH"
         fi
 
         if [[ -d $HOME/.local/bin && !( $PATH == *$HOME/.local/bin* ) ]]; then
