@@ -287,6 +287,20 @@ in
       programs.zsh.dotDir = "${config.xdg.configHome}/zsh";
 
       xdg.autostart.override."epp-client".hidden = true;
+      xdg.autostart.override."org.gnome.DejaDup.Monitor".hidden = true;
+      xdg.autostart.override."snap-userd-autostart".hidden = true;
+
+      xdg.configFile."autostart/google-chrome.desktop".text = ''
+        [Desktop Entry]
+        Name=Google Chrome
+        Exec=google-chrome-stable
+        Type=Application
+        OnlyShowIn=niri;
+      '';
+
+      home.activation.mask-unwanted-user-services = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        $DRY_RUN_CMD /usr/bin/systemctl --user mask snap.snapd-desktop-integration.snapd-desktop-integration.service
+      '';
 
       xdg.autostart.override."nvidia-settings-autostart".notShownIn = [
         "niri"
