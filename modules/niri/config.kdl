@@ -379,11 +379,6 @@ window-rule {
   open-on-workspace "browser"
 }
 
-window-rule {
-  match app-id="google-chrome" at-startup=true
-  open-on-workspace "misc"
-}
-
 
 
 

@@ -293,7 +293,7 @@ in
       xdg.configFile."autostart/google-chrome.desktop".text = ''
         [Desktop Entry]
         Name=Google Chrome
-        Exec=google-chrome-stable
+        Exec=${lib.getExe pkgs.google-chrome}
         Type=Application
         OnlyShowIn=niri;
       '';
