@@ -4,7 +4,11 @@
     google-chrome =
       let
         chromeWrapper = final.writeShellScriptBin "google-chrome-stable" ''
-          exec ${lib.getExe prev.google-chrome} --proxy-server=socks5://localhost:3128 "$@"
+          if [[ -n "''${CHROME_PROXY:-}" ]]; then
+            exec ${lib.getExe prev.google-chrome} --proxy-server="$CHROME_PROXY" "$@"
+          else
+            exec ${lib.getExe prev.google-chrome} "$@"
+          fi
         '';
 
         desktopFiles = final.runCommand "google-chrome-desktop-files" { } ''
