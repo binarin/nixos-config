@@ -42,26 +42,26 @@ writeShellApplication {
       fi
     done < <(systemctl show-environment --user 2>/dev/null)
 
-    # Ensure chromium is running (GPA uses it for the captive portal)
-    has_chromium_window() {
-      niri msg --json windows 2>/dev/null | jq -e 'any(.[]; .app_id == "Chromium-browser")' >/dev/null 2>&1
+    # Ensure Chrome is running (GPA uses it for the captive portal)
+    has_chrome_window() {
+      niri msg --json windows 2>/dev/null | jq -e 'any(.[]; .app_id == "google-chrome")' >/dev/null 2>&1
     }
 
-    echo >&2 "Checking for chromium window..."
-    if has_chromium_window; then
-      echo >&2 "Chromium is already running."
+    echo >&2 "Checking for Chrome window..."
+    if has_chrome_window; then
+      echo >&2 "Chrome is already running."
     else
-      echo >&2 "Starting chromium..."
-      uwsm app -- chromium &
+      echo >&2 "Starting Chrome..."
+      uwsm app -- google-chrome-stable &
       for ((i = 0; i < 10; i++)); do
         sleep 1
-        if has_chromium_window; then
-          echo >&2 "Chromium window appeared."
+        if has_chrome_window; then
+          echo >&2 "Chrome window appeared."
           break
         fi
       done
-      if ! has_chromium_window; then
-        echo >&2 "ERROR: chromium window did not appear after 10 seconds"
+      if ! has_chrome_window; then
+        echo >&2 "ERROR: Chrome window did not appear after 10 seconds"
         exit 1
       fi
     fi
