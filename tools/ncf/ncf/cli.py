@@ -1232,6 +1232,11 @@ def deploy_cmd(
     target: str = typer.Argument(help="Deploy target name"),
     profile: str = typer.Option("system", "--profile", "-p", help="Profile to deploy"),
     boot: bool = typer.Option(False, "--boot", help="Deploy to boot loader and reboot"),
+    boot_trigger: str | None = typer.Option(
+        None,
+        "--boot-trigger",
+        help="Only trigger --boot when this condition changes (e.g. nixos-release)",
+    ),
     no_rollback: bool = typer.Option(
         False, "--no-rollback", help="Disable auto/magic rollback"
     ),
@@ -1281,6 +1286,7 @@ def deploy_cmd(
         target=target,
         profile=profile,
         boot=boot,
+        boot_trigger=boot_trigger,
         no_rollback=no_rollback,
         skip_if_unchanged=skip_unchanged,
         verbosity=verbosity,
@@ -1305,6 +1311,11 @@ def deploy_all_cmd(
     ctx: typer.Context,
     boot: bool = typer.Option(
         False, "--boot", help="Deploy to boot loader and reboot each machine"
+    ),
+    boot_trigger: str | None = typer.Option(
+        None,
+        "--boot-trigger",
+        help="Only trigger --boot when this condition changes (e.g. nixos-release)",
     ),
     no_rollback: bool = typer.Option(
         False, "--no-rollback", help="Disable auto/magic rollback"
@@ -1361,6 +1372,7 @@ def deploy_all_cmd(
 
     success = deploy.run_all(
         boot=boot,
+        boot_trigger=boot_trigger,
         no_rollback=no_rollback,
         skip_if_unchanged=skip_unchanged,
         stop_on_failure=stop_on_failure,

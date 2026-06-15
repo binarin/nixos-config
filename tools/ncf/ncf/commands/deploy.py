@@ -215,6 +215,96 @@ def _collect_all_remote_paths(
     }
 
 
+def _parse_nixos_release(path: str) -> Optional[str]:
+    """Extract NixOS release version from a store path.
+
+    NixOS system paths embed the release as ``-YY.MM.DATE.REV``.
+    Example: ``...-nixos-system-*-26.05.20260608.bd0ff2d`` → ``"26.05"``.
+    """
+    m = re.search(r"-(\d{2}\.\d{2})\.\d{8}\.", path)
+    return m.group(1) if m else None
+
+
+def _batch_resolve_nixos_releases(
+    local_paths: dict[str, tuple[str, str]],
+    deploy_profiles: list[tuple[str, str]],
+) -> dict[str, str]:
+    """Get NixOS releases for nixos-system profiles in one ``nix eval`` call.
+
+    Only profiles whose *config_type* is ``"nixos-system"`` are fetched.
+    Returns a dict ``"node/profile" → release``.
+    """
+    # Collect nodes that have at least one nixos-system profile.
+    nixos_nodes: set[str] = set()
+    for node, profile in deploy_profiles:
+        key = f"{node}/{profile}"
+        entry = local_paths.get(key)
+        if entry and entry[1] == "nixos-system":
+            nixos_nodes.add(node)
+
+    if not nixos_nodes:
+        return {}
+
+    repo_root = config.find_repo_root()
+    runner = NixRunner(verbosity=0, repo_root=repo_root)
+
+    lines = []
+    for node in sorted(nixos_nodes):
+        lines.append(
+            f'    "{node}" = configs."{node}".config.system.nixos.release;'
+        )
+    apply_expr = "configs: {\n" + "\n".join(lines) + "\n}"
+
+    result = runner.run_eval(
+        f"{repo_root}#nixosConfigurations",
+        json_output=True,
+        apply=apply_expr,
+    )
+    releases = json.loads(result.stdout)
+
+    # Map back to profile keys.
+    result_map: dict[str, str] = {}
+    for node, profile in deploy_profiles:
+        key = f"{node}/{profile}"
+        if key in local_paths and local_paths[key][1] == "nixos-system":
+            result_map[key] = releases.get(node, "")
+
+    return result_map
+
+
+def _should_boot(
+    config_type: str,
+    boot: bool,
+    boot_trigger: Optional[str],
+    local_path: str,
+    remote_path: Optional[str] = None,
+    local_release: Optional[str] = None,
+) -> tuple[bool, str]:
+    """Decide whether --boot should trigger a reboot.
+
+    Returns ``(should_boot, reason)``.  *reason* is a dimmed note shown
+    to the user when boot is skipped despite being requested.
+    """
+    if not boot:
+        return (False, "")
+    if config_type != "nixos-system":
+        return (False, f"(--boot ignored for {config_type})")
+    if boot_trigger == "nixos-release":
+        remote_release = None
+        if remote_path:
+            remote_release = _parse_nixos_release(remote_path)
+        if local_release is None:
+            local_release = _parse_nixos_release(local_path)
+        if local_release and remote_release and local_release == remote_release:
+            return (
+                False,
+                f"(--boot skipped: same NixOS release {local_release})",
+            )
+        return (True, "")
+    # No trigger filter — boot always.
+    return (True, "")
+
+
 def _batch_resolve_toplevel_paths(
     deploy_profiles: list[tuple[str, str]],
 ) -> dict[str, tuple[str, str]]:
@@ -434,6 +524,7 @@ def run_single(
     target: str,
     profile: str = "system",
     boot: bool = False,
+    boot_trigger: Optional[str] = None,
     no_rollback: bool = False,
     skip_if_unchanged: bool = True,
     verbosity: int = 1,
@@ -508,10 +599,13 @@ def run_single(
         else:
             console.print(f"  [yellow]Would deploy {target}[/yellow]")
 
-        if boot and config_type == "nixos-system":
+        should_boot, boot_reason = _should_boot(
+            config_type, boot, boot_trigger, local_path, None
+        )
+        if should_boot:
             console.print("  [yellow]Would reboot after deployment[/yellow]")
-        elif boot:
-            console.print(f"  [dim](--boot ignored for {config_type})[/dim]")
+        elif boot_reason:
+            console.print(f"  [dim]{boot_reason}[/dim]")
         return True
 
     # Skip if unchanged check (non-dry-run)
@@ -556,12 +650,23 @@ def run_single(
     if boot:
         try:
             _local_path = get_deploy_toplevel_path(target, profile)
-            _is_nixos = _classify_config_type(_local_path) == "nixos-system"
+            _config_type = _classify_config_type(_local_path)
         except Exception:
-            _is_nixos = profile == "system"  # rough guess
+            _local_path = ""
+            _config_type = "nixos-system" if profile == "system" else "home-manager"
 
-        if not _is_nixos:
-            console.print("  [dim](--boot ignored for non-NixOS config)[/dim]")
+        # Capture pre-deployment remote path for boot-trigger comparison.
+        _remote_path: Optional[str] = None
+        if boot_trigger == "nixos-release" and _config_type == "nixos-system":
+            _remote_path = get_remote_current_system(hostname)
+
+        should_boot, boot_reason = _should_boot(
+            _config_type, boot, boot_trigger,
+            _local_path, _remote_path,
+        )
+        if not should_boot:
+            if boot_reason:
+                console.print(f"  [dim]{boot_reason}[/dim]")
         else:
             # Record boot_id before triggering reboot for race-free detection
             old_boot_id = get_remote_boot_id(hostname)
@@ -596,6 +701,7 @@ def run_single(
 
 def run_all(
     boot: bool = False,
+    boot_trigger: Optional[str] = None,
     no_rollback: bool = False,
     skip_if_unchanged: bool = True,
     stop_on_failure: bool = True,
@@ -689,6 +795,7 @@ def run_all(
                 )
 
             local_paths = None
+            batch_releases: dict[str, str] = {}
 
             for node, profile in deploy_profiles:
                 console.print()
@@ -698,6 +805,11 @@ def run_all(
                 if local_paths is None and batch_future.done():
                     try:
                         local_paths = batch_future.result()
+                        # Resolve NixOS releases for boot-trigger (fast nix eval)
+                        if boot_trigger:
+                            batch_releases = _batch_resolve_nixos_releases(
+                                local_paths, deploy_profiles
+                            )
                     except Exception:
                         local_paths = None  # fall through to slow path
 
@@ -745,15 +857,17 @@ def run_all(
                             f"  [yellow]Would deploy {node}[/yellow]"
                         )
 
-                    if boot and config_type == "nixos-system":
+                    should_boot, boot_reason = _should_boot(
+                        config_type, boot, boot_trigger,
+                        local_path, remote_path,
+                        batch_releases.get(key),
+                    )
+                    if should_boot:
                         console.print(
                             "  [yellow]Would reboot after deployment[/yellow]"
                         )
-                    elif boot:
-                        console.print(
-                            f"  [dim](--boot ignored for"
-                            f" {config_type})[/dim]"
-                        )
+                    elif boot_reason:
+                        console.print(f"  [dim]{boot_reason}[/dim]")
                     results[key] = True
                     succeeded += 1
                 else:
@@ -762,6 +876,7 @@ def run_all(
                         target=node,
                         profile=profile,
                         boot=boot,
+                        boot_trigger=boot_trigger,
                         no_rollback=no_rollback,
                         skip_if_unchanged=skip_if_unchanged,
                         verbosity=verbosity,
@@ -808,6 +923,7 @@ def run_all(
             target=node,
             profile=profile,
             boot=boot,
+            boot_trigger=boot_trigger,
             no_rollback=no_rollback,
             skip_if_unchanged=skip_if_unchanged,
             verbosity=verbosity,
