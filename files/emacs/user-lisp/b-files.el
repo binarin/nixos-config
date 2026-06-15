@@ -83,8 +83,12 @@
 
 After deletion, revert the dired buffer."
   (interactive nil dired-mode)
-  (let ((files (dired-get-marked-files)))
-    (magit-file-delete files)
-    (revert-buffer)))
+  (if-let* ((project (project-current)))
+      (let* ((root (project-root project))
+             (files (mapcar (lambda (f) (file-relative-name f root))
+                            (dired-get-marked-files))))
+        (magit-file-delete files)
+        (revert-buffer))
+    (user-error "Not in a project")))
 
 (provide 'b-files)

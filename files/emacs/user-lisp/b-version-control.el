@@ -40,13 +40,13 @@ If the buffer has unsaved changes, asks for confirmation first.
 If the file has uncommitted git changes, Magit will prompt."
   (interactive)
   (if-let* ((filename (buffer-file-name))
-           (project (project-current)))
-      (when (or (not (buffer-modified-p))
-                (y-or-n-p (format "File %s has unsaved changes; discard? "
-                                  (file-relative-name filename (project-root project)))))
-        (set-buffer-modified-p nil)
-        (magit-file-delete (list filename))
-        (kill-buffer))
+            (project (project-current)))
+      (let ((rel-name (file-relative-name filename (project-root project))))
+        (when (or (not (buffer-modified-p))
+                  (y-or-n-p (format "File %s has unsaved changes; discard? " rel-name)))
+          (set-buffer-modified-p nil)
+          (magit-file-delete (list rel-name))
+          (kill-buffer)))
     (user-error "Not visiting a file in a project")))
 
 (provide 'b-version-control)
