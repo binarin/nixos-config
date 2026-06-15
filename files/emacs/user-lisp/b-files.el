@@ -85,9 +85,10 @@ After deletion, revert the dired buffer."
   (interactive nil dired-mode)
   (if-let* ((project (project-current)))
       (let* ((root (project-root project))
-             (files (mapcar (lambda (f) (file-relative-name f root))
-                            (dired-get-marked-files))))
+             (full-paths (dired-get-marked-files))
+             (files (mapcar (lambda (f) (file-relative-name f root)) full-paths)))
         (magit-file-delete files)
+        (dolist (f full-paths) (setq recentf-list (delete f recentf-list)))
         (revert-buffer))
     (user-error "Not in a project")))
 

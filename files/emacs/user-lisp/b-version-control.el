@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 (require 'project)
+(defvar recentf-list)
 (use-package magit
   :ensure t
   :commands (magit-file-relative-name magit-git-string magit-file-delete)
@@ -46,6 +47,7 @@ If the file has uncommitted git changes, Magit will prompt."
                   (y-or-n-p (format "File %s has unsaved changes; discard? " rel-name)))
           (set-buffer-modified-p nil)
           (magit-file-delete (list rel-name))
+          (setq recentf-list (delete filename recentf-list))
           (kill-buffer)))
     (user-error "Not visiting a file in a project")))
 
