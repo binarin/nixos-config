@@ -107,6 +107,20 @@
               SMTP_PORT = 465;
               FROM = "host-forgejo@binarin.info";
             };
+            # Regenerate authorized_keys & authorized_principals on startup
+            # because the forgejo binary path (in nix store) is embedded in
+            # both files and changes on every package update.
+            "cron.resync_all_sshkeys" = {
+              ENABLED = true;
+              RUN_AT_START = true;
+              SCHEDULE = "@every 24h";
+            };
+            "cron.resync_all_sshprincipals" = {
+              ENABLED = true;
+              RUN_AT_START = true;
+              SCHEDULE = "@every 24h";
+            };
+
             time = {
               DEFAULT_UI_LOCATION = "Europe/Amsterdam";
             };
@@ -137,31 +151,6 @@
             };
           };
         };
-
-        systemd.services.forgejo-regenerate-keys =
-          let
-            cfg = config.services.forgejo;
-            exe = lib.getExe cfg.package;
-          in
-          {
-            description = "Regenerate Forgejo authorized_keys and principals";
-            after = [ "forgejo.service" ];
-            bindsTo = [ "forgejo.service" ];
-            wantedBy = [ "forgejo.service" ];
-            serviceConfig = {
-              Type = "oneshot";
-              User = cfg.user;
-              Group = cfg.group;
-              WorkingDirectory = cfg.stateDir;
-              ExecStart = "${exe} admin regenerate keys";
-            };
-            environment = {
-              USER = cfg.user;
-              HOME = cfg.stateDir;
-              FORGEJO_WORK_DIR = cfg.stateDir;
-              FORGEJO_CUSTOM = cfg.customDir;
-            };
-          };
 
         services.openssh.extraConfig = ''
           Match User git
