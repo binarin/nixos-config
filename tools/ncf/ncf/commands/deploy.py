@@ -267,7 +267,7 @@ def _batch_resolve_nixos_releases(
     for node, profile in deploy_profiles:
         key = f"{node}/{profile}"
         if key in local_paths and local_paths[key][1] == "nixos-system":
-            result_map[key] = releases.get(node, "")
+            result_map[key] = releases.get(node)
 
     return result_map
 
@@ -293,7 +293,7 @@ def _should_boot(
         remote_release = None
         if remote_path:
             remote_release = _parse_nixos_release(remote_path)
-        if local_release is None:
+        if not local_release:
             local_release = _parse_nixos_release(local_path)
         if local_release and remote_release and local_release == remote_release:
             return (
