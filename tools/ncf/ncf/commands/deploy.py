@@ -568,9 +568,26 @@ def run_single(
 
         config_type = _classify_config_type(local_path)
 
-        if skip_if_unchanged:
-            # Pick the right remote comparison path for the config type
+        # Fetch remote path early if needed for boot-trigger comparison
+        _remote_path_for_boot: Optional[str] = None
+        if boot and boot_trigger:
             if config_type == "nixos-system":
+                _remote_path_for_boot = get_remote_current_system(hostname)
+            elif config_type == "system-manager":
+                _remote_path_for_boot = get_remote_system_manager_profile(
+                    hostname, ssh_user
+                )
+            else:
+                _remote_path_for_boot = get_remote_home_manager_profile(
+                    hostname, ssh_user
+                )
+
+        if skip_if_unchanged:
+            # Reuse remote path if already fetched for boot-trigger
+            remote_path: Optional[str]
+            if _remote_path_for_boot is not None:
+                remote_path = _remote_path_for_boot
+            elif config_type == "nixos-system":
                 remote_path = get_remote_current_system(hostname)
             elif config_type == "system-manager":
                 remote_path = get_remote_system_manager_profile(
@@ -600,7 +617,8 @@ def run_single(
             console.print(f"  [yellow]Would deploy {target}[/yellow]")
 
         should_boot, boot_reason = _should_boot(
-            config_type, boot, boot_trigger, local_path, None
+            config_type, boot, boot_trigger,
+            local_path, _remote_path_for_boot,
         )
         if should_boot:
             console.print("  [yellow]Would reboot after deployment[/yellow]")
