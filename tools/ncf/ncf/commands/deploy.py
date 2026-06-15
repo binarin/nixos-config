@@ -621,7 +621,7 @@ def run_single(
             local_path, _remote_path_for_boot,
         )
         if should_boot:
-            console.print("  [yellow]Would reboot after deployment[/yellow]")
+            console.print("  [yellow]Would boot into new configuration[/yellow]")
         elif boot_reason:
             console.print(f"  [dim]{boot_reason}[/dim]")
         return True
@@ -882,7 +882,7 @@ def run_all(
                     )
                     if should_boot:
                         console.print(
-                            "  [yellow]Would reboot after deployment[/yellow]"
+                            "  [yellow]Would boot into new configuration[/yellow]"
                         )
                     elif boot_reason:
                         console.print(f"  [dim]{boot_reason}[/dim]")
