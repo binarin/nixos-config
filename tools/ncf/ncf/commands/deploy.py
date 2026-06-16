@@ -629,7 +629,16 @@ def run_single(
     # Skip if unchanged check (non-dry-run)
     if skip_if_unchanged:
         console.print("  Checking if deployment is needed...")
-        remote_path = get_remote_current_system(hostname)
+        # Resolve config type cheaply via eval, then pick the right remote path.
+        _local_drv_path = get_deploy_toplevel_path(target, profile)
+        _local_config_type = _classify_config_type(_local_drv_path)
+        if _local_config_type == "nixos-system":
+            remote_path = get_remote_current_system(hostname)
+        elif _local_config_type == "system-manager":
+            remote_path = get_remote_system_manager_profile(hostname, ssh_user)
+        else:
+            remote_path = get_remote_home_manager_profile(hostname, ssh_user)
+
         if remote_path:
             try:
                 local_path = get_local_system_path(target, profile)
