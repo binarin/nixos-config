@@ -647,14 +647,37 @@ def run_single(
                 "[yellow]  Warning: Could not get remote system path[/yellow]"
             )
 
+    # Decide whether to actually boot BEFORE running deploy-rs.
+    # When --boot is requested but --boot-trigger says no, we fall
+    # back to a live switch so the new config takes effect immediately.
+    _do_boot = boot  # may be downgraded to switch below
+    if boot and boot_trigger:
+        try:
+            _local_path = get_deploy_toplevel_path(target, profile)
+            _config_type = _classify_config_type(_local_path)
+        except Exception:
+            _local_path = ""
+            _config_type = "nixos-system" if profile == "system" else "home-manager"
+
+        _remote_path: Optional[str] = None
+        if boot_trigger == "nixos-release" and _config_type == "nixos-system":
+            _remote_path = get_remote_current_system(hostname)
+
+        _do_boot, _reason = _should_boot(
+            _config_type, boot, boot_trigger,
+            _local_path, _remote_path,
+        )
+        if not _do_boot and _reason:
+            console.print(f"  [dim]{_reason}[/dim]")
+
     # Run deploy
-    mode = "boot" if boot else "switch"
+    mode = "boot" if _do_boot else "switch"
     console.print(f"  Deploying ({mode} mode)...")
 
     success = run_deploy_command(
         target=target,
         profile=profile,
-        boot=boot,
+        boot=_do_boot,
         no_rollback=no_rollback,
         verbosity=verbosity,
         extra_nix_args=extra_nix_args,
@@ -664,54 +687,34 @@ def run_single(
         console.print(f"[red]  FAILED: Deploy to {target} failed[/red]")
         return False
 
-    # Handle boot mode reboot (NixOS only — ignored for system-manager/home-manager)
-    if boot:
+    # Handle boot mode reboot
+    if _do_boot:
+        # Record boot_id before triggering reboot for race-free detection
+        old_boot_id = get_remote_boot_id(hostname)
+        console.print("  Triggering reboot...")
         try:
-            _local_path = get_deploy_toplevel_path(target, profile)
-            _config_type = _classify_config_type(_local_path)
-        except Exception:
-            _local_path = ""
-            _config_type = "nixos-system" if profile == "system" else "home-manager"
+            subprocess.run(
+                [
+                    "ssh",
+                    "-o",
+                    "ControlPath=none",
+                    f"{ssh_user}@{hostname}",
+                    "systemctl",
+                    "reboot",
+                ],
+                check=False,
+                timeout=30,
+            )
+        except subprocess.TimeoutExpired:
+            pass  # Expected — SSH may hang as machine goes down
+        except Exception as e:
+            console.print(
+                f"[yellow]  Warning: Could not trigger reboot: {e}[/yellow]"
+            )
 
-        # Capture pre-deployment remote path for boot-trigger comparison.
-        _remote_path: Optional[str] = None
-        if boot_trigger == "nixos-release" and _config_type == "nixos-system":
-            _remote_path = get_remote_current_system(hostname)
-
-        should_boot, boot_reason = _should_boot(
-            _config_type, boot, boot_trigger,
-            _local_path, _remote_path,
-        )
-        if not should_boot:
-            if boot_reason:
-                console.print(f"  [dim]{boot_reason}[/dim]")
-        else:
-            # Record boot_id before triggering reboot for race-free detection
-            old_boot_id = get_remote_boot_id(hostname)
-            console.print("  Triggering reboot...")
-            try:
-                subprocess.run(
-                    [
-                        "ssh",
-                        "-o",
-                        "ControlPath=none",
-                        f"{ssh_user}@{hostname}",
-                        "systemctl",
-                        "reboot",
-                    ],
-                    check=False,
-                    timeout=30,
-                )
-            except subprocess.TimeoutExpired:
-                pass  # Expected — SSH may hang as machine goes down
-            except Exception as e:
-                console.print(
-                    f"[yellow]  Warning: Could not trigger reboot: {e}[/yellow]"
-                )
-
-            if not wait_for_reboot(hostname, old_boot_id):
-                console.print(f"[red]  FAILED: Reboot of {target} failed[/red]")
-                return False
+        if not wait_for_reboot(hostname, old_boot_id):
+            console.print(f"[red]  FAILED: Reboot of {target} failed[/red]")
+            return False
 
     console.print(f"[green]  SUCCESS: {target} deployed[/green]")
     return True
