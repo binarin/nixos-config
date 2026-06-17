@@ -93,13 +93,36 @@ When ::SEARCH is present, navigate to search option after opening."
 (org-link-set-parameters "dist"
                          :follow #'b/org-dist-open)
 
+;;; src: link type — [[src://path/to/file]] → /rpc:adb.k.b:…/path/to/file
+
+(defun b/org-src-open (path _)
+  "Open a source file from a src: link.
+PATH must start with //, like \"//path/to/file\"
+ or \"//path/to/file::*search\".
+Opens \"/rpc:adb.k.b:/usr/local/git_tree/keep/main-altpayment/path/to/file\".
+When ::SEARCH is present, navigate to search option after opening."
+  (let (file-part search)
+    (if (string-match "\\`\\(.+\\)::\\(.+\\)\\'" path)
+        (setq file-part (match-string 1 path)
+              search (match-string 2 path))
+      (setq file-part path))
+    (unless (string-match "\\`//" file-part)
+      (user-error "src: links require // prefix, got: %S" file-part))
+    (let* ((cleaned (substring file-part 2))
+           (filename (concat "/rpc:adb.k.b:/usr/local/git_tree/keep/main-altpayment/" cleaned)))
+      (find-file filename)
+      (when search
+        (org-link-search search)))))
+
+(org-link-set-parameters "src"
+                         :follow #'b/org-src-open)
+
 (setq enable-remote-dir-locals t)
 
 (dir-locals-set-class-variables
  'altpayment-investigation
  '((org-mode . ((org-link-abbrev-alist
-                 . (("mysql" . "file:./%s.org")
-                    ("src" . "file:/rpc:adb.k.b:/usr/local/git_tree/keep/main-altpayment/%s")))))))
+                 . (("mysql" . "file:./%s.org")))))))
 
 (unless (bound-and-true-p byte-compile-current-file)
   (dir-locals-set-directory-class
