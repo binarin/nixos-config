@@ -49,7 +49,64 @@
 
 (setf org-default-notes-file (concat org-directory "/notes.org"))
 
+;;; pm: link type — [[pm:Module::Name]] → Module::Name.org
+
+(defun b/org-pm-open (path _)
+  "Open a Perl module org file from a pm: link.
+PATH is like \"Module::Name\" or \"Module::Name#search\".
+Opens \"Module::Name.org\" relative to the current Org file.
+When #SEARCH is present, navigate to search option after opening."
+  (let (mod-name search)
+    (if (string-match "\\`\\([^#]+\\)#\\(.+\\)\\'" path)
+        (setq mod-name (match-string 1 path)
+              search (match-string 2 path))
+      (setq mod-name path))
+    (let ((file (concat mod-name ".org")))
+      (find-file file)
+      (when search
+        (org-link-search search)))))
+
+(org-link-set-parameters "pm"
+                         :follow #'b/org-pm-open)
+
+;;; dist: link type — [[dist://name/module]] → ./name--module.org
+
+(defun b/org-dist-open (path _)
+  "Open a dist org file from a dist: link.
+PATH must start with //, like \"//dist/name/module\"
+ or \"//dist/name/module::*search\".
+Opens \"./dist--name--module.org\" relative to the current Org file.
+When ::SEARCH is present, navigate to search option after opening."
+  (let (file-part search)
+    (if (string-match "\\`\\(.+\\)::\\(.+\\)\\'" path)
+        (setq file-part (match-string 1 path)
+              search (match-string 2 path))
+      (setq file-part path))
+    (unless (string-match "\\`//" file-part)
+      (user-error "dist: links require // prefix, got: %S" file-part))
+    (let* ((cleaned (substring file-part 2))
+           (filename (concat "./" (string-join (split-string cleaned "/") "--") ".org")))
+      (find-file filename)
+      (when search
+        (org-link-search search)))))
+
+(org-link-set-parameters "dist"
+                         :follow #'b/org-dist-open)
+
+(setq enable-remote-dir-locals t)
+
+(dir-locals-set-class-variables
+ 'altpayment-investigation
+ '((org-mode . ((org-link-abbrev-alist
+                 . (("mysql" . "file:./%s.org")
+                    ("src" . "file:/rpc:adb.k.b:/usr/local/git_tree/keep/main-altpayment/%s")))))))
+
+
+(dir-locals-set-directory-class
+ "/rpc:adb.k.b:/usr/local/git_tree/repostat/wip/alt-payment/" 'altpayment-investigation)
+
 (require 'notifications)
+
 
 
 (defvar b/anki-capture-note-type "Basic")
