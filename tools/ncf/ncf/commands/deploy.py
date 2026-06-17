@@ -70,11 +70,17 @@ def _ssh_readlink_f(
     """
     try:
         result = subprocess.run(
-            ["ssh",
-             "-o", "ConnectTimeout=5",
-             "-o", "BatchMode=yes",
-             f"{user}@{hostname}",
-             "readlink", "-f", path],
+            [
+                "ssh",
+                "-o",
+                "ConnectTimeout=5",
+                "-o",
+                "BatchMode=yes",
+                f"{user}@{hostname}",
+                "readlink",
+                "-f",
+                path,
+            ],
             capture_output=True,
             text=True,
             timeout=timeout,
@@ -97,7 +103,8 @@ def get_remote_current_system(hostname: str) -> Optional[str]:
 
 
 def get_remote_system_manager_profile(
-    hostname: str, ssh_user: str,
+    hostname: str,
+    ssh_user: str,
 ) -> Optional[str]:
     """Get the active system-manager config derivation path.
 
@@ -107,17 +114,18 @@ def get_remote_system_manager_profile(
     without the deploy-rs activatable wrapper.
     """
     return _ssh_readlink_f(
-        hostname, ssh_user,
+        hostname,
+        ssh_user,
         "/nix/var/nix/profiles/system-manager-profiles/system-manager",
     )
 
 
 def get_remote_home_manager_profile(
-    hostname: str, ssh_user: str,
+    hostname: str,
+    ssh_user: str,
 ) -> Optional[str]:
     """Get the current home-manager generation path."""
-    return _ssh_readlink_f(hostname, ssh_user,
-                           ".local/state/nix/profiles/home-manager")
+    return _ssh_readlink_f(hostname, ssh_user, ".local/state/nix/profiles/home-manager")
 
 
 def _derivation_lookup(drv_info: dict, drv_path: str) -> dict:
@@ -199,7 +207,8 @@ def get_deploy_toplevel_path(target: str, profile: str = "system") -> str:
 
 
 def _collect_all_remote_paths(
-    hostname: str, ssh_user: str,
+    hostname: str,
+    ssh_user: str,
 ) -> dict[str, Optional[str]]:
     """Collect all possible remote comparison paths for a host in one SSH session.
 
@@ -250,9 +259,7 @@ def _batch_resolve_nixos_releases(
 
     lines = []
     for node in sorted(nixos_nodes):
-        lines.append(
-            f'    "{node}" = configs."{node}".config.system.nixos.release;'
-        )
+        lines.append(f'    "{node}" = configs."{node}".config.system.nixos.release;')
     apply_expr = "configs: {\n" + "\n".join(lines) + "\n}"
 
     result = runner.run_eval(
@@ -325,9 +332,7 @@ def _batch_resolve_toplevel_paths(
     lines = []
     for node, profile in deploy_profiles:
         key = f"{node}/{profile}"
-        lines.append(
-            f'    "{key}" = nodes."{node}".profiles."{profile}".path.drvPath;'
-        )
+        lines.append(f'    "{key}" = nodes."{node}".profiles."{profile}".path.drvPath;')
     apply_expr = "nodes: {\n" + "\n".join(lines) + "\n}"
 
     # Single nix eval to get all derivation paths
@@ -590,13 +595,9 @@ def run_single(
             elif config_type == "nixos-system":
                 remote_path = get_remote_current_system(hostname)
             elif config_type == "system-manager":
-                remote_path = get_remote_system_manager_profile(
-                    hostname, ssh_user
-                )
+                remote_path = get_remote_system_manager_profile(hostname, ssh_user)
             else:
-                remote_path = get_remote_home_manager_profile(
-                    hostname, ssh_user
-                )
+                remote_path = get_remote_home_manager_profile(hostname, ssh_user)
 
             if remote_path:
                 console.print(f"  Remote:   {remote_path}")
@@ -605,20 +606,21 @@ def run_single(
                     return True
                 else:
                     console.print(
-                        f"  [yellow]Would deploy {target}"
-                        f" (changed)[/yellow]"
+                        f"  [yellow]Would deploy {target}" f" (changed)[/yellow]"
                     )
             else:
                 console.print(
-                    f"  [yellow]Would deploy {target}"
-                    f" (remote unreachable)[/yellow]"
+                    f"  [yellow]Would deploy {target}" f" (remote unreachable)[/yellow]"
                 )
         else:
             console.print(f"  [yellow]Would deploy {target}[/yellow]")
 
         should_boot, boot_reason = _should_boot(
-            config_type, boot, boot_trigger,
-            local_path, _remote_path_for_boot,
+            config_type,
+            boot,
+            boot_trigger,
+            local_path,
+            _remote_path_for_boot,
         )
         if should_boot:
             console.print("  [yellow]Would boot into new configuration[/yellow]")
@@ -673,8 +675,11 @@ def run_single(
             _remote_path = get_remote_current_system(hostname)
 
         _do_boot, _reason = _should_boot(
-            _config_type, boot, boot_trigger,
-            _local_path, _remote_path,
+            _config_type,
+            boot,
+            boot_trigger,
+            _local_path,
+            _remote_path,
         )
         if not _do_boot and _reason:
             console.print(f"  [dim]{_reason}[/dim]")
@@ -717,9 +722,7 @@ def run_single(
         except subprocess.TimeoutExpired:
             pass  # Expected — SSH may hang as machine goes down
         except Exception as e:
-            console.print(
-                f"[yellow]  Warning: Could not trigger reboot: {e}[/yellow]"
-            )
+            console.print(f"[yellow]  Warning: Could not trigger reboot: {e}[/yellow]")
 
         if not wait_for_reboot(hostname, old_boot_id):
             console.print(f"[red]  FAILED: Reboot of {target} failed[/red]")
@@ -883,13 +886,14 @@ def run_all(
                                 f" (remote unreachable)[/yellow]"
                             )
                     else:
-                        console.print(
-                            f"  [yellow]Would deploy {node}[/yellow]"
-                        )
+                        console.print(f"  [yellow]Would deploy {node}[/yellow]")
 
                     should_boot, boot_reason = _should_boot(
-                        config_type, boot, boot_trigger,
-                        local_path, remote_path,
+                        config_type,
+                        boot,
+                        boot_trigger,
+                        local_path,
+                        remote_path,
                         batch_releases.get(key),
                     )
                     if should_boot:
@@ -922,8 +926,7 @@ def run_all(
                         failed += 1
                         if stop_on_failure and not no_rollback:
                             console.print(
-                                f"\n[red]Stopping due to"
-                                f" failure on {key}[/red]"
+                                f"\n[red]Stopping due to" f" failure on {key}[/red]"
                             )
                             break
 
@@ -940,9 +943,7 @@ def run_all(
                 if not success:
                     console.print(f"  - {key}")
         else:
-            console.print(
-                f"[bold]Summary:[/bold] checked {succeeded} profiles"
-            )
+            console.print(f"[bold]Summary:[/bold] checked {succeeded} profiles")
         return failed == 0
 
     # Non-dry-run: run deployments sequentially
