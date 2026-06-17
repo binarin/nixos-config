@@ -101,9 +101,9 @@ When ::SEARCH is present, navigate to search option after opening."
                  . (("mysql" . "file:./%s.org")
                     ("src" . "file:/rpc:adb.k.b:/usr/local/git_tree/keep/main-altpayment/%s")))))))
 
-
-(dir-locals-set-directory-class
- "/rpc:adb.k.b:/usr/local/git_tree/repostat/wip/alt-payment/" 'altpayment-investigation)
+(unless (bound-and-true-p byte-compile-current-file)
+  (dir-locals-set-directory-class
+   "/rpc:adb.k.b:/usr/local/git_tree/repostat/wip/alt-payment/" 'altpayment-investigation))
 
 (require 'notifications)
 
