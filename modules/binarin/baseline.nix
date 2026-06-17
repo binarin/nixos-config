@@ -163,7 +163,7 @@ in
         clock24 = true;
         enable = true;
         shortcut = "o";
-        terminal = "screen-256color"; # needed, e.g. for emacs -nw
+        terminal = "tmux-256color";
         mouse = true;
         focusEvents = true;
         plugins = with pkgs.tmuxPlugins; [
