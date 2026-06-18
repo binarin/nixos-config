@@ -23,6 +23,7 @@
           self.systemModules.uwsm
           self.systemModules.apt-packages
           self.systemModules.chrome-policies
+          self.systemModules.compat
           self.modules.generic.chrome-policies
 
           "${inputs.system-manager}/nix/modules/upstream/nixpkgs/firewall.nix"
