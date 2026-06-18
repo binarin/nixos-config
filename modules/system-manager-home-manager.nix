@@ -114,10 +114,16 @@
                   "XDG_RUNTIME_DIR"
                 ];
                 setupEnv = pkgs.writeScript "hm-setup-env" ''
-                  #! ${pkgs.runtimeShell} -el
+                  #! ${pkgs.runtimeShell} -e
 
-                  # The activation script is run by a login shell to make sure
-                  # that the user is given a sane environment.
+                  # Source nix environment without a full login shell
+                  # (login shell sources /etc/profile.d/* which may contain
+                  # broken scripts on puppet-managed hosts)
+                  if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+                    . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+                  fi
+                  export PATH="/run/current-system/sw/bin:$PATH"
+
                   # If the user is logged in, import variables from their current
                   # session environment.
                   eval "$(

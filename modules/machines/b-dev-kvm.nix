@@ -5,12 +5,13 @@
   ...
 }:
 let
-  makeSystemConfig = (import "${self}/lib/make-system-config.nix" {
-    inherit lib;
-    nixos = "${inputs.nixpkgs}/nixos";
-    userborn = inputs.system-manager.inputs.userborn;
-    system-manager-src = inputs.system-manager;
-  }).makeSystemConfig;
+  makeSystemConfig =
+    (import "${self}/lib/make-system-config.nix" {
+      inherit lib;
+      nixos = "${inputs.nixpkgs}/nixos";
+      userborn = inputs.system-manager.inputs.userborn;
+      system-manager-src = inputs.system-manager;
+    }).makeSystemConfig;
 
   bDevKvmPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays [
     inputs.system-manager.overlays.default
@@ -21,14 +22,34 @@ in
     pkgs = bDevKvmPkgs;
     modules = [
       self.systemModules.bentos
-      {
+      self.systemModules.home-manager
+      ({ lib, ... }: {
         environment.etc."nix/nix.custom.conf" = {
           text = ''
             trusted-users = allebedev root 15008352
           '';
           replaceExisting = true;
         };
-      }
+
+        users.users.allebedev = {
+          name = "allebedev";
+          home = "/home/allebedev";
+          uid = 15008352;
+          group = "users";
+          isNormalUser = true;
+        };
+
+        home-manager.useGlobalPkgs = true;
+        home-manager.backupFileExtension = "backup";
+        home-manager.sharedModules = [ self.homeModules.home-misc ];
+        home-manager.extraSpecialArgs = {
+          self'.packages = self.packages.x86_64-linux;
+          inputs' = lib.mapAttrs (_: i: {
+            packages = i.packages.x86_64-linux;
+          }) inputs;
+        };
+        home-manager.users.allebedev = self.homeModules.b-dev-kvm-configuration;
+      })
     ];
   };
 
@@ -43,9 +64,6 @@ in
   flake.deploy.nodes.b-db-k = {
     hostname = "db.k.b";
     sshUser = "allebedev";
-    profiles.user = {
-      path = self.lib.deploy-home-manager self.homeConfigurations.b-dev-kvm;
-    };
     profiles.system = {
       user = "root";
       path = self.lib.deploy-system-manager self.systemConfigs.b-db-k;

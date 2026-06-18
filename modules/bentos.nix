@@ -16,6 +16,7 @@
       imports = [
         self.systemModules.sysctl
         self.systemModules.nix-path
+        self.systemModules.compat
 
         "${inputs.system-manager}/nix/modules/upstream/nixpkgs/userborn.nix"
         "${inputs.system-manager}/nix/modules/upstream/nixpkgs/users-groups.nix"
@@ -28,6 +29,10 @@
 
       config = {
         system-manager.allowAnyDistro = true;
+
+        services.graphical-desktop.enable = lib.mkDefault false;
+        impermanence.enable = lib.mkDefault false;
+        services.userborn.enable = false;
 
         environment.systemPackages = [
           pkgs.system-manager
