@@ -1,4 +1,4 @@
-output "Philips Consumer Electronics Company PHL 346B1C UK02142038885" {
+output "Philips Consumer Electronics Company PHL 346B1C" {
   // Logical size: 3440x1440
   // Scale: 1
   position x=0 y=0
