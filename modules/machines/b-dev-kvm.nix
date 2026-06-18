@@ -22,9 +22,12 @@ in
     modules = [
       self.systemModules.bentos
       {
-        environment.etc."nix/nix.custom.conf".text = ''
-          trusted-users = allebedev root 15008352
-        '';
+        environment.etc."nix/nix.custom.conf" = {
+          text = ''
+            trusted-users = allebedev root 15008352
+          '';
+          replaceExisting = true;
+        };
       }
     ];
   };

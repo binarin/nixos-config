@@ -38,7 +38,7 @@ if ssh "$SSH_USER@$HOST" "test -x $NIX_BIN"; then
   echo "    nix already installed."
 else
   echo "==> Installing nix on $HOST..."
-  ssh "$SSH_USER@$HOST" "curl -fsSL https://install.determinate.systems/nix | sudo sh -s -- install --no-confirm --nix-build-user-id-base 666000 --nix-build-group-id 666000 --extra-conf 'trusted-users = allebedev root 15008352'"
+  ssh "$SSH_USER@$HOST" "export PATH=/usr/sbin:/usr/local/sbin:\$PATH && curl -fsSL https://install.determinate.systems/nix | sudo --preserve-env=PATH sh -s -- install --no-confirm --nix-build-user-id-base 666000 --nix-build-group-id 666000 --extra-conf 'trusted-users = allebedev root 15008352'"
   echo "    nix installed."
 fi
 

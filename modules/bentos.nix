@@ -27,6 +27,8 @@
       ];
 
       config = {
+        system-manager.allowAnyDistro = true;
+
         environment.systemPackages = [
           pkgs.system-manager
         ];
