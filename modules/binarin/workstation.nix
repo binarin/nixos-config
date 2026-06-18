@@ -70,6 +70,7 @@
         self.homeModules.gnupg
         self.homeModules.binarin-nix-dev
         self.homeModules.age-encryption
+        self.homeModules.desktop-essentials
       ]
       ++ (lib.optionals osConfig.services.graphical-desktop.enable [
         self.homeModules.niri
@@ -97,8 +98,6 @@
         scryer-prolog
         gopass
         dos2unix
-        sox
-        brownnoise
         bleeding.forgejo-cli
         inputs'.niks3.packages.niks3
       ];

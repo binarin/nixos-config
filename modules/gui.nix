@@ -89,25 +89,18 @@ in
       guiPackages = with pkgs; [
         chromium
         element-desktop
-        evince
         flacon
         freecad
-        geeqie
-        gimp
         gitg
-        imagemagickBig
         imhex
         libnotify
         libreoffice
         mesa-demos
-        mplayer
         openscad-unstable
-        pdftk
         steam-run
         texlive-combined
         usbutils.python
         v4l-utils
-        vlc
         vscode
         xdg-user-dirs
         self.packages."${pkgs.stdenv.hostPlatform.system}".v4l-play
@@ -117,6 +110,7 @@ in
       key = "nixos-config.modules.home.gui";
       imports = [
         self.homeModules.xdg-autostart
+        self.homeModules.desktop-essentials
       ];
 
       options = {
@@ -158,12 +152,6 @@ in
               enable = true;
               defaultApplications = {
                 "x-scheme-handler/tg" = "org.telegram.desktop.desktop";
-                "image/jpeg" = "geeqie.desktop";
-                "application/pdf" = "org.gnome.Evince.desktop";
-              };
-              associations.added = {
-                "application/pdf" = "org.gnome.Evince.desktop";
-                "image/jpeg" = "geeqie.desktop";
               };
             };
 
