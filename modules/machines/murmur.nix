@@ -43,6 +43,7 @@ in
       self.systemModules.bubuntu
       self.systemModules.sshd
       self.systemModules.sops
+      self.systemModules.home-manager
       (
         { pkgs, lib, ... }:
         {
@@ -131,52 +132,41 @@ in
           '';
         };
       })
+      ({ lib, ... }: {
+        home-manager.useGlobalPkgs = true;
+        home-manager.backupFileExtension = "backup";
+        home-manager.sharedModules = [
+          self.homeModules.home-misc
+        ];
+        home-manager.extraSpecialArgs = {
+          self'.packages = self.packages.x86_64-linux;
+          inputs' =
+            with lib;
+            pipe inputs [
+              (filterAttrs (_: v: v ? packages))
+              (mapAttrs (
+                _: v: {
+                  packages = v.packages.x86_64-linux;
+                }
+              ))
+            ];
+        };
+        home-manager.users.allebedev = self.homeModules.murmur-home-allebedev;
+
+        services.graphical-desktop.enable = true;
+        networking.hostName = "murmur";
+      })
     ];
   };
 
   flake.deploy.nodes.murmur = {
     hostname = "murmur";
     sshUser = "allebedev";
-    profiles.home = {
-      path = self.lib.deploy-home-manager self.homeConfigurations.murmur;
-    };
     profiles.system = {
       user = "root";
       path = self.lib.deploy-system-manager self.systemConfigs.murmur;
     };
   };
-
-  flake.homeConfigurations.murmur =
-    inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = murmurPkgs;
-      modules = [
-        self.homeModules.home-misc
-        self.homeModules.murmur-home-allebedev
-        {
-          _module.args = {
-            pkgs = lib.mkForce murmurPkgs;
-            pkgs_i686 = lib.mkForce murmurPkgs.pkgsi686Linux;
-          };
-        }
-      ];
-
-      extraSpecialArgs = {
-        osConfig.services.graphical-desktop.enable = true;
-        osConfig.impermanence.enable = false;
-        self'.packages = self.packages.x86_64-linux;
-
-        inputs' =
-          with lib;
-          pipe inputs [
-            (lib.filterAttrs (_: v: v ? packages))
-            (lib.mapAttrs (
-              _: v: {
-                packages = v.packages.x86_64-linux;
-              }
-            ))
-          ];
-      };
-    };
 
   flake.homeModules.murmur-home-allebedev =
     {
@@ -210,6 +200,7 @@ in
         self.homeModules.binarin-baseline
         self.homeModules.binarin-ssh
         self.homeModules.standalone-home-manager-zsh
+        self.homeModules.desktop-essentials
       ];
 
       services.ssh-agent.enable = true;
@@ -219,14 +210,11 @@ in
           ksso
           klaude
           # age-plugin-yubikey
-          sox
           lan-mouse
-          geeqie
           age
           bpftrace
           btop
           chromium
-          gimp
           google-chrome
           htop
           iftop
