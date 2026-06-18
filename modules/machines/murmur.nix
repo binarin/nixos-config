@@ -30,10 +30,6 @@ in
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  imports = [
-    inputs.home-manager.flakeModules.home-manager
-  ];
-
   flake.lib.murmurPkgs = murmurPkgs;
   flake.lib.murmurOverlays = murmurOverlays;
 
