@@ -194,6 +194,8 @@ in
 
           set-option -s extended-keys on
           set-option -s extended-keys-format csi-u
+
+          set -as terminal-features ",foot*:hyperlinks"
         '';
       };
 
