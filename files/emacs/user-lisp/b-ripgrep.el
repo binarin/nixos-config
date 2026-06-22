@@ -227,6 +227,16 @@ function properly")
                :paths paths
                :pattern-type 'auto)))
 
+;;;###autoload
+(defun b/ripgrep-main-set-target ()
+  "Set `b/ripgrep-main-target' to the project root of the current buffer."
+  (interactive)
+  (if-let* ((project (project-current t)))
+      (progn
+        (setf b/ripgrep-main-target (project-root project))
+        (message "Ripgrep-main target set to: %s" b/ripgrep-main-target))
+    (user-error "Not inside a project")))
+
 (defun b/ripgrep-project (project)
   (interactive
    (list (project-current t)))

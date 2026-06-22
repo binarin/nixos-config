@@ -73,6 +73,7 @@
   :ensure nil
   :commands (b/ripgrep)
   :bind (("C-x p r" . b/ripgrep-project)
+         ("C-x p s" . b/ripgrep-main-set-target)
          ("C-x p y" . b/copy-project-relative-filename)
          ("C-x p K" . b/project-delete-file-and-kill-buffer)))
 
