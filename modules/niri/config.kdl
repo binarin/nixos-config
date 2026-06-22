@@ -455,7 +455,7 @@ binds {
 
   // Suggested binds for running programs: terminal, app launcher, screen locker.
   Mod+T hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
-  Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
+  Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn-sh "fuzzel --launch-prefix='uwsm app -t service -p Environment=_UWSM_WRAPPED=1 --'"; }
   Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn-sh "loginctl lock-session"; }
 
   // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.

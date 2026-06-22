@@ -52,7 +52,11 @@
                   if find-and-focus-window "$title"; then
                       exit 0
                   else
-                      exec uwsm app -a "sshmenu-$title" -- foot --title "$title" "$@"
+                      if [[ -n "''${_UWSM_WRAPPED:-}" ]]; then
+                          exec foot --title "$title" "$@"
+                      else
+                          exec uwsm app -a "sshmenu-$title" -- foot --title "$title" "$@"
+                      fi
                   fi
               }
 
