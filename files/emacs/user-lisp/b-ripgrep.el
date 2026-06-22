@@ -217,7 +217,7 @@ function properly")
                      name-function))
 
 
-(defvar b/ripgrep-main-target "/rpc:adb.k.b:/usr/local/git_tree/main")
+(defvar b/ripgrep-main-target "/rpc:adb.k.b:/usr/local/git_tree/keep/main-altpayment")
 
 ;;;###autoload
 (cl-defun b/ripgrep-main (needle &rest paths)
