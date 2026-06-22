@@ -457,6 +457,7 @@ in
         sops.secrets."sabnzbd/eweka_password" = { };
 
         sops.templates."sabnzbd/misc-secrets" = {
+          owner = "sabnzbd";
           content = ''
             [misc]
             api_key = ${config.sops.placeholder."sabnzbd/api_key"}
@@ -468,6 +469,7 @@ in
         };
 
         sops.templates."sabnzbd/server-secrets" = {
+          owner = "sabnzbd";
           content = ''
             [servers]
             [[news.eweka.nl]]
