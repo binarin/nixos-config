@@ -45,6 +45,8 @@ let
     self.overlays.brownnoise
     self.overlays.git-crypt-patched
 
+    self.overlays.foot-no-strip-file-url
+
     self.overlays.niri
   ];
 

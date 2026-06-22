@@ -3,9 +3,20 @@ set -euo pipefail
 
 url="$1"
 
-# Local files: route GP SAML pages to Chrome
+# GP SAML pages: route to Chrome (must be before generic file:// handler)
 if [[ "$url" == file://*GP_HTML*.html || "$url" == /*GP_HTML*.html ]]; then
     exec google-chrome-stable "$@"
+fi
+
+# Bare paths (foot strips file:// for localhost URLs).
+# Reconstruct file:// URL so fragments (#anchor) work.
+if [[ "$url" == /* ]]; then
+    exec firefox "file://$url"
+fi
+
+# file:// links: open local files in firefox
+if [[ "$url" == file://* ]]; then
+    exec firefox "$@"
 fi
 
 # Split into host and path

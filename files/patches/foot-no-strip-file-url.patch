@@ -1,0 +1,42 @@
+From 551407dfdbd8af07458629ca9696b80ac9604536 Mon Sep 17 00:00:00 2001
+From: Alexey Lebedeff <binarin@binarin.info>
+Date: Mon, 22 Jun 2026 20:42:07 +0200
+Subject: [PATCH] Don't strip file:// URLs for localhost
+
+---
+ url-mode.c | 19 -------------------
+ 1 file changed, 19 deletions(-)
+
+diff --git a/url-mode.c b/url-mode.c
+index 45fdaf7a..2d8719f2 100644
+--- a/url-mode.c
++++ b/url-mode.c
+@@ -135,25 +135,6 @@ activate_url(struct seat *seat, struct terminal *term, const struct url *url,
+ {
+     char *url_string = NULL;
+ 
+-    char *scheme, *host, *path;
+-    if (uri_parse(url->url, strlen(url->url), &scheme, NULL, NULL,
+-                  &host, NULL, &path, NULL, NULL))
+-    {
+-        if (strcmp(scheme, "file") == 0 && hostname_is_localhost(host)) {
+-            /*
+-             * This is a file in *this* computer. Pass only the
+-             * filename to the URL-launcher.
+-             *
+-             * I.e. strip the ‘file://user@host/’ prefix.
+-             */
+-            url_string = path;
+-        } else
+-            free(path);
+-
+-        free(scheme);
+-        free(host);
+-    }
+-
+     if (url_string == NULL)
+         url_string = xstrdup(url->url);
+ 
+-- 
+2.54.0
+
