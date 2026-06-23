@@ -149,3 +149,13 @@
   (delete-selection-mode t))
 
 (require 'b-server)
+
+(use-package niri-frame-visible
+  :ensure nil
+  :commands (track-niri-frame-visibility-mode)
+  :init
+  (when (and (getenv "NIRI_SOCKET")
+             (display-graphic-p))
+    (run-with-idle-timer
+     0 nil
+     #'track-niri-frame-visibility-mode 1)))
