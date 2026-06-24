@@ -110,6 +110,7 @@ function properly")
 			     follow
 			     (heading t)
                              paths
+                             ignores
 			     search-zip
 			     invert-match
 			     (binary t)
@@ -151,6 +152,10 @@ function properly")
 
     (push "--regexp" parts)
     (push pattern parts)
+
+    (dolist (ignore ignores)
+      (push "--glob" parts)
+      (push (concat "!" ignore) parts))
 
     (dolist (path paths)
       (push path parts))
@@ -219,12 +224,16 @@ function properly")
 
 (defvar b/ripgrep-main-target "/rpc:adb.k.b:/usr/local/git_tree/keep/main-altpayment")
 
+(defvar b/ripgrep-main-ignore-paths '("config/**/*.manifest")
+  "List of paths (globs) to ignore in `b/ripgrep-main'.")
+
 ;;;###autoload
 (cl-defun b/ripgrep-main (needle &rest paths)
   (interactive "sPattern: ")
   (let ((default-directory b/ripgrep-main-target))
     (b/ripgrep needle
                :paths paths
+               :ignores b/ripgrep-main-ignore-paths
                :pattern-type 'auto)))
 
 ;;;###autoload
