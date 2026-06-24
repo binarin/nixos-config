@@ -161,7 +161,7 @@
 	("Z" "Add note to a running clock (pre-fill/immediate finish)" plain (clock)
 	 "  - %U %i"
 	 :immediate-finish t)
-	("bZ" "Add note to a running clock, list with checkbox, as start (pre-fill/immediate finish)" plain (function b/org-bZ-capture-target)
+	("bZ" "Add note to a running clock, list with checkbox, as start (pre-fill/immediate finish)" checkitem (function b/org-bZ-capture-target)
 	 "  - [ ] %U %i"
 	 :immediate-finish t)
 	("r" "Add note to an interactively selected task"
@@ -619,6 +619,17 @@ Otherwise, positions after planning info and all drawers (PROPERTIES, LOGBOOK, e
                       ((not (org-element-lineage plain-list '(drawer) t))))
             ;; Position at start of list for prepending.
             (goto-char (org-element-property :post-affiliated plain-list))
+            (save-excursion
+              (goto-char (org-element-property :end plain-list))
+              (unless (eobp)
+                (let ((nl-count 0))
+                  (save-excursion
+                    (while (and (not (bobp))
+                                (eq (char-before) ?\n)
+                                (< nl-count 2))
+                      (backward-char)
+                      (setq nl-count (1+ nl-count))))
+                  (insert (make-string (- 2 nl-count) ?\n)))))
             (throw 'found-list t)))
         ;; No list found outside drawers:
         ;; move past planning info, properties, logbook, and all drawers.
