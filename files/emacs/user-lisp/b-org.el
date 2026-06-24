@@ -111,7 +111,7 @@
 ;;;###autoload
 (defun b/org-capture-to-ripgrep-elisp-form ()
   (interactive)
-  (org-capture-string (format "(b/ripgrep-main %s)" (prin1-to-string (b/active-region-or-symbol-at-point))) "Z"))
+  (org-capture-string (format "(b/ripgrep-main %s)" (prin1-to-string (b/active-region-or-symbol-at-point))) "bZ"))
 
 (defvar b/murmur-home-path (if (string-match-p (rx bos "LL" (* nonl) "44" eos) (system-name))
                                (expand-file-name "~")
@@ -160,6 +160,9 @@
 	 "  - %U %?")
 	("Z" "Add note to a running clock (pre-fill/immediate finish)" plain (clock)
 	 "  - %U %i"
+	 :immediate-finish t)
+	("bZ" "Add note to a running clock, list with checkbox, as start (pre-fill/immediate finish)" plain (function b/org-bZ-capture-target)
+	 "  - [ ] %U %i"
 	 :immediate-finish t)
 	("r" "Add note to an interactively selected task"
          plain (function b/org-goto-heading-and-go-inside)
@@ -592,5 +595,34 @@
 
 (setf org-clock-auto-clockout-timer 600)
 (org-clock-auto-clockout-insinuate)
+
+(defun b/org-bZ-capture-target ()
+  "Target for `bZ' capture: go to clocked task, find insertion point.
+Searches for an existing plain list outside of drawers;
+if found, positions at its start for prepending.
+Otherwise, positions after planning info and all drawers (PROPERTIES, LOGBOOK, etc)."
+  (if (not (and (markerp org-clock-hd-marker)
+                (marker-buffer org-clock-hd-marker)))
+      (user-error "No running clock that could be used as capture target")
+    (set-buffer (marker-buffer org-clock-hd-marker))
+    (widen)
+    (goto-char org-clock-hd-marker)
+    (let ((body-beg (line-beginning-position 2))
+          (body-end (org-entry-end-position)))
+      (goto-char body-beg)
+      (catch 'found-list
+        (while (re-search-forward (org-item-beginning-re) body-end t)
+          (when-let* ((plain-list (org-element-lineage
+                                   (org-element-at-point) 'plain-list t))
+                      ;; Skip plain lists that are inside a drawer
+                      ;; (e.g., clock notes in :LOGBOOK:).
+                      ((not (org-element-lineage plain-list '(drawer) t))))
+            ;; Position at start of list for prepending.
+            (goto-char (org-element-property :post-affiliated plain-list))
+            (throw 'found-list t)))
+        ;; No list found outside drawers:
+        ;; move past planning info, properties, logbook, and all drawers.
+        (goto-char body-beg)
+        (org-end-of-meta-data t)))))
 
 (provide 'b-org)
