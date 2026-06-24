@@ -24,12 +24,25 @@
   :config
   (setf tramp-rpc-deploy-never-deploy t))
 
-(require 'recentf)
-(setf recentf-max-saved-items 1000
-      recentf-auto-cleanup 300
-      recentf-show-messages nil)
-(setopt recentf-autosave-interval 180)
-(recentf-mode t)
+(use-package recentf
+  :ensure nil
+  :defines (recentf-keep recentf-exclude)
+  :init
+  (setf recentf-max-saved-items 1000
+        recentf-auto-cleanup 300
+        recentf-show-messages nil)
+  (setopt recentf-autosave-interval 180)
+  :config
+  ;; Keep remote/TRAMP files out of recentf — checking their
+  ;; existence triggers noisy connection-attempt failures.
+  (defun b/recentf-keep-p (file)
+    "Return non-nil if FILE is a readable local file."
+    (and (not (file-remote-p file))
+         (file-readable-p file)))
+  (setq recentf-keep '(b/recentf-keep-p))
+  ;; Belt-and-suspenders: prevent remote files from being added.
+  (add-to-list 'recentf-exclude #'file-remote-p)
+  (recentf-mode t))
 
 (save-place-mode t)
 (setopt save-place-autosave-interval 180)
