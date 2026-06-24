@@ -159,3 +159,6 @@
     (run-with-idle-timer
      0 nil
      #'track-niri-frame-visibility-mode 1)))
+
+(bind-key "<Back>" 'previous-error)
+(bind-key "<Forward>" 'next-error)
