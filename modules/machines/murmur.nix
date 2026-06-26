@@ -93,20 +93,20 @@ in
           AllowedCPUs=12
         '';
 
-        environment.etc."systemd/system/falcon-sensor.service.d/cpu-pin.conf".text = ''
-          [Service]
-          Slice=corporate-bloat.slice
-        '';
-
-        environment.etc."systemd/system/nix.service.d/cpu-pin.conf".text = ''
-          [Service]
-          Slice=corporate-bloat.slice
-        '';
-
-        environment.etc."systemd/system/epp-client-daemon.service.d/cpu-pin.conf".text = ''
-          [Service]
-          Slice=corporate-bloat.slice
-        '';
+        environment.etc = let
+          corporateBloatDropin = ''
+            [Service]
+            Slice=corporate-bloat.slice
+            Nice=19
+            CPUSchedulingPolicy=idle
+            IOSchedulingPriority=7
+            IOSchedulingClass=idle
+          '';
+        in {
+          "systemd/system/falcon-sensor.service.d/cpu-pin.conf".text = corporateBloatDropin;
+          "systemd/system/nix.service.d/cpu-pin.conf".text = corporateBloatDropin;
+          "systemd/system/nessusagent.service.d/limit.conf".text = corporateBloatDropin;
+        };
 
         systemd.services.kanata = {
           serviceConfig = {
