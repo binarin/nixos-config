@@ -88,11 +88,6 @@ in
         sops.secrets.nix-extra-access-tokens = { };
 
         # Pin corporate security agents to a single E-core (CPU 12)
-        environment.etc."systemd/system/corporate-bloat.slice".text = ''
-          [Slice]
-          AllowedCPUs=12
-        '';
-
         environment.etc = let
           corporateBloatDropin = ''
             [Service]
@@ -103,6 +98,10 @@ in
             IOSchedulingClass=idle
           '';
         in {
+          "systemd/system/corporate-bloat.slice".text = ''
+            [Slice]
+            AllowedCPUs=12
+          '';
           "systemd/system/falcon-sensor.service.d/cpu-pin.conf".text = corporateBloatDropin;
           "systemd/system/nix.service.d/cpu-pin.conf".text = corporateBloatDropin;
           "systemd/system/nessusagent.service.d/limit.conf".text = corporateBloatDropin;
