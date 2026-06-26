@@ -600,7 +600,7 @@
   "Target for `bZ' capture: go to clocked task, find insertion point.
 Searches for an existing plain list outside of drawers;
 if found, positions at its start for prepending.
-Otherwise, positions after planning info and all drawers (PROPERTIES, LOGBOOK, etc)."
+Otherwise, positions after planning info and all drawers."
   (if (not (and (markerp org-clock-hd-marker)
                 (marker-buffer org-clock-hd-marker)))
       (user-error "No running clock that could be used as capture target")
