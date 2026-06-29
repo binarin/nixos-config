@@ -1,0 +1,39 @@
+#+TITLE: pinentry-gtk2 Flash & Close — Investigation Notes
+#+DATE: 2026-06-29
+
+* Fix applied
+:PROPERTIES:
+:ID:       2a7e3c1b-9f42-4a6d-b8e7-3c9f1d2b8a5c
+:END:
+
+Switched pinentry from ~pkgs.pinentry-gtk2~ to ~pkgs.pinentry-qt~.
+Qt has native Wayland support (~QT_QPA_PLATFORM=wayland~ is already set),
+so pinentry-qt runs natively on niri — no XWayland, and keyboard grab should
+work through the compositor directly.
+
+* Other observations (not yet acted on)
+
+** Redundant NixOS-level gpg-agent config
+=modules/binarin/gnupg.nix= has BOTH:
+- ~programs.gnupg.agent.enable = true~ (NixOS-level, =/etc/gnupg/gpg-agent.conf= → pinentry-curses)
+- ~services.gpg-agent.enable = true~ (home-manager, =~/.gnupg/gpg-agent.conf= → pinentry-gtk2)
+
+Both install socket units at ~/etc/systemd/user/gpg-agent.{service,socket}~
+and ~~/.config/systemd/user/gpg-agent.{service,socket}~. Only the home-manager
+one wins, but the NixOS one is dead config and adds a misleading
+pinentry-curses line to =/etc/gnupg/gpg-agent.conf=.
+
+Option: remove the NixOS-level ~programs.gnupg.agent~ block entirely.
+
+** Socket activation race
+gpg-agent runs as ~--supervised~ (systemd socket activation). On cold start,
+the first gpg connection triggers systemd to start the agent, which needs time
+to initialize (read config, start scdaemon). If gpg's client-side timeout hits
+before the agent is ready, the first pinentry instance is abandoned and closes.
+
+gopass with ~core.autosync = true~ + ~core.autopush = true~ may exacerbate
+this — git sync and password decrypt may race two GPG connections.
+
+Potential mitigations if ~grabKeyboardAndMouse=false~ doesn't fully fix:
+- Convert to ~--daemon~ mode instead of ~--supervised~
+- Or add ~auto-expand-secmem 100~ to reduce agent startup time

@@ -32,11 +32,12 @@
         enable = true;
         defaultCacheTtl = 3600;
         maxCacheTtl = 14400;
+
         extraConfig = ''
           allow-preset-passphrase
         '';
         pinentry.package =
-          if osConfig.services.graphical-desktop.enable then pkgs.pinentry-gtk2 else pkgs.pinentry-curses;
+          if osConfig.services.graphical-desktop.enable then pkgs.pinentry-qt else pkgs.pinentry-curses;
       };
     };
 }
