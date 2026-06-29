@@ -68,6 +68,10 @@ writeShellApplication {
       done
     fi
 
+    # Ensure mux master exists before running the command — without this,
+    # ControlMaster=auto + no PTY causes stdout to get lost in the fork.
+    ssh -O check "$ssh_host" 2>/dev/null || ssh -fN "$ssh_host"
+
     echo >&2 "→ Running kick-off: $kick_off_sso_command"
     set +o pipefail
     # shellcheck disable=SC2029  # intentional client-side expansion
