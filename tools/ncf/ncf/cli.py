@@ -1252,6 +1252,7 @@ def deploy_cmd(
     ),
     jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+    dry_activate: bool = typer.Option(False, "--dry-activate", help="Build and run activation dry-run (implies no-rollback)"),
 ):
     """Deploy a single machine.
 
@@ -1270,13 +1271,21 @@ def deploy_cmd(
     """
     import sys
 
-    # Mutual exclusion check
+    # Mutual exclusion checks
     if boot and no_rollback:
         console.print(
             "[red]Error: --boot and --no-rollback are mutually exclusive[/red]"
         )
         console.print("  --boot: deploys to boot loader, then reboots")
         console.print("  --no-rollback: disables rollback for live switch")
+        sys.exit(1)
+
+    if boot and dry_activate:
+        console.print("[red]Error: --boot and --dry-activate are mutually exclusive[/red]")
+        sys.exit(1)
+
+    if dry_run and dry_activate:
+        console.print("[red]Error: --dry-run and --dry-activate are mutually exclusive[/red]")
         sys.exit(1)
 
     verbosity = 0 if quiet else (2 if verbose else 1)
@@ -1293,6 +1302,7 @@ def deploy_cmd(
         builders=builder if builder else None,
         jobs=jobs,
         dry_run=dry_run,
+        dry_activate=dry_activate,
         extra_nix_args=extra_nix_args,
     )
 
@@ -1337,6 +1347,7 @@ def deploy_all_cmd(
     ),
     jobs: str = typer.Option("auto", "--jobs", "-j", help="Number of parallel jobs"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be done"),
+    dry_activate: bool = typer.Option(False, "--dry-activate", help="Build and run activation dry-run (implies no-rollback)"),
     exclude: str | None = typer.Option(
         None, "--exclude", "-x", help="Regexp to exclude configurations from deployment"
     ),
@@ -1358,13 +1369,21 @@ def deploy_all_cmd(
     """
     import sys
 
-    # Mutual exclusion check
+    # Mutual exclusion checks
     if boot and no_rollback:
         console.print(
             "[red]Error: --boot and --no-rollback are mutually exclusive[/red]"
         )
         console.print("  --boot: deploys to boot loader, then reboots")
         console.print("  --no-rollback: disables rollback for live switch")
+        sys.exit(1)
+
+    if boot and dry_activate:
+        console.print("[red]Error: --boot and --dry-activate are mutually exclusive[/red]")
+        sys.exit(1)
+
+    if dry_run and dry_activate:
+        console.print("[red]Error: --dry-run and --dry-activate are mutually exclusive[/red]")
         sys.exit(1)
 
     verbosity = 0 if quiet else (2 if verbose else 1)
@@ -1380,6 +1399,7 @@ def deploy_all_cmd(
         builders=builder if builder else None,
         jobs=jobs,
         dry_run=dry_run,
+        dry_activate=dry_activate,
         extra_nix_args=extra_nix_args,
         exclude_pattern=exclude,
     )

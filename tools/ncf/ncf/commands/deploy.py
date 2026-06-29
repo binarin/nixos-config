@@ -481,6 +481,7 @@ def run_deploy_command(
     no_rollback: bool = False,
     verbosity: int = 1,
     ssh_opts: str = "",
+    dry_activate: bool = False,
     extra_nix_args: Optional[list[str]] = None,
 ) -> bool:
     """Run the deploy-rs deploy command.
@@ -497,6 +498,9 @@ def run_deploy_command(
 
     if boot:
         cmd.append("--boot")
+
+    if dry_activate:
+        cmd.append("--dry-activate")
 
     if no_rollback:
         cmd.extend(["--auto-rollback", "false", "--magic-rollback", "false"])
@@ -536,6 +540,7 @@ def run_single(
     builders: Optional[list[str]] = None,
     jobs: str = "auto",
     dry_run: bool = False,
+    dry_activate: bool = False,
     extra_nix_args: Optional[list[str]] = None,
 ) -> bool:
     """Deploy a single machine.
@@ -686,6 +691,8 @@ def run_single(
 
     # Run deploy
     mode = "boot" if _do_boot else "switch"
+    if dry_activate:
+        mode = "dry-activate"
     console.print(f"  Deploying ({mode} mode)...")
 
     success = run_deploy_command(
@@ -694,6 +701,7 @@ def run_single(
         boot=_do_boot,
         no_rollback=no_rollback,
         verbosity=verbosity,
+        dry_activate=dry_activate,
         extra_nix_args=extra_nix_args,
     )
 
@@ -742,6 +750,7 @@ def run_all(
     builders: Optional[list[str]] = None,
     jobs: str = "auto",
     dry_run: bool = False,
+    dry_activate: bool = False,
     extra_nix_args: Optional[list[str]] = None,
     exclude_pattern: Optional[str] = None,
 ) -> bool:
@@ -917,6 +926,7 @@ def run_all(
                         builders=builders,
                         jobs=jobs,
                         dry_run=True,
+                        dry_activate=dry_activate,
                         extra_nix_args=extra_nix_args,
                     )
                     results[key] = success
@@ -961,6 +971,7 @@ def run_all(
             builders=builders,
             jobs=jobs,
             dry_run=False,
+            dry_activate=dry_activate,
             extra_nix_args=extra_nix_args,
         )
         results[key] = success
