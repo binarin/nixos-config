@@ -125,6 +125,26 @@ in
           fi
         '';
 
+        # KDE's kbuildsycoca needs an applications.menu to index .desktop files.
+        # Since we run niri (not Plasma), there's no default menu file.
+        # XDG_MENU_PREFIX is set to "nirisession-" by the session, so we provide
+        # a minimal menu that includes all .desktop files from XDG_DATA_DIRS.
+        xdg.configFile."menus/nirisession-applications.menu".text = ''
+          <!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+           "http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd">
+          <Menu>
+            <Name>Applications</Name>
+            <DefaultAppDirs/>
+            <DefaultDirectoryDirs/>
+            <Include><All/></Include>
+            <DefaultLayout>
+              <Merge type="menus"/>
+              <Merge type="files"/>
+            </DefaultLayout>
+            <DefaultMergeDirs/>
+          </Menu>
+        '';
+
         xdg.portal.extraPortals = [
           pkgs.kdePackages.kwallet
           pkgs.kdePackages.xdg-desktop-portal-kde
