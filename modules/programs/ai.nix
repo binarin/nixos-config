@@ -55,6 +55,9 @@
       home.file.".pi/agent/keybindings.json".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/pi-agent/keybindings.json";
 
+      home.sessionVariables.PI_CODING_AGENT_DIR =
+        "${config.home.homeDirectory}/personal-workspace/my-pi/.pi/agent";
+
       impermanence.persist-files = [
         ".claude.json"
       ];

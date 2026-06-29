@@ -6,13 +6,13 @@
       "apiKey": "none",
       "models": [
         {
-            "id": "qwen3-coder-30b"
+          "id": "qwen3-coder-30b"
         },
         {
-            "id": "gemma4"
+          "id": "gemma4"
         },
         {
-            "id": "qwen3.5-9b"
+          "id": "qwen3.5-9b"
         }
       ]
     }
