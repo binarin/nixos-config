@@ -14,6 +14,7 @@ let
       "qtwebengine-5.15.19"
       "python3.12-ecdsa-0.19.1"
       "python3.13-ecdsa-0.19.1"
+      "olm-3.2.16"
     ];
   };
 

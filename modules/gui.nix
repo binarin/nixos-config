@@ -103,6 +103,7 @@ in
         v4l-utils
         vscode
         xdg-user-dirs
+        nheko
         self.packages."${pkgs.stdenv.hostPlatform.system}".v4l-play
       ];
     in
