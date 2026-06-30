@@ -21,6 +21,8 @@
       inputs',
       pkgs,
       config,
+      lib,
+      osConfig,
       ...
     }:
     {
@@ -36,15 +38,17 @@
         [
           claude-code
           # claude-code-acp
-          # claude-code-router
           # gemini-cli
           # opencode
-          # pi
+          pi
           workmux
         ]
         ++ [
-          pkgs.bleeding.llm-agents.pi
-        ];
+          # pkgs.bleeding.llm-agents.pi
+        ]
+        ++ (lib.optionals osConfig.services.graphical-desktop.enable [
+          claude-code-router
+        ]);
 
       home.file.".claude/skills/".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/claude-skills";
@@ -55,8 +59,7 @@
       home.file.".pi/agent/keybindings.json".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/pi-agent/keybindings.json";
 
-      home.sessionVariables.PI_CODING_AGENT_DIR =
-        "${config.home.homeDirectory}/personal-workspace/my-pi/.pi/agent";
+      home.sessionVariables.PI_CODING_AGENT_DIR = "${config.home.homeDirectory}/personal-workspace/my-pi/.pi/agent";
 
       impermanence.persist-files = [
         ".claude.json"
