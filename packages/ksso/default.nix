@@ -15,7 +15,16 @@ let
 in
 writeShellApplication {
   name = "ksso";
-  runtimeInputs = [ systemd coreutils gnugrep niri jq uwsm openssh xdg-utils ];
+  runtimeInputs = [
+    systemd
+    coreutils
+    gnugrep
+    niri
+    jq
+    uwsm
+    openssh
+    xdg-utils
+  ];
   text = ''
     if [[ $# -ne 3 ]]; then
       echo >&2 "Usage: ksso <ssh-host> <kick-off-sso-command> <on-successful-auth-command>"
@@ -75,7 +84,7 @@ writeShellApplication {
     echo >&2 "→ Running kick-off: $kick_off_sso_command"
     set +o pipefail
     # shellcheck disable=SC2029  # intentional client-side expansion
-    ssh -A "$ssh_host" bash -c "\"$kick_off_sso_command\"" 2>&1 \
+    ssh -A "$ssh_host" zsh -c "\"$kick_off_sso_command\"" 2>&1 \
       | grep --line-buffered -m1 -oP 'https://\S+' \
       | {
           read -r url
@@ -101,7 +110,7 @@ writeShellApplication {
 
     echo >&2 "→ Running on-auth: $on_successful_auth_command"
     # shellcheck disable=SC2029  # intentional client-side expansion
-    ssh -A "$ssh_host" bash -c "\"$on_successful_auth_command\""
+    ssh -A "$ssh_host" zsh -c "\"$on_successful_auth_command\""
     echo >&2 "← Done"
   '';
 }
