@@ -1,21 +1,39 @@
 {
-  "providers": {
-    "llama-cpp": {
-      "baseUrl": "https://llm-runner.lynx-lizard.ts.net/v1",
-      "api": "openai-completions",
-      "apiKey": "none",
-      "models": [
-        {
-          "id": "qwen3-coder-30b"
-        },
-        {
-          "id": "gemma4"
-        },
-        {
-          "id": "qwen3.5-9b"
+    "providers": {
+        "llama-cpp": {
+            "baseUrl": "http://aperture.lynx-lizard.ts.net/v1",
+            "api": "openai-completions",
+            "apiKey": "none",
+            "models": [
+                {
+                    "id": "deepseek-v4-flash"
+                },
+                {
+                    "id": "deepseek-v4-pro"
+                },
+                {
+                    "id": "gemini-2.5-flash"
+                },
+                {
+                    "id": "gemini-2.5-pro"
+                },
+                {
+                    "id": "gemini-3.1-flash-lite"
+                },
+                {
+                    "id": "gemini-3.1-pro-preview"
+                },
+                {
+                    "id": "gemini-3.5-flash"
+                },
+                {
+                    "id": "qwen3.6-27b-mtp"
+                },
+                {
+                    "id": "glm-5.2"
+                }
+            ]
         }
-      ]
     }
-  }
 }
 
