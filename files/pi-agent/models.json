@@ -1,8 +1,8 @@
 {
     "providers": {
-        "aperture": {
-            "baseUrl": "http://aperture.lynx-lizard.ts.net/v1",
-            "api": "openai-completions",
+        "aperture-a": {
+            "baseUrl": "http://aperture.lynx-lizard.ts.net",
+            "api": "anthropic-messages",
             "apiKey": "none",
             "models": [
                 {
@@ -11,6 +11,16 @@
                 {
                     "id": "deepseek/deepseek-v4-pro"
                 },
+                {
+                    "id": "z-ai-coding-plan/glm-5.2"
+                }
+            ]
+        },
+        "aperture-o": {
+            "baseUrl": "http://aperture.lynx-lizard.ts.net/v1",
+            "api": "openai-completions",
+            "apiKey": "none",
+            "models": [
                 {
                     "id": "gemini/gemini-2.5-flash"
                 },
@@ -30,10 +40,12 @@
                     "id": "llm-runner/qwen3.6-27b-mtp"
                 },
                 {
-                    "id": "z-ai-coding-plan/glm-5.2"
-                }
+                    "id": "deepseek-o/deepseek-v4-flash"
+                },
+                {
+                    "id": "deepseek-o/deepseek-v4-pro"
+                },
             ]
         }
     }
 }
-
