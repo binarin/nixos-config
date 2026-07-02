@@ -1,36 +1,36 @@
 {
     "providers": {
-        "llama-cpp": {
+        "aperture": {
             "baseUrl": "http://aperture.lynx-lizard.ts.net/v1",
             "api": "openai-completions",
             "apiKey": "none",
             "models": [
                 {
-                    "id": "deepseek-v4-flash"
+                    "id": "deepseek/deepseek-v4-flash"
                 },
                 {
-                    "id": "deepseek-v4-pro"
+                    "id": "deepseek/deepseek-v4-pro"
                 },
                 {
-                    "id": "gemini-2.5-flash"
+                    "id": "gemini/gemini-2.5-flash"
                 },
                 {
-                    "id": "gemini-2.5-pro"
+                    "id": "gemini/gemini-2.5-pro"
                 },
                 {
-                    "id": "gemini-3.1-flash-lite"
+                    "id": "gemini/gemini-3.1-flash-lite"
                 },
                 {
-                    "id": "gemini-3.1-pro-preview"
+                    "id": "gemini/gemini-3.1-pro-preview"
                 },
                 {
-                    "id": "gemini-3.5-flash"
+                    "id": "geminin/gemini-3.5-flash"
                 },
                 {
-                    "id": "qwen3.6-27b-mtp"
+                    "id": "llm-runner/qwen3.6-27b-mtp"
                 },
                 {
-                    "id": "glm-5.2"
+                    "id": "z-ai-coding-plan/glm-5.2"
                 }
             ]
         }
