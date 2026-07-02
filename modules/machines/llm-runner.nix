@@ -122,7 +122,40 @@ in
                           temp = floatOpt 0.8;
                           top-p = floatOpt 0.9;
                           top-k = intOpt 40;
+                          min-p = floatOpt 0.0;
                           repeat-penalty = floatOpt 1.00;
+                          flash-attn = lib.mkOption {
+                            type = with lib.types; nullOr (either bool (enum [ "on" "off" ]));
+                            default = null;
+                          };
+                          cache-type-k = lib.mkOption {
+                            type = with lib.types; nullOr str;
+                            default = null;
+                          };
+                          cache-type-v = lib.mkOption {
+                            type = with lib.types; nullOr str;
+                            default = null;
+                          };
+                          spec-type = lib.mkOption {
+                            type = with lib.types; nullOr str;
+                            default = null;
+                          };
+                          spec-draft-n-max = lib.mkOption {
+                            type = with lib.types; nullOr int;
+                            default = null;
+                          };
+                          jinja = lib.mkOption {
+                            type = with lib.types; nullOr bool;
+                            default = null;
+                          };
+                          reasoning = lib.mkOption {
+                            type = with lib.types; nullOr (enum [ "on" "off" ]);
+                            default = null;
+                          };
+                          reasoning-format = lib.mkOption {
+                            type = with lib.types; nullOr str;
+                            default = null;
+                          };
                         };
                       }
                     );
@@ -301,6 +334,8 @@ in
         "http://web.binarin.info:3902/files/granite-4.1-30b-UD-Q4_K_XL.gguf";
       llama-models.models."Qwen3.6-27B:Q4_K_XL".url =
         "http://web.binarin.info:3902/files/Qwen3.6-27B-UD-Q4_K_XL.gguf";
+      llama-models.models."Qwen3.6-27B-MTP:Q4_K_M".url =
+        "http://web.binarin.info:3902/files/Qwen3.6-27B-Q4_K_M.gguf";
 
       llama-models.configurations."gemma4" = {
         model = "gemma-4-26B-A4B-it:Q4_K_M";
@@ -353,6 +388,25 @@ in
           repeat-penalty = 1.05;
         };
       };
+      llama-models.configurations."qwen3.6-27b-mtp" = {
+        model = "Qwen3.6-27B-MTP:Q4_K_M";
+        settings = {
+          ctx-size = 131072;
+          temp = 0.6;
+          top-p = 0.95;
+          top-k = 20;
+          min-p = 0.0;
+          repeat-penalty = 1.0;
+          flash-attn = "on";
+          cache-type-k = "q4_0";
+          cache-type-v = "q4_0";
+          spec-type = "draft-mtp";
+          spec-draft-n-max = 2;
+          jinja = true;
+          reasoning = "off";
+          reasoning-format = "deepseek";
+        };
+      };
 
       services.llama-swap = {
         enable = true;
@@ -366,7 +420,11 @@ in
                 s:
                 with lib;
                 pipe s [
-                  (mapAttrsToList (opt: val: "--${opt} ${lib.escapeShellArg (builtins.toString val)}"))
+                  (filterAttrs (_: val: val != null && val != false))
+                  (mapAttrsToList (opt: val:
+                    if val == true then "--${opt}"
+                    else "--${opt} ${lib.escapeShellArg (builtins.toString val)}"
+                  ))
                   (concatStringsSep " ")
                 ];
             in
