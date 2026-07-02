@@ -155,7 +155,12 @@
   root-dir flake-dir)
 
 (defun b/try-flake-subproject (dir)
-  (let ((candidate (locate-dominating-file dir ".envrc")))
+  ;; `locate-dominating-file' fails to walk up `~`-abbreviated TRAMP paths
+  ;; (e.g. "/rpc:HOST:~/foo/"), returning nil even when the marker file is
+  ;; right there.  dired buffers use such abbreviated paths as their
+  ;; `default-directory', so without expanding we'd fail to detect the
+  ;; project in every dired buffer under a remote home directory.
+  (let ((candidate (locate-dominating-file (expand-file-name dir) ".envrc")))
     (when (and candidate
 	       (not (file-exists-p (file-name-concat candidate "flake.nix"))))
       (let ((flake (locate-dominating-file (file-name-parent-directory candidate) "flake.nix")))
@@ -166,7 +171,8 @@
   root-dir)
 
 (defun b/try-git-project (dir)
-  (when-let* ((candidate (locate-dominating-file dir ".git")))
+  ;; See `b/try-flake-subproject' for why we expand the directory first.
+  (when-let* ((candidate (locate-dominating-file (expand-file-name dir) ".git")))
     (make-b/git-project :root-dir (expand-file-name (file-name-directory candidate)))))
 
 (cl-defmethod project-root ((project b/git-project))
