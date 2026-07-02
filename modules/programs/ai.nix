@@ -37,9 +37,6 @@
         with pkgs.llm-agents;
         [
           claude-code
-          # claude-code-acp
-          # gemini-cli
-          # opencode
           pi
           workmux
         ]
@@ -59,7 +56,17 @@
       home.file.".pi/agent/keybindings.json".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/pi-agent/keybindings.json";
 
-      home.sessionVariables.PI_CODING_AGENT_DIR = "${config.home.homeDirectory}/personal-workspace/my-pi/.pi/agent";
+      home.sessionVariables = {
+        PI_CODING_AGENT_DIR = "${config.home.homeDirectory}/personal-workspace/my-pi/.pi/agent";
+        ANTHROPIC_API_KEY = "-";
+        ANTHROPIC_BASE_URL = "http://aperture.lynx-lizard.ts.net";
+        ANTHROPIC_DEFAULT_HAIKU_MODEL = "deepseek/deepseek-v4-flash";
+        ANTHROPIC_DEFAULT_SONNET_MODEL = "deepseek/deepseek-v4-pro[1m]";
+        ANTHROPIC_DEFAULT_OPUS_MODEL = "deepseek/glm-5.2[1m]";
+        CLAUDE_CODE_AUTO_COMPACT_WINDOW = "1000000";
+        CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+        API_TIMEOUT_MS = "3000000";
+      };
 
       impermanence.persist-files = [
         ".claude.json"
