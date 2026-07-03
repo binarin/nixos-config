@@ -81,35 +81,57 @@ writeShellApplication {
     ssh -O check "$ssh_host" 2>/dev/null || ssh "$ssh_host" true
 
     echo >&2 "→ Running kick-off: $kick_off_sso_command"
-    set +o pipefail
-    # shellcheck disable=SC2029  # intentional client-side expansion
-    ssh -A "$ssh_host" zsh -c "\"$kick_off_sso_command\"" 2>&1 \
-      | grep --line-buffered -m1 -oP 'https://\S+' \
-      | {
-          read -r url
-          set -o pipefail
-          if [[ -z "$url" ]]; then
-            echo >&2 "✗ No URL found in kick-off output"
-            exit 1
-          fi
+
+    tmpfile=$(mktemp -t ksso.XXXXXX)
+    url_found_file=$(mktemp -t ksso-urlfound.XXXXXX)
+
+    # Background monitor: watch for OAuth URL, set up tunnel and browser
+    (
+      for ((i = 0; i < 60; i++)); do
+        if url=$(grep -m1 -oP 'https://\S+' "$tmpfile" 2>/dev/null); then
+          touch "$url_found_file"
           echo >&2 "← URL: $url"
 
           port=$(grep -oP '127\.0\.0\.1%3A\K\d+' <<< "$url") || true
-          if [[ -z "$port" ]]; then
-            echo >&2 "✗ No port found in URL: $url"
-            exit 1
+          if [[ -n "$port" ]]; then
+            echo >&2 "→ Setting up SSH tunnel: localhost:$port → $ssh_host:$port"
+            ssh -fL "$port:127.0.0.1:$port" "$ssh_host" sleep 120
           fi
-          echo >&2 "→ Setting up SSH tunnel: localhost:$port → $ssh_host:$port"
-          ssh -fL "$port:127.0.0.1:$port" "$ssh_host" sleep 120
 
           echo >&2 "→ Opening browser: $url"
-          xdg-open "$url" || true
-        }
-    set -o pipefail
+          xdg-open "$url"
+          exit 0
+        fi
+        sleep 1
+      done
+      exit 1
+    ) &
+    monitor_pid=$!
+
+    # Run kick-off in foreground (stdin connected), tee to user and temp file
+    # shellcheck disable=SC2029  # intentional client-side expansion
+    ssh -A "$ssh_host" zsh -l -c "\"$kick_off_sso_command\"" 2>&1 | tee "$tmpfile" >&2
+    kickoff_exit="''${PIPESTATUS[0]}"
+
+    # Wait for monitor and cleanup
+    kill "$monitor_pid" 2>/dev/null || true
+    wait "$monitor_pid" 2>/dev/null || true
+
+    if [[ ! -f "$url_found_file" ]]; then
+      echo >&2 "✗ No URL found in kick-off output"
+      rm -f "$tmpfile" "$url_found_file"
+      exit 1
+    fi
+    rm -f "$tmpfile" "$url_found_file"
+
+    if [[ $kickoff_exit -ne 0 ]]; then
+      echo >&2 "✗ Kick-off command exited with code $kickoff_exit"
+      exit 1
+    fi
 
     echo >&2 "→ Running on-auth: $on_successful_auth_command"
     # shellcheck disable=SC2029  # intentional client-side expansion
-    ssh -A "$ssh_host" zsh -c "\"$on_successful_auth_command\""
+    ssh -A "$ssh_host" zsh -l -c "\"$on_successful_auth_command\""
     echo >&2 "← Done"
   '';
 }
