@@ -238,6 +238,11 @@ in
             runtimeInputs = [ git ];
             text = selfLib.read "bin/bk-link-gitlab.git-crypt";
           })
+          (writeShellApplication {
+            name = "bk-claude-settings";
+            runtimeInputs = [ jq ];
+            text = selfLib.read "bin/bk-claude-settings.git-crypt";
+          })
           (
             (pkgs.writeShellApplication {
               name = "glab";
