@@ -20,6 +20,7 @@
       config = lib.mkIf (cfg != [ ]) {
         systemd.services.apt-ensure-packages = {
           wantedBy = [ "system-manager.target" ];
+          path = [ "/usr/bin" "/usr/sbin" "/bin" "/sbin" ];
           serviceConfig = {
             Type = "oneshot";
             RemainAfterExit = true;
