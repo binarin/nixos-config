@@ -276,33 +276,6 @@ in
         Icon=${pkgs.slack}/share/pixmaps/slack.png
       '';
 
-      xdg.dataFile."applications/ssh-adb-k-b.desktop".text = ''
-        [Desktop Entry]
-        Name=ssh to adb.k.b
-        Exec=foot-unique-window "SSH|adb.k.b" --override=colors-dark.background=001800 -e ssh -t adb.k.b tmux -u new-session -A -D -s binarin
-        Type=Application
-        Terminal=false
-        Categories=System;
-        Icon=foot
-      '';
-      xdg.dataFile."applications/ssh-db-k-b.desktop".text = ''
-        [Desktop Entry]
-        Name=ssh to db.k.b
-        Exec=foot-unique-window "SSH|db.k.b" --override=colors-dark.background=001800 -e ssh -t db.k.b tmux -u new-session -A -D -s binarin
-        Type=Application
-        Terminal=false
-        Categories=System;
-        Icon=foot
-      '';
-      xdg.dataFile."applications/ssh-db3-k-b.desktop".text = ''
-        [Desktop Entry]
-        Name=ssh to db3.k.b
-        Exec=foot-unique-window "SSH|db3.k.b" --override=colors-dark.background=001800 -e ssh -t db3.k.b tmux -u new-session -A -D -s binarin
-        Type=Application
-        Terminal=false
-        Categories=System;
-        Icon=foot
-      '';
 
       xdg.mimeApps.defaultApplications."x-scheme-handler/slack" = "slack.desktop";
       xdg.mimeApps.defaultApplications."x-scheme-handler/globalprotectcallback" = "globalprotectcallback.desktop";
