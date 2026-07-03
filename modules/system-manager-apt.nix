@@ -20,12 +20,12 @@
       config = lib.mkIf (cfg != [ ]) {
         systemd.services.apt-ensure-packages = {
           wantedBy = [ "system-manager.target" ];
-          path = [ "/usr/bin" "/usr/sbin" "/bin" "/sbin" ];
           serviceConfig = {
             Type = "oneshot";
             RemainAfterExit = true;
           };
           script = ''
+            export PATH="/usr/bin:/usr/sbin:/bin:/sbin:$PATH"
             installed=true
             for pkg in ${lib.escapeShellArgs cfg}; do
               if ! dpkg -s "$pkg" >/dev/null 2>&1; then
