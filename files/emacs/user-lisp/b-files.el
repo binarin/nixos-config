@@ -78,10 +78,13 @@
 
 ;;;###autoload
 (defun b/copy-project-relative-filename ()
-  "Kill the current buffer filename relative to the project root."
+  "Kill the current buffer filename relative to the project root.
+In Dired buffers, uses the file at point."
   (interactive)
   (if-let* ((project (project-current))
-           (filename (buffer-file-name)))
+           (filename (or (buffer-file-name)
+                         (and (derived-mode-p 'dired-mode)
+                              (dired-file-name-at-point)))))
       (let ((rel-name (file-relative-name filename (project-root project))))
         (kill-new rel-name)
         (message "Copied: %s" rel-name))
@@ -89,6 +92,7 @@
 
 (declare-function magit-file-delete "magit-files")
 (declare-function dired-get-marked-files "dired")
+(declare-function dired-file-name-at-point "dired")
 
 ;;;###autoload
 (defun b/dired-git-delete ()
