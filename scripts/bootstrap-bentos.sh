@@ -52,7 +52,8 @@ else
   STORE_PATH=$(nix build --no-link --print-out-paths "$FLAKE_REF")
 
   echo "==> Copying closure to $HOST..."
-  nix copy --to "ssh://$SSH_USER@$HOST" "$STORE_PATH"
+  NIX_STORE_BIN="/nix/var/nix/profiles/default/bin/nix-store"
+  nix copy --to "ssh://$SSH_USER@$HOST?remote-program=$NIX_STORE_BIN" "$STORE_PATH"
 fi
 
 echo "==> Activating system-manager on $HOST (store path: $STORE_PATH)..."
