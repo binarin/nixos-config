@@ -43,7 +43,8 @@
                     "id": "deepseek-o/deepseek-v4-flash"
                 },
                 {
-                    "id": "deepseek-o/deepseek-v4-pro"
+                    "id": "deepseek-o/deepseek-v4-pro",
+                    "contextWindow": 1048567,
                 },
             ]
         }
