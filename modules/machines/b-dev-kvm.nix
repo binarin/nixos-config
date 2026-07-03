@@ -247,7 +247,7 @@ in
               PATCHCRITIC_DIR="/usr/local/git_tree/patchcritic"
 
               usage() {
-                echo "Usage: patchcritic [REV-RANGE|N]"
+                echo "Usage: $0 [REV-RANGE|N]"
                 echo ""
                 echo "Run patchcritic on a git revision range."
                 echo ""
