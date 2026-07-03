@@ -107,6 +107,30 @@ in
           "systemd/system/nessusagent.service.d/limit.conf".text = corporateBloatDropin;
         };
 
+        systemd.services.mask-ubuntu-updater = {
+          wantedBy = [ "system-manager.target" ];
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+          };
+          script = ''
+            /usr/bin/systemctl mask \
+              apt-daily.timer \
+              apt-daily-upgrade.timer \
+              apt-daily.service \
+              apt-daily-upgrade.service \
+              update-notifier-download.timer \
+              update-notifier-download.service \
+              unattended-upgrades.service
+            /usr/bin/systemctl stop \
+              apt-daily.timer \
+              apt-daily-upgrade.timer \
+              update-notifier-download.timer \
+              unattended-upgrades.service \
+              2>/dev/null || true
+          '';
+        };
+
         systemd.services.kanata = {
           serviceConfig = {
             Type = "simple";
@@ -311,7 +335,9 @@ in
       '';
 
       home.activation.mask-unwanted-user-services = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        $DRY_RUN_CMD /usr/bin/systemctl --user mask snap.snapd-desktop-integration.snapd-desktop-integration.service
+        $DRY_RUN_CMD /usr/bin/systemctl --user mask \
+          snap.snapd-desktop-integration.snapd-desktop-integration.service \
+          update-notifier.service
       '';
 
       xdg.autostart.override."nvidia-settings-autostart".notShownIn = [

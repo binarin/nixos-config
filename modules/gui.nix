@@ -134,6 +134,7 @@ in
             ];
 
             xdg.autostart.override."update-notifier".hidden = true;
+            xdg.autostart.override."update-notifier".x-systemd-skip = true;
 
             xdg.dataFile =
               with lib;
