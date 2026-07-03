@@ -17,6 +17,7 @@
         self.systemModules.sysctl
         self.systemModules.nix-path
         self.systemModules.compat
+        self.systemModules.yum-packages
 
         "${inputs.system-manager}/nix/modules/upstream/nixpkgs/userborn.nix"
         "${inputs.system-manager}/nix/modules/upstream/nixpkgs/users-groups.nix"

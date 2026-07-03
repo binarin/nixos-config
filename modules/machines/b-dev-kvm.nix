@@ -5,6 +5,8 @@
   ...
 }:
 let
+  selfLib = self.lib.self;
+
   makeSystemConfig =
     (import "${self}/lib/make-system-config.nix" {
       inherit lib;
@@ -23,6 +25,9 @@ in
     modules = [
       self.systemModules.bentos
       self.systemModules.home-manager
+      ({ lib, ... }: {
+        bentos.yum.packages = [ "python3-pip" ];
+      })
       ({ lib, ... }: {
         environment.etc."nix/nix.custom.conf" = {
           text = ''
@@ -135,9 +140,15 @@ in
         self.homeModules.binarin-baseline
         self.homeModules.standalone-home-manager-zsh
         self.homeModules.interactive-cli
+        self.homeModules.git
       ];
 
       programs.ssh.enable = lib.mkForce false;
+
+      programs.git.includes = [
+        { path = selfLib.file "b-dev-kvm-gitconfig.git-crypt"; }
+      ];
+      programs.git.settings.credential.helper = "cache --timeout=86400";
 
       services.emacs = {
         enable = true;
@@ -222,6 +233,11 @@ in
           asciinema
           delta
           tramp-rpc-server
+          (writeShellApplication {
+            name = "bk-link-gitlab";
+            runtimeInputs = [ git ];
+            text = selfLib.read "bin/bk-link-gitlab.git-crypt";
+          })
           (
             (pkgs.writeShellApplication {
               name = "glab";
