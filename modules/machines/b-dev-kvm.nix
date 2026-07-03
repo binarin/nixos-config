@@ -239,7 +239,7 @@ in
             text = selfLib.read "bin/bentos-setup.git-crypt";
           })
           (writeShellApplication {
-            name = "bentos-patchcritic";
+            name = "patchcritic";
             runtimeInputs = [ git perl ];
             text = ''
               set -euo pipefail
@@ -247,7 +247,7 @@ in
               PATCHCRITIC_DIR="/usr/local/git_tree/patchcritic"
 
               usage() {
-                echo "Usage: bentos-patchcritic [REV-RANGE|N]"
+                echo "Usage: patchcritic [REV-RANGE|N]"
                 echo ""
                 echo "Run patchcritic on a git revision range."
                 echo ""

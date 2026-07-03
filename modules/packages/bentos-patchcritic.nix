@@ -2,7 +2,7 @@ let
   packageFn =
     { writeShellApplication, perl, git }:
     writeShellApplication {
-      name = "bentos-patchcritic";
+      name = "patchcritic";
       runtimeInputs = [ perl git ];
       text = ''
         set -euo pipefail
@@ -10,7 +10,7 @@ let
         PATCHCRITIC_DIR="/usr/local/git_tree/patchcritic"
 
         usage() {
-          echo "Usage: bentos-patchcritic [REV-RANGE|N]"
+          echo "Usage: patchcritic [REV-RANGE|N]"
           echo ""
           echo "Run patchcritic on a git revision range."
           echo ""
