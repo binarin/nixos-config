@@ -9,6 +9,7 @@
   "HOME"
   "USER"
   "LOGNAME"
+  "SSH_AUTH_SOCK"
   "SSH_CLIENT"
   "SSH_CONNECTION"
   "SSH_TTY"

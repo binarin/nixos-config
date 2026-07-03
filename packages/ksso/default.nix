@@ -77,9 +77,8 @@ writeShellApplication {
       done
     fi
 
-    # Ensure mux master exists before running the command — without this,
-    # ControlMaster=auto + no PTY causes stdout to get lost in the fork.
-    ssh -O check "$ssh_host" 2>/dev/null || ssh -fN "$ssh_host"
+    # Ensure mux master exists — ControlPersist=yes keeps it alive after exit.
+    ssh -O check "$ssh_host" 2>/dev/null || ssh "$ssh_host" true
 
     echo >&2 "→ Running kick-off: $kick_off_sso_command"
     set +o pipefail
