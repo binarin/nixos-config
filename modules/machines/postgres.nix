@@ -81,6 +81,19 @@ in
         databases.metabase = { };
       };
 
+      clan.core.vars.generators.metabase-db = {
+        share = true;
+        files.password = {
+          secret = true;
+          deploy = true;
+          restartUnits = [ "metabase-db-password.service" ];
+        };
+        runtimeInputs = [ pkgs.openssl ];
+        script = ''
+          openssl rand -hex 32 > $out/password
+        '';
+      };
+
       nixos-config.export-metrics.enable = false;
     };
 }
