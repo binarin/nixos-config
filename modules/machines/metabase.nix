@@ -111,9 +111,17 @@ in
           '';
         };
 
-        systemd.services.metabase.serviceConfig.EnvironmentFile = [
-          config.sops.templates."metabase-secrets.env".path
-        ];
+        systemd.services.metabase.serviceConfig = {
+          EnvironmentFile = [
+            config.sops.templates."metabase-secrets.env".path
+          ];
+          Environment = [
+            "MB_LLM_ANTHROPIC_API_BASE_URL=http://aperture.lynx-lizard.ts.net"
+            "MB_LLM_ANTHROPIC_MODEL=deepseek/deepseek-v4-pro"
+            "MB_LLM_ANTHROPIC_API_KEY=-"
+            "MB_LLM_MAX_TOKENS=16384"
+          ];
+        };
 
 
         services.tailscale = {
