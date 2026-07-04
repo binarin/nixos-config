@@ -42,8 +42,8 @@ searchdomain = "localdomain"
 "192.168.2.32" = { hostname = "social", mac = "02:00:ae:b2:53:00" }
 "192.168.2.33" = { hostname = "pi-box", mac = "02:00:41:EB:0B:C1" }
 "192.168.2.34" = { hostname = "murmur-wifi", mac = "10:5F:AD:FE:D6:E3" }
-# "192.168.2.35" = # unallocated
-# "192.168.2.36" = # unallocated
+"192.168.2.35" = { hostname = "postgres", mac = "02:00:16:59:43:5d" }
+"192.168.2.36" = { hostname = "metabase", mac = "02:00:a8:70:69:23" }
 # "192.168.2.37" = # unallocated
 # "192.168.2.38" = # unallocated
 # "192.168.2.39" = # unallocated
