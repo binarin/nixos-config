@@ -22,7 +22,7 @@
 
 | File | Responsibility |
 |------|---------------|
-| `modules/machines/postgres.nix` | Machine definition (clan inventory, CT resources, ACME client), NixOS module (PostgreSQL 18, clan.core.postgresql, vars generator, oneshot password-setter, pg_hba, SSL cert splitting) |
+| `modules/machines/postgres.nix` | Machine definition (clan inventory, CT resources, ACME client), NixOS module (PostgreSQL 18, clan.core.postgresql, vars generator, oneshot password-setter, pg_hba, SSL with combined PEM) |
 | `modules/machines/metabase.nix` | Machine definition (clan inventory, CT resources, ACME client), NixOS module (Metabase service with LoadCredential, nginx vhosts, Tailscale Serve) |
 
 ---
@@ -58,7 +58,13 @@ proxmoxLXC = {
 };
 ```
 
-- [ ] **Step 2: Verify eval**
+- [ ] **Step 2: Format**
+
+```bash
+nix fmt modules/machines/postgres.nix
+```
+
+- [ ] **Step 3: Verify eval**
 
 Run:
 ```bash
@@ -66,7 +72,7 @@ nix eval .#nixosConfigurations.postgres.config.proxmoxLXC.cores
 ```
 Expected: `4`
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add modules/machines/postgres.nix
@@ -99,7 +105,13 @@ services.postgresql = {
 };
 ```
 
-- [ ] **Step 2: Verify eval**
+- [ ] **Step 2: Format**
+
+```bash
+nix fmt modules/machines/postgres.nix
+```
+
+- [ ] **Step 3: Verify eval**
 
 Run:
 ```bash
@@ -107,7 +119,7 @@ nix eval .#nixosConfigurations.postgres.config.services.postgresql.package.versi
 ```
 Expected: `"18.4"`
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add modules/machines/postgres.nix
@@ -139,7 +151,13 @@ clan.core.postgresql = {
 
 Note: `clan.core.postgresql.enable = true` also sets `services.postgresql.enable = true`, so the `services.postgresql.enable` from Task 2 is redundant but harmless. Leave both for clarity.
 
-- [ ] **Step 2: Verify eval**
+- [ ] **Step 2: Format**
+
+```bash
+nix fmt modules/machines/postgres.nix
+```
+
+- [ ] **Step 3: Verify eval**
 
 Run:
 ```bash
@@ -147,7 +165,7 @@ nix eval .#nixosConfigurations.postgres.config.clan.core.postgresql.users.metaba
 ```
 Expected: `"metabase"`
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add modules/machines/postgres.nix
@@ -184,7 +202,13 @@ clan.core.vars.generators.metabase-db = {
 };
 ```
 
-- [ ] **Step 2: Verify eval**
+- [ ] **Step 2: Format**
+
+```bash
+nix fmt modules/machines/postgres.nix
+```
+
+- [ ] **Step 3: Verify eval**
 
 Run:
 ```bash
@@ -192,7 +216,7 @@ nix eval .#nixosConfigurations.postgres.config.clan.core.vars.generators.metabas
 ```
 Expected: `true`
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add modules/machines/postgres.nix
@@ -234,7 +258,13 @@ systemd.services.metabase-db-password = {
 };
 ```
 
-- [ ] **Step 2: Verify eval**
+- [ ] **Step 2: Format**
+
+```bash
+nix fmt modules/machines/postgres.nix
+```
+
+- [ ] **Step 3: Verify eval**
 
 Run:
 ```bash
@@ -242,7 +272,7 @@ nix eval .#nixosConfigurations.postgres.config.systemd.services.metabase-db-pass
 ```
 Expected: `[ "multi-user.target" ]`
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add modules/machines/postgres.nix
@@ -305,7 +335,13 @@ no splitting needed.
 Note: Merge these new settings into the existing `services.postgresql` block from Task 2
 rather than creating a separate block.
 
-- [ ] **Step 4: Verify eval**
+- [ ] **Step 4: Format**
+
+```bash
+nix fmt modules/machines/postgres.nix
+```
+
+- [ ] **Step 5: Verify eval**
 
 Run:
 ```bash
@@ -313,7 +349,7 @@ nix eval .#nixosConfigurations.postgres.config.services.postgresql.ssl
 ```
 Expected: `"on"`
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add modules/machines/postgres.nix
@@ -348,7 +384,13 @@ proxmoxLXC = {
 };
 ```
 
-- [ ] **Step 2: Verify eval**
+- [ ] **Step 2: Format**
+
+```bash
+nix fmt modules/machines/metabase.nix
+```
+
+- [ ] **Step 3: Verify eval**
 
 Run:
 ```bash
@@ -356,7 +398,7 @@ nix eval .#nixosConfigurations.metabase.config.proxmoxLXC.cores
 ```
 Expected: `4`
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add modules/machines/metabase.nix
@@ -399,7 +441,13 @@ systemd.services.metabase = {
 };
 ```
 
-- [ ] **Step 2: Verify eval**
+- [ ] **Step 2: Format**
+
+```bash
+nix fmt modules/machines/metabase.nix
+```
+
+- [ ] **Step 3: Verify eval**
 
 Run:
 ```bash
@@ -412,7 +460,7 @@ nix eval .#nixosConfigurations.metabase.config.systemd.services.metabase.service
 ```
 Expected output should contain the string `MB_DB_PASS:`
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add modules/machines/metabase.nix
@@ -459,7 +507,13 @@ services.nginx = {
 };
 ```
 
-- [ ] **Step 2: Verify eval**
+- [ ] **Step 2: Format**
+
+```bash
+nix fmt modules/machines/metabase.nix
+```
+
+- [ ] **Step 3: Verify eval**
 
 Run:
 ```bash
@@ -472,7 +526,7 @@ nix eval .#nixosConfigurations.metabase.config.services.nginx.virtualHosts."meta
 ```
 Expected: `true`
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add modules/machines/metabase.nix
@@ -520,7 +574,13 @@ services.nginx.virtualHosts."metabase.home.binarin.info" = {
 
 Since the ACME client module combines cert + key in one file, point both paths to the same file. nginx handles this correctly.
 
-- [ ] **Step 3: Verify eval**
+- [ ] **Step 3: Format**
+
+```bash
+nix fmt modules/machines/metabase.nix
+```
+
+- [ ] **Step 4: Verify eval**
 
 Run:
 ```bash
@@ -528,7 +588,7 @@ nix eval .#nixosConfigurations.metabase.config.services.nginx.virtualHosts."meta
 ```
 Expected: `"/var/lib/ssl-cert/full.pem"`
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add modules/machines/metabase.nix
@@ -539,7 +599,13 @@ git commit -m "feat(metabase): ACME client for nginx certs"
 
 ### Task 11: End-to-end verification
 
-- [ ] **Step 1: Full eval of both configurations**
+- [ ] **Step 1: Format both files**
+
+```bash
+nix fmt modules/machines/postgres.nix modules/machines/metabase.nix
+```
+
+- [ ] **Step 2: Full eval of both configurations**
 
 ```bash
 nix eval .#nixosConfigurations.postgres.config.system.build.toplevel.drvPath
@@ -547,14 +613,14 @@ nix eval .#nixosConfigurations.metabase.config.system.build.toplevel.drvPath
 ```
 Expected: both return derivation paths (no errors)
 
-- [ ] **Step 2: Verify generator on postgres machine**
+- [ ] **Step 3: Verify generator on postgres machine**
 
 ```bash
 clan vars generate postgres --generator metabase-db --no-regenerate
 ```
 Expected: generates the password, outputs success message
 
-- [ ] **Step 3: Verify no secrets in nix store**
+- [ ] **Step 4: Verify no secrets in nix store**
 
 ```bash
 nix build .#nixosConfigurations.postgres.config.system.build.toplevel --no-link 2>&1
@@ -562,7 +628,7 @@ nix build .#nixosConfigurations.postgres.config.system.build.toplevel --no-link 
 
 Inspect that no path contains the generated password. The password should only exist in the clan vars store (`vars/`) and be deployed at runtime.
 
-- [ ] **Step 4: Commit final verification adjustments**
+- [ ] **Step 5: Commit final verification adjustments**
 
 If any issues found during verification, fix and commit. Otherwise:
 
