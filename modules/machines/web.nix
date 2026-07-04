@@ -206,10 +206,10 @@ in
         files.jwt-refresh-secret = { };
         runtimeInputs = [ pkgs.openssl ];
         script = ''
-          openssl rand -hex 32 > $out/creds-key
-          openssl rand -hex 16 > $out/creds-iv
-          openssl rand -hex 64 > $out/jwt-secret
-          openssl rand -hex 64 > $out/jwt-refresh-secret
+          openssl rand -hex 32 | tr -d '\n' > $out/creds-key
+          openssl rand -hex 16 | tr -d '\n' > $out/creds-iv
+          openssl rand -hex 64 | tr -d '\n' > $out/jwt-secret
+          openssl rand -hex 64 | tr -d '\n' > $out/jwt-refresh-secret
         '';
       };
 

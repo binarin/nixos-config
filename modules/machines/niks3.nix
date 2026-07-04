@@ -97,7 +97,7 @@ in
         };
         runtimeInputs = [ pkgs.openssl ];
         script = ''
-          openssl rand -base64 32 > $out/api-token
+          openssl rand -base64 32 | tr -d '\n' > $out/api-token
         '';
       };
 
