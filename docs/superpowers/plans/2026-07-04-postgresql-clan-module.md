@@ -373,7 +373,7 @@ Wiring + machine migration happen together (the module's `lib.mkForce listen_add
 
 - [ ] **Step 1: Add the instance wiring (server role) at the top level**
 
-In `modules/machines/postgres.nix`, immediately after the existing `clan.inventory.machines.postgres = { ... };` block, add:
+In `modules/machines/postgres.nix`, immediately after the existing `clan.inventory.machines.postgres = { ... };` block, add the full instance definition — both the `server` (postgres) and the `client` (metabase) roles. The client must be declared here so the `postgresql-postgres-metabase-metabase` generator exists for `clan vars generate` and the eval checks below; `metabase.nix` (Task 3) only changes how metabase *connects*, not the instance membership.
 
 ```nix
   clan.inventory.instances.postgres = {
@@ -382,6 +382,14 @@ In `modules/machines/postgres.nix`, immediately after the existing `clan.invento
       name = "postgresql";
     };
     roles.server.machines.postgres = { };
+    roles.client.machines.metabase.settings.access.metabase = {
+      owner = true;
+      sourceCIDRs = [
+        "100.64.0.0/10"
+        "192.168.2.36/32"
+      ];
+      restartUnits = [ "metabase.service" ];
+    };
   };
 ```
 
@@ -479,6 +487,9 @@ Expected: `"oneshot"`
 Run: `nix eval .#nixosConfigurations.postgres.config.sops.templates.\"postgresql-provision-metabase-metabase.sql\".owner`
 Expected: `"postgres"`
 
+Run: `nix eval --raw .#nixosConfigurations.postgres.config.sops.templates.\"postgresql-provision-metabase-metabase.sql\".content`
+Expected: contains `ALTER USER "metabase" WITH PASSWORD` and `ALTER DATABASE "metabase" OWNER TO "metabase";` (the latter because `owner = true`).
+
 Run: `nix eval .#nixosConfigurations.postgres.config.services.postgresql.settings.ssl`
 Expected: `"on"`
 
@@ -510,25 +521,12 @@ Metabase's discrete `MB_DB_*` env vars do not support SSL — the app DB needs `
 - Update (generated): `vars/shared/postgresql-postgres-metabase-metabase/` (adds `machines/metabase`)
 
 **Interfaces:**
-- Consumes: generator + secret `postgresql-postgres-metabase-metabase` (Task 2).
-- Produces: instance `postgres` `roles.client.machines.metabase` with `access.metabase`; metabase service reading `MB_DB_CONNECTION_URI` from a sops-templated `EnvironmentFile`.
+- Consumes: generator + secret `postgresql-postgres-metabase-metabase` (Task 2 — the metabase client membership is already declared in `postgres.nix`).
+- Produces: metabase service reading `MB_DB_CONNECTION_URI` from a sops-templated `EnvironmentFile`.
 
-- [ ] **Step 1: Add the client-role membership at the top level**
+Note: the metabase client membership (`roles.client.machines.metabase` with `access.metabase`) was declared in `postgres.nix` in Task 2. Do NOT re-declare it here — this task only changes how metabase *connects*.
 
-In `modules/machines/metabase.nix`, immediately after the existing `clan.inventory.machines.metabase = { ... };` block, add:
-
-```nix
-  clan.inventory.instances.postgres.roles.client.machines.metabase.settings.access.metabase = {
-    owner = true;
-    sourceCIDRs = [
-      "100.64.0.0/10"
-      "192.168.2.36/32"
-    ];
-    restartUnits = [ "metabase.service" ];
-  };
-```
-
-- [ ] **Step 2: Remove the `metabase-db-generator` import**
+- [ ] **Step 1: Remove the `metabase-db-generator` import**
 
 In the `flake.nixosModules.metabase-configuration` `imports = [ ... ]` list, delete the line:
 
@@ -536,7 +534,7 @@ In the `flake.nixosModules.metabase-configuration` `imports = [ ... ]` list, del
         self.nixosModules.metabase-db-generator
 ```
 
-- [ ] **Step 3: Switch the metabase service to a sops-templated connection URI**
+- [ ] **Step 2: Switch the metabase service to a sops-templated connection URI**
 
 Replace this exact block:
 
@@ -575,12 +573,12 @@ with:
         ];
 ```
 
-- [ ] **Step 4: Format**
+- [ ] **Step 3: Format**
 
 Run: `nix fmt modules/machines/metabase.nix`
 Expected: exits 0.
 
-- [ ] **Step 5: Re-key the shared secret so metabase can decrypt it**
+- [ ] **Step 4: Re-key the shared secret so metabase can decrypt it**
 
 ```bash
 clan vars generate metabase
@@ -591,7 +589,7 @@ Expected: adds `vars/shared/postgresql-postgres-metabase-metabase/password/machi
 Run: `ls vars/shared/postgresql-postgres-metabase-metabase/password/machines`
 Expected: contains both `metabase` and `postgres`.
 
-- [ ] **Step 6: Verify the metabase config**
+- [ ] **Step 5: Verify the metabase config**
 
 Run: `nix eval --raw .#nixosConfigurations.metabase.config.sops.templates.\"metabase-db-uri.env\".content`
 Expected: contains `MB_DB_CONNECTION_URI=postgres://postgres.lynx-lizard.ts.net:5432/metabase?user=metabase&password=<SOPS:` and ends with `&sslmode=require`.
@@ -599,12 +597,12 @@ Expected: contains `MB_DB_CONNECTION_URI=postgres://postgres.lynx-lizard.ts.net:
 Run: `nix eval --json .#nixosConfigurations.metabase.config.systemd.services.metabase.serviceConfig.EnvironmentFile`
 Expected: a JSON array whose element is the rendered template path (contains `metabase-db-uri.env`).
 
-- [ ] **Step 7: Full-config eval smoke test**
+- [ ] **Step 6: Full-config eval smoke test**
 
 Run: `ncf eval nixos metabase`
 Expected: completes without error.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add modules/machines/metabase.nix vars/shared/postgresql-postgres-metabase-metabase

@@ -61,7 +61,6 @@ in
       imports = [
         self.nixosModules.baseline
         self.nixosModules.lxc
-        self.nixosModules.metabase-db-generator
       ];
 
       config = {
@@ -82,19 +81,20 @@ in
           listen.port = 3000;
         };
 
-        systemd.services.metabase = {
-          environment = {
-            MB_DB_TYPE = "postgres";
-            MB_DB_HOST = "postgres.lynx-lizard.ts.net";
-            MB_DB_PORT = "5432";
-            MB_DB_DBNAME = "metabase";
-            MB_DB_USER = "metabase";
-          };
-          serviceConfig.LoadCredential = [
-            "MB_DB_PASS:${config.clan.core.vars.generators.metabase-db.files.password.path}"
-          ];
-          serviceConfig.ImportCredential = [ "MB_DB_PASS" ];
+        # SSL requires MB_DB_CONNECTION_URI; render it (with the password from the sops
+        # placeholder) into a tmpfs EnvironmentFile so the secret never enters the store.
+        sops.templates."metabase-db-uri.env" = {
+          restartUnits = [ "metabase.service" ];
+          content = ''
+            MB_DB_CONNECTION_URI=postgres://postgres.lynx-lizard.ts.net:5432/metabase?user=metabase&password=${
+              config.sops.placeholder."vars/postgresql-postgres-metabase-metabase/password"
+            }&sslmode=require
+          '';
         };
+
+        systemd.services.metabase.serviceConfig.EnvironmentFile = [
+          config.sops.templates."metabase-db-uri.env".path
+        ];
 
 
         services.tailscale = {
