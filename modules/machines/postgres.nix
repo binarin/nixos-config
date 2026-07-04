@@ -31,6 +31,25 @@ in
     deploy.targetHost = flakeConfig.inventory.ipAllocation.postgres.home.primary.address;
   };
 
+  clan.inventory.instances.postgres = {
+    module = {
+      input = "self";
+      name = "postgresql";
+    };
+    roles.server.machines.postgres = { };
+    roles.client.machines.metabase = {
+      settings.access.metabase = {
+        database = "metabase";
+        user = "metabase";
+        sourceCIDRs = [
+          "192.168.2.36/32"
+          "100.64.0.0/10"
+        ];
+        restartUnits = [ "metabase.service" ];
+      };
+    };
+  };
+
   clan.machines.postgres = {
     imports = [
       self.nixosModules.postgres-configuration
@@ -56,7 +75,6 @@ in
       imports = [
         self.nixosModules.baseline
         self.nixosModules.lxc
-        self.nixosModules.metabase-db-generator
       ];
 
       proxmoxLXC = {
@@ -77,44 +95,11 @@ in
       };
 
       services.postgresql = {
-        enable = true;
         package = pkgs.postgresql_18;
         settings = {
           shared_buffers = "2GB";
           effective_cache_size = "6GB";
-          listen_addresses = lib.mkForce "*";
-          ssl = "on";
-          ssl_cert_file = "/var/lib/ssl-cert/full.pem";
-          ssl_key_file = "/var/lib/ssl-cert/full.pem";
         };
-      };
-
-      services.postgresql.authentication = ''
-        hostssl metabase metabase 192.168.2.36/32 scram-sha-256
-        host    metabase metabase 100.64.0.0/10  scram-sha-256
-      '';
-
-      clan.core.postgresql = {
-        enable = true;
-        users.metabase = { };
-        databases.metabase = { };
-      };
-
-      systemd.services.metabase-db-password = {
-        description = "Set metabase database user password";
-        wantedBy = [ "multi-user.target" ];
-        requires = [ "postgresql.service" ];
-        after = [ "postgresql.service" ];
-        path = [ config.services.postgresql.package ];
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          User = "postgres";
-          Group = "postgres";
-        };
-        script = ''
-          psql -c "ALTER USER metabase WITH PASSWORD '$(cat ${config.clan.core.vars.generators.metabase-db.files.password.path})'"
-        '';
       };
 
       nixos-config.export-metrics.enable = false;
