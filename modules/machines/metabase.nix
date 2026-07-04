@@ -90,19 +90,34 @@ in
           listen.port = 3000;
         };
 
+        clan.core.vars.generators.metabase-encryption = {
+          files.secret-key = {
+            secret = true;
+            deploy = true;
+            restartUnits = [ "metabase.service" ];
+          };
+          runtimeInputs = [ pkgs.openssl ];
+          # Metabase's docs suggest `openssl rand -base64 32`; tr -d strips the
+          # trailing newline so the env value is clean.
+          script = ''
+            openssl rand -base64 32 | tr -d '\n' > $out/secret-key
+          '';
+        };
+
         # SSL requires MB_DB_CONNECTION_URI; render it (with the password from the sops
         # placeholder) into a tmpfs EnvironmentFile so the secret never enters the store.
-        sops.templates."metabase-db-uri.env" = {
+        sops.templates."metabase-secrets.env" = {
           restartUnits = [ "metabase.service" ];
           content = ''
             MB_DB_CONNECTION_URI=postgres://postgres.lynx-lizard.ts.net:5432/metabase?user=metabase&password=${
               config.sops.placeholder."vars/postgresql-postgres-metabase-metabase/password"
             }&sslmode=require
+            MB_ENCRYPTION_SECRET_KEY=${config.sops.placeholder."vars/metabase-encryption/secret-key"}
           '';
         };
 
         systemd.services.metabase.serviceConfig.EnvironmentFile = [
-          config.sops.templates."metabase-db-uri.env".path
+          config.sops.templates."metabase-secrets.env".path
         ];
 
 
