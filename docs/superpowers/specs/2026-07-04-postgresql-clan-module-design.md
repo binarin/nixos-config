@@ -23,15 +23,17 @@ store paths.
 ## Approach
 
 A new clan service module `flake.clan.modules.postgresql` in
-`modules/clan/postgresql.nix`, `_class = "clan.service"`, with two roles:
+`modules/clan/postgresql.nix`, `_class = "clan.service"`, with two roles plus a
+`perMachine` block:
 
-- **`server`** — runs on the postgres host. Builds on `clan.core.postgresql`
+- **`server`** (role) — runs on the postgres host. Builds on `clan.core.postgresql`
   (from clan-core) for idempotent CREATE USER/DATABASE + backup/restore hooks,
-  and adds: shared password generation, runtime password setting, per-client
-  pg_hba entries, SSL/listen config.
-- **`client`** — runs on each consuming machine. Owns the shared password
-  generator (so the same secret is decrypted on both sides) and exposes the
-  password file path. Deliberately thin: share the secret, surface its path.
+  and adds: runtime password setting, per-client pg_hba entries, SSL/listen
+  config.
+- **`client`** (role) — runs on each consuming machine. Exposes the password file
+  path. Deliberately thin: surface the shared secret's path.
+- **`perMachine`** — declares the shared password generators (see the
+  Secret-sharing section). Both roles only *reference* them.
 
 **Instance model:** a single instance named `postgres`; the postgres host joins
 `server`, each consumer joins `client`.
@@ -39,11 +41,30 @@ A new clan service module `flake.clan.modules.postgresql` in
 ### Secret-sharing mechanism (key design choice)
 
 A DB password is a *symmetric* secret — both server and client need the same
-value. We use a clan **`share = true` vars generator** (as the clan-core `users`
-service does), co-defined by both roles with an identical name and script.
-clan keys shared generators globally by name and deploys the same decrypted
-value to every machine that defines it. No runtime distribution, no encryption
-dance.
+value. We use a clan **`share = true` vars generator**: clan keys shared
+generators globally by name and deploys the same decrypted value to every machine
+that declares it. No runtime distribution, no encryption dance.
+
+**Where the generator is declared:** in the module's **`perMachine`** block, not
+in either role's `perInstance`. This is the pattern the clan-core `certificates`
+and `zerotier` services use for shared secrets. `perMachine` runs once per machine
+in the instance (across all roles) and receives `{ instances, machine, ... }`, so
+the generator is written in a **single code path** and evaluated per machine —
+eliminating any risk of two roles co-defining the same shared generator with
+drifting scripts. Roles' `perInstance` blocks then merely reference
+`config.clan.core.vars.generators.<name>.files.password.path`.
+
+Within `perMachine`, branch on `machine.roles`:
+
+- **server machine** (`builtins.elem "server" machine.roles`) → declare the
+  generator for *every* `(database, user)` across all clients (it must read them
+  all to set passwords).
+- **client machine** → declare only that machine's own `access` entries'
+  generators (least privilege — the secret lands only where needed).
+
+Per-machine file metadata (`restartUnits`, `secret.{owner,group,mode}`) is
+computed in that same block from the machine's role/settings — exactly how
+`zerotier`'s `perMachine` varies `restartUnits` per machine.
 
 Alternatives rejected:
 
@@ -56,7 +77,8 @@ Alternatives rejected:
 ## Module shape & files
 
 - **New:** `modules/clan/postgresql.nix` → `flake.clan.modules.postgresql`
-  (`_class = "clan.service"`, `manifest`, `roles.server`, `roles.client`).
+  (`_class = "clan.service"`, `manifest`, `roles.server`, `roles.client`,
+  `perMachine`).
 - Consumed via
   `clan.inventory.instances.postgres.module = { input = "self"; name = "postgresql"; }`
   (same wiring style as the existing `acme-metabase` instance).
@@ -92,10 +114,10 @@ with fields `{ database, user, owner, sourceCIDRs, restartUnits, initSql }`.
      already exists.
    - Gives idempotent CREATE USER/DATABASE **and** backup/restore hooks for free.
 
-2. **Shared password generator per (db, user)** —
-   name `postgresql-${instanceName}-${database}-${user}`, `share = true`,
-   `files.password = { secret = true; deploy = true; restartUnits = [ "postgresql-provision-${database}-${user}.service" ]; }`,
-   `runtimeInputs = [ pkgs.openssl ]`, script `openssl rand -hex 32 > $out/password`.
+2. **References the shared password generators** declared in `perMachine` (see
+   below) — `config.clan.core.vars.generators."postgresql-${instanceName}-${database}-${user}".files.password.path`.
+   On the server machine, `perMachine` sets that file's
+   `restartUnits = [ "postgresql-provision-${database}-${user}.service" ]`.
 
 3. **pg_hba entries per (db, user)** — for each CIDR in `sourceCIDRs`:
    `hostssl <database> <user> <cidr> scram-sha-256`. All lines across all
@@ -142,22 +164,43 @@ including **different users on the same database**.
 
 ### `perInstance` → `nixosModule` behaviour
 
-For each `access.<label>` entry:
+The client role is thin — the generators themselves are declared in `perMachine`
+(which, on a client machine, sets each generator file's `owner`/`group`/`mode`
+from that entry's `settings.secret`, `restartUnits` from `settings.restartUnits`,
+and `deploy = true`, so the secret lands on the client, is readable by a
+direct-read consumer, and rotation restarts the consumer).
 
-1. **Define the same shared generator**
-   `postgresql-${instanceName}-${database}-${user}` (`share = true`, identical
-   script), with the file's `owner`/`group`/`mode` set from `settings.secret` and
-   `restartUnits` from `settings.restartUnits`, `deploy = true` — so the secret
-   lands on the client machine, is readable by a direct-read consumer, and
-   rotation restarts the consumer.
-2. **Expose the password path only.** No `LoadCredential`/env wiring; the
-   consumer references
-   `config.clan.core.vars.generators."postgresql-${instanceName}-${database}-${user}".files.password.path`
-   itself (as `metabase.nix` does today).
+The role therefore just **exposes the password path** — no `LoadCredential`/env
+wiring. The consumer references
+`config.clan.core.vars.generators."postgresql-${instanceName}-${database}-${user}".files.password.path`
+itself (as `metabase.nix` does today).
 
 `secret.{owner,group,mode}` matters for consumers that read the file directly as
 their own user. Consumers using systemd `LoadCredential` (root reads, then drops
 to the service) can leave it at the `root:root:0400` default.
+
+## `perMachine` (shared generator declaration)
+
+`perMachine` receives `{ instances, machine, ... }`. From `instances` it computes
+the full set of `(instanceName, database, user, entry)` tuples in the instance
+(flattening every client's `access` map). Then, keyed by generator name
+`postgresql-${instanceName}-${database}-${user}`, it declares — for the tuples
+relevant to `machine`:
+
+- `share = true`, `files.password.secret = true`, `files.password.deploy = true`,
+  `runtimeInputs = [ pkgs.openssl ]`, script `openssl rand -hex 32 > $out/password`.
+- File metadata computed per machine:
+  - **server machine** (`builtins.elem "server" machine.roles`): declares *all*
+    tuples; `files.password.restartUnits = [ "postgresql-provision-${database}-${user}.service" ]`.
+    (Ownership left at the `root:root:0400` default — the provisioning oneshot
+    reads as root.)
+  - **client machine**: declares only the tuples whose `access` entry belongs to
+    this machine; `files.password.{owner,group,mode}` from that entry's
+    `settings.secret`, `restartUnits` from `settings.restartUnits`.
+
+Because the generator body (name/script/`files` set) is one expression evaluated
+per machine, the shared definition never drifts; only per-machine deploy metadata
+varies.
 
 ## Error handling & safety
 
@@ -191,13 +234,11 @@ The `metabase` user/DB and password already exist on disk. The new generator
 name differs from the old `metabase-db`, so the first deploy generates and sets a
 fresh password — safe because server and client rotate together.
 
-## Implementation risk to verify
+## Shared-generator placement (resolved)
 
-The same `share = true` generator is co-defined by both the server (in its
-per-client loop) and the owning client. clan keys shared generators globally by
-name; the clan-core `users` service shows per-machine file metadata (e.g.
-`restartUnits`, and here `owner`/`group`/`mode`) may differ across machines for
-one shared generator. Confirm during the build that co-defining from both roles
-does not trip a consistency check. Fallback: extract a small shared NixOS module
-(like today's `metabase-db-generator`), parametrized by `(instanceName, database,
-user)`, imported by both roles.
+An earlier draft co-defined the `share = true` generator separately in both the
+`server` and `client` roles, which risked the two definitions drifting. Inspecting
+clan-core resolved this: `certificates` and `zerotier` both declare their shared
+generators in **`perMachine`**, never per-role. We follow that pattern (see the
+Secret-sharing section) — one definition, evaluated per machine, branching on
+`machine.roles`. No co-definition, so there is no drift risk to verify.
