@@ -36,6 +36,15 @@ in
     deploy.targetHost = flakeConfig.inventory.ipAllocation.metabase.home.primary.address;
   };
 
+  clan.inventory.instances.postgres.roles.client.machines.metabase.settings.access.metabase = {
+    owner = true;
+    sourceCIDRs = [
+      "100.64.0.0/10"
+      "192.168.2.36/32"
+    ];
+    restartUnits = [ "metabase.service" ];
+  };
+
   clan.machines.metabase = {
     imports = [
       self.nixosModules.metabase-configuration
