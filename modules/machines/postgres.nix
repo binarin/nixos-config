@@ -56,6 +56,7 @@ in
       imports = [
         self.nixosModules.baseline
         self.nixosModules.lxc
+        self.nixosModules.metabase-db-generator
       ];
 
       proxmoxLXC = {
@@ -96,19 +97,6 @@ in
         enable = true;
         users.metabase = { };
         databases.metabase = { };
-      };
-
-      clan.core.vars.generators.metabase-db = {
-        share = true;
-        files.password = {
-          secret = true;
-          deploy = true;
-          restartUnits = [ "metabase-db-password.service" ];
-        };
-        runtimeInputs = [ pkgs.openssl ];
-        script = ''
-          openssl rand -hex 32 > $out/password
-        '';
       };
 
       systemd.services.metabase-db-password = {

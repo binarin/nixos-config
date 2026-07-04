@@ -61,6 +61,7 @@ in
       imports = [
         self.nixosModules.baseline
         self.nixosModules.lxc
+        self.nixosModules.metabase-db-generator
       ];
 
       config = {
