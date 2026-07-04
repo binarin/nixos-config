@@ -75,6 +75,12 @@ in
         };
       };
 
+      clan.core.postgresql = {
+        enable = true;
+        users.metabase = { };
+        databases.metabase = { };
+      };
+
       nixos-config.export-metrics.enable = false;
     };
 }
