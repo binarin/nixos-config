@@ -18,17 +18,11 @@ in
     };
   };
 
-  clan.inventory.instances.acme-metabase = {
-    module = {
-      input = "self";
-      name = "lets-encrypt";
-    };
-    roles.client.machines.metabase = {
-      settings = {
-        domain = "metabase.home.binarin.info";
-        extraDomainNames = [ "metabase.clan.binarin.info" ];
-        reloadServices = [ "nginx.service" ];
-      };
+  clan.inventory.instances.acme.roles.client.machines.metabase = {
+    settings = {
+      domain = "metabase.home.binarin.info";
+      extraDomainNames = [ "metabase.clan.binarin.info" ];
+      reloadServices = [ "nginx.service" ];
     };
   };
 
@@ -90,19 +84,35 @@ in
           listen.port = 3000;
         };
 
-        # SSL requires MB_DB_CONNECTION_URI; render it (with the password from the sops
-        # placeholder) into a tmpfs EnvironmentFile so the secret never enters the store.
-        sops.templates."metabase-db-uri.env" = {
+        clan.core.vars.generators.metabase-encryption = {
+          files.secret-key = {
+            secret = true;
+            deploy = true;
+            restartUnits = [ "metabase.service" ];
+          };
+          runtimeInputs = [ pkgs.openssl ];
+          # Metabase's docs suggest `openssl rand -base64 32`; tr -d strips the
+          # trailing newline so the env value is clean.
+          script = ''
+            openssl rand -base64 32 | tr -d '\n' > $out/secret-key
+          '';
+        };
+
+        # Render both secrets (DB password in the connection URI, and the Metabase
+        # encryption key) from sops placeholders into a tmpfs EnvironmentFile so they
+        # never enter the store. SSL also requires MB_DB_CONNECTION_URI specifically.
+        sops.templates."metabase-secrets.env" = {
           restartUnits = [ "metabase.service" ];
           content = ''
             MB_DB_CONNECTION_URI=postgres://postgres.lynx-lizard.ts.net:5432/metabase?user=metabase&password=${
               config.sops.placeholder."vars/postgresql-postgres-metabase-metabase/password"
             }&sslmode=require
+            MB_ENCRYPTION_SECRET_KEY=${config.sops.placeholder."vars/metabase-encryption/secret-key"}
           '';
         };
 
         systemd.services.metabase.serviceConfig.EnvironmentFile = [
-          config.sops.templates."metabase-db-uri.env".path
+          config.sops.templates."metabase-secrets.env".path
         ];
 
 
