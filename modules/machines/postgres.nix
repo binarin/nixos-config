@@ -38,6 +38,33 @@ in
       name = "postgresql";
     };
     roles.server.machines.postgres = { };
+    roles.client.machines.postgres.settings.access =
+      let
+        tsCIDRs = [
+          "100.64.0.0/10"
+          "fd7a:115c:a1e0::/48"
+        ];
+      in
+      {
+        hledger = {
+          database = "hledger";
+          user = "hledger";
+          role = "owner";
+          sourceCIDRs = tsCIDRs;
+        };
+        hledger-rw = {
+          database = "hledger";
+          user = "hledger_rw";
+          role = "readwrite";
+          sourceCIDRs = tsCIDRs;
+        };
+        hledger-ro = {
+          database = "hledger";
+          user = "hledger_ro";
+          role = "readonly";
+          sourceCIDRs = tsCIDRs;
+        };
+      };
   };
 
   clan.machines.postgres = {
