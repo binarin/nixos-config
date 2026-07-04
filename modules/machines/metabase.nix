@@ -119,7 +119,9 @@ in
         services.tailscale = {
           enable = true;
           serve = {
+            enable = true;
             services.metabase = {
+              serviceName = "metabase";
               protocol = "https";
               target = "localhost:3000";
             };

@@ -241,6 +241,7 @@ in
                     curl
                     age
                     coreutils
+                    diffutils
                     openssl
                     systemd
                   ];
