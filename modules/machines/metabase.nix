@@ -18,6 +18,20 @@ in
     };
   };
 
+  clan.inventory.instances.acme-metabase = {
+    module = {
+      input = "self";
+      name = "lets-encrypt";
+    };
+    roles.client.machines.metabase = {
+      settings = {
+        domain = "metabase.home.binarin.info";
+        extraDomainNames = [ "metabase.clan.binarin.info" ];
+        reloadServices = [ "nginx.service" ];
+      };
+    };
+  };
+
   clan.inventory.machines.metabase = {
     deploy.targetHost = flakeConfig.inventory.ipAllocation.metabase.home.primary.address;
   };
@@ -98,6 +112,8 @@ in
             forceSSL = true;
             enableACME = false;
             serverAliases = [ "metabase.clan.binarin.info" ];
+            sslCertificate = "/var/lib/ssl-cert/full.pem";
+            sslCertificateKey = "/var/lib/ssl-cert/full.pem";
             locations."/" = {
               proxyPass = "http://localhost:3000";
               recommendedProxySettings = true;
