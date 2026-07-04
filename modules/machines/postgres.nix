@@ -41,6 +41,7 @@ in
       settings.access.metabase = {
         database = "metabase";
         user = "metabase";
+        owner = true;
         sourceCIDRs = [
           "192.168.2.36/32"
           "100.64.0.0/10"
