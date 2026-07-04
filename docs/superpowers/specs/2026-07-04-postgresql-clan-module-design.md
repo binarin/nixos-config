@@ -16,9 +16,12 @@ proper **clan service module** (like `modules/clan/acme.nix`) that formalizes th
 pattern into `server`/`client` roles.
 
 **Hard constraint:** the password must never reach `/nix/store` (world-readable).
-Secrets only ever flow through the clan secret store and runtime-read files /
-systemd credentials — never interpolated into Nix strings, `initialScript`, or
-store paths.
+Secrets only ever flow through the clan secret store and **sops templates**
+(clan vars sit on sops-nix; every deployed secret becomes
+`sops.secrets."vars/<generator>/<file>"`, usable in a template via
+`config.sops.placeholder."vars/<generator>/<file>"`). Templates render to tmpfs
+(`/run`) — the plaintext is never interpolated into Nix strings, `initialScript`,
+`psql` argv, or store paths.
 
 ## Approach
 
@@ -123,19 +126,19 @@ with fields `{ database, user, owner, sourceCIDRs, restartUnits, initSql }`.
    `hostssl <database> <user> <cidr> scram-sha-256`. All lines across all
    clients are concatenated into `services.postgresql.authentication`.
 
-4. **Provisioning oneshot per (db, user)** —
-   `postgresql-provision-<database>-<user>.service`:
-   - `Type = "oneshot"`, `RemainAfterExit = true`, runs as **root**,
-     `after`/`requires` `postgresql.service`.
-   - Connects via `runuser -u postgres -- psql` (clan-core's own pattern), so it
-     reads the secret file as root regardless of file perms — no server-side
-     file-ownership coupling.
-   - Steps:
-     1. `ALTER USER "<user>" WITH PASSWORD '<runtime-read secret>'`
-     2. if `owner`: `ALTER DATABASE "<database>" OWNER TO "<user>"` (idempotent)
-     3. run `initSql` verbatim (GRANTs, etc.)
-   - Restarted when its password generator changes (via the generator file's
-     `restartUnits`).
+4. **Provisioning SQL rendered via a sops template, applied by a oneshot** —
+   `sops.templates."postgresql-provision-<database>-<user>.sql"` (owner
+   `postgres`) contains, with the password substituted from
+   `config.sops.placeholder`:
+   1. `ALTER USER "<user>" WITH PASSWORD '<placeholder>'`
+   2. if `owner`: `ALTER DATABASE "<database>" OWNER TO "<user>"` (idempotent)
+   3. `initSql` verbatim (GRANTs, etc.)
+
+   The oneshot `postgresql-provision-<database>-<user>.service`
+   (`Type = "oneshot"`, `RemainAfterExit`, `after`/`requires` `postgresql.service`)
+   simply runs `runuser -u postgres -- psql -f <rendered.sql>`. The plaintext
+   lives only in the tmpfs-rendered file (never in `/nix/store` or `psql` argv);
+   the template's `restartUnits` re-applies it when the password rotates.
 
 ## `client` role
 
@@ -170,14 +173,23 @@ from that entry's `settings.secret`, `restartUnits` from `settings.restartUnits`
 and `deploy = true`, so the secret lands on the client, is readable by a
 direct-read consumer, and rotation restarts the consumer).
 
-The role therefore just **exposes the password path** — no `LoadCredential`/env
-wiring. The consumer references
-`config.clan.core.vars.generators."postgresql-${instanceName}-${database}-${user}".files.password.path`
-itself (as `metabase.nix` does today).
+The consumer then wires the password in however it needs. Two supported shapes:
 
-`secret.{owner,group,mode}` matters for consumers that read the file directly as
-their own user. Consumers using systemd `LoadCredential` (root reads, then drops
-to the service) can leave it at the `root:root:0400` default.
+- **sops template** (preferred when the secret must be embedded in a larger
+  config/URI): reference
+  `config.sops.placeholder."vars/postgresql-${instanceName}-${database}-${user}/password"`
+  inside a `sops.templates.<name>.content` and point the service at the rendered
+  `EnvironmentFile`/config path. This is how metabase builds its
+  `MB_DB_CONNECTION_URI` (SSL requires a connection URI; discrete `MB_DB_*` env
+  vars cannot enable SSL).
+- **direct file read**: reference
+  `config.clan.core.vars.generators."postgresql-${instanceName}-${database}-${user}".files.password.path`;
+  `secret.{owner,group,mode}` set the deployed file's ownership so the consumer
+  can read it as its own user.
+
+Because `config.sops.placeholder` is only populated for secrets that exist at
+eval time, the shared password must be generated (`clan vars generate`) before a
+consumer that references the placeholder will evaluate.
 
 ## `perMachine` (shared generator declaration)
 
@@ -204,7 +216,8 @@ varies.
 
 ## Error handling & safety
 
-- Secrets read at runtime only — never `/nix/store`.
+- Secrets are rendered via sops templates to tmpfs (`/run`) — never `/nix/store`,
+  never `psql` argv.
 - All SQL is idempotent (clan-core `SELECT 1 ... || ...` style); provisioning
   units are `oneshot` + `RemainAfterExit`.
 - Password rotation = regenerate the shared var → server provisioning oneshot
@@ -227,7 +240,8 @@ varies.
    instance.
 3. `modules/machines/metabase.nix`: join `client` role with
    `access.metabase = { owner = true; sourceCIDRs = [ "100.64.0.0/10" "192.168.2.36/32" ]; restartUnits = [ "metabase.service" ]; }`;
-   point `LoadCredential` at the module's generator path.
+   render `MB_DB_CONNECTION_URI` (with `sslmode=require`) via a `sops.templates`
+   entry and set it as the metabase unit's `EnvironmentFile`.
 4. Delete `modules/machines/metabase-db.nix`.
 
 The `metabase` user/DB and password already exist on disk. The new generator
