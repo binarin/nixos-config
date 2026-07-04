@@ -49,6 +49,18 @@ in
         self.nixosModules.lxc
       ];
 
+      proxmoxLXC = {
+        cores = 4;
+        memory = 4096;
+        mounts = [
+          {
+            mountPoint = "/nix";
+            size = "32G";
+            backup = false;
+          }
+        ];
+      };
+
       nixos-config.export-metrics.enable = false;
     };
 }
