@@ -53,15 +53,20 @@ clan.core.vars.generators.metabase-db = {
   files.password = {
     secret = true;
     deploy = true;
+    restartUnits = [ "metabase-db-password.service" ];
   };
+  runtimeInputs = [ pkgs.openssl ];
   script = ''
-    tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32 > $out/password
+    openssl rand -hex 32 > $out/password
   '';
 };
 ```
 
 A oneshot systemd service on `postgres` sets the password at runtime
-(after `CREATE USER` has completed in `postStart`):
+(after `CREATE USER` has completed in `postStart`). The sops-nix secret deployer
+places the file at `/run/secrets/` before any regular units start, so
+`After=postgresql.service` is sufficient. The `restartUnits` on the file ensures
+the oneshot re-runs if the secret changes:
 
 ```
 Unit: metabase-db-password.service
@@ -77,13 +82,36 @@ clan vars store (at rest) and in `/run/secrets/` (tmpfs, at runtime).
 ### 3.4 Client Access (pg_hba.conf)
 
 ```
-# Type  Database  User      Address            Method
-host    metabase  metabase  192.168.2.36/32    md5
-host    metabase  metabase  100.64.0.0/10      md5   # Tailscale subnet
+# Type    Database  User      Address            Method
+hostssl  metabase  metabase  192.168.2.36/32    md5
+host     metabase  metabase  100.64.0.0/10      md5   # Tailscale subnet
 ```
 
-No SSL required at the PostgreSQL protocol level. WireGuard (Tailscale) provides
-L3 encryption on the Tailscale path. The direct home-net path is on a trusted subnet.
+Home-net connections require SSL (`hostssl`) since the home network is not trusted.
+Tailscale connections use plain TCP (`host`) — WireGuard provides L3 encryption.
+
+### 3.5 PostgreSQL SSL Certificates
+
+PostgreSQL's native SSL uses ACME certificates provisioned by the clan `acme` module:
+
+```nix
+services.postgresql = {
+  ssl = "on";
+  sslCertFile = "/var/lib/acme/postgres.home.binarin.info/fullchain.pem";
+  sslKeyFile = "/var/lib/acme/postgres.home.binarin.info/key.pem";
+};
+
+clan.inventory.instances.acme-postgres = {
+  roles.client.machines.postgres = {
+    settings = {
+      domain = "postgres.home.binarin.info";
+      reloadServices = [ "postgresql.service" ];
+    };
+  };
+};
+```
+
+ACME certs for the nginx vhosts are handled the same way on the `metabase` machine.
 
 ## 4. Metabase Configuration (`metabase` machine)
 
@@ -92,8 +120,9 @@ L3 encryption on the Tailscale path. The direct home-net path is on a trusted su
 Uses the upstream `services.metabase` module. Database connection via environment
 variables pointing at PostgreSQL over the Tailscale network.
 
-`EnvironmentFile` expects `KEY=VALUE` format but the clan var file contains only the
-raw password, so a wrapper script reads the secret at runtime before exec'ing the JAR:
+The password is injected via systemd's `LoadCredential` + `ImportCredential` —
+the file content is loaded as a credential and exported as the `MB_DB_PASS` env var
+at runtime, without any wrapper script:
 
 ```nix
 services.metabase = {
@@ -109,17 +138,17 @@ systemd.services.metabase = {
     MB_DB_DBNAME = "metabase";
     MB_DB_USER = "metabase";
   };
-  serviceConfig.ExecStart = lib.mkForce (
-    pkgs.writeShellScript "metabase-wrapper" ''
-      export MB_DB_PASS="$(cat ${config.clan.core.vars.generators.metabase-db.files.password.path})"
-      exec ${lib.getExe config.services.metabase.package}
-    ''
-  );
+  serviceConfig.LoadCredential = [
+    "MB_DB_PASS:${config.clan.core.vars.generators.metabase-db.files.password.path}"
+  ];
+  serviceConfig.ImportCredential = [ "MB_DB_PASS" ];
 };
 ```
 
 The `.path` reference resolves to `/run/secrets/metabase-db/password` at runtime
-(tmpfs, never touches nix store).
+(tmpfs, never touches nix store). `ImportCredential` makes it available as the
+`MB_DB_PASS` environment variable — no wrapper scripts or EnvironmentFile hacks needed.
+Requires systemd ≥ 250 (standard on NixOS 24.11+).
 
 ### 4.2 Metabase Application Data
 
@@ -127,9 +156,38 @@ The `.path` reference resolves to `/run/secrets/metabase-db/password` at runtime
 - `/var/lib/metabase` holds only plugins (`MB_PLUGINS_DIR`) and an unused H2 fallback
   (`MB_DB_FILE`) — all transient/re-downloadable. No separate mount needed.
 
-## 5. Web Exposure (`metabase` machine)
+## 5. ACME Certificates
 
-### 5.1 Tailscale Serve (primary)
+Both machines need ACME certificates via the clan `acme` module:
+
+**Postgres machine** — for PostgreSQL native SSL:
+```nix
+clan.inventory.instances.acme-postgres = {
+  roles.client.machines.postgres = {
+    settings = {
+      domain = "postgres.home.binarin.info";
+      reloadServices = [ "postgresql.service" ];
+    };
+  };
+};
+```
+
+**Metabase machine** — for nginx vhosts:
+```nix
+clan.inventory.instances.acme-metabase = {
+  roles.client.machines.metabase = {
+    settings = {
+      domain = "metabase.home.binarin.info";
+      extraDomainNames = [ "metabase.clan.binarin.info" ];
+      reloadServices = [ "nginx.service" ];
+    };
+  };
+};
+```
+
+## 6. Web Exposure (`metabase` machine)
+
+### 6.1 Tailscale Serve (primary)
 
 ```nix
 services.tailscale = {
@@ -145,7 +203,7 @@ services.tailscale = {
 
 Provides automatic TLS via Tailscale. Accessible at `https://metabase.<ts-net>.ts.net`.
 
-### 5.2 nginx + ACME (DNS-based)
+### 6.2 nginx + ACME (DNS-based)
 
 ```nix
 services.nginx = {
@@ -172,7 +230,7 @@ services.nginx = {
 ACME certificates provisioned via the clan `acme` module for both domains.
 Both vhosts proxy to the same Metabase instance on localhost:3000.
 
-## 6. Files to Create/Modify
+## 7. Files to Create/Modify
 
 ### New files
 None — machine modules already exist.
@@ -181,7 +239,7 @@ None — machine modules already exist.
 - `modules/machines/postgres.nix` — add Postgres service + CT resources + clan vars generator + oneshot
 - `modules/machines/metabase.nix` — add Metabase service + CT resources + nginx + clan vars consumer
 
-## 7. Testing
+## 8. Testing
 
 - `nix eval .#nixosConfigurations.postgres.config.system.build.toplevel` — postgres CT evals
 - `nix eval .#nixosConfigurations.metabase.config.system.build.toplevel` — metabase CT evals
