@@ -171,17 +171,21 @@ def gather_secrets_for_clan_machine(machine_name: str) -> list[SecretFile]:
     live in a temp directory).
     """
     from clan_lib.flake import Flake
+    from clan_lib.vars.generator import get_machine_generators
     from clan_cli.vars.secret_modules.sops import SecretStore
 
     repo_root = config.find_repo_root()
     flake = Flake(str(repo_root))
     secret_store = SecretStore(flake)
 
+    generators = get_machine_generators([machine_name], flake)
+
     upload_dir = secret_store.get_upload_directory(machine_name)
 
     # Stage secrets to a temp directory
     temp_dir = Path(tempfile.mkdtemp(prefix="ncf-clan-secrets-"))
     secret_store.populate_dir(
+        generators,
         machine_name,
         temp_dir,
         phases=["activation", "users", "services"],
