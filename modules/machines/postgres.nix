@@ -82,6 +82,7 @@ in
         settings = {
           shared_buffers = "2GB";
           effective_cache_size = "6GB";
+          listen_addresses = lib.mkForce "*";
           ssl = "on";
           ssl_cert_file = "/var/lib/ssl-cert/full.pem";
           ssl_key_file = "/var/lib/ssl-cert/full.pem";
@@ -89,8 +90,8 @@ in
       };
 
       services.postgresql.authentication = ''
-        hostssl metabase metabase 192.168.2.36/32 md5
-        host    metabase metabase 100.64.0.0/10  md5
+        hostssl metabase metabase 192.168.2.36/32 scram-sha-256
+        host    metabase metabase 100.64.0.0/10  scram-sha-256
       '';
 
       clan.core.postgresql = {
@@ -112,7 +113,6 @@ in
           Group = "postgres";
         };
         script = ''
-          export PGPASSFILE=/run/postgresql/.pgpass
           psql -c "ALTER USER metabase WITH PASSWORD '$(cat ${config.clan.core.vars.generators.metabase-db.files.password.path})'"
         '';
       };
