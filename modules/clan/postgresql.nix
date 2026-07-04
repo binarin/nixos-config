@@ -255,7 +255,10 @@
                     baseGen = {
                       share = true;
                       runtimeInputs = [ pkgs.openssl ];
-                      script = "openssl rand -hex 32 > $out/password";
+                      # tr -d strips openssl's trailing newline; otherwise the password
+                      # value (and every ALTER USER '…' SQL literal it's substituted into)
+                      # would carry a stray newline.
+                      script = "openssl rand -hex 32 | tr -d '\\n' > $out/password";
                     };
 
                     serverGen =
