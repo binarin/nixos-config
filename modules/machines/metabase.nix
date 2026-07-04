@@ -81,6 +81,30 @@ in
           serviceConfig.ImportCredential = [ "MB_DB_PASS" ];
         };
 
+
+        services.tailscale = {
+          enable = true;
+          serve = {
+            services.metabase = {
+              protocol = "https";
+              target = "localhost:3000";
+            };
+          };
+        };
+
+        services.nginx = {
+          enable = true;
+          virtualHosts."metabase.home.binarin.info" = {
+            forceSSL = true;
+            enableACME = false;
+            serverAliases = [ "metabase.clan.binarin.info" ];
+            locations."/" = {
+              proxyPass = "http://localhost:3000";
+              recommendedProxySettings = true;
+            };
+          };
+        };
+
         nixos-config.export-metrics.enable = false;
       };
     };
