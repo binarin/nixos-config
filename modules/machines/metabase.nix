@@ -49,18 +49,39 @@ in
         self.nixosModules.lxc
       ];
 
-      proxmoxLXC = {
-        cores = 4;
-        memory = 4096;
-        mounts = [
-          {
-            mountPoint = "/nix";
-            size = "32G";
-            backup = false;
-          }
-        ];
-      };
+      config = {
+        proxmoxLXC = {
+          cores = 4;
+          memory = 4096;
+          mounts = [
+            {
+              mountPoint = "/nix";
+              size = "32G";
+              backup = false;
+            }
+          ];
+        };
 
-      nixos-config.export-metrics.enable = false;
+        services.metabase = {
+          enable = true;
+          listen.port = 3000;
+        };
+
+        systemd.services.metabase = {
+          environment = {
+            MB_DB_TYPE = "postgres";
+            MB_DB_HOST = "postgres.lynx-lizard.ts.net";
+            MB_DB_PORT = "5432";
+            MB_DB_DBNAME = "metabase";
+            MB_DB_USER = "metabase";
+          };
+          serviceConfig.LoadCredential = [
+            "MB_DB_PASS:${config.clan.core.vars.generators.metabase-db.files.password.path}"
+          ];
+          serviceConfig.ImportCredential = [ "MB_DB_PASS" ];
+        };
+
+        nixos-config.export-metrics.enable = false;
+      };
     };
 }
