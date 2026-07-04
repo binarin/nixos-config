@@ -33,6 +33,18 @@
       _class = "clan.service";
       manifest.name = "nixos-config-postgresql";
       manifest.description = "Provision PostgreSQL roles/databases with shared passwords distributed to consumer machines";
+      manifest.readme = ''
+        A PostgreSQL server (`server` role) provisions a role + database + password
+        for each consumer (`client` role). Passwords are `share = true` clan vars
+        generators (one per `(database, user)` pair) declared in `perMachine`, so the
+        server and the owning client decrypt the same secret. Secrets are injected via
+        sops templates (rendered to tmpfs) — never into `/nix/store` or `psql` argv.
+
+        The server sets each password at runtime (`ALTER USER`), owns SSL/listen
+        config, and emits `hostssl … scram-sha-256` pg_hba lines per client
+        `sourceCIDRs`. A client declares its `(database, user)` pairs via `access.<label>`
+        and references the shared password path (or the sops placeholder) itself.
+      '';
 
       roles.client = {
         description = "A machine that consumes one or more (database, user) pairs, receiving each shared password.";
