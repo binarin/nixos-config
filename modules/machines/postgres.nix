@@ -94,6 +94,24 @@ in
         '';
       };
 
+      systemd.services.metabase-db-password = {
+        description = "Set metabase database user password";
+        wantedBy = [ "multi-user.target" ];
+        requires = [ "postgresql.service" ];
+        after = [ "postgresql.service" ];
+        path = [ config.services.postgresql.package ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          User = "postgres";
+          Group = "postgres";
+        };
+        script = ''
+          export PGPASSFILE=/run/postgresql/.pgpass
+          psql -c "ALTER USER metabase WITH PASSWORD '$(cat ${config.clan.core.vars.generators.metabase-db.files.password.path})'"
+        '';
+      };
+
       nixos-config.export-metrics.enable = false;
     };
 }
