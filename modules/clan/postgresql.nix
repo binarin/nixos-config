@@ -178,6 +178,9 @@
                   let
                     db = e.database;
                     u = e.user;
+                    # ALTER DEFAULT PRIVILEGES only covers future objects created BY
+                    # ownerUser — correct here because each database has exactly one
+                    # owner role (enforced by the assertion below) that creates its tables.
                     defaultPrivs =
                       grants:
                       lib.optionalString (ownerUser != null) ''
