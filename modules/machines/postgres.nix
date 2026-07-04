@@ -22,6 +22,7 @@ in
     roles.client.machines.postgres = {
       settings = {
         domain = "postgres.home.binarin.info";
+        group = "postgres";
         reloadServices = [ "postgresql.service" ];
       };
     };

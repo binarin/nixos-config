@@ -165,14 +165,34 @@ in
               type = types.listOf types.str;
               default = [ ];
             };
+            owner = mkOption {
+              type = types.str;
+              default = "root";
+              description = "Owner of the deployed full.pem (and its stub).";
+            };
+            group = mkOption {
+              type = types.str;
+              default = "nginx";
+              description = "Group of full.pem and of the /var/lib/ssl-cert directory; consumers read the cert via membership in this group.";
+            };
+            mode = mkOption {
+              type = types.str;
+              default = "0640";
+              description = "Mode of the deployed full.pem.";
+            };
+            reloadServices = mkOption {
+              type = types.listOf types.str;
+              default = [ ];
+              description = "Consumer units ordered after pull-acme-cert and reloaded (try-reload-or-restart) when the cert changes.";
+            };
           };
         };
 
         perInstance =
-          { pkgs, instanceName, ... }:
+          { pkgs, instanceName, settings, ... }:
           {
             nixosModule =
-              { pkgs, config, ... }:
+              { pkgs, config, lib, ... }:
               {
                 imports = [
                   self.nixosModules.impermanence
@@ -201,7 +221,7 @@ in
                 systemd.tmpfiles.settings."50-per-machine-keys" = {
                   "/var/lib/ssl-cert".d = {
                     user = "acme-puller";
-                    group = "nginx";
+                    group = settings.group;
                     mode = "0750";
                   };
                 };
@@ -215,25 +235,25 @@ in
                 };
 
                 systemd.services.pull-acme-cert = {
-                  requiredBy = [
-                    "nginx.service"
-                  ];
-                  before = [
-                    "nginx.service"
-                  ];
+                  requiredBy = lib.unique ([ "nginx.service" ] ++ settings.reloadServices);
+                  before = lib.unique ([ "nginx.service" ] ++ settings.reloadServices);
                   path = with pkgs; [
                     curl
                     age
                     coreutils
                     openssl
+                    systemd
                   ];
                   serviceConfig = {
                     WorkingDirectory = "/var/lib/ssl-cert";
                   };
                   script = ''
                     set -euo pipefail
+
+                    changed=0
+
                     if [[ ! -f full.pem ]]; then
-                       # temp self-signed
+                       # temp self-signed, until the first successful download
                        openssl req -x509 -newkey rsa:4096 \
                        -keyout key.pem \
                        -out full.pem \
@@ -242,14 +262,32 @@ in
                        cat key.pem >> full.pem
                        rm key.pem
                     fi
-                    if curl -o new-full.pem https://acme.clan.binarin.info/${config.networking.hostName}-full.pem; then
+
+                    if curl -fsS -o new-full.pem https://acme.clan.binarin.info/${config.networking.hostName}-full.pem; then
                       if age \
                         --decrypt \
                         --identity ${config.clan.core.vars.generators.acme-distribution.files.encryption-key.path} \
-                        --output new-full-decrypted.pem new-full.pem; then \
-                        mv new-full-decrypted.pem full.pem
+                        --output new-full-decrypted.pem new-full.pem; then
+                        if ! cmp -s new-full-decrypted.pem full.pem; then
+                          mv new-full-decrypted.pem full.pem
+                          changed=1
+                        else
+                          rm -f new-full-decrypted.pem
+                        fi
                       fi
                     fi
+                    rm -f new-full.pem
+
+                    # Always normalize ownership/mode, regardless of which branch ran,
+                    # so both the stub and the downloaded cert are protected (the PEM
+                    # holds the private key).
+                    chown ${settings.owner}:${settings.group} full.pem
+                    chmod ${settings.mode} full.pem
+                    ${lib.optionalString (settings.reloadServices != [ ]) ''
+                      if [[ $changed == 1 ]]; then
+                        systemctl try-reload-or-restart ${lib.concatStringsSep " " settings.reloadServices}
+                      fi
+                    ''}
                   '';
                 };
               };
