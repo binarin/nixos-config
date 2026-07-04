@@ -19,7 +19,7 @@
               inherit (entry)
                 database
                 user
-                owner
+                role
                 sourceCIDRs
                 restartUnits
                 initSql
@@ -69,10 +69,22 @@
                         default = name;
                         description = "Role name that connects to the database.";
                       };
-                      owner = lib.mkOption {
-                        type = lib.types.bool;
-                        default = false;
-                        description = "Whether this role owns the database (gets ALTER DATABASE ... OWNER TO).";
+                      role = lib.mkOption {
+                        type = lib.types.enum [
+                          "owner"
+                          "readwrite"
+                          "readonly"
+                          "none"
+                        ];
+                        default = "none";
+                        description = ''
+                          Privilege template auto-applied to this role on its database:
+                            owner     - ALTER DATABASE ... OWNER + ALTER SCHEMA public OWNER (can create tables)
+                            readwrite - CONNECT, USAGE, SELECT/INSERT/UPDATE/DELETE + sequences, incl. future tables
+                            readonly  - CONNECT, USAGE, SELECT, incl. future tables
+                            none      - no auto grants; use initSql yourself
+                          initSql is always appended after the generated grants.
+                        '';
                       };
                       sourceCIDRs = lib.mkOption {
                         type = lib.types.listOf lib.types.str;
@@ -149,9 +161,53 @@
                 entries = flattenClients (roles.client.machines or { });
                 databases = lib.unique (map (e: e.database) entries);
                 users = lib.unique (map (e: e.user) entries);
-                ownersByDb = lib.mapAttrs (_db: es: map (e: e.user) (lib.filter (e: e.owner) es)) (
+                ownersByDb = lib.mapAttrs (_db: es: map (e: e.user) (lib.filter (e: e.role == "owner") es)) (
                   lib.groupBy (e: e.database) entries
                 );
+                # database -> its single owner user, for dbs that have one.
+                ownerByDb = lib.mapAttrs (_db: lib.head) (
+                  lib.filterAttrs (_db: owners: owners != [ ]) ownersByDb
+                );
+                # Privilege template SQL for one entry. Each non-empty block opens with
+                # \connect so schema-local statements target the right database (the
+                # provisioning psql runs without -d). ownerUser anchors ALTER DEFAULT
+                # PRIVILEGES; guarded so a missing owner surfaces the assertion, not a
+                # null-coercion error.
+                grantSql =
+                  e: ownerUser:
+                  let
+                    db = e.database;
+                    u = e.user;
+                    defaultPrivs =
+                      grants:
+                      lib.optionalString (ownerUser != null) ''
+                        ALTER DEFAULT PRIVILEGES FOR ROLE "${ownerUser}" IN SCHEMA public GRANT ${grants};
+                      '';
+                  in
+                  {
+                    owner = ''
+                      \connect "${db}"
+                      ALTER SCHEMA public OWNER TO "${u}";
+                    '';
+                    readwrite = ''
+                      \connect "${db}"
+                      GRANT CONNECT ON DATABASE "${db}" TO "${u}";
+                      GRANT USAGE ON SCHEMA public TO "${u}";
+                      GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "${u}";
+                      GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO "${u}";
+                      ${defaultPrivs ''SELECT, INSERT, UPDATE, DELETE ON TABLES TO "${u}"''}
+                      ${defaultPrivs ''USAGE, SELECT ON SEQUENCES TO "${u}"''}
+                    '';
+                    readonly = ''
+                      \connect "${db}"
+                      GRANT CONNECT ON DATABASE "${db}" TO "${u}";
+                      GRANT USAGE ON SCHEMA public TO "${u}";
+                      GRANT SELECT ON ALL TABLES IN SCHEMA public TO "${u}";
+                      ${defaultPrivs ''SELECT ON TABLES TO "${u}"''}
+                    '';
+                    none = "";
+                  }
+                  .${e.role};
                 unitName = e: "postgresql-provision-${e.database}-${e.user}";
                 tmplName = e: "postgresql-provision-${e.database}-${e.user}.sql";
               in
@@ -194,7 +250,10 @@
                         ALTER USER "${e.user}" WITH PASSWORD '${
                           config.sops.placeholder."${secretName instanceName e.database e.user}"
                         }';
-                        ${lib.optionalString e.owner ''ALTER DATABASE "${e.database}" OWNER TO "${e.user}";''}
+                        ${lib.optionalString (
+                          e.role == "owner"
+                        ) ''ALTER DATABASE "${e.database}" OWNER TO "${e.user}";''}
+                        ${grantSql e (ownerByDb.${e.database} or null)}
                         ${e.initSql}
                       '';
                     }
@@ -228,10 +287,14 @@
                   ) entries
                 );
 
-                assertions = lib.mapAttrsToList (db: owners: {
-                  assertion = lib.length owners <= 1;
-                  message = "postgresql clan module: database '${db}' has multiple owners (${lib.concatStringsSep ", " owners}); at most one access entry per database may set owner = true.";
-                }) ownersByDb;
+                assertions = map (db: {
+                  assertion = lib.length (ownersByDb.${db} or [ ]) == 1;
+                  message =
+                    let
+                      owners = ownersByDb.${db} or [ ];
+                    in
+                    "postgresql clan module: database '${db}' must have exactly one access entry with role = \"owner\" (found ${toString (lib.length owners)}${lib.optionalString (owners != [ ]) ": ${lib.concatStringsSep ", " owners}"}).";
+                }) databases;
               };
           };
       };

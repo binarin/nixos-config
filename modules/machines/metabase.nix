@@ -31,7 +31,7 @@ in
   };
 
   clan.inventory.instances.postgres.roles.client.machines.metabase.settings.access.metabase = {
-    owner = true;
+    role = "owner";
     sourceCIDRs = [
       "100.64.0.0/10"
       "192.168.2.36/32"
