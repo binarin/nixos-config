@@ -251,14 +251,14 @@ git commit -m "feat(postgres): oneshot service to set metabase DB password at ru
 
 ---
 
-### Task 6: pg_hba hostssl + PostgreSQL SSL cert splitting + ACME client
+### Task 6: pg_hba hostssl + PostgreSQL SSL with ACME certs + ACME client
 
 **Files:**
 - Modify: `modules/machines/postgres.nix` — both the top-level (ACME instance) and the nixos module (pg_hba, SSL, cert splitting)
 
 **Interfaces:**
 - Consumes: ACME certs pulled by the clan ACME client module (land at `/var/lib/ssl-cert/full.pem`)
-- Produces: pg_hba with hostssl + host rules; oneshot to split combined PEM for PostgreSQL; ACME inventory instance
+- Produces: pg_hba with hostssl + host rules; PostgreSQL SSL pointing to combined PEM; ACME inventory instance
 
 - [ ] **Step 1: Add ACME client instance at top level**
 
@@ -286,39 +286,24 @@ services.postgresql.authentication = ''
 '';
 ```
 
-- [ ] **Step 3: Add cert-splitting oneshot and PostgreSQL SSL config**
+- [ ] **Step 3: Add PostgreSQL SSL config**
 
-After the pg_hba rules, add:
+After the pg_hba rules, add to the existing `services.postgresql` block:
 
 ```nix
-systemd.services.postgresql-ssl-split = {
-  description = "Extract cert and key from ACME combined PEM for PostgreSQL";
-  requiredBy = [ "postgresql.service" ];
-  before = [ "postgresql.service" ];
-  path = [ pkgs.gawk ];
-  serviceConfig = {
-    Type = "oneshot";
-    RemainAfterExit = true;
-  };
-  script = ''
-    mkdir -p /run/postgresql/ssl
-    awk '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/' \
-      /var/lib/ssl-cert/full.pem > /run/postgresql/ssl/cert.pem
-    awk '/^-----BEGIN PRIVATE KEY-----$/,/^-----END PRIVATE KEY-----$/' \
-      /var/lib/ssl-cert/full.pem > /run/postgresql/ssl/key.pem
-    chmod 600 /run/postgresql/ssl/key.pem
-    chown postgres:postgres /run/postgresql/ssl/*
-  '';
-};
-
 services.postgresql = {
   ssl = "on";
-  sslCertFile = "/run/postgresql/ssl/cert.pem";
-  sslKeyFile = "/run/postgresql/ssl/key.pem";
+  sslCertFile = "/var/lib/ssl-cert/full.pem";
+  sslKeyFile = "/var/lib/ssl-cert/full.pem";
 };
 ```
 
-Note: `services.postgresql` was already declared in Task 2. Merge these new settings into the existing block — don't create a second `services.postgresql` block.
+PostgreSQL reads the first certificate and first private key from the respective files.
+Since both point to the same combined PEM, it extracts each section automatically —
+no splitting needed.
+
+Note: Merge these new settings into the existing `services.postgresql` block from Task 2
+rather than creating a separate block.
 
 - [ ] **Step 4: Verify eval**
 
@@ -332,7 +317,7 @@ Expected: `"on"`
 
 ```bash
 git add modules/machines/postgres.nix
-git commit -m "feat(postgres): hostssl pg_hba, SSL cert splitting, ACME client"
+git commit -m "feat(postgres): hostssl pg_hba, SSL with ACME certs, ACME client"
 ```
 
 ---
