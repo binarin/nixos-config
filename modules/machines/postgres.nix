@@ -66,6 +66,15 @@ in
         ];
       };
 
+      services.postgresql = {
+        enable = true;
+        package = pkgs.postgresql_18;
+        settings = {
+          shared_buffers = "2GB";
+          effective_cache_size = "6GB";
+        };
+      };
+
       nixos-config.export-metrics.enable = false;
     };
 }
