@@ -49,6 +49,23 @@ in
         self.nixosModules.lxc
       ];
 
+      proxmoxLXC = {
+        cores = 4;
+        memory = 8192;
+        mounts = [
+          {
+            mountPoint = "/nix";
+            size = "32G";
+            backup = false;
+          }
+          {
+            mountPoint = "/var/lib/postgresql";
+            size = "128G";
+            backup = true;
+          }
+        ];
+      };
+
       nixos-config.export-metrics.enable = false;
     };
 }
