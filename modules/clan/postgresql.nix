@@ -213,6 +213,29 @@
                   .${e.role};
                 unitName = e: "postgresql-provision-${e.database}-${e.user}";
                 tmplName = e: "postgresql-provision-${e.database}-${e.user}.sql";
+                # Serialize provisioning within each database. The per-(db,user) units
+                # otherwise start concurrently (all only after postgresql.service), and
+                # their GRANT/ALTER statements touch shared catalog rows — pg_database,
+                # pg_namespace "public", pg_default_acl for the owner — so two running at
+                # once raise "tuple concurrently updated". Chain each database's units in a
+                # stable order so each starts only after the previous one has finished.
+                # Different databases still provision in parallel (disjoint catalog rows).
+                provisionPredecessor = lib.listToAttrs (
+                  lib.concatLists (
+                    lib.mapAttrsToList (
+                      _db: es:
+                      let
+                        ordered = lib.sort (a: b: unitName a < unitName b) es;
+                      in
+                      lib.imap0 (
+                        i: e:
+                        lib.nameValuePair (unitName e) (
+                          lib.optional (i > 0) "${unitName (lib.elemAt ordered (i - 1))}.service"
+                        )
+                      ) ordered
+                    ) (lib.groupBy (e: e.database) entries)
+                  )
+                );
               in
               {
                 # Build on clan-core: idempotent CREATE USER / CREATE DATABASE + backup hooks.
@@ -271,7 +294,7 @@
                       description = "Provision PostgreSQL role ${e.user} / database ${e.database}";
                       wantedBy = [ "multi-user.target" ];
                       requires = [ "postgresql.service" ];
-                      after = [ "postgresql.service" ];
+                      after = [ "postgresql.service" ] ++ provisionPredecessor.${unitName e};
                       path = [
                         config.services.postgresql.package
                         pkgs.util-linux
