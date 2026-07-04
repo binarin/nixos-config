@@ -18,6 +18,15 @@ in
     };
   };
 
+  clan.inventory.instances.acme = {
+    roles.client.machines.postgres = {
+      settings = {
+        domain = "postgres.home.binarin.info";
+        reloadServices = [ "postgresql.service" ];
+      };
+    };
+  };
+
   clan.inventory.machines.postgres = {
     deploy.targetHost = flakeConfig.inventory.ipAllocation.postgres.home.primary.address;
   };
@@ -72,8 +81,16 @@ in
         settings = {
           shared_buffers = "2GB";
           effective_cache_size = "6GB";
+          ssl = "on";
+          ssl_cert_file = "/var/lib/ssl-cert/full.pem";
+          ssl_key_file = "/var/lib/ssl-cert/full.pem";
         };
       };
+
+      services.postgresql.authentication = ''
+        hostssl metabase metabase 192.168.2.36/32 md5
+        host    metabase metabase 100.64.0.0/10  md5
+      '';
 
       clan.core.postgresql = {
         enable = true;
