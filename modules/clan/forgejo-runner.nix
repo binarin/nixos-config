@@ -148,7 +148,13 @@
                       "podman.socket"
                     ];
                     wantedBy = [ "multi-user.target" ];
-                    environment.DOCKER_HOST = "unix:///run/podman/podman.sock";
+                    environment = {
+                      DOCKER_HOST = "unix:///run/podman/podman.sock";
+                      # Jobs inherit the daemon's env; without HOME the dynamic user
+                      # gets HOME=/ and tools (nix, git) try to write to /.cache on
+                      # the read-only root. Point it at the writable state dir.
+                      HOME = "/var/lib/gitea-runner/${r.ident}";
+                    };
                     path = [ pkgs.coreutils ] ++ baseTools ++ settings.hostPackages;
                     serviceConfig = {
                       Type = "simple";
