@@ -2,8 +2,12 @@
   self,
   inputs,
   config,
+  lib,
   ...
 }:
+let
+  flakeConfig = config;
+in
 {
   flake.deploy.nodes.forgejo = {
     hostname = config.inventory.ipAllocation."forgejo".home.primary.address;
@@ -13,15 +17,22 @@
     };
   };
 
-  flake.nixosConfigurations.forgejo = inputs.nixpkgs.lib.nixosSystem {
-    # system = "x86_64-linux";
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    specialArgs.inventoryHostName = "forgejo";
-    modules = [
+  clan.inventory.machines.forgejo = {
+    deploy.targetHost = flakeConfig.inventory.ipAllocation.forgejo.home.primary.address;
+  };
+
+  clan.machines.forgejo = {
+    imports = [
       self.nixosModules.forgejo-configuration
     ];
-
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
+
+  flake.nixosConfigurations.forgejo = lib.mkForce (
+    self.clan.nixosConfigurations.forgejo.extendModules {
+      specialArgs.inventoryHostName = "forgejo";
+    }
+  );
 
   flake.nixosModules.forgejo-configuration =
     {
