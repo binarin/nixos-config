@@ -1,0 +1,215 @@
+# Reusable Forgejo runners — `forgejo-runner` clan service — design
+
+## Problem
+
+The nix-builder CI runners are locked to a single repository and use a runner
+registration flow that Forgejo now deprecates.
+
+Two coupled goals:
+
+1. **Reuse** — the runners on `nix-builder-valak` (3) and `nix-builder-raum` (2)
+   should serve *all* repositories owned by the `binarin` user, not just
+   `nixos-config`. All target projects live under that one user.
+2. **De-deprecate** — `modules/nix-builder.nix` uses `services.gitea-actions-runner`,
+   whose registration is built on the **registration-token** flow. In
+   forgejo-runner 12.12.0 both runner-side registration subcommands are marked
+   deprecated:
+   - `forgejo-runner register` (registration-token exchange)
+   - `forgejo-runner create-runner-file` (shared-secret → `.runner` file)
+
+   The non-deprecated runner path is `forgejo-runner daemon` with
+   `--url --uuid --token-url --label` — no `.runner` file, no register step. The
+   runner's permanent token is established **server-side** by
+   `forgejo actions register --secret <40-hex> --scope <owner> …` (see
+   `../forgejo/cmd/forgejo/actions.go` and `../forgejo/models/actions/forgejo.go`).
+
+### Why scope is the lever for reuse
+
+A runner's scope is fixed at registration: repo-level, org/user-level, or global
+(`../forgejo/models/actions/runner_token.go`). The current runners are
+repo-scoped to `nixos-config`. Registering them at **user scope**
+(`--scope binarin`) makes every current and future repo under `binarin` able to
+use them via the existing `native:host` label.
+
+### The shared-secret pivot
+
+`RegisterRunner` (`../forgejo/models/actions/forgejo.go`) derives the runner UUID
+from the secret: `uuid = uuid(secret[:16] bytes)`, and the full 40-char hex
+secret is the runner's permanent auth token. Registration is **idempotent keyed
+by that UUID** — re-running with the same secret updates
+name/owner/labels/ephemeral in place. Because the admin *chooses* the secret
+(unlike a server-generated registration token), it can be a declarative
+clan var defined before first use, and both sides derive the same identity with
+no handshake:
+
+- **Forgejo host** runs `forgejo actions register --secret <S> --scope binarin`.
+- **Builder host** runs `forgejo-runner daemon --uuid uuid(S) --token <S>`.
+
+One secret ⇒ one runner. Five runner instances ⇒ five distinct secrets.
+
+## Approach
+
+A new clan service module `flake.clan.modules.forgejo-runner` in
+`modules/clan/forgejo-runner.nix`, `_class = "clan.service"`, modeled directly on
+`modules/clan/postgresql.nix`. It has two roles plus a `perMachine` block.
+
+| postgresql service | forgejo-runner service |
+|---|---|
+| `server` = PG host, provisions every client's role/db/password | **`server`** = forgejo host, *registers* every runner |
+| `client` = consumer, declares `access.<label>` pairs | **`runner`** = builder host, declares how many runners it runs |
+| `share=true` password generator per `(db,user)` | `share=true` secret generator per runner |
+
+**Instance model:** a single instance named `forgejo-runner`; the `forgejo`
+machine joins `server`, each builder host joins `runner`.
+
+Persistent (not ephemeral) runners — long-lived daemons with a warm `/nix/store`,
+matching today's behavior. Ephemeral would re-register every job and lose cache
+warmth, a poor fit for native host nix builders.
+
+### Secret sharing (`perMachine`)
+
+One `share = true` clan-vars generator per runner, declared in the module's
+`perMachine` block (single code path, evaluated per machine) — the exact pattern
+`postgresql.nix` uses. Generator script:
+
+```
+openssl rand -hex 20 | tr -d '\n' > $out/secret     # 40 hex chars = 20 bytes, no newline
+```
+
+Branch on `machine.roles`:
+
+- **server machine** (`builtins.elem "server" machine.roles`) → declare the
+  generator for *every* runner across all `runner`-role machines (the forgejo host
+  must read them all to register them). `files.secret.restartUnits` = that
+  runner's `forgejo-register-<name>.service`.
+- **runner machine** → declare only its own runners' generators.
+  `files.secret.restartUnits` = that runner's `forgejo-runner-<name>.service`.
+
+Both `deploy = true`, `secret = true`, default `owner = root` / `mode = 0400`
+(delivered to services via `LoadCredential`, so root-owned is fine). Referenced
+by `config.clan.core.vars.generators.<gen>.files.secret.path` — the repo-wide
+idiom.
+
+Generator naming: `forgejo-runner-${instanceName}-${machine}-${toString idx}`.
+
+### `runner` role (builder host)
+
+**Interface (`settings`):**
+
+- `count` : positive int, default `1` — runner instances on this host.
+- `labels` : list of str, default `[ "native:host" ]`.
+- `url` : str, default `"https://forgejo.lynx-lizard.ts.net"` — the forgejo
+  instance. Held on the runner role so no cross-role read is needed.
+- `hostPackages` : list of packages, default the current runner toolset (bash,
+  coreutils, curl, git, nix, nodejs, podman, jq, just, s3cmd, niks3, …).
+- `supplementaryGroups` : list of str, default `[ "podman" ]` — the builder host
+  adds `"nix-access-tokens"`.
+
+**`perInstance` `nixosModule`** — for each instance `idx` in `1..count`, runner
+name `= (idx == 1 then machine else "${machine}-${idx}")`, emit
+`forgejo-runner-<name>.service`:
+
+- `DynamicUser = true`, `User = "gitea-runner"`, `StateDirectory` per runner
+  (warm caches persist across restarts; state lives under the existing
+  `/var/lib/private/gitea-runner` mount).
+- `SupplementaryGroups` = podman + `nix-access-tokens`; `DOCKER_HOST` →
+  podman socket.
+- `PATH` = `hostPackages`.
+- `LoadCredential = "token:<generator secret path>"`.
+- `ExecStart` = a wrapper script: read the secret from
+  `$CREDENTIALS_DIRECTORY/token`, compute `uuid` from its first 16 bytes
+  (`od`/`printf` → `8-4-4-4-12`), then
+  `exec forgejo-runner daemon --url <url> --uuid "$uuid"
+  --token-url "file:$CREDENTIALS_DIRECTORY/token" --label <l1> --label <l2> …
+  --config <base.yaml>`.
+- `base.yaml` — non-secret daemon config (capacity, host/container options),
+  generated with the settings format. No token, no uuid in it.
+- `Restart = "on-failure"`, `wantedBy = [ "multi-user.target" ]`, wants
+  network-online + podman.
+
+The role also enables `virtualisation.podman.enable = true` (idempotent) — the
+runner runtime is owned by the clan service.
+
+### `server` role (forgejo host)
+
+**Interface (`settings`):**
+
+- `scope` : str, default `"binarin"` — owner scope passed to `register`
+  (`""` = global).
+
+**`perInstance` `nixosModule`** — flatten `roles.runner.machines` into the full
+runner list (name, labels, secret generator), exactly like `postgresql.nix`
+flattens `roles.client.machines`. For each runner emit
+`forgejo-register-<name>.service`:
+
+- `Type = "oneshot"`, `RemainAfterExit = true`, `wantedBy = multi-user.target`.
+- `requires`/`after` = `forgejo.service` (schema exists once the server has
+  migrated).
+- `Restart = "on-failure"` + `RestartSec` — forgejo uses **sqlite** (no
+  `database` set → NixOS default `sqlite3`), so the register CLI writing while the
+  server holds the DB can hit a brief write lock; retry rides it out.
+- Script runs as the forgejo user, replicating the `forgejo-cli` env
+  (`FORGEJO_WORK_DIR = stateDir`, `FORGEJO_CUSTOM = customDir`, `runuser -u <user>`),
+  invoking:
+  `forgejo actions register --secret-file <generator secret path>
+  --scope <scope> --name <name> --labels <csv>`.
+  `--secret-file` keeps the secret out of argv.
+- Re-runs on rebuild and on secret rotation (via the generator's `restartUnits`).
+
+### Machine wiring (mirrors postgres/metabase split)
+
+```nix
+# modules/machines/forgejo.nix
+clan.inventory.instances.forgejo-runner = {
+  module = { input = "self"; name = "forgejo-runner"; };
+  roles.server.machines.forgejo.settings.scope = "binarin";
+};
+
+# modules/machines/nix-builder-valak.nix
+clan.inventory.instances.forgejo-runner.roles.runner.machines.nix-builder-valak.settings.count = 3;
+
+# modules/machines/nix-builder-raum.nix
+clan.inventory.instances.forgejo-runner.roles.runner.machines.nix-builder-raum.settings.count = 2;
+```
+
+### `modules/nix-builder.nix` slims down
+
+Remove the runner-provisioning parts now owned by the clan service:
+
+- `services.gitea-actions-runner` block and its `instances`.
+- `nixos-config.nix-builder.runnerCount` option (replaced by the clan `count`
+  setting).
+- sops `nixos-config-runner-token` secret, its env template, and the
+  `serviceEscapedName` restart wiring.
+- The `nix-builder.runnerCount = N` lines in the two builder machine files.
+
+Keep the pure **host** concerns: the srvos `nix-remote-builder` role,
+`nix.settings.system-features`/`build-dir`, `nixos-config.nix.accessTokens`
+(github token + the `nix-access-tokens` group the daemons join), podman is now
+enabled by the clan runner role, and `export-metrics`.
+
+## Consequences / out of scope
+
+- **No pruning.** `register` only upserts; reducing `count` or removing a builder
+  leaves stale runner rows in Forgejo. Cleanup is a manual
+  `forgejo-cli actions …` step. Not automated here.
+- **Migration.** After rollout, retire the old repo-scoped
+  `nixos-config-runner-token` secret and the old `nixos-config*` runner rows
+  (manual, one-time).
+- **`--scope binarin` correctness.** Confirm the exact forgejo owner/username is
+  `binarin` before first deploy.
+- **`forgejo-runner` version.** Pinned via `pkgs.forgejo-runner` (12.12.0 at
+  design time); the `daemon --uuid/--token-url` interface is the target.
+
+## Verification
+
+- `nix flake check` / evaluate `nixosConfigurations.{forgejo,nix-builder-valak,nix-builder-raum}`.
+- Deploy; confirm five `forgejo-register-*.service` units succeed on the forgejo
+  host and five runners appear under the `binarin` user in Forgejo, each showing
+  the `native:host` label and `idle`/`online`.
+- Confirm five `forgejo-runner-*.service` daemons are active across the two
+  builders with no `register`/`create-runner-file` invocation in their logs.
+- From a *second* repo under `binarin`, run a workflow with `runs-on: native`
+  and confirm it is picked up and completes.
+- Rebuild again and confirm the register oneshots are idempotent (runners not
+  duplicated).
