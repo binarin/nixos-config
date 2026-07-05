@@ -2,11 +2,13 @@
   self,
   inputs,
   config,
+  lib,
   ...
 }:
 let
   inventoryHostName = "nix-builder-raum";
   system = "x86_64-linux";
+  flakeConfig = config;
 in
 {
   flake.deploy.nodes.nix-builder-raum = {
@@ -17,19 +19,22 @@ in
     };
   };
 
-  flake.nixosConfigurations.nix-builder-raum = inputs.nixpkgs.lib.nixosSystem {
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    # inherit system;
-    specialArgs = {
-      inherit inventoryHostName;
-      flake = {
-        inherit self inputs config;
-      };
-    };
-    modules = [
+  clan.inventory.machines.nix-builder-raum = {
+    deploy.targetHost = flakeConfig.inventory.ipAllocation.nix-builder-raum.home.primary.address;
+  };
+
+  clan.machines.nix-builder-raum = {
+    imports = [
       self.nixosModules.nix-builder-raum-configuration
     ];
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
+
+  flake.nixosConfigurations.nix-builder-raum = lib.mkForce (
+    self.clan.nixosConfigurations.nix-builder-raum.extendModules {
+      specialArgs.inventoryHostName = "nix-builder-raum";
+    }
+  );
 
   flake.nixosModules.nix-builder-raum-configuration =
     { config, ... }:

@@ -2,11 +2,13 @@
   self,
   inputs,
   config,
+  lib,
   ...
 }:
 let
   inventoryHostName = "nix-builder-valak";
   system = "x86_64-linux";
+  flakeConfig = config;
 in
 {
   flake.deploy.nodes.nix-builder-valak = {
@@ -17,19 +19,22 @@ in
     };
   };
 
-  flake.nixosConfigurations.nix-builder-valak = inputs.nixpkgs.lib.nixosSystem {
-    # inherit system;
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    specialArgs = {
-      inherit inventoryHostName;
-      flake = {
-        inherit self inputs config;
-      };
-    };
-    modules = [
+  clan.inventory.machines.nix-builder-valak = {
+    deploy.targetHost = flakeConfig.inventory.ipAllocation.nix-builder-valak.home.primary.address;
+  };
+
+  clan.machines.nix-builder-valak = {
+    imports = [
       self.nixosModules.nix-builder-valak-configuration
     ];
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
+
+  flake.nixosConfigurations.nix-builder-valak = lib.mkForce (
+    self.clan.nixosConfigurations.nix-builder-valak.extendModules {
+      specialArgs.inventoryHostName = "nix-builder-valak";
+    }
+  );
 
   flake.nixosModules.nix-builder-valak-configuration =
     { config, ... }:
