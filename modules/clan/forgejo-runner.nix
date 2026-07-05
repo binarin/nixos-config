@@ -152,8 +152,12 @@
                       DOCKER_HOST = "unix:///run/podman/podman.sock";
                       # Jobs inherit the daemon's env; without HOME the dynamic user
                       # gets HOME=/ and tools (nix, git) try to write to /.cache on
-                      # the read-only root. Point it at the writable state dir.
+                      # the read-only root. Point HOME (and the XDG bases) at the
+                      # writable state dir. NB: this does not reach tools run inside
+                      # Bazel action sandboxes — those need --action_env in the repo.
                       HOME = "/var/lib/gitea-runner/${r.ident}";
+                      XDG_CACHE_HOME = "/var/lib/gitea-runner/${r.ident}/.cache";
+                      XDG_CONFIG_HOME = "/var/lib/gitea-runner/${r.ident}/.config";
                     };
                     path = [ pkgs.coreutils ] ++ baseTools ++ settings.hostPackages;
                     serviceConfig = {
