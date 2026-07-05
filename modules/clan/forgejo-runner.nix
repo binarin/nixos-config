@@ -122,7 +122,7 @@
                     baseConfig = (pkgs.formats.yaml { }).generate "forgejo-runner-${r.ident}.yaml" {
                       log.level = "info";
                       runner = {
-                        file = "/var/lib/gitea-runner/${r.ident}/.runner";
+                        file = "/var/lib/${instanceName}/${r.displayName}/.runner";
                         capacity = 1;
                       };
                       cache.enabled = true;
@@ -149,23 +149,19 @@
                     ];
                     wantedBy = [ "multi-user.target" ];
                     environment = {
+                      # HOME/USER/SHELL now come from the real user's passwd entry
+                      # (see users.users.${instanceName}); unset XDG bases default to
+                      # $HOME/.cache and $HOME/.config. NB: this does not reach tools
+                      # run inside Bazel action sandboxes — those need --action_env.
                       DOCKER_HOST = "unix:///run/podman/podman.sock";
-                      # Jobs inherit the daemon's env; without HOME the dynamic user
-                      # gets HOME=/ and tools (nix, git) try to write to /.cache on
-                      # the read-only root. Point HOME (and the XDG bases) at the
-                      # writable state dir. NB: this does not reach tools run inside
-                      # Bazel action sandboxes — those need --action_env in the repo.
-                      HOME = "/var/lib/gitea-runner/${r.ident}";
-                      XDG_CACHE_HOME = "/var/lib/gitea-runner/${r.ident}/.cache";
-                      XDG_CONFIG_HOME = "/var/lib/gitea-runner/${r.ident}/.config";
                     };
                     path = [ pkgs.coreutils ] ++ baseTools ++ settings.hostPackages;
                     serviceConfig = {
                       Type = "simple";
-                      DynamicUser = true;
-                      User = "forgejo-runner";
-                      StateDirectory = "gitea-runner/${r.ident}";
-                      WorkingDirectory = "/var/lib/gitea-runner/${r.ident}";
+                      User = instanceName;
+                      Group = instanceName;
+                      StateDirectory = "${instanceName}/${r.displayName}";
+                      WorkingDirectory = "/var/lib/${instanceName}/${r.displayName}";
                       SupplementaryGroups = settings.supplementaryGroups;
                       LoadCredential = [ "token:${secretPath}" ];
                       ExecStart = startScript;
@@ -176,6 +172,21 @@
               in
               {
                 virtualisation.podman.enable = true;
+
+                users.groups.${instanceName} = { };
+                users.users.${instanceName} = {
+                  isSystemUser = true;
+                  group = instanceName;
+                  home = "/var/lib/${instanceName}";
+                  createHome = true;
+                  shell = pkgs.bashInteractive;
+                  description = "Forgejo Actions runner (${instanceName})";
+                };
+
+                systemd.tmpfiles.rules = [
+                  "d /var/lib/${instanceName} 0750 ${instanceName} ${instanceName} -"
+                ];
+
                 systemd.services = lib.listToAttrs (map mkDaemon runners);
               };
           };
