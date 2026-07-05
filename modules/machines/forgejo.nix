@@ -28,6 +28,14 @@ in
     nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
 
+  clan.inventory.instances.forgejo-runner = {
+    module = {
+      input = "self";
+      name = "forgejo-runner";
+    };
+    roles.server.machines.forgejo.settings.scope = "binarin";
+  };
+
   flake.nixosConfigurations.forgejo = lib.mkForce (
     self.clan.nixosConfigurations.forgejo.extendModules {
       specialArgs.inventoryHostName = "forgejo";

@@ -69,7 +69,7 @@
                 description = "Forgejo instance URL the daemon connects to.";
               };
               hostPackages = lib.mkOption {
-                type = lib.types.listOf lib.types.package;
+                type = lib.types.listOf lib.types.raw;
                 default = [ ];
                 description = "Extra packages placed on PATH for host-execution jobs (added to a base toolset).";
               };

@@ -30,6 +30,15 @@ in
     nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
 
+  clan.inventory.instances.forgejo-runner.roles.runner.machines.nix-builder-raum.settings = {
+    count = 2;
+    hostPackages = [ inputs.niks3.packages.x86_64-linux.niks3 ];
+    supplementaryGroups = [
+      "podman"
+      "nix-access-tokens"
+    ];
+  };
+
   flake.nixosConfigurations.nix-builder-raum = lib.mkForce (
     self.clan.nixosConfigurations.nix-builder-raum.extendModules {
       specialArgs.inventoryHostName = "nix-builder-raum";
@@ -51,8 +60,6 @@ in
       config = {
         networking.hostName = inventoryHostName;
         system.stateVersion = "25.11";
-
-        nixos-config.nix-builder.runnerCount = 2;
 
         proxmoxLXC = {
           cores = 8;
