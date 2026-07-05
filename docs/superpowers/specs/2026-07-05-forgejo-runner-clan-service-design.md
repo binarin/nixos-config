@@ -123,9 +123,10 @@ identifier is namespaced by `instanceName`. Define once:
 **`perInstance` `nixosModule`** — for each `idx` in `1..count`, emit
 `forgejo-runner-${ident}.service`:
 
-- `DynamicUser = true`, `User = ident`, `StateDirectory = "gitea-runner/${ident}"`
-  (warm caches persist across restarts; state lives under the existing
-  `/var/lib/private/gitea-runner` mount).
+- `DynamicUser = true`, `User = "forgejo-runner"` (a fixed short name — `ident`
+  would exceed the ~32-char username limit), `StateDirectory = "gitea-runner/${ident}"`
+  (per-runner state isolation; warm caches persist across restarts; state lives
+  under the existing `/var/lib/private/gitea-runner` mount).
 - `SupplementaryGroups` = podman + `nix-access-tokens`; `DOCKER_HOST` →
   podman socket.
 - `PATH` = `hostPackages`.
