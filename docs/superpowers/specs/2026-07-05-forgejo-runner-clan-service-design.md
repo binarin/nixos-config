@@ -59,8 +59,11 @@ A new clan service module `flake.clan.modules.forgejo-runner` in
 | `client` = consumer, declares `access.<label>` pairs | **`runner`** = builder host, declares how many runners it runs |
 | `share=true` password generator per `(db,user)` | `share=true` secret generator per runner |
 
-**Instance model:** a single instance named `forgejo-runner`; the `forgejo`
-machine joins `server`, each builder host joins `runner`.
+**Instance model:** the initial deployment uses a single instance named
+`forgejo-runner` (scope `binarin`); the `forgejo` machine joins `server`, each
+builder host joins `runner`. **Multiple instances co-exist** — see the
+*Multiple instances* section — so runners for another owner are just a second
+instance with its own `scope`.
 
 Persistent (not ephemeral) runners — long-lived daemons with a warm `/nix/store`,
 matching today's behavior. Ephemeral would re-register every job and lose cache
@@ -79,18 +82,30 @@ openssl rand -hex 20 | tr -d '\n' > $out/secret     # 40 hex chars = 20 bytes, n
 Branch on `machine.roles`:
 
 - **server machine** (`builtins.elem "server" machine.roles`) → declare the
-  generator for *every* runner across all `runner`-role machines (the forgejo host
-  must read them all to register them). `files.secret.restartUnits` = that
-  runner's `forgejo-register-<name>.service`.
+  generator for *every* runner across all `runner`-role machines of *every*
+  instance (the forgejo host must read them all to register them).
+  `files.secret.restartUnits` = that runner's `forgejo-register-${ident}.service`.
 - **runner machine** → declare only its own runners' generators.
-  `files.secret.restartUnits` = that runner's `forgejo-runner-<name>.service`.
+  `files.secret.restartUnits` = that runner's `forgejo-runner-${ident}.service`.
 
 Both `deploy = true`, `secret = true`, default `owner = root` / `mode = 0400`
 (delivered to services via `LoadCredential`, so root-owned is fine). Referenced
 by `config.clan.core.vars.generators.<gen>.files.secret.path` — the repo-wide
 idiom.
 
-Generator naming: `forgejo-runner-${instanceName}-${machine}-${toString idx}`.
+### Naming (must be instance-namespaced)
+
+To let multiple instances co-exist on the same machine, every generated
+identifier is namespaced by `instanceName`. Define once:
+
+- `ident = "${instanceName}-${machine}-${toString idx}"` — used for the
+  generator name (`forgejo-runner-${ident}`), the systemd unit names
+  (`forgejo-runner-${ident}.service`, `forgejo-register-${ident}.service`),
+  `StateDirectory`, and the `DynamicUser` name.
+- `displayName = if idx == 1 then machine else "${machine}-${toString idx}"` —
+  the Forgejo `--name` only. It may repeat across instances (they are different
+  owners in the UI); within one scope it is unique. The runner *identity* is the
+  UUID derived from the (instance-namespaced, hence unique) secret, not the name.
 
 ### `runner` role (builder host)
 
@@ -105,11 +120,10 @@ Generator naming: `forgejo-runner-${instanceName}-${machine}-${toString idx}`.
 - `supplementaryGroups` : list of str, default `[ "podman" ]` — the builder host
   adds `"nix-access-tokens"`.
 
-**`perInstance` `nixosModule`** — for each instance `idx` in `1..count`, runner
-name `= (idx == 1 then machine else "${machine}-${idx}")`, emit
-`forgejo-runner-<name>.service`:
+**`perInstance` `nixosModule`** — for each `idx` in `1..count`, emit
+`forgejo-runner-${ident}.service`:
 
-- `DynamicUser = true`, `User = "gitea-runner"`, `StateDirectory` per runner
+- `DynamicUser = true`, `User = ident`, `StateDirectory = "gitea-runner/${ident}"`
   (warm caches persist across restarts; state lives under the existing
   `/var/lib/private/gitea-runner` mount).
 - `SupplementaryGroups` = podman + `nix-access-tokens`; `DOCKER_HOST` →
@@ -138,9 +152,9 @@ runner runtime is owned by the clan service.
   (`""` = global).
 
 **`perInstance` `nixosModule`** — flatten `roles.runner.machines` into the full
-runner list (name, labels, secret generator), exactly like `postgresql.nix`
-flattens `roles.client.machines`. For each runner emit
-`forgejo-register-<name>.service`:
+runner list (`ident`, `displayName`, labels, secret generator), exactly like
+`postgresql.nix` flattens `roles.client.machines`. For each runner emit
+`forgejo-register-${ident}.service`:
 
 - `Type = "oneshot"`, `RemainAfterExit = true`, `wantedBy = multi-user.target`.
 - `requires`/`after` = `forgejo.service` (schema exists once the server has
@@ -152,9 +166,21 @@ flattens `roles.client.machines`. For each runner emit
   (`FORGEJO_WORK_DIR = stateDir`, `FORGEJO_CUSTOM = customDir`, `runuser -u <user>`),
   invoking:
   `forgejo actions register --secret-file <generator secret path>
-  --scope <scope> --name <name> --labels <csv>`.
+  --scope <scope> --name <displayName> --labels <csv>`.
   `--secret-file` keeps the secret out of argv.
 - Re-runs on rebuild and on secret rotation (via the generator's `restartUnits`).
+
+**Serialize registration (sqlite single-writer).** All `forgejo-register-*` units
+on the forgejo host — *across every instance* — must run one at a time, or
+concurrent writers race on the same sqlite DB (`database is locked`). This is the
+same hazard and remedy as the postgres module's provisioning serialization
+(`c26706fd`): chain the register units in a stable order via `after` +
+`before`/predecessor edges so each starts only after the previous finishes. Since
+serialization must span instances, the ordering is best expressed where all
+instances are visible — the `perMachine` block on the server machine (which
+iterates all `instances`) computes the global register-unit order and emits the
+`after` edges. Builders' daemons are unaffected; only server-side registration
+serializes.
 
 ### Machine wiring (mirrors postgres/metabase split)
 
@@ -171,6 +197,34 @@ clan.inventory.instances.forgejo-runner.roles.runner.machines.nix-builder-valak.
 # modules/machines/nix-builder-raum.nix
 clan.inventory.instances.forgejo-runner.roles.runner.machines.nix-builder-raum.settings.count = 2;
 ```
+
+### Multiple instances
+
+Runners for a **different owner** are a second instance of the same service; the
+forgejo host joins `server` in each. Because `scope` is a `server`-role setting,
+one instance = one scope.
+
+```nix
+clan.inventory.instances.forgejo-runner-acme = {
+  module = { input = "self"; name = "forgejo-runner"; };
+  roles.server.machines.forgejo.settings.scope = "acme";
+  roles.runner.machines.nix-builder-valak.settings.count = 2;   # same host, different owner — OK
+};
+```
+
+This works because:
+
+- **`perMachine` iterates all instances** (the `postgresql.nix` pattern), so the
+  forgejo host declares generators + register units for every instance, and the
+  cross-instance register serialization is computed there.
+- **All internal identifiers are `instanceName`-namespaced** (`ident`), so a host
+  running runners for two owners has no unit/`StateDirectory`/user collisions.
+- Secrets are per-`ident` and thus per-instance; distinct secrets ⇒ distinct
+  UUIDs ⇒ distinct Forgejo runners, even when the display name repeats across
+  owners.
+
+A single instance spanning *multiple* scopes is intentionally not supported — put
+each scope in its own instance.
 
 ### `modules/nix-builder.nix` slims down
 
