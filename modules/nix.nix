@@ -131,19 +131,27 @@ in
         _module.args.pkgs = self.configured-pkgs."${system}".nixpkgs;
       };
 
+    # The `nix` module is backend-neutral. The access-token *secret backend* is
+    # selected at the imports level from `specialArgs` (never with an in-config
+    # `mkIf`), mirroring how modules/baseline/default.nix conditionally imports
+    # clan-baseline. Each backend companion sets `_accessTokenSecretNames`
+    # (site -> sops placeholder key) and declares its own secret store; the shared
+    # module renders one `extra-access-tokens` template from those names.
     flake.nixosModules.nix =
       {
         lib,
         config,
         modulesPath,
         pkgs,
+        specialArgs,
         ...
       }:
       let
         cfg = config.nixos-config.nix.accessTokens;
         hasTokens = cfg != { };
+        names = config.nixos-config.nix._accessTokenSecretNames;
         tokenLine = lib.concatStringsSep " " (
-          lib.mapAttrsToList (site: secretName: "${site}=${config.sops.placeholder.${secretName}}") cfg
+          lib.mapAttrsToList (site: _: "${site}=${config.sops.placeholder.${names.${site}}}") cfg
         );
       in
       {
@@ -153,13 +161,36 @@ in
           type = lib.types.attrsOf lib.types.str;
           default = { };
           description = ''
-            Attrset mapping hostnames to sops secret names for nix access tokens.
+            Attrset mapping hostnames to nix access token secrets. On non-clan
+            machines the value is the sops secret name; on clan machines the value
+            is ignored (a shared clan-vars generator is derived from the site).
             Example: { "github.com" = "extra-access-tokens/github.com"; }
+          '';
+        };
+
+        options.nixos-config.nix._accessTokenSecretNames = lib.mkOption {
+          type = lib.types.attrsOf lib.types.str;
+          internal = true;
+          default = { };
+          description = ''
+            Resolved mapping of site -> sops placeholder key, set by the sops or
+            clan backend companion module. Used to render the extra-access-tokens
+            line; not intended to be set directly.
           '';
         };
 
         imports = [
           inputs.determinate.nixosModules.default
+        ]
+        # Backend selection lives here, outside config eval — driven purely by
+        # specialArgs, exactly like clan-baseline is included.
+        ++ [
+          (
+            if specialArgs ? clan-core then
+              self.nixosModules.nix-access-tokens-clan
+            else
+              self.nixosModules.nix-access-tokens-sops
+          )
         ];
 
         config = lib.mkMerge [
@@ -183,12 +214,10 @@ in
 
             # nixpkgs.config = nixpkgsConfig;
           }
+          # Shared rendering (both backends): sops-nix substitutes the placeholder
+          # (clan-var or plain sops) into a tmpfs file readable by nix-access-tokens,
+          # which the forgejo-runner DynamicUser belongs to for flake-input fetches.
           (lib.mkIf hasTokens {
-            sops.secrets = lib.mapAttrs' (_site: secretName: {
-              name = secretName;
-              value = { };
-            }) cfg;
-
             sops.templates."nix-access-tokens" = {
               content = "extra-access-tokens = ${tokenLine}\n";
               group = "nix-access-tokens";
@@ -200,6 +229,58 @@ in
             '';
           })
         ];
+      };
+
+    # Non-clan backend: a plain per-machine sops secret per site; the attrset value
+    # is the sops secret name, used directly as the placeholder key.
+    flake.nixosModules.nix-access-tokens-sops =
+      { lib, config, ... }:
+      let
+        cfg = config.nixos-config.nix.accessTokens;
+      in
+      {
+        key = "nixos-config.modules.nixos.nix-access-tokens-sops";
+        config = {
+          nixos-config.nix._accessTokenSecretNames = cfg;
+          sops.secrets = lib.mapAttrs' (_site: secretName: {
+            name = secretName;
+            value = { };
+          }) cfg;
+        };
+      };
+
+    # Clan backend: one shared prompt clan-vars generator per site (single source
+    # of truth across builders), modeled on clan.core.vars.generators.tailscale-admin.
+    # The clan sops backend registers each secret as sops.secrets."vars/<gen>/token",
+    # so that path is the placeholder key. The raw token file stays root-only 0400 —
+    # only root renders the shared template.
+    flake.nixosModules.nix-access-tokens-clan =
+      { lib, config, ... }:
+      let
+        cfg = config.nixos-config.nix.accessTokens;
+        genName = site: "nix-access-token-${lib.replaceStrings [ "." ] [ "-" ] site}";
+      in
+      {
+        key = "nixos-config.modules.nixos.nix-access-tokens-clan";
+        config = {
+          nixos-config.nix._accessTokenSecretNames = lib.mapAttrs (
+            site: _: "vars/${genName site}/token"
+          ) cfg;
+          clan.core.vars.generators = lib.mapAttrs' (
+            site: _:
+            lib.nameValuePair (genName site) {
+              share = true;
+              prompts.token.description = "nix access token for ${site} (e.g. GitHub PAT)";
+              files.token = {
+                secret = true;
+                deploy = true;
+              };
+              script = ''
+                tr -d '\n' < "$prompts/token" > "$out/token"
+              '';
+            }
+          ) cfg;
+        };
       };
   };
 }

@@ -38,19 +38,37 @@ untouched.
 
 ## Design
 
-All changes are in `modules/nix.nix` (the `flake.nixosModules.nix` module),
-plus removal of the now-stale sops entries.
+All changes are in `modules/nix.nix`, plus removal of the now-stale sops entries.
 
-### Backend detection
+### Backend selection at the imports level (not `mkIf`)
 
-Add `specialArgs` to the module arguments and compute:
+The backend is chosen **outside config eval**, in the module's `imports` list,
+keyed on `specialArgs ? clan-core` — exactly how `modules/baseline/default.nix`
+conditionally pulls in `clan-baseline`:
 
 ```nix
-isClan = specialArgs ? clan-core;
+# modules/baseline/default.nix
+imports = [ ... ] ++ (lib.optional (specialArgs ? clan-core) self.nixosModules.clan-baseline);
 ```
 
-This is the established repo idiom (`modules/impermanence.nix` uses
-`specialArgs ? clan-core`).
+This matters for two reasons an in-config `mkIf` cannot satisfy:
+
+- On a non-clan machine the `clan.*` option does not exist, so even a
+  condition-false `mkIf { clan.core... = ...; }` errors (the option path is still
+  materialized). Selecting the module at import time means `clan.*` is never
+  referenced on non-clan machines.
+- Deciding list membership from `config` (e.g. `hasTokens`) is a module-fixpoint
+  infinite recursion. `specialArgs` is static, so it is safe.
+
+The `nix` module is therefore **backend-neutral** and imports exactly one
+companion:
+
+```nix
+imports = [ inputs.determinate.nixosModules.default ]
+  ++ [ (if specialArgs ? clan-core
+        then self.nixosModules.nix-access-tokens-clan
+        else self.nixosModules.nix-access-tokens-sops) ];
+```
 
 ### Interface — unchanged
 
@@ -64,83 +82,65 @@ nixos-config.nix.accessTokens = { "<site>" = "<sops-secret-name>"; };
 
 Callers (`modules/nix-builder.nix`, `modules/machines/furfur.nix`) stay as-is.
 
-### Shared rendering; only the secret name differs
+### Three modules
 
-The proven pattern is `modules/clan/postgresql.nix`, where a clan-var secret is
-addressed in a sops template as `config.sops.placeholder."vars/<gen>/<file>"`
-(clan's sops backend registers `config.sops.secrets."vars/<gen>/<file>"`).
+**`nix` (shared, backend-neutral).** Declares the `accessTokens` option, an
+internal option `_accessTokenSecretNames` (`site -> sops placeholder key`,
+default `{}`), the base nix settings, the `nix-access-tokens` group, and the
+single rendering template. The template reads the resolved names — the only
+per-backend difference is which placeholder key each site maps to. The proven
+pattern is `modules/clan/postgresql.nix`, where a clan-var secret is addressed as
+`config.sops.placeholder."vars/<gen>/<file>"` (clan's sops backend registers
+`config.sops.secrets."vars/<gen>/<file>"`).
 
 ```nix
-genName       = site: "nix-access-token-${lib.replaceStrings [ "." ] [ "-" ] site}";
-# e.g. "github.com" -> "nix-access-token-github-com"
-secretNameFor = site: if isClan then "vars/${genName site}/token" else cfg.${site};
-tokenLine     = lib.concatStringsSep " " (
-  lib.mapAttrsToList (site: _: "${site}=${config.sops.placeholder.${secretNameFor site}}") cfg
+names     = config.nixos-config.nix._accessTokenSecretNames;
+tokenLine = lib.concatStringsSep " " (
+  lib.mapAttrsToList (site: _: "${site}=${config.sops.placeholder.${names.${site}}}") cfg
 );
-```
-
-### Clan path (`isClan`) — shared prompt generator per site
-
-Modeled on `clan.core.vars.generators.tailscale-admin` (prompt + `share = true`):
-
-```nix
-clan.core.vars.generators = lib.mapAttrs' (site: _: lib.nameValuePair (genName site) {
-  share = true;
-  prompts.token.description = "nix access token for ${site} (e.g. GitHub PAT)";
-  files.token = { secret = true; deploy = true; };   # raw token stays root-only 0400
-  script = ''tr -d '\n' < "$prompts/token" > "$out/token"'';
-}) cfg;
-```
-
-The raw token file is root-only; only root renders the sops template, so no
-custom owner/group/mode is needed on the generator file.
-
-### Non-clan path (furfur) — unchanged
-
-```nix
-sops.secrets = lib.mapAttrs' (_site: secretName: {
-  name = secretName;
-  value = { };
-}) cfg;
-```
-
-### Shared template + include (both backends) — unchanged from today
-
-This is where group-readability lives (the link that was failing):
-
-```nix
+# ... rendered under (lib.mkIf hasTokens ...):
 sops.templates."nix-access-tokens" = {
   content = "extra-access-tokens = ${tokenLine}\n";
-  group   = "nix-access-tokens";
+  group   = "nix-access-tokens";   # runner DynamicUser reads THIS rendered file
   mode    = "0440";
 };
 nix.extraOptions = ''!include ${config.sops.templates."nix-access-tokens".path}'';
 ```
 
-sops-nix substitutes the placeholder (clan-var or plain sops) into a tmpfs file
-as root; the rendered file is group-readable by `nix-access-tokens`, which the
-runner DynamicUser belongs to.
+sops-nix renders the placeholder (clan-var or plain sops) into the tmpfs template
+as root; the rendered file is group-readable, so the `forgejo-runner` DynamicUser
+(member of `nix-access-tokens`) can read it during flake-input fetches. This is
+the exact chain that was failing.
 
-### Config structure (`modules/nix.nix`)
+**`nix-access-tokens-sops` (non-clan backend).** Resolves names to the attrset
+values and declares the plain per-machine sops secrets:
 
 ```nix
-config = lib.mkMerge [
-  { /* base nix settings, users.groups.nix-access-tokens, trusted-users */ }
-
-  (lib.mkIf (hasTokens && !isClan) {
-    sops.secrets = /* per-site from attrset value */;
-  })
-
-  (lib.mkIf (hasTokens && isClan) {
-    clan.core.vars.generators = /* per-site shared prompt generators */;
-  })
-
-  (lib.mkIf hasTokens {
-    sops.templates."nix-access-tokens" = { /* ... */ };
-    nix.extraOptions = ''!include ${config.sops.templates."nix-access-tokens".path}'';
-  })
-];
+config = {
+  nixos-config.nix._accessTokenSecretNames = cfg;   # value = sops secret name
+  sops.secrets = lib.mapAttrs' (_site: secretName: { name = secretName; value = {}; }) cfg;
+};
 ```
+
+**`nix-access-tokens-clan` (clan backend).** Resolves names to the clan-var
+placeholder keys and declares one shared prompt generator per site (modeled on
+`clan.core.vars.generators.tailscale-admin`):
+
+```nix
+genName = site: "nix-access-token-${lib.replaceStrings [ "." ] [ "-" ] site}";
+config = {
+  nixos-config.nix._accessTokenSecretNames = lib.mapAttrs (site: _: "vars/${genName site}/token") cfg;
+  clan.core.vars.generators = lib.mapAttrs' (site: _: lib.nameValuePair (genName site) {
+    share = true;
+    prompts.token.description = "nix access token for ${site} (e.g. GitHub PAT)";
+    files.token = { secret = true; deploy = true; };   # raw token stays root-only 0400
+    script = ''tr -d '\n' < "$prompts/token" > "$out/token"'';
+  }) cfg;
+};
+```
+
+The raw token file is root-only; only root renders the template. No custom
+owner/group/mode on the generator file is needed.
 
 ## Migration / operator steps
 
