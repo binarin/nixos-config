@@ -70,7 +70,7 @@ creation_rules:
           - *admin_binarin
           - *user_ishamael_binarin
           - *server_ishamael
-  - path_regex: secrets/mail/(secrets.yaml|user-binarin.yaml|dovecot-passwd)
+  - path_regex: secrets/mail/user-binarin.yaml
     key_groups:
       - pgp:
           - *admin_binarin_gpg

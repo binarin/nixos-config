@@ -1,9 +1,12 @@
 {
   self,
-  inputs,
   config,
+  lib,
   ...
 }:
+let
+  flakeConfig = config;
+in
 {
   flake.deploy.nodes.mail = {
     hostname = config.inventory.ipAllocation."mail".home.primary.address;
@@ -13,14 +16,22 @@
     };
   };
 
-  flake.nixosConfigurations.mail = inputs.nixpkgs.lib.nixosSystem {
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    specialArgs.inventoryHostName = "mail";
-    modules = [
+  clan.inventory.machines.mail = {
+    deploy.targetHost = flakeConfig.inventory.ipAllocation.mail.home.primary.address;
+  };
+
+  clan.machines.mail = {
+    imports = [
       self.nixosModules.mail-configuration
     ];
-
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
+
+  flake.nixosConfigurations.mail = lib.mkForce (
+    self.clan.nixosConfigurations.mail.extendModules {
+      specialArgs.inventoryHostName = "mail";
+    }
+  );
 
   flake.nixosModules.mail-configuration =
     {
