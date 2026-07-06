@@ -255,3 +255,62 @@ Resolved at design: secrets wiring = `sops.templates` env-file (§3).
    `docker-on-nixos`.
 4. Deploy; verify container comes up and connects to Redis + Garage.
 5. Local throwaway Bazel smoke test → confirm cache hits + blobs in Garage.
+
+---
+
+## As-built (final, verified 2026-07-06)
+
+Implemented on branch `feat/nativelink-bazel-cache`; verified end-to-end:
+`bazel build --remote_cache=grpcs://bazel-cache.lynx-lizard.ts.net` → `2 remote cache
+hit` on a clean rebuild, blobs durable in Garage under `cas/` + `ac/`.
+
+**Final data path**
+
+```
+bazel ──grpcs://bazel-cache.lynx-lizard.ts.net──► tailscale vip-service (protocol=tcp, raw passthrough :443)
+                                                       │ → localhost:50051
+   docker-on-nixos ── arion project "nativelink" ──────┤
+     • nativelink (ghcr v1.5.2): terminates TLS in-process (tailscale cert → rustls h2 ALPN);
+       cache-only CAS+AC = existence_cache(compression(fast_slow(redis, s3))) / completeness_checking(fast_slow(redis, s3))
+     • redis: internal hot tier
+                          │ aws provider, AWS_ENDPOINT_URL=http://<garage-tailscale-ip>:3900
+                          ▼  path-style (IP endpoint), insecure_allow_http, checksums OFF
+                     Garage S3  (region "garage", bucket nativelink-cache)
+   nginx defaultListenAddresses pinned to the node LAN IP → frees the vip's :443
+```
+
+**Deviations from the original design above, and why (each discovered during bring-up):**
+
+1. **ghcr image, not `image.contents` from a flake input.** Chosen to avoid a second
+   nixpkgs evaluation; the flake input (and its follows) were dropped. Pinned
+   `ghcr.io/tracemachina/nativelink:v1.5.2@sha256:4552f2…`.
+2. **Secrets = clan vars, not a plain sops file.** `clan.core.vars.generators.nativelink-s3`
+   emits an env-file; Arion reads the generator's `files.env.path` (niks3 pattern).
+   The sops-template-over-clan-var bridge (`sops.placeholder."vars/…"`) is **not
+   eval-safe** before `clan vars generate` runs, so it was abandoned.
+3. **Cache-only server needs `capabilities: [{ instance_name: "main" }]`** (no
+   `remote_execution`). Omitting it makes Bazel's `GetCapabilities` 404 → Bazel
+   disables the cache. `bytestream` must be the array form (map form is deprecated).
+4. **S3 to Garage: path-style + checksums off, via the `aws` provider + an IP endpoint.**
+   Garage needs path-style (MagicDNS won't resolve `<bucket>.s3.lynx-lizard.ts.net`),
+   and rejects the AWS SDK's default flexible checksum. v1.5.2's `aws` provider has no
+   path-style toggle, but an **IP endpoint forces path-style**; and it honors
+   `AWS_REQUEST/RESPONSE_CHECKSUM_CALCULATION=WHEN_REQUIRED` to drop the checksum.
+   Endpoint = garage node's **tailscale IP** `:3900` (raw S3 API, plaintext over
+   WireGuard). The `ontap` provider does path-style but **forces a SHA256 checksum
+   Garage rejects** ("Invalid signature") — so it was rejected.
+5. **Exposure: raw `tcp` passthrough + NativeLink-terminated TLS, not `tls-terminated-tcp`.**
+   Tailscale's `tls-terminated-tcp` terminator doesn't negotiate `h2` ALPN, which
+   gRPC-over-TLS requires (ALPN failure). NativeLink terminates TLS itself with a
+   `tailscale cert` for the vip-service name (`nativelink-tls-cert.service` + weekly
+   renewal timer); client uses `grpcs://`. Plaintext `grpc://` on `:443` was rejected
+   as a non-starter (wrong for `:443`; Bazel threw `io exception`).
+6. **nginx must not bind `0.0.0.0:443`.** Its wildcard bind (from the four
+   `.binarin.info` reverse-proxy vhosts) swallowed the vip-service's `:443`. Fixed via
+   `services.nginx.defaultListenAddresses = [ <node LAN IP> ]` in `docker-on-nixos.nix`
+   (those vhosts are LAN-only; tailscale access is through separate vip-services).
+
+**Known limitation (accepted for the experiment):** rotating the Garage key
+(`clan vars generate`) does not auto-restart the container — the env-file path is
+stable and there's no eval-safe restart-trigger for a clan-var's content. Restart
+`nativelink-docker-compose.service` manually after a key rotation.
