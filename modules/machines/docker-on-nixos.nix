@@ -68,6 +68,7 @@ in
         self.nixosModules.bricktracker
         self.nixosModules.homebox
         self.nixosModules.karakeep
+        self.nixosModules.nativelink
         self.nixosModules.archivebox
       ];
 
