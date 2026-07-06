@@ -2,11 +2,12 @@
   self,
   inputs,
   config,
+  lib,
   ...
 }:
 let
   inventoryHostName = "garage";
-  system = "x86_64-linux";
+  flakeConfig = config;
 in
 {
   flake.deploy.nodes.garage = {
@@ -17,18 +18,22 @@ in
     };
   };
 
-  flake.nixosConfigurations.garage = inputs.nixpkgs.lib.nixosSystem {
-    pkgs = self.configured-pkgs."${system}".nixpkgs;
-    specialArgs = {
-      inherit inventoryHostName;
-      flake = {
-        inherit self inputs;
-      };
-    };
-    modules = [
+  clan.inventory.machines.garage = {
+    deploy.targetHost = flakeConfig.inventory.ipAllocation.${inventoryHostName}.home.primary.address;
+  };
+
+  clan.machines.garage = {
+    imports = [
       self.nixosModules.garage-configuration
     ];
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
+
+  flake.nixosConfigurations.garage = lib.mkForce (
+    self.clan.nixosConfigurations.garage.extendModules {
+      specialArgs.inventoryHostName = inventoryHostName;
+    }
+  );
 
   flake.nixosModules.garage-configuration =
     {
@@ -67,25 +72,50 @@ in
           }
         ];
 
-        # Sops secrets
-        sops.secrets."garage/rpc-secret" = { };
-        sops.secrets."garage/admin-token" = { };
-        sops.secrets."garage/metrics-token" = { };
-
-        # Environment file with secrets for garage
-        sops.templates."garage-env" = {
-          content = ''
-            GARAGE_RPC_SECRET=${config.sops.placeholder."garage/rpc-secret"}
-            GARAGE_ADMIN_TOKEN=${config.sops.placeholder."garage/admin-token"}
-            GARAGE_METRICS_TOKEN=${config.sops.placeholder."garage/metrics-token"}
+        # Secrets: raw values (imported 1:1 via `clan vars set`) composed into
+        # an env-file for garage.service. One generator per secret keeps each
+        # importable; garage-env depends on them and renders the env fragment.
+        clan.core.vars.generators.garage-rpc-secret = {
+          prompts.rpc-secret.description = "Garage RPC secret";
+          files.rpc-secret = { };
+          script = ''
+            cat $prompts/rpc-secret > $out/rpc-secret
           '';
-          restartUnits = [ "garage.service" ];
+        };
+        clan.core.vars.generators.garage-admin-token = {
+          prompts.admin-token.description = "Garage admin API token";
+          files.admin-token = { };
+          script = ''
+            cat $prompts/admin-token > $out/admin-token
+          '';
+        };
+        clan.core.vars.generators.garage-metrics-token = {
+          prompts.metrics-token.description = "Garage metrics token";
+          files.metrics-token = { };
+          script = ''
+            cat $prompts/metrics-token > $out/metrics-token
+          '';
+        };
+        clan.core.vars.generators.garage-env = {
+          dependencies = [
+            "garage-rpc-secret"
+            "garage-admin-token"
+            "garage-metrics-token"
+          ];
+          files.garage-env = { };
+          script = ''
+            {
+              printf 'GARAGE_RPC_SECRET=%s\n' "$(cat $in/garage-rpc-secret/rpc-secret)"
+              printf 'GARAGE_ADMIN_TOKEN=%s\n' "$(cat $in/garage-admin-token/admin-token)"
+              printf 'GARAGE_METRICS_TOKEN=%s\n' "$(cat $in/garage-metrics-token/metrics-token)"
+            } > $out/garage-env
+          '';
         };
 
         services.garage = {
           enable = true;
           package = pkgs.garage;
-          environmentFile = config.sops.templates."garage-env".path;
+          environmentFile = config.clan.core.vars.generators.garage-env.files.garage-env.path;
           settings = {
             metadata_dir = "/var/lib/garage/meta";
             data_dir = "/var/lib/garage/data";
