@@ -120,6 +120,8 @@ in
         # pattern) rather than a sops.placeholder — the placeholder does not exist
         # at eval time before `clan vars generate` has run. Provision with:
         #   clan vars generate docker-on-nixos
+        # NOTE: rotating the key (re-running the generator) does not auto-restart the
+        # container — the env_file path is stable — so restart nativelink manually.
         clan.core.vars.generators.nativelink-s3 = {
           prompts.access-key.description = "Garage S3 key id (nativelink-cache bucket)";
           prompts.secret-key.description = "Garage S3 secret key (nativelink-cache bucket)";
