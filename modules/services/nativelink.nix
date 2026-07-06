@@ -95,7 +95,10 @@ in
               services: {
                 cas: [ { instance_name: "main", cas_store: "CAS_MAIN_STORE" } ],
                 ac: [ { instance_name: "main", ac_store: "AC_MAIN_STORE" } ],
-                bytestream: { cas_stores: { main: "CAS_MAIN_STORE" } },
+                bytestream: [ { instance_name: "main", cas_store: "CAS_MAIN_STORE" } ],
+                // Cache-only capabilities (no remote_execution) — required so Bazel's
+                // GetCapabilities call succeeds and it actually uses the cache.
+                capabilities: [ { instance_name: "main" } ],
                 health: {},
               },
             },
@@ -187,13 +190,15 @@ in
         };
 
         # Expose as the pre-allocated `bazel-cache` Tailscale Service (vip-service).
-        # tls-terminated-tcp carries gRPC/HTTP2 as raw bytes to localhost:50051.
+        # Raw `tcp` passthrough (NOT tls-terminated-tcp): the tailscale TLS terminator
+        # does not negotiate h2 ALPN, which gRPC-over-TLS requires. Clients use plaintext
+        # grpc:// (still WireGuard-encrypted on the wire) → h2c to localhost:50051.
         # Rationale: Tailscale free-plan machine cap → advertise a service, not a
         # new tailnet node. A 2nd backend elsewhere → automatic LB (stateless tier).
         services.tailscale.serve.enable = lib.mkDefault true;
         services.tailscale.serve.services.bazel-cache = {
           serviceName = "bazel-cache";
-          protocol = "tls-terminated-tcp";
+          protocol = "tcp";
           port = 443;
           target = "localhost:50051";
         };
