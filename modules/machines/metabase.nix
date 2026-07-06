@@ -34,7 +34,7 @@ in
     role = "owner";
     sourceCIDRs = [
       "100.64.0.0/10"
-      "192.168.2.36/32"
+      "${flakeConfig.inventory.ipAllocation.metabase.home.primary.address}/32"
     ];
     restartUnits = [ "metabase.service" ];
   };
@@ -137,12 +137,20 @@ in
 
         services.nginx = {
           enable = true;
+          # Only bind to LAN & localhost addresses so tailscale serve can take
+          # :443 on the tailscale IP without conflict.
           virtualHosts."metabase.home.binarin.info" = {
             forceSSL = true;
             enableACME = false;
             serverAliases = [ "metabase.clan.binarin.info" ];
             sslCertificate = "/var/lib/ssl-cert/full.pem";
             sslCertificateKey = "/var/lib/ssl-cert/full.pem";
+            listen = [
+              { addr = config.inventory.hostIpAllocation.home.primary.address; port = 80; }
+              { addr = config.inventory.hostIpAllocation.home.primary.address; port = 443; ssl = true; }
+              { addr = "127.0.0.1";  port = 80; }
+              { addr = "127.0.0.1";  port = 443; ssl = true; }
+            ];
             locations."/" = {
               proxyPass = "http://localhost:3000";
               recommendedProxySettings = true;
