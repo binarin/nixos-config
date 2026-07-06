@@ -1,9 +1,12 @@
 {
   self,
-  inputs,
   config,
+  lib,
   ...
 }:
+let
+  flakeConfig = config;
+in
 {
   flake.deploy.nodes.monitor = {
     hostname = config.inventory.ipAllocation."monitor".home.primary.address;
