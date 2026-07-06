@@ -4,14 +4,14 @@
 
 **Goal:** Stand up a cache-only NativeLink Bazel remote cache (CAS + Action Cache, no remote execution) on the `docker-on-nixos` host, backed by an internal Redis hot tier and Garage S3 durable tier, exposed as the `bazel-cache` Tailscale Service.
 
-**Architecture:** A single Arion (docker-compose) project runs two services on the project's default network: `nativelink` (image built by Arion from the flake's static `nativelink` binary via `image.contents`) and `redis` (internal, no published ports). NativeLink talks to Garage S3 over the AWS Rust SDK using `AWS_ENDPOINT_URL` + the checksum-compat env vars. The gRPC listener (`127.0.0.1:50051`) is published only to host-localhost and fronted by `tailscale serve --service=svc:bazel-cache --tls-terminated-tcp=443`.
+**Architecture:** A single Arion (docker-compose) project runs two services on the project's default network: `nativelink` (the pinned upstream ghcr image) and `redis` (internal, no published ports). NativeLink talks to Garage S3 over the AWS Rust SDK using `AWS_ENDPOINT_URL` + the checksum-compat env vars. The gRPC listener (`127.0.0.1:50051`) is published only to host-localhost and fronted by `tailscale serve --service=svc:bazel-cache --tls-terminated-tcp=443`.
 
-**Tech Stack:** NixOS (dendritic flake-parts modules), `flake-file` (input management), Arion, sops-nix, Tailscale (vip-service), NativeLink (Rust), Redis, Garage (S3), Bazel (client).
+**Tech Stack:** NixOS (dendritic flake-parts modules), Arion, sops-nix, Tailscale (vip-service), NativeLink (upstream ghcr image), Redis, Garage (S3), Bazel (client).
 
 ## Global Constraints
 
 - Host: `docker-on-nixos`, `x86_64-linux`, Proxmox LXC, Docker+Arion backend, impermanence on.
-- NativeLink binary source: flake input `nativelink` = `github:TraceMachina/nativelink`, **no `nixpkgs.follows`** (musl/rust cross build is sensitive).
+- NativeLink image: `ghcr.io/tracemachina/nativelink:v1.5.2@sha256:4552f290a417c6769e98e20c6075c774dbd08afafdd0ede53988063d1ee2cc4f` (amd64), pinned in `modules/services/nativelink.json`. **No flake input** (chosen to avoid a second nixpkgs evaluation).
 - Deployment mode: **cache-only** — server `services` = `cas` + `ac` + `bytestream` (+ `health`); **no** `schedulers`, **no** `execution`.
 - Garage: region `garage`, endpoint `https://s3.lynx-lizard.ts.net`, dedicated bucket `nativelink-cache`.
 - Garage checksum compat (aws-sdk-rust): `AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED`, `AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED`.
@@ -23,7 +23,13 @@
 
 ---
 
-## Task 1: Add the `nativelink` flake input (STOP checkpoint)
+## Task 1: ~~Add the `nativelink` flake input~~ — SUPERSEDED by the ghcr pivot
+
+> **SUPERSEDED 2026-07-06.** We switched to the pinned upstream ghcr image, so no
+> flake input is needed (this avoids a second nixpkgs evaluation — the reason B/from-source
+> was rejected). If `flake-file.inputs.nativelink` was already added on this branch, it is
+> removed by Task 3's module rewrite; the controller then stops for the user to regenerate
+> `flake.nix` + relock so `nativelink` drops from `flake.lock`. **Skip the steps below.**
 
 **Files:**
 - Create: `modules/services/nativelink.nix` (input declaration only in this task)
@@ -115,12 +121,12 @@ git commit -m "secrets(nativelink): add garage s3 key for bazel cache on docker-
 Builds `modules/services/nativelink.nix` out to the full service: rendered cache-only config, sops env-template, the Arion project (nativelink + redis), the `bazel-cache` Tailscale Service; then imports it into `docker-on-nixos`.
 
 **Files:**
-- Modify: `modules/services/nativelink.nix` (started in Task 1)
-- Create: `modules/services/nativelink.json` (image tag pins)
+- Rewrite: `modules/services/nativelink.nix` (replaces the Task 1 flake-input stub; declares **no** flake input)
+- Create: `modules/services/nativelink.json` (image pins: redis + nativelink)
 - Modify: `modules/machines/docker-on-nixos.nix` (add module to imports)
 
 **Interfaces:**
-- Consumes: `inputs.nativelink.packages.x86_64-linux.nativelink` (Task 1); sops keys `nativelink/s3-access-key`, `nativelink/s3-secret-key` (Task 2).
+- Consumes: pinned image `ghcr.io/tracemachina/nativelink:v1.5.2@sha256:4552f290a417c6769e98e20c6075c774dbd08afafdd0ede53988063d1ee2cc4f` (from `./nativelink.json`); sops keys `nativelink/s3-access-key`, `nativelink/s3-secret-key` (Task 2).
 - Produces: systemd unit `nativelink-docker-compose.service`; host-local gRPC listener `127.0.0.1:50051`; Tailscale service `svc:bazel-cache`.
 
 - [ ] **Step 1: Create the image-tag pins file**
@@ -129,13 +135,14 @@ Create `modules/services/nativelink.json`:
 
 ```json
 {
-  "redis": "7.4-alpine"
+  "redis": "7.4-alpine",
+  "nativelink": "v1.5.2@sha256:4552f290a417c6769e98e20c6075c774dbd08afafdd0ede53988063d1ee2cc4f"
 }
 ```
 
 - [ ] **Step 2: Write the full module**
 
-Replace `modules/services/nativelink.nix` with (keep the `flake-file.inputs.nativelink` block from Task 1):
+Replace `modules/services/nativelink.nix` (the Task 1 stub) **entirely** with the following — note it declares **no** flake input:
 
 ```nix
 {
@@ -148,14 +155,14 @@ let
   imageTags = builtins.fromJSON (builtins.readFile ./nativelink.json);
 in
 {
-  # NativeLink upstream flake (see Task 1 rationale: no nixpkgs.follows).
-  flake-file.inputs.nativelink.url = "github:TraceMachina/nativelink";
+  # ghcr pivot: NO flake input. The pinned upstream image is referenced directly
+  # (tag+digest in ./nativelink.json), so NativeLink adds nothing to nix eval.
+  # Any prior `flake-file.inputs.nativelink` is intentionally gone; regenerate
+  # flake.nix + relock to drop `nativelink` from flake.lock.
 
   flake.nixosModules.nativelink =
     { config, pkgs, lib, ... }:
     let
-      nativelinkPkg = inputs.nativelink.packages.${pkgs.stdenv.hostPlatform.system}.nativelink;
-
       # Cache-only config: CAS + AC over fast_slow(redis, garage-s3).
       # Structure lifted from nativelink-config/examples/redis.json5 (already
       # cache-only) with the redis-only tiers swapped for fast_slow(redis, s3).
@@ -274,29 +281,25 @@ in
           settings = {
             services = {
               nativelink = {
-                # Arion builds the image from the flake's static binary.
-                image.contents = [
-                  nativelinkPkg
-                  pkgs.cacert
-                ];
-                image.command = [
-                  # Explicit path (crane's buildPackage may not set meta.mainProgram,
-                  # so avoid lib.getExe here).
-                  "${nativelinkPkg}/bin/nativelink"
-                  "/etc/nativelink/config.json5"
-                ];
                 service = {
+                  # Pinned upstream ghcr image (no nix build). The image entrypoint
+                  # is the nativelink binary; the config path is passed as its arg.
+                  image = "ghcr.io/tracemachina/nativelink:${imageTags.nativelink}";
+                  command = [ "/etc/nativelink/config.json5" ];
                   container_name = "nativelink";
                   restart = "unless-stopped";
                   # Publish gRPC only to host-localhost; tailscale serve fronts it.
                   ports = [ "127.0.0.1:50051:50051" ];
                   volumes = [
                     "${configFile}:/etc/nativelink/config.json5:ro"
+                    # The nix2container image ships only /bin — no CA trust store.
+                    # Mount one so aws-sdk-rust (rustls) can verify Garage's TLS.
+                    "${pkgs.cacert}/etc/ssl/certs:/etc/ssl/certs:ro"
                   ];
                   env_file = [ config.sops.templates."nativelink-env".path ];
                   environment = {
-                    # rustls-platform-verifier trust root for HTTPS to Garage.
-                    SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+                    SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
+                    SSL_CERT_DIR = "/etc/ssl/certs";
                     RUST_LOG = "info";
                   };
                   depends_on = [ "redis" ];
@@ -339,22 +342,26 @@ In `modules/machines/docker-on-nixos.nix`, add to the `imports` list of `docker-
         self.nixosModules.nativelink
 ```
 
-- [ ] **Step 4: Evaluate — the config builds and the image is buildable**
+- [ ] **Step 4: Evaluate — the host config builds**
 
 Run: `nix eval .#nixosConfigurations.docker-on-nixos.config.system.build.toplevel.drvPath`
 Expected: prints a `.drv` path, no evaluation errors.
 
-Run: `nix build --no-link .#nixosConfigurations.docker-on-nixos.config.virtualisation.arion.projects.nativelink.settings.out.dockerComposeYaml 2>/dev/null || nix eval .#nixosConfigurations.docker-on-nixos.config.virtualisation.arion.projects.nativelink.settings.services.nativelink.image.command`
-Expected: no eval error; the second form prints the command list including `/etc/nativelink/config.json5`.
+Run: `nix eval --raw .#nixosConfigurations.docker-on-nixos.config.virtualisation.arion.projects.nativelink.settings.services.nativelink.service.image`
+Expected: `ghcr.io/tracemachina/nativelink:v1.5.2@sha256:4552f290a417c6769e98e20c6075c774dbd08afafdd0ede53988063d1ee2cc4f`.
 
-> If eval fails on the `nativelink` input being missing, Task 1's reload/lock did not complete — return to Task 1 Step 3.
+> The module references no `nativelink` flake input, so eval does not depend on any reload.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add modules/services/nativelink.nix modules/services/nativelink.json modules/machines/docker-on-nixos.nix
-git commit -m "feat(nativelink): cache-only arion service (nativelink+redis) on docker-on-nixos"
+git commit -m "feat(nativelink): cache-only arion service (ghcr image + redis) on docker-on-nixos"
 ```
+
+- [ ] **Step 6 (controller, not the implementer): STOP for reload**
+
+Removing `flake-file.inputs.nativelink` is a flake-input change. After the module commit, hand back to the user to regenerate `flake.nix` + relock so `nativelink` (and its crane/rust-overlay/nix2container tree) drops out of `flake.lock`. Resume at Task 4 after the user confirms.
 
 ---
 
