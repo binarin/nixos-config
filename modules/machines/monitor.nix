@@ -141,8 +141,10 @@ in
                   access = "proxy";
                   url = "postgres.lynx-lizard.ts.net:5432";
                   user = "hledger_monitor_ro";
-                  database = "hledger";
                   jsonData = {
+                    # Grafana's PostgreSQL datasource reads the DB name from
+                    # jsonData.database; the top-level `database` field is ignored.
+                    database = "hledger";
                     sslmode = "require";
                     postgresVersion = 1800;
                   };
