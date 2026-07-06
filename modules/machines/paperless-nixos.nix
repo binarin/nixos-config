@@ -2,12 +2,12 @@
   self,
   inputs,
   config,
+  lib,
   ...
 }:
 let
   flakeConfig = config;
   inventoryHostName = "paperless-nixos";
-  system = "x86_64-linux";
   paperlessTags = builtins.fromJSON (builtins.readFile ../services/paperless.json);
   publicKeys = import "${self}/inventory/public-keys.nix";
 in
@@ -20,19 +20,22 @@ in
     };
   };
 
-  flake.nixosConfigurations.paperless-nixos = inputs.nixpkgs.lib.nixosSystem {
-    # inherit system;
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    specialArgs = {
-      inherit inventoryHostName;
-      flake = {
-        inherit self inputs config;
-      };
-    };
-    modules = [
+  clan.inventory.machines.paperless-nixos = {
+    deploy.targetHost = flakeConfig.inventory.ipAllocation.paperless-nixos.home.primary.address;
+  };
+
+  clan.machines.paperless-nixos = {
+    imports = [
       self.nixosModules.paperless-nixos-configuration
     ];
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
+
+  flake.nixosConfigurations.paperless-nixos = lib.mkForce (
+    self.clan.nixosConfigurations.paperless-nixos.extendModules {
+      specialArgs.inventoryHostName = "paperless-nixos";
+    }
+  );
 
   flake.nixosModules.paperless-nixos-configuration =
     {
@@ -43,6 +46,32 @@ in
     }:
     let
       inherit (lib) mkDefault;
+
+      # Non-secret Paperless env config (secrets come from clan vars below).
+      # Eval-time interpolation (UID/GID) is fine here — it's a plain store file.
+      paperlessEnvBase = pkgs.writeText "paperless-env-base" ''
+        PAPERLESS_REDIS=redis://broker:6379
+        PAPERLESS_DBHOST=db
+        USERMAP_UID=${toString flakeConfig.inventory.usersGroups.systemUsers.paperless.uid}
+        USERMAP_GID=${toString flakeConfig.inventory.usersGroups.systemUsers.paperless.gid}
+        PAPERLESS_OCR_LANGUAGES=eng nld rus
+        PAPERLESS_TIME_ZONE=Europe/Amsterdam
+        PAPERLESS_OCR_LANGUAGE=nld+eng+rus
+        PAPERLESS_CONSUMER_RECURSIVE=true
+        PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS=true
+        PAPERLESS_URL=https://paperless.lynx-lizard.ts.net
+        PAPERLESS_TIKA_ENABLED=1
+        PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://gotenberg:3000
+        PAPERLESS_TIKA_ENDPOINT=http://tika:9998
+        PAPERLESS_CONSUMER_ENABLE_BARCODES=true
+        PAPERLESS_CONSUMER_ENABLE_ASN_BARCODE=true
+        PAPERLESS_CONSUMER_BARCODE_SCANNER=ZXING
+      '';
+
+      paperlessDbEnvBase = pkgs.writeText "paperless-db-env-base" ''
+        POSTGRES_DB=paperless
+        POSTGRES_USER=paperless
+      '';
     in
     {
       key = "nixos-config.modules.nixos.paperless-nixos-configuration";
@@ -97,6 +126,28 @@ in
         services.openssh.settings.PubkeyAcceptedAlgorithms = "+ssh-rsa";
         services.openssh.settings.Macs = [ "+hmac-sha2-256" ];
 
+        # The old Brother scanner requires an RSA host key (HostKeyAlgorithms
+        # +ssh-rsa above), but clan's sshd service manages only an ed25519 host
+        # key. Preserve this machine's existing RSA host key as its own clan var
+        # and add it to sshd. Import it from the live host with `clan vars set`
+        # — the auto-gen script only fires on a fresh machine; regenerating here
+        # would change the key and break the scanner's known_hosts.
+        clan.core.vars.generators.openssh-host-rsa = {
+          files."ssh_host_rsa_key" = { };
+          files."ssh_host_rsa_key.pub".secret = false;
+          runtimeInputs = [ pkgs.openssh ];
+          script = ''
+            ssh-keygen -t rsa -b 4096 -N "" -C "" -f "$out"/ssh_host_rsa_key
+          '';
+        };
+
+        services.openssh.hostKeys = [
+          {
+            path = config.clan.core.vars.generators.openssh-host-rsa.files."ssh_host_rsa_key".path;
+            type = "rsa";
+          }
+        ];
+
         # SFTP chroot configuration for Brother scanner
         # The scanner uploads to /consume within the chroot (/mnt/paperless/sftp-chroot)
         # ChrootDirectory must be owned by root with no write permission for others
@@ -109,42 +160,42 @@ in
             PasswordAuthentication no
         '';
 
-        # Sops secrets configuration
-        sops.secrets."paperless/secret-key" = { };
-        sops.secrets."paperless/postgres-password" = { };
-
-        # Sops template for environment variables
-        sops.templates."paperless-env" = {
-          content = ''
-            PAPERLESS_SECRET_KEY=${config.sops.placeholder."paperless/secret-key"}
-            PAPERLESS_REDIS=redis://broker:6379
-            PAPERLESS_DBHOST=db
-            PAPERLESS_DBPASS=${config.sops.placeholder."paperless/postgres-password"}
-            USERMAP_UID=${toString flakeConfig.inventory.usersGroups.systemUsers.paperless.uid}
-            USERMAP_GID=${toString flakeConfig.inventory.usersGroups.systemUsers.paperless.gid}
-            PAPERLESS_OCR_LANGUAGES=eng nld rus
-            PAPERLESS_TIME_ZONE=Europe/Amsterdam
-            PAPERLESS_OCR_LANGUAGE=nld+eng+rus
-            PAPERLESS_CONSUMER_RECURSIVE=true
-            PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS=true
-            PAPERLESS_URL=https://paperless.lynx-lizard.ts.net
-            PAPERLESS_TIKA_ENABLED=1
-            PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://gotenberg:3000
-            PAPERLESS_TIKA_ENDPOINT=http://tika:9998
-            PAPERLESS_CONSUMER_ENABLE_BARCODES=true
-            PAPERLESS_CONSUMER_ENABLE_ASN_BARCODE=true
-            PAPERLESS_CONSUMER_BARCODE_SCANNER=ZXING
+        # Secrets managed via clan vars (migrated from sops).
+        # Raw secrets: auto-generated on fresh machines, imported from the old
+        # sops values on this one. Kept hermetic — no machine config baked in.
+        clan.core.vars.generators.paperless-secret-key = {
+          files.secret-key = { };
+          runtimeInputs = [ pkgs.openssl ];
+          script = ''
+            openssl rand -hex 64 > "$out"/secret-key
           '';
-          restartUnits = [ "paperless-docker-compose.service" ];
         };
 
-        sops.templates."paperless-db-env" = {
-          content = ''
-            POSTGRES_DB=paperless
-            POSTGRES_USER=paperless
-            POSTGRES_PASSWORD=${config.sops.placeholder."paperless/postgres-password"}
+        clan.core.vars.generators.paperless-postgres-password = {
+          files.postgres-password = { };
+          runtimeInputs = [ pkgs.openssl ];
+          script = ''
+            openssl rand -hex 32 > "$out"/postgres-password
           '';
-          restartUnits = [ "paperless-docker-compose.service" ];
+        };
+
+        # Env-file fragments carrying ONLY the secret variables. The shared DB
+        # password is sourced once via dependencies to avoid drift. Non-secret
+        # config lives in the plain writeText env files (see the let block).
+        clan.core.vars.generators.paperless-env-secrets = {
+          dependencies = [
+            "paperless-secret-key"
+            "paperless-postgres-password"
+          ];
+          files.webserver = { };
+          files.db = { };
+          runtimeInputs = [ pkgs.coreutils ];
+          script = ''
+            secret_key="$(cat "$in"/paperless-secret-key/secret-key)"
+            pg_pass="$(cat "$in"/paperless-postgres-password/postgres-password)"
+            printf 'PAPERLESS_SECRET_KEY=%s\nPAPERLESS_DBPASS=%s\n' "$secret_key" "$pg_pass" > "$out"/webserver
+            printf 'POSTGRES_PASSWORD=%s\n' "$pg_pass" > "$out"/db
+          '';
         };
 
         # Systemd tmpfiles rules for directory creation
@@ -191,7 +242,8 @@ in
                     "/mnt/paperless/sftp-chroot/consume:/usr/src/paperless/consume"
                   ];
                   env_file = [
-                    config.sops.templates.paperless-env.path
+                    "${paperlessEnvBase}"
+                    config.clan.core.vars.generators.paperless-env-secrets.files.webserver.path
                   ];
                   depends_on = [
                     "db"
@@ -213,7 +265,8 @@ in
                     "/mnt/paperless/var/postgres:/var/lib/postgresql/data"
                   ];
                   env_file = [
-                    config.sops.templates.paperless-db-env.path
+                    "${paperlessDbEnvBase}"
+                    config.clan.core.vars.generators.paperless-env-secrets.files.db.path
                   ];
                 };
               };
