@@ -13,14 +13,22 @@
     };
   };
 
-  flake.nixosConfigurations.monitor = inputs.nixpkgs.lib.nixosSystem {
-    # system = "x86_64-linux";
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    specialArgs.inventoryHostName = "monitor";
-    modules = [
+  clan.inventory.machines.monitor = {
+    deploy.targetHost = flakeConfig.inventory.ipAllocation.monitor.home.primary.address;
+  };
+
+  clan.machines.monitor = {
+    imports = [
       self.nixosModules.monitor-configuration
     ];
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
+
+  flake.nixosConfigurations.monitor = lib.mkForce (
+    self.clan.nixosConfigurations.monitor.extendModules {
+      specialArgs.inventoryHostName = "monitor";
+    }
+  );
 
   flake.nixosModules.monitor-configuration =
     {
