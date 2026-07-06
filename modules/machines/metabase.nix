@@ -128,8 +128,7 @@ in
           enable = true;
           serve = {
             enable = true;
-            services.metabase = {
-              serviceName = "metabase";
+            configs.metabase-web = {
               protocol = "https";
               target = "localhost:3000";
             };
