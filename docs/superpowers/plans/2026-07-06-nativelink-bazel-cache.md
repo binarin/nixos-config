@@ -15,7 +15,7 @@
 - Deployment mode: **cache-only** — server `services` = `cas` + `ac` + `bytestream` (+ `health`); **no** `schedulers`, **no** `execution`.
 - Garage: region `garage`, endpoint `https://s3.lynx-lizard.ts.net`, dedicated bucket `nativelink-cache`.
 - Garage checksum compat (aws-sdk-rust): `AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED`, `AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED`.
-- Secrets: `sops.templates` env-file (matches `modules/services/karakeep.nix`); host sops file is `secrets/docker-on-nixos/secrets.yaml`.
+- Secrets: **clan vars** generator `nativelink-s3` (docker-on-nixos is a clan machine) emits an env-file (`files.env`, two secret `AWS_*` lines); Arion reads it via `env_file` = `config.clan.core.vars.generators.nativelink-s3.files.env.path` (niks3 file-path pattern, eval-safe). Non-secret AWS/SSL vars inline. Provision: `clan vars generate docker-on-nixos`.
 - Redis: single-node, internal only (no published host port), ephemeral (no persistence).
 - Exposure: `bazel-cache` Tailscale Service, `tls-terminated-tcp` on `:443` → `localhost:50051`. Redis NOT exposed.
 - Tailscale free-plan machine cap → services, not new tailnet nodes. Stateless tier ⇒ a 2nd backend gives automatic Tailscale load-balanced HA.
@@ -68,15 +68,15 @@ Resume only after the user confirms `inputs.nativelink` is locked (verify: `nix 
 
 ---
 
-## Task 2: Provision Garage bucket/key and sops secrets (manual, user-run)
+## Task 2: Provision Garage bucket/key and the clan-vars secret (manual, user-run)
 
-These steps require the Garage admin CLI (on the `garage` host) and the repo's sops master key — run by the user. The plan's later deploy depends on them.
+These steps require the Garage admin CLI (on the `garage` host) and the repo's clan/sops key — run by the user. Depends on Task 3's module existing (the `nativelink-s3` generator is declared there), so run this after Task 3. The deploy (Task 4) depends on this.
 
 **Files:**
-- Modify (encrypted): `secrets/docker-on-nixos/secrets.yaml`
+- Writes (encrypted, via `clan vars generate`): the `nativelink-s3` generator's vars in the repo's clan vars store.
 
 **Interfaces:**
-- Produces: Garage bucket `nativelink-cache`; sops keys `nativelink/s3-access-key`, `nativelink/s3-secret-key` in the host secrets file.
+- Produces: Garage bucket `nativelink-cache`; clan var `nativelink-s3/env` (env-file with the two secret `AWS_*` lines).
 
 - [ ] **Step 1: Create the dedicated Garage bucket + key (on the `garage` host)**
 
@@ -88,30 +88,24 @@ garage bucket allow --read --write nativelink-cache --key nativelink
 
 Expected: `garage bucket info nativelink-cache` lists the `nativelink` key with read+write.
 
-- [ ] **Step 2: Add the credentials to the host sops file**
+- [ ] **Step 2: Provision the clan-vars secret (prompts for the two values)**
 
 ```bash
-sops secrets/docker-on-nixos/secrets.yaml
+clan vars generate docker-on-nixos
 ```
 
-Add (nested keys → sops placeholders `nativelink/s3-access-key` etc.):
+At the prompts, paste the **Key ID** (`access-key`) and **Secret key** (`secret-key`) captured in Step 1. This writes the encrypted vars into the repo's clan vars store.
 
-```yaml
-nativelink:
-    s3-access-key: <Key ID from step 1>
-    s3-secret-key: <Secret key from step 1>
-```
+- [ ] **Step 3: Verify the vars were created**
 
-- [ ] **Step 3: Verify decryptability**
+Run: `clan vars list docker-on-nixos | grep nativelink-s3`
+Expected: lists `nativelink-s3/env`.
 
-Run: `sops -d secrets/docker-on-nixos/secrets.yaml | grep -A2 '^nativelink:'`
-Expected: shows the two keys with values.
-
-- [ ] **Step 4: Commit the (encrypted) secrets file**
+- [ ] **Step 4: Commit the (encrypted) clan vars**
 
 ```bash
-git add secrets/docker-on-nixos/secrets.yaml
-git commit -m "secrets(nativelink): add garage s3 key for bazel cache on docker-on-nixos"
+git add .
+git commit -m "vars(nativelink): garage s3 key for bazel cache on docker-on-nixos"
 ```
 
 ---
@@ -126,7 +120,8 @@ Builds `modules/services/nativelink.nix` out to the full service: rendered cache
 - Modify: `modules/machines/docker-on-nixos.nix` (add module to imports)
 
 **Interfaces:**
-- Consumes: pinned image `ghcr.io/tracemachina/nativelink:v1.5.2@sha256:4552f290a417c6769e98e20c6075c774dbd08afafdd0ede53988063d1ee2cc4f` (from `./nativelink.json`); sops keys `nativelink/s3-access-key`, `nativelink/s3-secret-key` (Task 2).
+- Consumes: pinned image `ghcr.io/tracemachina/nativelink:v1.5.2@sha256:4552f290a417c6769e98e20c6075c774dbd08afafdd0ede53988063d1ee2cc4f` (from `./nativelink.json`); clan var `nativelink-s3` (Task 2), read via `config.clan.core.vars.generators.nativelink-s3.files.env.path`.
+- Produces (this task also declares the `clan.core.vars.generators.nativelink-s3` generator that Task 2 fills in).
 - Produces: systemd unit `nativelink-docker-compose.service`; host-local gRPC listener `127.0.0.1:50051`; Tailscale service `svc:bazel-cache`.
 
 - [ ] **Step 1: Create the image-tag pins file**
@@ -260,19 +255,19 @@ in
       ];
 
       config = {
-        sops.secrets."nativelink/s3-access-key" = { };
-        sops.secrets."nativelink/s3-secret-key" = { };
-
-        sops.templates."nativelink-env" = {
-          content = ''
-            AWS_ACCESS_KEY_ID=${config.sops.placeholder."nativelink/s3-access-key"}
-            AWS_SECRET_ACCESS_KEY=${config.sops.placeholder."nativelink/s3-secret-key"}
-            AWS_DEFAULT_REGION=garage
-            AWS_ENDPOINT_URL=https://s3.lynx-lizard.ts.net
-            AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
-            AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED
+        # Dedicated Garage S3 key via clan vars (docker-on-nixos is a clan machine).
+        # The generator emits an env-file; Arion reads its PATH directly (niks3
+        # pattern) — sops.placeholder is not eval-safe before `clan vars generate`.
+        clan.core.vars.generators.nativelink-s3 = {
+          prompts.access-key.description = "Garage S3 key id (nativelink-cache bucket)";
+          prompts.secret-key.description = "Garage S3 secret key (nativelink-cache bucket)";
+          files.env = { secret = true; deploy = true; };
+          script = ''
+            {
+              printf 'AWS_ACCESS_KEY_ID=%s\n' "$(tr -d '\n' < "$prompts/access-key")"
+              printf 'AWS_SECRET_ACCESS_KEY=%s\n' "$(tr -d '\n' < "$prompts/secret-key")"
+            } > "$out/env"
           '';
-          restartUnits = [ "nativelink-docker-compose.service" ];
         };
 
         virtualisation.arion.backend = "docker";
@@ -296,8 +291,13 @@ in
                     # Mount one so aws-sdk-rust (rustls) can verify Garage's TLS.
                     "${pkgs.cacert}/etc/ssl/certs:/etc/ssl/certs:ro"
                   ];
-                  env_file = [ config.sops.templates."nativelink-env".path ];
+                  # Secret AWS_* creds from the clan var env file; non-secret inline.
+                  env_file = [ config.clan.core.vars.generators.nativelink-s3.files.env.path ];
                   environment = {
+                    AWS_DEFAULT_REGION = "garage";
+                    AWS_ENDPOINT_URL = "https://s3.lynx-lizard.ts.net";
+                    AWS_REQUEST_CHECKSUM_CALCULATION = "WHEN_REQUIRED";
+                    AWS_RESPONSE_CHECKSUM_VALIDATION = "WHEN_REQUIRED";
                     SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
                     SSL_CERT_DIR = "/etc/ssl/certs";
                     RUST_LOG = "info";

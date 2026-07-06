@@ -113,19 +113,26 @@ in
       ];
 
       config = {
-        sops.secrets."nativelink/s3-access-key" = { };
-        sops.secrets."nativelink/s3-secret-key" = { };
-
-        sops.templates."nativelink-env" = {
-          content = ''
-            AWS_ACCESS_KEY_ID=${config.sops.placeholder."nativelink/s3-access-key"}
-            AWS_SECRET_ACCESS_KEY=${config.sops.placeholder."nativelink/s3-secret-key"}
-            AWS_DEFAULT_REGION=garage
-            AWS_ENDPOINT_URL=https://s3.lynx-lizard.ts.net
-            AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
-            AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED
+        # Dedicated Garage S3 key for NativeLink, provisioned via clan vars
+        # (docker-on-nixos is a clan machine). The generator emits a ready-to-source
+        # env file holding just the two secret AWS_* lines; Arion consumes it via
+        # `env_file`. We reference the generator's file PATH directly (the niks3
+        # pattern) rather than a sops.placeholder — the placeholder does not exist
+        # at eval time before `clan vars generate` has run. Provision with:
+        #   clan vars generate docker-on-nixos
+        clan.core.vars.generators.nativelink-s3 = {
+          prompts.access-key.description = "Garage S3 key id (nativelink-cache bucket)";
+          prompts.secret-key.description = "Garage S3 secret key (nativelink-cache bucket)";
+          files.env = {
+            secret = true;
+            deploy = true;
+          };
+          script = ''
+            {
+              printf 'AWS_ACCESS_KEY_ID=%s\n' "$(tr -d '\n' < "$prompts/access-key")"
+              printf 'AWS_SECRET_ACCESS_KEY=%s\n' "$(tr -d '\n' < "$prompts/secret-key")"
+            } > "$out/env"
           '';
-          restartUnits = [ "nativelink-docker-compose.service" ];
         };
 
         virtualisation.arion.backend = "docker";
@@ -149,8 +156,14 @@ in
                     # Mount one so aws-sdk-rust (rustls) can verify Garage's TLS.
                     "${pkgs.cacert}/etc/ssl/certs:/etc/ssl/certs:ro"
                   ];
-                  env_file = [ config.sops.templates."nativelink-env".path ];
+                  # Secret AWS_* creds come from the clan var env file; the
+                  # non-secret settings are inline.
+                  env_file = [ config.clan.core.vars.generators.nativelink-s3.files.env.path ];
                   environment = {
+                    AWS_DEFAULT_REGION = "garage";
+                    AWS_ENDPOINT_URL = "https://s3.lynx-lizard.ts.net";
+                    AWS_REQUEST_CHECKSUM_CALCULATION = "WHEN_REQUIRED";
+                    AWS_RESPONSE_CHECKSUM_VALIDATION = "WHEN_REQUIRED";
                     SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
                     SSL_CERT_DIR = "/etc/ssl/certs";
                     RUST_LOG = "info";
