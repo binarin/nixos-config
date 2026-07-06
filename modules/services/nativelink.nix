@@ -101,7 +101,18 @@ in
           ],
           servers: [
             {
-              listener: { http: { socket_address: "0.0.0.0:50051" } },
+              listener: {
+                http: {
+                  socket_address: "0.0.0.0:50051",
+                  // NativeLink terminates TLS itself (rustls negotiates h2 ALPN, which
+                  // tailscale's tls-terminated-tcp cannot). Cert minted by the
+                  // nativelink-tls-cert.service unit; vip is a raw tcp passthrough.
+                  tls: {
+                    cert_file: "/etc/nativelink/tls/cert.pem",
+                    key_file: "/etc/nativelink/tls/key.pem",
+                  },
+                },
+              },
               services: {
                 cas: [ { instance_name: "main", cas_store: "CAS_MAIN_STORE" } ],
                 ac: [ { instance_name: "main", ac_store: "AC_MAIN_STORE" } ],
@@ -170,6 +181,8 @@ in
                     # The nix2container image ships only /bin — no CA trust store.
                     # Mount one so aws-sdk-rust (rustls) can verify Garage's TLS.
                     "${pkgs.cacert}/etc/ssl/certs:/etc/ssl/certs:ro"
+                    # tailscale-issued TLS cert for bazel-cache.lynx-lizard.ts.net.
+                    "/var/lib/nativelink-tls:/etc/nativelink/tls:ro"
                   ];
                   # Secret AWS_* creds come from the clan var env file; the
                   # non-secret settings are inline.
@@ -199,6 +212,43 @@ in
                 };
               };
             };
+          };
+        };
+
+        # Mint/renew the TLS cert for the vip-service name via `tailscale cert`,
+        # before the container starts, and restart the cache only when the cert
+        # actually changes (so weekly renewal checks don't cause needless restarts).
+        systemd.services.nativelink-tls-cert = {
+          description = "Fetch/renew tailscale TLS cert for nativelink (bazel-cache)";
+          after = [ "tailscaled.service" ];
+          wants = [ "tailscaled.service" ];
+          before = [ "nativelink-docker-compose.service" ];
+          wantedBy = [ "nativelink-docker-compose.service" ];
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+            StateDirectory = "nativelink-tls";
+            StateDirectoryMode = "0700";
+          };
+          script = ''
+            set -euo pipefail
+            tmp=$(mktemp -d)
+            trap 'rm -rf "$tmp"' EXIT
+            ${config.services.tailscale.package}/bin/tailscale cert \
+              --cert-file "$tmp/cert.pem" --key-file "$tmp/key.pem" \
+              bazel-cache.lynx-lizard.ts.net
+            if ! cmp -s "$tmp/cert.pem" /var/lib/nativelink-tls/cert.pem 2>/dev/null; then
+              install -m0644 "$tmp/cert.pem" /var/lib/nativelink-tls/cert.pem
+              install -m0600 "$tmp/key.pem" /var/lib/nativelink-tls/key.pem
+              ${pkgs.systemd}/bin/systemctl try-restart nativelink-docker-compose.service
+            fi
+          '';
+        };
+        systemd.timers.nativelink-tls-cert = {
+          wantedBy = [ "timers.target" ];
+          timerConfig = {
+            OnCalendar = "weekly";
+            Persistent = true;
           };
         };
 
