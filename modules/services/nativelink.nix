@@ -38,9 +38,14 @@ in
             },
             {
               name: "S3_CAS",
+              // Garage needs PATH-STYLE addressing (bucket in the path, not a
+              // subdomain — MagicDNS won't resolve <bucket>.s3.lynx-lizard.ts.net).
+              // The `aws` provider can't force path-style in v1.5.2; the `ontap`
+              // provider sets force_path_style(true) + an explicit endpoint.
               experimental_cloud_object_store: {
-                provider: "aws",
-                region: "garage",
+                provider: "ontap",
+                endpoint: "https://s3.lynx-lizard.ts.net",
+                vserver_name: "garage",
                 bucket: "nativelink-cache",
                 key_prefix: "cas/",
                 retry: { max_retries: 6, delay: 0.3, jitter: 0.5 },
@@ -49,8 +54,9 @@ in
             {
               name: "S3_AC",
               experimental_cloud_object_store: {
-                provider: "aws",
-                region: "garage",
+                provider: "ontap",
+                endpoint: "https://s3.lynx-lizard.ts.net",
+                vserver_name: "garage",
                 bucket: "nativelink-cache",
                 key_prefix: "ac/",
                 retry: { max_retries: 6, delay: 0.3, jitter: 0.5 },
