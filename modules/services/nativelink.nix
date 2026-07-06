@@ -178,9 +178,6 @@ in
                   ports = [ "127.0.0.1:50051:50051" ];
                   volumes = [
                     "${configFile}:/etc/nativelink/config.json5:ro"
-                    # The nix2container image ships only /bin — no CA trust store.
-                    # Mount one so aws-sdk-rust (rustls) can verify Garage's TLS.
-                    "${pkgs.cacert}/etc/ssl/certs:/etc/ssl/certs:ro"
                     # tailscale-issued TLS cert for bazel-cache.lynx-lizard.ts.net.
                     "/var/lib/nativelink-tls:/etc/nativelink/tls:ro"
                   ];
@@ -189,14 +186,15 @@ in
                   env_file = [ config.clan.core.vars.generators.nativelink-s3.files.env.path ];
                   environment = {
                     AWS_DEFAULT_REGION = "garage";
-                    # Garage's raw S3 API on the garage node's tailscale IP. An IP
-                    # endpoint forces path-style addressing (see S3 store comment).
-                    # Plaintext http, but WireGuard-encrypted on the tailnet.
+                    # Garage's raw S3 API on the garage node's TAILSCALE IP. An IP
+                    # endpoint forces path-style addressing (see S3 store comment);
+                    # plaintext http, but WireGuard-encrypted on the tailnet. Not
+                    # inventory-sourced: inventory.ipAllocation carries only LAN addrs
+                    # and garage's :3900 is firewalled off the LAN (tailscale-only).
+                    # Stable per tailnet node; update if garage leaves/rejoins the net.
                     AWS_ENDPOINT_URL = "http://100.67.195.61:3900";
                     AWS_REQUEST_CHECKSUM_CALCULATION = "WHEN_REQUIRED";
                     AWS_RESPONSE_CHECKSUM_VALIDATION = "WHEN_REQUIRED";
-                    SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
-                    SSL_CERT_DIR = "/etc/ssl/certs";
                     RUST_LOG = "info";
                   };
                   depends_on = [ "redis" ];
@@ -218,6 +216,10 @@ in
         # Mint/renew the TLS cert for the vip-service name via `tailscale cert`,
         # before the container starts, and restart the cache only when the cert
         # actually changes (so weekly renewal checks don't cause needless restarts).
+        # /var/lib/nativelink-tls is ephemeral under impermanence and re-minted each
+        # boot — this does NOT re-hit LetsEncrypt only because tailscale's own cert
+        # cache is persisted (impermanence bind-mounts /var/lib/tailscale). If that
+        # ever changes, persist /var/lib/nativelink-tls to avoid LE rate limits.
         systemd.services.nativelink-tls-cert = {
           description = "Fetch/renew tailscale TLS cert for nativelink (bazel-cache)";
           after = [ "tailscaled.service" ];
