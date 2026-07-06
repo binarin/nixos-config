@@ -238,7 +238,17 @@ Confirm the imported `openssh/ssh.id_ed25519.pub` value matches the live box bef
 clan vars generate <name> --generator openssh-cert --no-regenerate   # user runs
 ```
 
-`--no-regenerate` leaves the already-set `openssh`/`openssh-ca` values untouched and only fills the missing cert. Verify it certifies the live key (non-secret — read it directly): the fingerprint from `ssh-keygen -l -f vars/per-machine/<name>/openssh-cert/ssh.id_ed25519-cert.pub/value` must equal the live host's key fingerprint.
+`--no-regenerate` leaves the already-set `openssh`/`openssh-ca` values untouched and only fills the missing cert. Verify it certifies the live key (non-secret — read it directly):
+
+```bash
+V=vars/per-machine/<name>
+ssh-keygen -l -f $V/openssh-cert/ssh.id_ed25519-cert.pub/value   # fingerprint of the CERTIFIED key
+ssh-keygen -l -f $V/openssh/ssh.id_ed25519.pub/value             # fingerprint of the imported bare key
+ssh-keyscan <live-host> 2>/dev/null | ssh-keygen -lf -           # ground truth from the live box
+ssh-keygen -L -f $V/openssh-cert/ssh.id_ed25519-cert.pub/value | grep -E 'Public key|Key ID|Signing CA|Principals'
+```
+
+All three fingerprints must be **identical**. **Do not eyeball the `.pub` base64** — a certificate file bundles a nonce, validity window, and the CA signature, so a cert's base64 is legitimately longer/different from the bare key even when it certifies exactly that key. `ssh-keygen -l` on a cert reports the fingerprint of the *underlying* key (that's what matches); `ssh-keygen -L` additionally shows the Key ID / principal / signing CA.
 
 **Non-ed25519 host keys:** clan's sshd manages **only an ed25519** host key. If the machine still needs an RSA/ECDSA host key (e.g. `services.openssh.settings.HostKeyAlgorithms = "+ssh-rsa"` for a legacy client), importing only `openssh` loses it — see [1.3b](#13b-preserve-a-non-ed25519-host-key-if-still-needed).
 
@@ -355,7 +365,10 @@ sops decrypt ./secrets/<name>/secrets.yaml    # {} == empty
 
 - `ssh_host_ed25519_key{,.pub}` → superseded by the imported `openssh` var → delete.
 - `ssh_host_rsa_key`/`ssh_host_ecdsa_key` (+`.pub`) → delete **only if** you gave it a replacement generator in [1.3b](#13b-preserve-a-non-ed25519-host-key-if-still-needed) **or** the machine genuinely no longer needs it. If a non-ed25519 key is still in use and has no clan-vars replacement, deleting it discards the only copy of that identity — go back to 1.3b.
-- Keep `user-binarin.yaml` (and any other non-migrated user secret) **always**.
+- **Other orphaned secret files** (leftovers from removed setups, e.g. `dovecot-passwd.bin`) → delete any that `config.sops.secrets` no longer references. `git log` recovers them if ever needed.
+- Keep `user-binarin.yaml` (and any other still-used user secret) **always**.
+
+This file cleanup + `.sops.yaml` narrowing applies **even when Phase 2 doesn't** — a machine can have zero *consumed* sops secrets (empty `config.sops.secrets`, so no migration) yet still carry dead `secrets/<name>/` files from a removed service. In that case skip 2.1–2.4, skip `sops unset` (nothing to unset), and go straight to the removal + `.sops.yaml` narrowing below.
 
 ```bash
 git rm -f secrets/<name>/secrets.yaml \
@@ -407,6 +420,7 @@ Confirm the migrated service still works on the box (e.g. admin login) — that 
 | **Conversion:** dropping `inputs` from the header | Only if truly unused — the config module often still needs `inputs.arion`/`inputs.sops-nix`; `grep 'inputs\.'` first |
 | **Conversion:** sourcing the ssh host key from local sops files | Pull from the live box (`ssh root@<live-host> cat …`) — that's ground truth; the repo copy may be stale |
 | **Conversion:** forgetting `openssh-cert` after importing the host key | On clan-sshd machines the cert is `<not set>` (set doesn't cascade); user runs `clan vars generate <name> --generator openssh-cert --no-regenerate`, then verify the fingerprint matches the live key |
+| **Conversion:** eyeballing the cert `.pub` base64 to verify it | A cert bundles nonce+validity+CA-sig, so its base64 differs from the bare key. Compare `ssh-keygen -l` fingerprints (it reports the *underlying* key), not the base64 blobs |
 | **Conversion:** deleting an RSA/ECDSA host key clan doesn't manage | Clan sshd serves only ed25519; if a legacy client needs `+ssh-rsa`, add a host-key generator + `services.openssh.hostKeys` merge and import the live key *before* removing the sops file |
 | **Conversion:** nix interpolation inside a generator `script` | Keep scripts hermetic (`openssl`/`cat`/`printf` only); put eval-time values (UID/GID) in a `writeText`, and coerce it to a string (`"${…}"`) for `env_file` |
 
