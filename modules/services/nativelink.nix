@@ -39,26 +39,30 @@ in
             {
               name: "S3_CAS",
               // Garage needs PATH-STYLE addressing (bucket in the path, not a
-              // subdomain — MagicDNS won't resolve <bucket>.s3.lynx-lizard.ts.net).
-              // The `aws` provider can't force path-style in v1.5.2; the `ontap`
-              // provider sets force_path_style(true) + an explicit endpoint.
+              // <bucket>.host subdomain — MagicDNS won't resolve that). NativeLink's
+              // aws provider has no path-style toggle, BUT an IP endpoint forces
+              // path-style (the SDK can't prepend a bucket to an IP). We also need the
+              // SDK's default flexible checksum OFF (Garage rejects it) — the aws
+              // provider honors AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED, which
+              // the ontap provider ignored. Endpoint (garage tailscale IP :3900, raw
+              // S3 API, plaintext over WireGuard) comes from AWS_ENDPOINT_URL.
               experimental_cloud_object_store: {
-                provider: "ontap",
-                endpoint: "https://s3.lynx-lizard.ts.net",
-                vserver_name: "garage",
+                provider: "aws",
+                region: "garage",
                 bucket: "nativelink-cache",
                 key_prefix: "cas/",
+                insecure_allow_http: true,
                 retry: { max_retries: 6, delay: 0.3, jitter: 0.5 },
               },
             },
             {
               name: "S3_AC",
               experimental_cloud_object_store: {
-                provider: "ontap",
-                endpoint: "https://s3.lynx-lizard.ts.net",
-                vserver_name: "garage",
+                provider: "aws",
+                region: "garage",
                 bucket: "nativelink-cache",
                 key_prefix: "ac/",
+                insecure_allow_http: true,
                 retry: { max_retries: 6, delay: 0.3, jitter: 0.5 },
               },
             },
@@ -172,7 +176,10 @@ in
                   env_file = [ config.clan.core.vars.generators.nativelink-s3.files.env.path ];
                   environment = {
                     AWS_DEFAULT_REGION = "garage";
-                    AWS_ENDPOINT_URL = "https://s3.lynx-lizard.ts.net";
+                    # Garage's raw S3 API on the garage node's tailscale IP. An IP
+                    # endpoint forces path-style addressing (see S3 store comment).
+                    # Plaintext http, but WireGuard-encrypted on the tailnet.
+                    AWS_ENDPOINT_URL = "http://100.67.195.61:3900";
                     AWS_REQUEST_CHECKSUM_CALCULATION = "WHEN_REQUIRED";
                     AWS_RESPONSE_CHECKSUM_VALIDATION = "WHEN_REQUIRED";
                     SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
