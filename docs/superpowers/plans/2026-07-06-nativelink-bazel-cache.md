@@ -1,5 +1,7 @@
 # Cache-only NativeLink Bazel Cache — Implementation Plan
 
+> **Note (as-built):** implementation diverged substantially during bring-up (ghcr image, clan vars, path-style-via-IP + no-checksum S3, NativeLink-terminated TLS, nginx LAN-bind). See the **As-built** section of `docs/superpowers/specs/2026-07-06-nativelink-bazel-cache-design.md` for the final, verified configuration and the reasons for each deviation.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Stand up a cache-only NativeLink Bazel remote cache (CAS + Action Cache, no remote execution) on the `docker-on-nixos` host, backed by an internal Redis hot tier and Garage S3 durable tier, exposed as the `bazel-cache` Tailscale Service.
