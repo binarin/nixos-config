@@ -20,6 +20,18 @@ in
     deploy.targetHost = flakeConfig.inventory.ipAllocation.monitor.home.primary.address;
   };
 
+  clan.inventory.instances.postgres.roles.client.machines.monitor.settings.access.hledger-monitor-ro = {
+    database = "hledger";
+    user = "hledger_monitor_ro";
+    role = "readonly";
+    sourceCIDRs = [
+      "100.64.0.0/10"
+      "fd7a:115c:a1e0::/48"
+    ];
+    restartUnits = [ "grafana.service" ];
+    secret.owner = "grafana";
+  };
+
   clan.machines.monitor = {
     imports = [
       self.nixosModules.monitor-configuration
@@ -122,6 +134,20 @@ in
                   access = "proxy";
                   url = "http://127.0.0.1:8428";
                   isDefault = true;
+                }
+                {
+                  name = "hledger";
+                  type = "postgres";
+                  access = "proxy";
+                  url = "postgres.lynx-lizard.ts.net:5432";
+                  user = "hledger_monitor_ro";
+                  database = "hledger";
+                  jsonData = {
+                    sslmode = "require";
+                    postgresVersion = 1800;
+                  };
+                  secureJsonData.password =
+                    "$__file{${config.clan.core.vars.generators."postgresql-postgres-hledger-hledger_monitor_ro".files.password.path}}";
                 }
               ];
             };
