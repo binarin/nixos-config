@@ -138,6 +138,13 @@ in
 
         # nginx reverse proxy with clan ACME certs (replaces caddy + cloudflare)
         services.nginx.enable = true;
+        # Bind only to the LAN address, NOT the nixpkgs default 0.0.0.0/[::0]. A
+        # wildcard :443 bind swallows the :443 of the tailscale vip-services that
+        # share this node (e.g. bazel-cache -> nativelink). These vhosts are
+        # LAN-only; their tailscale exposure is via separate vip-services, not nginx.
+        services.nginx.defaultListenAddresses = [
+          flakeConfig.inventory.ipAllocation.docker-on-nixos.home.primary.address
+        ];
         networking.firewall.allowedTCPPorts = [
           80
           443
