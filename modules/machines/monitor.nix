@@ -75,14 +75,27 @@ in
           3000
         ];
 
-        sops.secrets."grafana/admin-username" = {
-          owner = config.users.users.grafana.name;
-        };
-        sops.secrets."grafana/admin-password" = {
-          owner = config.users.users.grafana.name;
-        };
-        sops.secrets."grafana/secret-key" = {
-          owner = config.users.users.grafana.name;
+        clan.core.vars.generators.grafana = {
+          prompts.admin-username.description = "grafana admin username";
+          prompts.admin-password.description = "grafana admin password";
+          prompts.secret-key.description = "grafana secret key";
+          files.admin-username = {
+            secret = true;
+            owner = config.users.users.grafana.name;
+          };
+          files.admin-password = {
+            secret = true;
+            owner = config.users.users.grafana.name;
+          };
+          files.secret-key = {
+            secret = true;
+            owner = config.users.users.grafana.name;
+          };
+          script = ''
+            cat $prompts/admin-username > $out/admin-username
+            cat $prompts/admin-password > $out/admin-password
+            cat $prompts/secret-key     > $out/secret-key
+          '';
         };
 
         services.grafana = {
@@ -93,9 +106,9 @@ in
               # allow_loading_unsigned_plugins = "victoriametrics-datasource";
             };
             security = {
-              admin_user = "$__file{${config.sops.secrets."grafana/admin-username".path}}";
-              admin_password = "$__file{${config.sops.secrets."grafana/admin-password".path}}";
-              secret_key = "$__file{${config.sops.secrets."grafana/secret-key".path}}";
+              admin_user = "$__file{${config.clan.core.vars.generators.grafana.files.admin-username.path}}";
+              admin_password = "$__file{${config.clan.core.vars.generators.grafana.files.admin-password.path}}";
+              secret_key = "$__file{${config.clan.core.vars.generators.grafana.files.secret-key.path}}";
             };
           };
           provision = {
