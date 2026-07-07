@@ -84,6 +84,56 @@
             fi
           }
 
+          mbr() {
+            local input="$1"
+            if [[ -z "$input" ]]; then
+              echo >&2 "Usage: mbr <branch-name>"
+              return 1
+            fi
+
+            local bare=/usr/local/git_tree/keep/main-primary.bare
+            local branch dir_suffix
+
+            if [[ "$input" == */* ]]; then
+              branch="$input"
+            else
+              branch="allebedev/$input"
+            fi
+
+            # strip prefix before first /, replace subsequent / with --
+            dir_suffix="''${branch#*/}"
+            dir_suffix="''${dir_suffix//\//--}"
+            local wt_dir=/usr/local/git_tree/main-$dir_suffix
+
+            if [[ ! -d "$bare" ]]; then
+              echo >&2 "error: bare repo not found: $bare"
+              return 1
+            fi
+
+            if [[ -d "$wt_dir" ]]; then
+              echo >&2 "error: worktree directory already exists: $wt_dir"
+              echo >&2 "  cd $wt_dir"
+              return 1
+            fi
+
+            echo "Fetching origin..."
+            git -C "$bare" fetch || { echo >&2 "error: git fetch failed"; return 1; }
+
+            if git -C "$bare" show-ref --verify --quiet "refs/heads/$branch"; then
+              git -C "$bare" worktree add "$wt_dir" "$branch" || {
+                echo >&2 "error: worktree creation failed"
+                return 1
+              }
+            else
+              git -C "$bare" worktree add "$wt_dir" -b "$branch" origin/trunk --no-track || {
+                echo >&2 "error: worktree creation failed"
+                return 1
+              }
+            fi
+
+            cd "$wt_dir"
+          }
+
           if [ -d $HOME/.cargo/bin ] && [[ ":$PATH:" != *"::"* ]]; then
             PATH="$HOME/.cargo/bin''${PATH:+":$PATH"}"
           fi
