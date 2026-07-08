@@ -109,9 +109,24 @@
     :after-finalize b/org-capture-fold-after))
 
 ;;;###autoload
-(defun b/org-capture-to-ripgrep-elisp-form ()
-  (interactive)
-  (org-capture-string (format "(b/ripgrep-main %s)" (prin1-to-string (b/active-region-or-symbol-at-point))) "bZ"))
+(defun b/org-capture-to-ripgrep-elisp-form (arg)
+  "Capture a `b/ripgrep-main' form as a clock note.
+Without prefix: pre-fill from region/symbol at point.
+With \\[universal-argument] (C-u): edit just the query string.
+With \\[universal-argument] \\[universal-argument] (C-u C-u): edit the full s-expression."
+  (interactive "P")
+  (let* ((default-str (or (b/active-region-or-symbol-at-point) ""))
+         (default-form (format "(b/ripgrep-main %s)" (prin1-to-string default-str)))
+         (captured
+          (cond
+           ((equal arg '(16))  ;; C-u C-u — edit the whole form
+            (read-from-minibuffer "Form: " default-form))
+           ((equal arg '(4))   ;; C-u — edit just the query
+            (let ((query (read-from-minibuffer "Query: " default-str)))
+              (format "(b/ripgrep-main %s)" (prin1-to-string query))))
+           (t                  ;; no prefix — use default as-is
+            default-form))))
+    (org-capture-string captured "bZ")))
 
 (defvar b/murmur-home-path (if (string-match-p (rx bos "LL" (* nonl) "44" eos) (system-name))
                                (expand-file-name "~")
