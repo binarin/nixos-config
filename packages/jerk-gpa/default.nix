@@ -68,6 +68,8 @@ writeShellApplication {
 
     set -euo pipefail
 
+    echo >&2 "Disconnecting GlobalProtect..."
+    yes | globalprotect disconnect
     echo >&2 "Stopping GPA..."
     systemctl --user stop gpa.service
     echo >&2 "Cleaning GPA state..."
