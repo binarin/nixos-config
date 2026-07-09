@@ -798,7 +798,32 @@ in
             };
           };
 
-        services.atuin.enable = true;
+        # atuin history DB lives on the standalone `postgres` machine (clan
+        # postgresql instance). The password is composed into an ATUIN_DB_URI
+        # env-file (tandoor-env pattern) so it never enters /nix/store.
+        clan.core.vars.generators.atuin-db-env = {
+          dependencies = [ "postgresql-postgres-atuin-atuin" ];
+          files.env = {
+            secret = true;
+            restartUnits = [ "atuin.service" ];
+          };
+          script = ''
+            printf 'ATUIN_DB_URI=postgresql://atuin:%s@postgres.lynx-lizard.ts.net:5432/atuin?sslmode=require\n' \
+              "$(cat $in/postgresql-postgres-atuin-atuin/password)" > $out/env
+          '';
+        };
+
+        services.atuin = {
+          enable = true;
+          database.createLocally = false;
+          database.uri = lib.mkForce null;
+          environmentFile = config.clan.core.vars.generators.atuin-db-env.files.env.path;
+        };
+
+        # Prepared-state mask: keep atuin from starting against the empty remote
+        # DB (and auto-running sqlx migrations) before the manual restore.
+        # Removed in the cutover task (Task 5).
+        systemd.services.atuin.enable = false;
 
         services.samba.settings.Workspace = smbShareStandartOptions // {
           path = "/media/workspace";
