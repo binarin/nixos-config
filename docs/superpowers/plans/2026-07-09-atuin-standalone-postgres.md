@@ -223,9 +223,12 @@ Run:
 ```bash
 ssh root@media.lynx-lizard.ts.net 'systemctl is-enabled atuin.service || true'
 ssh root@media.lynx-lizard.ts.net 'systemctl is-active atuin.service || true'
-ssh root@media.lynx-lizard.ts.net "sudo -u postgres psql -d atuin -tAc 'select count(*) from history'"
+# NB: modern atuin (sync v2) stores data in the `store` record table, NOT `history`
+# (which is legacy/empty). Parity must be measured on `store` (+ `records`).
+ssh root@media.lynx-lizard.ts.net "sudo -u postgres psql -d atuin -tAc 'select count(*) from store'"
+ssh root@media.lynx-lizard.ts.net "sudo -u postgres psql -d atuin -tAc 'select count(*) from records'"
 ```
-Expected: `masked`; `inactive` (or `failed`/not running — must NOT be `active`); the history count prints the current row count from the **old pg15** DB. **Record this number** — call it `N_media`.
+Expected: `masked`; `inactive` (or `failed`/not running — must NOT be `active`); the `store` count is the real synced-data row count from the **old pg15** DB. **Record `store` (and `records`)** — call the `store` count `N_media`.
 
 ---
 
@@ -267,9 +270,10 @@ Expected: exit 0 (or benign warnings only). `--role=atuin` makes restored object
 
 Run:
 ```bash
-ssh root@postgres.lynx-lizard.ts.net "sudo -u postgres psql -d atuin -tAc 'select count(*) from history'"
+ssh root@postgres.lynx-lizard.ts.net "sudo -u postgres psql -d atuin -tAc 'select count(*) from store'"
+ssh root@postgres.lynx-lizard.ts.net "sudo -u postgres psql -d atuin -tAc 'select count(*) from records'"
 ```
-Expected: prints a number **equal to `N_media`** from Task 3 Step 5. If it differs, stop and investigate before unmasking (do NOT proceed to Task 5).
+Expected: the `store` count is **equal to `N_media`** (and `records` matches too) from Task 3 Step 5. If it differs, stop and investigate before unmasking (do NOT proceed to Task 5).
 
 - [ ] **Step 5: Clean up the transferred dump (optional)**
 
