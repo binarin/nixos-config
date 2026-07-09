@@ -2,10 +2,12 @@
   self,
   inputs,
   config,
+  lib,
   ...
 }:
 let
   selfLib = self.lib.self;
+  flakeConfig = config;
 in
 {
   flake.deploy.nodes.media = {
@@ -16,14 +18,41 @@ in
     };
   };
 
-  flake.nixosConfigurations.media = inputs.nixpkgs.lib.nixosSystem {
-    # system = "x86_64-linux";
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    specialArgs.inventoryHostName = "media";
-    modules = [
+  clan.inventory.machines.media = {
+    deploy.targetHost = flakeConfig.inventory.ipAllocation.media.home.primary.address;
+  };
+
+  clan.inventory.instances.acme.roles.client.machines.media.settings = {
+    domain = "media.clan.binarin.info";
+    extraDomainNames = [
+      "navidrome.binarin.info"
+      "jellyfin.binarin.info"
+      "ta.binarin.info"
+      "qbittorrent.binarin.info"
+      "sabnzbd.binarin.info"
+      "prowlarr.binarin.info"
+      "radarr.binarin.info"
+      "grocy.binarin.info"
+      "tandoor.binarin.info"
+      "homepage.binarin.info"
+      "atuin.binarin.info"
+      "org.binarin.info"
+    ];
+    reloadServices = [ "nginx.service" ];
+  };
+
+  clan.machines.media = {
+    imports = [
       self.nixosModules.media-configuration
     ];
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
+
+  flake.nixosConfigurations.media = lib.mkForce (
+    self.clan.nixosConfigurations.media.extendModules {
+      specialArgs.inventoryHostName = "media";
+    }
+  );
 
   flake.nixosModules.media-configuration =
     {
@@ -45,6 +74,34 @@ in
         "directory mask" = "2775";
         "force directory mode" = "2775";
       };
+
+      # TLS certs come from the clan `acme` module: one per-machine cert covering
+      # all of media's public hostnames as SANs, pulled + decrypted to this path.
+      sslCert = "/var/lib/ssl-cert/full.pem";
+      proxyVhost = upstream: {
+        addSSL = true;
+        sslCertificate = sslCert;
+        sslCertificateKey = sslCert;
+        locations."/" = {
+          proxyPass = upstream;
+          proxyWebsockets = true;
+        };
+      };
+
+      # Non-secret half of tandoor's env-file (the secret half — SECRET_KEY and
+      # POSTGRES_PASSWORD — comes from the `tandoor-env` clan var). Both are passed
+      # to the arion containers via a two-element env_file list.
+      tandoorEnvConfig = pkgs.writeText "tandoor-env-config" ''
+        # allowed hosts (see documentation), should be set to your hostname(s) but might be * (default) for some proxies/providers
+        ALLOWED_HOSTS=tandoor.binarin.info
+
+        # add only a database password if you want to run with the default postgres, otherwise change settings accordingly
+        DB_ENGINE=django.db.backends.postgresql
+        POSTGRES_HOST=db_recipes
+        POSTGRES_DB=djangodb
+        POSTGRES_PORT=5432
+        POSTGRES_USER=djangouser
+      '';
     in
     {
       key = "nixos-config.modules.nixos.media-configuration";
@@ -52,8 +109,6 @@ in
         self.nixosModules.baseline
         self.nixosModules.lxc
         inputs.arion.nixosModules.arion
-
-        self.nixosModules.linkwarden
       ];
 
       config = {
@@ -100,8 +155,15 @@ in
           ];
         };
 
-        sops.secrets."samba-passwords/binarin" = {
-          restartUnits = [ "update-samba-passwords.service" ];
+        clan.core.vars.generators.samba-passwords = {
+          prompts.binarin.description = "Samba password for user binarin";
+          files.binarin = {
+            secret = true;
+            restartUnits = [ "update-samba-passwords.service" ];
+          };
+          script = ''
+            cat $prompts/binarin > $out/binarin
+          '';
         };
 
         environment.systemPackages = with pkgs; [
@@ -135,12 +197,8 @@ in
               ${pkgs.coreutils}/bin/cat $1
               echo
             }
-            shopt -s nullglob
-            for file in /run/secrets/samba-passwords/*; do
-              user=$(basename $file)
-              double $file | ${pkgs.samba}/bin/smbpasswd -L -a -s binarin
-              rm -f $file
-            done
+            double ${config.clan.core.vars.generators.samba-passwords.files.binarin.path} \
+              | ${pkgs.samba}/bin/smbpasswd -L -a -s binarin
           '';
           serviceConfig = {
             Type = "oneshot";
@@ -178,7 +236,7 @@ in
           "Z- /var/lib/tubearchivist/redis 0775 999 100 -"
           "Z- /media/tubearchivist 2775 1000 1000 -"
           "Z- /media/usenet 02775 root usenet -"
-          "d /var/lib/org.binarin.info 02750 binarin caddy -"
+          "d /var/lib/org.binarin.info 02750 binarin nginx -"
         ];
 
         nix.gc = {
@@ -187,36 +245,71 @@ in
           options = "--delete-older-than 30d";
         };
 
-        sops.secrets.cloudflare-api-key = {
-          sopsFile = "${selfLib.file' "secrets/webservers.yaml"}";
-          restartUnits = [ "caddy.service" ];
-        };
-
-        systemd.services.caddy.serviceConfig.AmbientCapabilities = "CAP_NET_ADMIN CAP_NET_BIND_SERVICE";
-        systemd.services.caddy.serviceConfig.LoadCredential =
-          "cloudflare-api-token:${config.sops.secrets.cloudflare-api-key.path}";
-
-        services.caddy = {
+        # Public *.binarin.info sites are served by nginx off the clan `acme` cert.
+        # These names resolve to media's tailscale node IP, so nginx must listen on
+        # all interfaces (nginx default: 0.0.0.0 + [::]), exactly as the old caddy
+        # did. `tailscale.serve` here uses *named services* on their own service IPs
+        # (immich/commafeed), which don't occupy the node IP:443 — so no conflict.
+        services.nginx = {
           enable = true;
-          enableReload = false; # fails to reload when new hosts are added
-          package = self.packages."${pkgs.stdenv.hostPlatform.system}".caddy-with-cloudflare-dns;
-          extraConfig = ''
-            (letsencrypt) {
-              tls {
-                  dns cloudflare {file.{$CREDENTIALS_DIRECTORY}/cloudflare-api-token}
-                  propagation_delay 300s
-                  propagation_timeout 1800s
-                  dns_ttl 60s
-                  resolvers sri.ns.cloudflare.com vera.ns.cloudflare.com
-              }
-            }
-          '';
-
+          recommendedProxySettings = true;
           virtualHosts = {
-            "navidrome.binarin.info" = {
-              extraConfig = ''
-                reverse_proxy http://127.0.0.1:4533
-                import letsencrypt
+            "navidrome.binarin.info" = proxyVhost "http://127.0.0.1:4533";
+            "jellyfin.binarin.info" = proxyVhost "http://127.0.0.1:8096";
+            "ta.binarin.info" = proxyVhost "http://127.0.0.1:8001";
+            "qbittorrent.binarin.info" = proxyVhost "http://127.0.0.1:8080";
+            "sabnzbd.binarin.info" = proxyVhost "http://127.0.0.1:8085";
+            "prowlarr.binarin.info" = proxyVhost "http://127.0.0.1:9696";
+            "radarr.binarin.info" = proxyVhost "http://127.0.0.1:7878";
+            "atuin.binarin.info" = proxyVhost "http://127.0.0.1:8888";
+
+            # grocy already owns the nginx vhost named "grocy.binarin.info" (its
+            # internal http listener on 127.0.0.1:64084), so the public TLS vhost
+            # uses a distinct attr key with an explicit serverName.
+            "grocy-public" = (proxyVhost "http://127.0.0.1:64084") // {
+              serverName = "grocy.binarin.info";
+            };
+
+            "tandoor.binarin.info" = {
+              addSSL = true;
+              sslCertificate = sslCert;
+              sslCertificateKey = sslCert;
+              locations."/media/" = {
+                alias = "/var/lib/tandoor/mediafiles/";
+                extraConfig = ''
+                  add_header Content-Disposition "attachment";
+                '';
+              };
+              locations."/static/".alias = "/var/lib/tandoor/staticfiles/";
+              locations."/" = {
+                proxyPass = "http://127.0.0.1:8081";
+                proxyWebsockets = true;
+              };
+            };
+
+            "homepage.binarin.info" = {
+              addSSL = true;
+              sslCertificate = sslCert;
+              sslCertificateKey = sslCert;
+              locations."/custom-icons/" = {
+                alias = "${selfLib.dir "dashboard-icons"}/";
+                extraConfig = ''
+                  autoindex on;
+                '';
+              };
+              locations."/" = {
+                proxyPass = "http://127.0.0.1:8082";
+                proxyWebsockets = true;
+              };
+            };
+
+            "org.binarin.info" = {
+              addSSL = true;
+              sslCertificate = sslCert;
+              sslCertificateKey = sslCert;
+              root = "/var/lib/org.binarin.info";
+              locations."/".extraConfig = ''
+                autoindex on;
               '';
             };
           };
@@ -257,24 +350,34 @@ in
           "force group" = "jellyfin";
         };
 
-        services.caddy.virtualHosts."jellyfin.binarin.info".extraConfig = ''
-          reverse_proxy http://127.0.0.1:8096
-          import letsencrypt
-        '';
-
         virtualisation.arion.backend = "docker";
 
-        sops.secrets."tubearchivist/elastic-password" = { };
-        sops.secrets."tubearchivist/initial-username" = { };
-        sops.secrets."tubearchivist/initial-password" = { };
-
-        sops.templates."tubearchivist-elastic-env".content = ''
-          ELASTIC_PASSWORD="${config.sops.placeholder."tubearchivist/elastic-password"}"
-        '';
-        sops.templates."tubearchivist-env".content = ''
-          TA_USERNAME="${config.sops.placeholder."tubearchivist/initial-username"}"
-          TA_PASSWORD="${config.sops.placeholder."tubearchivist/initial-password"}"
-        '';
+        # tubearchivist: raw secrets imported 1:1, then composed into the two
+        # env-file fragments the arion containers consume via env_file.
+        clan.core.vars.generators.tubearchivist-secrets = {
+          prompts.elastic-password.description = "TubeArchivist ELASTIC_PASSWORD";
+          prompts.initial-username.description = "TubeArchivist TA_USERNAME";
+          prompts.initial-password.description = "TubeArchivist TA_PASSWORD";
+          files.elastic-password.secret = true;
+          files.initial-username.secret = true;
+          files.initial-password.secret = true;
+          script = ''
+            cat $prompts/elastic-password > $out/elastic-password
+            cat $prompts/initial-username > $out/initial-username
+            cat $prompts/initial-password > $out/initial-password
+          '';
+        };
+        clan.core.vars.generators.tubearchivist-env = {
+          dependencies = [ "tubearchivist-secrets" ];
+          files.elastic-env.secret = true;
+          files.ta-env.secret = true;
+          script = ''
+            printf 'ELASTIC_PASSWORD="%s"\n' "$(cat $in/tubearchivist-secrets/elastic-password)" > $out/elastic-env
+            printf 'TA_USERNAME="%s"\nTA_PASSWORD="%s"\n' \
+              "$(cat $in/tubearchivist-secrets/initial-username)" \
+              "$(cat $in/tubearchivist-secrets/initial-password)" > $out/ta-env
+          '';
+        };
 
         virtualisation.arion.projects.tubearchivist = {
           serviceName = "tubearchivist-docker-compose";
@@ -304,8 +407,8 @@ in
                       TZ = "Europe/Amsterdam"; # set your time zone
                     };
                     env_file = [
-                      config.sops.templates.tubearchivist-elastic-env.path
-                      config.sops.templates.tubearchivist-env.path
+                      config.clan.core.vars.generators.tubearchivist-env.files.elastic-env.path
+                      config.clan.core.vars.generators.tubearchivist-env.files.ta-env.path
                     ];
                     healthcheck = {
                       test = [
@@ -337,7 +440,7 @@ in
                     image = "bbilly1/tubearchivist-es:${tags.archivist-es}";
                     container_name = "archivist-es";
                     restart = "unless-stopped";
-                    env_file = [ config.sops.templates.tubearchivist-elastic-env.path ];
+                    env_file = [ config.clan.core.vars.generators.tubearchivist-env.files.elastic-env.path ];
                     environment = {
                       ES_JAVA_OPTS = "-Xms1g -Xmx1g";
                       "xpack.security.enabled" = "true";
@@ -371,11 +474,6 @@ in
               };
           };
         };
-
-        services.caddy.virtualHosts."ta.binarin.info".extraConfig = ''
-          reverse_proxy http://127.0.0.1:8001
-          import letsencrypt
-        '';
 
         virtualisation.arion.projects.qbittorrent = {
           serviceName = "qbittorrent-docker-compose";
@@ -420,11 +518,6 @@ in
             };
         };
 
-        services.caddy.virtualHosts."qbittorrent.binarin.info".extraConfig = ''
-          reverse_proxy http://127.0.0.1:8080
-          import letsencrypt
-        '';
-
         services.samba.settings.Torrents = smbShareStandartOptions // {
           path = "/media/torrents";
           "force user" = "jellyfin";
@@ -449,42 +542,62 @@ in
 
         users.users.sabnzbd.extraGroups = [ "usenet" ];
 
-        sops.secrets."sabnzbd/username" = { };
-        sops.secrets."sabnzbd/password" = { };
-        sops.secrets."sabnzbd/api_key" = { };
-        sops.secrets."sabnzbd/nzb_key" = { };
-        sops.secrets."sabnzbd/eweka_username" = { };
-        sops.secrets."sabnzbd/eweka_password" = { };
-
-        sops.templates."sabnzbd/misc-secrets" = {
-          owner = "sabnzbd";
-          content = ''
-            [misc]
-            api_key = ${config.sops.placeholder."sabnzbd/api_key"}
-            nzb_key = ${config.sops.placeholder."sabnzbd/nzb_key"}
-            username = ${config.sops.placeholder."sabnzbd/username"}
-            password = ${config.sops.placeholder."sabnzbd/password"}
+        # sabnzbd: raw secrets imported 1:1, then composed into the two ini
+        # fragments sabnzbd reads via secretFiles (owned by the sabnzbd user).
+        clan.core.vars.generators.sabnzbd-secrets = {
+          prompts.api_key.description = "sabnzbd api_key";
+          prompts.nzb_key.description = "sabnzbd nzb_key";
+          prompts.username.description = "sabnzbd username";
+          prompts.password.description = "sabnzbd password";
+          prompts.eweka_username.description = "sabnzbd news.eweka.nl username";
+          prompts.eweka_password.description = "sabnzbd news.eweka.nl password";
+          files.api_key.secret = true;
+          files.nzb_key.secret = true;
+          files.username.secret = true;
+          files.password.secret = true;
+          files.eweka_username.secret = true;
+          files.eweka_password.secret = true;
+          script = ''
+            for f in api_key nzb_key username password eweka_username eweka_password; do
+              cat "$prompts/$f" > "$out/$f"
+            done
           '';
-          restartUnits = [ "sabnzbd.service" ];
         };
-
-        sops.templates."sabnzbd/server-secrets" = {
-          owner = "sabnzbd";
-          content = ''
-            [servers]
-            [[news.eweka.nl]]
-            username = ${config.sops.placeholder."sabnzbd/eweka_username"}
-            password = ${config.sops.placeholder."sabnzbd/eweka_password"}
+        clan.core.vars.generators.sabnzbd-conf = {
+          dependencies = [ "sabnzbd-secrets" ];
+          files.misc-secrets = {
+            secret = true;
+            owner = "sabnzbd";
+            restartUnits = [ "sabnzbd.service" ];
+          };
+          files.server-secrets = {
+            secret = true;
+            owner = "sabnzbd";
+            restartUnits = [ "sabnzbd.service" ];
+          };
+          script = ''
+            {
+              printf '[misc]\n'
+              printf 'api_key = %s\n' "$(cat $in/sabnzbd-secrets/api_key)"
+              printf 'nzb_key = %s\n' "$(cat $in/sabnzbd-secrets/nzb_key)"
+              printf 'username = %s\n' "$(cat $in/sabnzbd-secrets/username)"
+              printf 'password = %s\n' "$(cat $in/sabnzbd-secrets/password)"
+            } > $out/misc-secrets
+            {
+              printf '[servers]\n'
+              printf '[[news.eweka.nl]]\n'
+              printf 'username = %s\n' "$(cat $in/sabnzbd-secrets/eweka_username)"
+              printf 'password = %s\n' "$(cat $in/sabnzbd-secrets/eweka_password)"
+            } > $out/server-secrets
           '';
-          restartUnits = [ "sabnzbd.service" ];
         };
 
         services.sabnzbd = {
           enable = true;
           configFile = null;
           secretFiles = [
-            config.sops.templates."sabnzbd/misc-secrets".path
-            config.sops.templates."sabnzbd/server-secrets".path
+            config.clan.core.vars.generators.sabnzbd-conf.files.misc-secrets.path
+            config.clan.core.vars.generators.sabnzbd-conf.files.server-secrets.path
           ];
           settings = {
             misc = {
@@ -548,26 +661,13 @@ in
           };
         };
 
-        services.caddy.virtualHosts."sabnzbd.binarin.info".extraConfig = ''
-          reverse_proxy http://127.0.0.1:8085
-          import letsencrypt
-        '';
-
         services.prowlarr.enable = true;
-        services.caddy.virtualHosts."prowlarr.binarin.info".extraConfig = ''
-          reverse_proxy http://127.0.0.1:9696
-          import letsencrypt
-        '';
 
         services.radarr.enable = true;
         users.users.radarr.extraGroups = [
           "usenet"
           "jellyfin"
         ];
-        services.caddy.virtualHosts."radarr.binarin.info".extraConfig = ''
-          reverse_proxy http://127.0.0.1:7878
-          import letsencrypt
-        '';
 
         # grocy configuration
         services.grocy = {
@@ -588,50 +688,28 @@ in
           }
         ];
 
-        services.caddy.virtualHosts."grocy.binarin.info".extraConfig = ''
-          reverse_proxy http://127.0.0.1:64084
-          import letsencrypt
-        '';
-
         # tandoor configuration
-        sops.secrets."tandoor/secret-key" = { };
-        sops.secrets."tandoor/postgres-password" = { };
-
-        sops.templates.tandoor-env.content = ''
-          SECRET_KEY=${config.sops.placeholder."tandoor/postgres-password"}
-
-          # allowed hosts (see documentation), should be set to your hostname(s) but might be * (default) for some proxies/providers
-          ALLOWED_HOSTS=tandoor.binarin.info
-
-          # add only a database password if you want to run with the default postgres, otherwise change settings accordingly
-          DB_ENGINE=django.db.backends.postgresql
-          POSTGRES_HOST=db_recipes
-          POSTGRES_DB=djangodb
-          POSTGRES_PORT=5432
-          POSTGRES_USER=djangouser
-          POSTGRES_PASSWORD=${config.sops.placeholder."tandoor/postgres-password"}
-        '';
-
-        services.caddy.virtualHosts."tandoor.binarin.info".extraConfig = ''
-          handle_path /media/* {
-            root * /var/lib/tandoor/mediafiles
-            header Content-Disposition `"attachment; filename="{file}"`
-            file_server
-          }
-
-          handle_path /static/* {
-            root * /var/lib/tandoor/staticfiles
-            file_server
-          }
-
-          reverse_proxy http://127.0.0.1:8081
-          import letsencrypt
-        '';
-
-        systemd.services.caddy.serviceConfig.ReadOnlyPaths = [
-          "/var/lib/tandoor/staticfiles"
-          "/var/lib/tandoor/mediafiles"
-        ];
+        # NB: preserving the pre-migration behaviour where SECRET_KEY reuses the
+        # postgres password (the old `tandoor/secret-key` sops value was never
+        # wired in). One raw secret imported 1:1, composed into the secret env.
+        clan.core.vars.generators.tandoor-secrets = {
+          prompts.postgres-password.description = "tandoor postgres password (also used as SECRET_KEY)";
+          files.postgres-password.secret = true;
+          script = ''
+            cat $prompts/postgres-password > $out/postgres-password
+          '';
+        };
+        clan.core.vars.generators.tandoor-env = {
+          dependencies = [ "tandoor-secrets" ];
+          files.secret-env.secret = true;
+          script = ''
+            pw="$(cat $in/tandoor-secrets/postgres-password)"
+            {
+              printf 'SECRET_KEY=%s\n' "$pw"
+              printf 'POSTGRES_PASSWORD=%s\n' "$pw"
+            } > $out/secret-env
+          '';
+        };
 
         virtualisation.arion.projects.tandoor = {
           serviceName = "tandoor-docker-compose";
@@ -648,7 +726,8 @@ in
                   "/var/lib/tandoor/postgresql:/var/lib/postgresql/data"
                 ];
                 env_file = [
-                  config.sops.templates.tandoor-env.path
+                  "${tandoorEnvConfig}"
+                  config.clan.core.vars.generators.tandoor-env.files.secret-env.path
                 ];
               };
               web_recipes.service = {
@@ -658,7 +737,8 @@ in
                   "8081:80"
                 ];
                 env_file = [
-                  config.sops.templates.tandoor-env.path
+                  "${tandoorEnvConfig}"
+                  config.clan.core.vars.generators.tandoor-env.files.secret-env.path
                 ];
                 volumes = [
                   "/var/lib/tandoor/staticfiles:/opt/recipes/staticfiles"
@@ -718,35 +798,6 @@ in
             };
           };
 
-        services.caddy.virtualHosts."homepage.binarin.info".extraConfig =
-          let
-            customIconsDir = selfLib.dir "dashboard-icons";
-          in
-          ''
-              handle_path /custom-icons/* {
-                root * ${customIconsDir}
-                @png {
-                  path *.png
-                }
-                header @png Content-Type "image/png"
-                file_server browse
-              }
-
-              reverse_proxy http://127.0.0.1:8082
-            import letsencrypt
-          '';
-
-        services.caddy.virtualHosts."atuin.binarin.info".extraConfig = ''
-          reverse_proxy http://127.0.0.1:8888
-          import letsencrypt
-        '';
-
-        services.caddy.virtualHosts."org.binarin.info".extraConfig = ''
-          root * /var/lib/org.binarin.info
-          file_server browse
-          import letsencrypt
-        '';
-
         services.atuin.enable = true;
 
         services.samba.settings.Workspace = smbShareStandartOptions // {
@@ -756,6 +807,7 @@ in
         system.stateVersion = "24.05";
 
         networking.firewall.allowedTCPPorts = [
+          80
           443
         ];
 
