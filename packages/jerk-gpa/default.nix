@@ -12,7 +12,13 @@ let
 in
 writeShellApplication {
   name = "jerk-gpa";
-  runtimeInputs = [ systemd coreutils jq niri uwsm ];
+  runtimeInputs = [
+    systemd
+    coreutils
+    jq
+    niri
+    uwsm
+  ];
   text = ''
     if [[ $# -ne 1 ]]; then
       echo >&2 "Usage: jerk-gpa <portal-url>"
@@ -69,7 +75,7 @@ writeShellApplication {
     set -euo pipefail
 
     echo >&2 "Disconnecting GlobalProtect..."
-    yes | globalprotect disconnect
+    yes | globalprotect disconnect || true
     echo >&2 "Stopping GPA..."
     systemctl --user stop gpa.service
     echo >&2 "Cleaning GPA state..."
