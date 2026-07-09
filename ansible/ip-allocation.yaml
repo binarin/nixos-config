@@ -140,6 +140,12 @@ ip_allocation:
         _type: leaf
         address: 192.168.2.79
         mac: null
+  metabase:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.36
+        mac: 02:00:a8:70:69:23
   monitor:
     home:
       primary:
@@ -194,6 +200,12 @@ ip_allocation:
         _type: leaf
         address: 192.168.2.33
         mac: 02:00:41:EB:0B:C1
+  postgres:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.35
+        mac: 02:00:16:59:43:5d
   proxmox-test:
     home:
       primary:
