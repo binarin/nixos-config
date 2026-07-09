@@ -269,6 +269,15 @@
             nixfmt
             dnscontrol
             clan-cli-determinate-compatible
+            (gcx.overrideAttrs (finalAttrs: {
+              version = "0.4.3";
+              src = fetchFromGitHub {
+                owner = "grafana";
+                repo = "gcx";
+                tag = "v${finalAttrs.version}";
+                hash = "sha256-gN3l45wFpZSUnhprei/Ca1/4ptmOFtpNmNUpy6sn0aU";
+              };
+            }))
             # (terraform_1.withPlugins (p: with p; [ dmacvicar_libvirt ])) # too expensive to build
             cloud-init
             ansible
