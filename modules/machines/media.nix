@@ -820,11 +820,6 @@ in
           environmentFile = config.clan.core.vars.generators.atuin-db-env.files.env.path;
         };
 
-        # Prepared-state mask: keep atuin from starting against the empty remote
-        # DB (and auto-running sqlx migrations) before the manual restore.
-        # Removed in the cutover task (Task 5).
-        systemd.services.atuin.enable = false;
-
         services.samba.settings.Workspace = smbShareStandartOptions // {
           path = "/media/workspace";
         };
