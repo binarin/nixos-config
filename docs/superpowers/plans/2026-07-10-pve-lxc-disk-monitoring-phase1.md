@@ -648,31 +648,26 @@ No code change; if you keep an ops log, record the per-host volume counts. Other
 - Consumes: `pve_lxc_volume_info` join (Task 5), datasource UID `P4169E866C3094E38`.
 - Produces: a Grafana dashboard `pve-lxc-disk` driven by a `$source` variable.
 
-**Reusable `$source` gate.** The three-way toggle uses a custom variable `source` with values `host`, `guest`, `both`, and this pure-PromQL gate appended to each source branch so only the selected branch(es) emit series (works without a recording rule):
+**Reusable `$source` gate.** *(Corrected during implementation — the original `label_replace(vector(1),…){v=~"…"}` idea is INVALID PromQL/MetricsQL: a label matcher `{…}` cannot be applied to a function result, and VictoriaMetrics returns HTTP 422. The committed `dashboards/pve-lxc-disk.json` is the source of truth.)*
 
-```
-* on() group_left() (label_replace(vector(1), "v", "$source", "", ""))
-```
-…combined with a branch-specific matcher. Concretely the two branches are:
+The three-way toggle uses a custom variable `source` with **numeric values**: `host : 1`, `guest : 2`, `both : 3` (default `both`/`3`). Each branch is gated with a valid `and on()` filter against a synthetic single-element vector:
 
-- **host branch** (gate matches when `$source` is `host` or `both`):
+- **host branch** — visible for `host`(1) and `both`(3); hidden for `guest`(2):
 ```
 (
   100 * (1 - node_filesystem_avail_bytes{mountpoint=~"/rpool/data/subvol.*"}
              / node_filesystem_size_bytes{mountpoint=~"/rpool/data/subvol.*"})
   * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info
-)
-* on() group_left() (label_replace(vector(1), "v", "$source", "", "")){v=~"host|both"}
+) and on() (vector($source) != 2)
 ```
-- **guest branch** (gate matches when `$source` is `guest` or `both`; `bhost` copied to `guest`):
+- **guest branch** — visible for `guest`(2) and `both`(3); hidden for `host`(1):
 ```
-label_replace(
+(
   100 * (1 - node_filesystem_avail_bytes{job="node",mountpoint!~"/rpool/data/subvol.*",fstype!~"tmpfs|fuse.*|vfat|overlay|ramfs|nsfs|autofs"}
-             / node_filesystem_size_bytes{job="node",mountpoint!~"/rpool/data/subvol.*",fstype!~"tmpfs|fuse.*|vfat|overlay|ramfs|nsfs|autofs"}),
-  "guest", "$__auto", "", "")
-* on() group_left() (label_replace(vector(1), "v", "$source", "", "")){v=~"guest|both"}
+             / node_filesystem_size_bytes{job="node",mountpoint!~"/rpool/data/subvol.*",fstype!~"tmpfs|fuse.*|vfat|overlay|ramfs|nsfs|autofs"})
+) and on() (vector($source) != 1)
 ```
-(For the guest branch, set the panel legend/label to `{{bhost}}` since `bhost` is the CT name there; the `label_replace` `guest` copy is best-effort and the merge-safety rule still holds because `bhost` uniquely identifies the guest.)
+How it works: `vector($source) != N` yields the single element when `$source != N`, else an empty vector; `<expr> and on() (<empty>)` produces nothing, while `and on() (<one element, no labels>)` keeps `<expr>` unchanged. For the guest branch, legend by `{{bhost}}` (it is the CT name there); the merge-safety rule still holds because `bhost` uniquely identifies the guest.
 
 - [ ] **Step 1: Build the dashboard model JSON**
 
@@ -683,123 +678,460 @@ Create `dashboards/pve-lxc-disk.json` verbatim. (Design choices: the table and b
   "dashboard": {
     "uid": "pve-lxc-disk",
     "title": "PVE LXC Disk",
-    "tags": ["disk", "pve", "lxc"],
+    "tags": [
+      "disk",
+      "pve",
+      "lxc"
+    ],
     "timezone": "browser",
     "refresh": "1m",
-    "time": { "from": "now-24h", "to": "now" },
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
     "templating": {
       "list": [
         {
-          "name": "source", "label": "Source", "type": "custom",
-          "query": "host,guest,both",
-          "current": { "text": "both", "value": "both" },
+          "name": "source",
+          "label": "Source",
+          "type": "custom",
+          "query": "host : 1,guest : 2,both : 3",
+          "current": {
+            "text": "both",
+            "value": "3"
+          },
           "options": [
-            { "text": "host", "value": "host" },
-            { "text": "guest", "value": "guest" },
-            { "text": "both", "value": "both", "selected": true }
+            {
+              "text": "host",
+              "value": "1",
+              "selected": false
+            },
+            {
+              "text": "guest",
+              "value": "2",
+              "selected": false
+            },
+            {
+              "text": "both",
+              "value": "3",
+              "selected": true
+            }
           ]
         }
       ]
     },
     "panels": [
       {
-        "id": 1, "type": "stat", "title": "Volumes < 5 GiB free (host)",
-        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
-        "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-        "targets": [{
-          "refId": "A",
-          "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-          "expr": "count(min by (bhost, mountpoint) (node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) < 5 * 1024 * 1024 * 1024) or vector(0)",
-          "instant": true
-        }],
-        "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
-        "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } }, "overrides": [] }
-      },
-      {
-        "id": 2, "type": "stat", "title": "Least free space (worst volume, host)",
-        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
-        "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-        "targets": [{
-          "refId": "A",
-          "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-          "expr": "min(min by (bhost, mountpoint) (node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"}))",
-          "instant": true
-        }],
-        "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
-        "fieldConfig": { "defaults": { "unit": "bytes", "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 5368709120 }, { "color": "green", "value": 21474836480 } ] } }, "overrides": [] }
-      },
-      {
-        "id": 3, "type": "bargauge", "title": "Disk usage % by guest (host / $source)",
-        "gridPos": { "h": 20, "w": 12, "x": 0, "y": 4 },
-        "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-        "targets": [{
-          "refId": "A",
-          "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-          "expr": "(100 * (1 - node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} / node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info) * on() group_left() (label_replace(vector(1),\"v\",\"$source\",\"\",\"\")){v=~\"host|both\"}",
-          "instant": true,
-          "legendFormat": "{{guest}}  {{guest_mountpoint}}"
-        }],
-        "options": { "displayMode": "gradient", "orientation": "horizontal", "showUnfilled": true, "valueMode": "text" },
-        "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "orange", "value": 85 }, { "color": "red", "value": 95 } ] } }, "overrides": [] }
-      },
-      {
-        "id": 4, "type": "table", "title": "CT filesystems (host / $source)",
-        "gridPos": { "h": 20, "w": 12, "x": 12, "y": 4 },
-        "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
+        "id": 1,
+        "type": "stat",
+        "title": "Volumes < 5 GiB free (host)",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "datasource": {
+          "type": "victoriametrics-metrics-datasource",
+          "uid": "P4169E866C3094E38"
+        },
         "targets": [
           {
             "refId": "A",
-            "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-            "expr": "(100 * (1 - node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} / node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info) * on() group_left() (label_replace(vector(1),\"v\",\"$source\",\"\",\"\")){v=~\"host|both\"}",
-            "instant": true, "format": "table"
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "count(min by (bhost, mountpoint) (node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) < 5 * 1024 * 1024 * 1024) or vector(0)",
+            "instant": true
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ]
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          "overrides": []
+        }
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "Least free space (worst volume, host)",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "datasource": {
+          "type": "victoriametrics-metrics-datasource",
+          "uid": "P4169E866C3094E38"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "min(min by (bhost, mountpoint) (node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"}))",
+            "instant": true
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ]
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 5368709120
+                },
+                {
+                  "color": "green",
+                  "value": 21474836480
+                }
+              ]
+            }
+          },
+          "overrides": []
+        }
+      },
+      {
+        "id": 3,
+        "type": "bargauge",
+        "title": "Disk usage % by guest (host / $source)",
+        "gridPos": {
+          "h": 20,
+          "w": 12,
+          "x": 0,
+          "y": 4
+        },
+        "datasource": {
+          "type": "victoriametrics-metrics-datasource",
+          "uid": "P4169E866C3094E38"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "(100 * (1 - node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} / node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info) and on() (vector($source) != 2)",
+            "instant": true,
+            "legendFormat": "{{guest}}  {{guest_mountpoint}}"
+          }
+        ],
+        "options": {
+          "displayMode": "gradient",
+          "orientation": "horizontal",
+          "showUnfilled": true,
+          "valueMode": "text"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 70
+                },
+                {
+                  "color": "orange",
+                  "value": 85
+                },
+                {
+                  "color": "red",
+                  "value": 95
+                }
+              ]
+            }
+          },
+          "overrides": []
+        }
+      },
+      {
+        "id": 4,
+        "type": "table",
+        "title": "CT filesystems (host / $source)",
+        "gridPos": {
+          "h": 20,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        },
+        "datasource": {
+          "type": "victoriametrics-metrics-datasource",
+          "uid": "P4169E866C3094E38"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "(100 * (1 - node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} / node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info) and on() (vector($source) != 2)",
+            "instant": true,
+            "format": "table"
           },
           {
             "refId": "B",
-            "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-            "expr": "(node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info) * on() group_left() (label_replace(vector(1),\"v\",\"$source\",\"\",\"\")){v=~\"host|both\"}",
-            "instant": true, "format": "table"
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "(node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info) and on() (vector($source) != 2)",
+            "instant": true,
+            "format": "table"
           },
           {
             "refId": "C",
-            "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-            "expr": "(node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"} * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info) * on() group_left() (label_replace(vector(1),\"v\",\"$source\",\"\",\"\")){v=~\"host|both\"}",
-            "instant": true, "format": "table"
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "(node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"} * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info) and on() (vector($source) != 2)",
+            "instant": true,
+            "format": "table"
           }
         ],
         "transformations": [
-          { "id": "merge", "options": {} },
-          { "id": "organize", "options": { "excludeByName": { "Time": true, "__name__": true, "device": true, "fstype": true, "instance": true, "job": true, "pool": true, "slot": true, "vmid": true }, "renameByName": { "Value #A": "Used %", "Value #B": "Free", "Value #C": "Size", "guest": "Guest", "guest_mountpoint": "Mount", "bhost": "Host" } } },
-          { "id": "sortBy", "options": { "fields": {}, "sort": [ { "field": "Used %", "desc": true } ] } }
+          {
+            "id": "merge",
+            "options": {}
+          },
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time": true,
+                "__name__": true,
+                "device": true,
+                "fstype": true,
+                "instance": true,
+                "job": true,
+                "pool": true,
+                "slot": true,
+                "vmid": true
+              },
+              "renameByName": {
+                "Value #A": "Used %",
+                "Value #B": "Free",
+                "Value #C": "Size",
+                "guest": "Guest",
+                "guest_mountpoint": "Mount",
+                "bhost": "Host"
+              }
+            }
+          },
+          {
+            "id": "sortBy",
+            "options": {
+              "fields": {},
+              "sort": [
+                {
+                  "field": "Used %",
+                  "desc": true
+                }
+              ]
+            }
+          }
         ],
         "fieldConfig": {
           "defaults": {},
           "overrides": [
-            { "matcher": { "id": "byName", "options": "Used %" }, "properties": [ { "id": "unit", "value": "percent" }, { "id": "decimals", "value": 1 }, { "id": "custom.cellOptions", "value": { "type": "color-background" } }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "orange", "value": 85 }, { "color": "red", "value": 95 } ] } } ] },
-            { "matcher": { "id": "byName", "options": "Free" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
-            { "matcher": { "id": "byName", "options": "Size" }, "properties": [ { "id": "unit", "value": "bytes" } ] }
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Used %"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percent"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "type": "color-background"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "yellow",
+                        "value": 70
+                      },
+                      {
+                        "color": "orange",
+                        "value": 85
+                      },
+                      {
+                        "color": "red",
+                        "value": 95
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Free"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "bytes"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Size"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "bytes"
+                }
+              ]
+            }
           ]
         }
       },
       {
-        "id": 5, "type": "timeseries", "title": "Disk usage % over time ($source)",
-        "gridPos": { "h": 12, "w": 24, "x": 0, "y": 24 },
-        "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
+        "id": 5,
+        "type": "timeseries",
+        "title": "Disk usage % over time ($source)",
+        "gridPos": {
+          "h": 12,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        },
+        "datasource": {
+          "type": "victoriametrics-metrics-datasource",
+          "uid": "P4169E866C3094E38"
+        },
         "targets": [
           {
             "refId": "A",
-            "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-            "expr": "(100 * (1 - node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} / node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info) * on() group_left() (label_replace(vector(1),\"v\",\"$source\",\"\",\"\")){v=~\"host|both\"}",
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "(100 * (1 - node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} / node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info) and on() (vector($source) != 2)",
             "legendFormat": "host: {{guest}}  {{guest_mountpoint}}"
           },
           {
             "refId": "B",
-            "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "P4169E866C3094E38" },
-            "expr": "(100 * (1 - node_filesystem_avail_bytes{job=\"node\",mountpoint!~\"/rpool/data/subvol.*\",fstype!~\"tmpfs|fuse.*|vfat|overlay|ramfs|nsfs|autofs\"} / node_filesystem_size_bytes{job=\"node\",mountpoint!~\"/rpool/data/subvol.*\",fstype!~\"tmpfs|fuse.*|vfat|overlay|ramfs|nsfs|autofs\"})) * on() group_left() (label_replace(vector(1),\"v\",\"$source\",\"\",\"\")){v=~\"guest|both\"}",
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "(100 * (1 - node_filesystem_avail_bytes{job=\"node\",mountpoint!~\"/rpool/data/subvol.*\",fstype!~\"tmpfs|fuse.*|vfat|overlay|ramfs|nsfs|autofs\"} / node_filesystem_size_bytes{job=\"node\",mountpoint!~\"/rpool/data/subvol.*\",fstype!~\"tmpfs|fuse.*|vfat|overlay|ramfs|nsfs|autofs\"})) and on() (vector($source) != 1)",
             "legendFormat": "guest: {{bhost}}  {{mountpoint}}"
           }
         ],
-        "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
-        "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "drawStyle": "line", "fillOpacity": 5, "showPoints": "never" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 85 } ] } }, "overrides": [] }
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ]
+          },
+          "tooltip": {
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 5,
+              "showPoints": "never"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 85
+                }
+              ]
+            }
+          },
+          "overrides": []
+        }
       }
     ]
   },
