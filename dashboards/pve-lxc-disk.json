@@ -309,31 +309,32 @@
               "excludeByName": {
                 "Time": true,
                 "__name__": true,
+                "bhost": true,
                 "device": true,
                 "fstype": true,
+                "guest": true,
+                "guest_mountpoint": true,
                 "instance": true,
                 "job": true,
                 "pool": true,
                 "slot": true,
-                "vmid": true,
-                "bhost": true,
-                "guest": true,
-                "guest_mountpoint": true,
-                "mountpoint": true
-              },
-              "renameByName": {
-                "name": "Host / Guest",
-                "mount": "Mount",
-                "Value #A": "Used %",
-                "Value #B": "Free",
-                "Value #C": "Size"
+                "vmid": true
               },
               "indexByName": {
                 "name": 0,
                 "Value #A": 1,
                 "Value #B": 2,
                 "Value #C": 3,
-                "mount": 4
+                "mount": 4,
+                "mountpoint": 5
+              },
+              "renameByName": {
+                "Value #A": "Used %",
+                "Value #B": "Free",
+                "Value #C": "Size",
+                "mount": "Mount",
+                "name": "Host / Guest",
+                "mountpoint": "Mountpoint"
               }
             }
           },
@@ -421,5 +422,5 @@
     "uid": "pve-lxc-disk"
   },
   "overwrite": true,
-  "message": "host rows: per-ZFS-pool (rpool/bpool/spinning) instead of only / \u2014 surfaces /boot(bpool), dedups /home,/root,etc"
+  "message": "restore raw mountpoint column as rightmost (keep friendly Mount)"
 }
