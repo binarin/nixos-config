@@ -139,6 +139,7 @@ in
             elinks
             eternal-terminal
             file
+            gcx
             git-annex
             git-crypt-patched
             gnum4

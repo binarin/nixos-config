@@ -34,6 +34,19 @@ let
       nix = inputs.determinate-nix.packages."${prev.stdenv.hostPlatform.system}".default;
     })
 
+    # gcx 0.4.3 — newer than nixpkgs
+    (final: prev: {
+      gcx = prev.gcx.overrideAttrs (finalAttrs: {
+        version = "0.4.3";
+        src = prev.fetchFromGitHub {
+          owner = "grafana";
+          repo = "gcx";
+          tag = "v${finalAttrs.version}";
+          hash = "sha256-gN3l45wFpZSUnhprei/Ca1/4ptmOFtpNmNUpy6sn0aU";
+        };
+      });
+    })
+
     self.overlays.jerk-gpa
     self.overlays.ksso
     self.overlays.klaude
