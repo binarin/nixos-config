@@ -38,5 +38,58 @@ class TestParseCtConfig(unittest.TestCase):
         self.assertEqual(recs[1].guest_mountpoint, "/media/tube")
 
 
+class TestParseZfsList(unittest.TestCase):
+    def test_maps_basename_to_dataset_and_mountpoint(self):
+        out = (
+            "rpool\t/rpool\n"
+            "rpool/data/subvol-112-disk-0\t/rpool/data/subvol-112-disk-0\n"
+            "spinning/pve-data/subvol-111-disk-5\t/spinning/pve-data/subvol-111-disk-5\n"
+        )
+        mp = m.parse_zfs_list(out)
+        self.assertEqual(
+            mp["subvol-112-disk-0"],
+            ("rpool/data/subvol-112-disk-0", "/rpool/data/subvol-112-disk-0"),
+        )
+        self.assertEqual(
+            mp["subvol-111-disk-5"],
+            ("spinning/pve-data/subvol-111-disk-5", "/spinning/pve-data/subvol-111-disk-5"),
+        )
+
+
+class TestRenderProm(unittest.TestCase):
+    def _map(self):
+        return {
+            "subvol-112-disk-0": ("rpool/data/subvol-112-disk-0", "/rpool/data/subvol-112-disk-0"),
+            "subvol-112-disk-1": ("rpool/data/subvol-112-disk-1", "/rpool/data/subvol-112-disk-1"),
+        }
+
+    def test_emits_expected_line(self):
+        recs = [m.VolumeRecord("112", "forgejo", "rootfs", "subvol-112-disk-0", "/")]
+        out = m.render_prom(recs, self._map())
+        self.assertIn("# TYPE pve_lxc_volume_info gauge", out)
+        self.assertIn(
+            'pve_lxc_volume_info{'
+            'dataset="rpool/data/subvol-112-disk-0",'
+            'guest="forgejo",'
+            'guest_mountpoint="/",'
+            'mountpoint="/rpool/data/subvol-112-disk-0",'
+            'pool="rpool",'
+            'slot="rootfs",'
+            'vmid="112"} 1',
+            out,
+        )
+        self.assertTrue(out.endswith("\n"))
+
+    def test_unresolved_volume_skipped(self):
+        recs = [m.VolumeRecord("999", "ghost", "rootfs", "subvol-999-disk-0", "/")]
+        out = m.render_prom(recs, self._map())
+        self.assertNotIn("ghost", out)
+
+    def test_unmounted_dataset_skipped(self):
+        recs = [m.VolumeRecord("112", "forgejo", "rootfs", "subvol-112-disk-0", "/")]
+        out = m.render_prom(recs, {"subvol-112-disk-0": ("rpool/data/subvol-112-disk-0", "-")})
+        self.assertNotIn("forgejo", out)
+
+
 if __name__ == "__main__":
     unittest.main()

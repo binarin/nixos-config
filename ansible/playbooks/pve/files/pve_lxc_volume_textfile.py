@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import sys
 
 
 @dataclasses.dataclass(frozen=True)
@@ -42,3 +43,62 @@ def parse_ct_config(vmid, text):
     if guest is None:
         guest = "ct-%s" % vmid
     return [VolumeRecord(vmid, guest, slot, vol, mp) for (slot, vol, mp) in vols]
+
+
+_HELP = "# HELP pve_lxc_volume_info Mapping of PVE LXC volumes to container identity."
+_TYPE = "# TYPE pve_lxc_volume_info gauge"
+_UNMOUNTED = {"", "-", "none", "legacy"}
+
+
+def parse_zfs_list(output):
+    mapping = {}
+    for line in output.splitlines():
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        if len(parts) < 2:
+            parts = line.split()
+        if len(parts) < 2:
+            continue
+        name, mountpoint = parts[0], parts[1]
+        base = name.split("/")[-1]
+        if base in mapping and mapping[base][0] != name:
+            print(
+                "warning: duplicate volume basename %s: %s vs %s"
+                % (base, mapping[base][0], name),
+                file=sys.stderr,
+            )
+        mapping[base] = (name, mountpoint)
+    return mapping
+
+
+def _escape(value):
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+
+def render_prom(records, zfs_map):
+    lines = [_HELP, _TYPE]
+    seen = set()
+    for r in records:
+        entry = zfs_map.get(r.volume)
+        if entry is None:
+            continue
+        dataset, mountpoint = entry
+        if mountpoint in _UNMOUNTED:
+            continue
+        labels = {
+            "vmid": r.vmid,
+            "guest": r.guest,
+            "dataset": dataset,
+            "pool": dataset.split("/")[0],
+            "slot": r.slot,
+            "guest_mountpoint": r.guest_mountpoint,
+            "mountpoint": mountpoint,
+        }
+        items = tuple(sorted(labels.items()))
+        if items in seen:
+            continue
+        seen.add(items)
+        label_str = ",".join('%s="%s"' % (k, _escape(v)) for k, v in items)
+        lines.append("pve_lxc_volume_info{%s} 1" % label_str)
+    return "\n".join(lines) + "\n"
