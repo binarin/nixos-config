@@ -206,7 +206,11 @@ in
                         type = "telegram";
                         settings = {
                           bottoken = "$__file{${config.clan.core.vars.generators.telegram.files.token.path}}";
-                          chatid = "$__file{${config.clan.core.vars.generators.telegram.files.chatid.path}}";
+                          # Literal (not secret; useless without the token). Must be a
+                          # quoted string — Grafana leaves $__file expansions unquoted,
+                          # so a numeric chatid via $__file is parsed as a number and
+                          # rejected ("cannot unmarshal number into ... chatid string").
+                          chatid = "100771403";
                         };
                       }
                     ];
