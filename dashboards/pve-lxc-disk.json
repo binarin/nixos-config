@@ -270,7 +270,7 @@
               "type": "victoriametrics-metrics-datasource",
               "uid": "P4169E866C3094E38"
             },
-            "expr": "(label_replace(label_replace(label_join(100 * (1 - node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} / node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info, \"name\", \" (\", \"guest\", \"bhost\"), \"name\", \"$1)\", \"name\", \"(.*)\"), \"mount\", \"$1\", \"guest_mountpoint\", \"(.*)\") or label_replace(label_replace(100 * (1 - node_filesystem_avail_bytes{bhost=~\"raum|valak|bael\",mountpoint=\"/\"} / node_filesystem_size_bytes{bhost=~\"raum|valak|bael\",mountpoint=\"/\"}), \"name\", \"$1\", \"bhost\", \"(.*)\"), \"mount\", \"$1\", \"mountpoint\", \"(.*)\")) and on() (vector($source) != 2)",
+            "expr": "(label_replace(label_replace(label_join(100 * (1 - node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} / node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info, \"name\", \" (\", \"guest\", \"bhost\"), \"name\", \"$1)\", \"name\", \"(.*)\"), \"mount\", \"$1\", \"guest_mountpoint\", \"(.*)\") or label_replace(label_replace(100 * (1 - zfs_pool_free_bytes / zfs_pool_size_bytes), \"name\", \"$1\", \"bhost\", \"(.*)\"), \"mount\", \"$1\", \"pool\", \"(.*)\")) and on() (vector($source) != 2)",
             "format": "table",
             "instant": true,
             "refId": "A"
@@ -280,7 +280,7 @@
               "type": "victoriametrics-metrics-datasource",
               "uid": "P4169E866C3094E38"
             },
-            "expr": "(label_replace(label_replace(label_join(node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info, \"name\", \" (\", \"guest\", \"bhost\"), \"name\", \"$1)\", \"name\", \"(.*)\"), \"mount\", \"$1\", \"guest_mountpoint\", \"(.*)\") or label_replace(label_replace(node_filesystem_avail_bytes{bhost=~\"raum|valak|bael\",mountpoint=\"/\"} * 1, \"name\", \"$1\", \"bhost\", \"(.*)\"), \"mount\", \"$1\", \"mountpoint\", \"(.*)\")) and on() (vector($source) != 2)",
+            "expr": "(label_replace(label_replace(label_join(node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info, \"name\", \" (\", \"guest\", \"bhost\"), \"name\", \"$1)\", \"name\", \"(.*)\"), \"mount\", \"$1\", \"guest_mountpoint\", \"(.*)\") or label_replace(label_replace(zfs_pool_free_bytes * 1, \"name\", \"$1\", \"bhost\", \"(.*)\"), \"mount\", \"$1\", \"pool\", \"(.*)\")) and on() (vector($source) != 2)",
             "format": "table",
             "instant": true,
             "refId": "B"
@@ -291,13 +291,13 @@
               "uid": "P4169E866C3094E38"
             },
             "editorMode": "code",
-            "expr": "(label_replace(label_replace(label_join(node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"} * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info, \"name\", \" (\", \"guest\", \"bhost\"), \"name\", \"$1)\", \"name\", \"(.*)\"), \"mount\", \"$1\", \"guest_mountpoint\", \"(.*)\") or label_replace(label_replace(node_filesystem_size_bytes{bhost=~\"raum|valak|bael\",mountpoint=\"/\"} * 1, \"name\", \"$1\", \"bhost\", \"(.*)\"), \"mount\", \"$1\", \"mountpoint\", \"(.*)\")) and on() (vector($source) != 2)",
+            "expr": "(label_replace(label_replace(label_join(node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"} * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info, \"name\", \" (\", \"guest\", \"bhost\"), \"name\", \"$1)\", \"name\", \"(.*)\"), \"mount\", \"$1\", \"guest_mountpoint\", \"(.*)\") or label_replace(label_replace(zfs_pool_size_bytes * 1, \"name\", \"$1\", \"bhost\", \"(.*)\"), \"mount\", \"$1\", \"pool\", \"(.*)\")) and on() (vector($source) != 2)",
             "format": "table",
             "instant": true,
             "refId": "C"
           }
         ],
-        "title": "Disk usage: hosts + CTs ($source)",
+        "title": "Disk usage: pools + CTs ($source)",
         "transformations": [
           {
             "id": "merge",
@@ -421,5 +421,5 @@
     "uid": "pve-lxc-disk"
   },
   "overwrite": true,
-  "message": "add host-own rows, merged Host/Guest name col, mountpoint rightmost"
+  "message": "host rows: per-ZFS-pool (rpool/bpool/spinning) instead of only / \u2014 surfaces /boot(bpool), dedups /home,/root,etc"
 }
