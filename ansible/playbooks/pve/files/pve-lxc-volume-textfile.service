@@ -1,0 +1,8 @@
+[Unit]
+Description=Export PVE LXC volume -> container identity mapping for node_exporter
+After=zfs.target
+Wants=zfs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/pve-lxc-volume-textfile /var/lib/node_exporter

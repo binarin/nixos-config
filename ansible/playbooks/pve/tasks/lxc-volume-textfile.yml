@@ -1,0 +1,30 @@
+---
+- name: Install pve-lxc-volume-textfile script
+  ansible.builtin.copy:
+    src: pve_lxc_volume_textfile.py
+    dest: /usr/local/bin/pve-lxc-volume-textfile
+    mode: "0755"
+
+- name: Install pve-lxc-volume-textfile systemd service
+  ansible.builtin.copy:
+    src: pve-lxc-volume-textfile.service
+    dest: /etc/systemd/system/pve-lxc-volume-textfile.service
+    mode: "0644"
+
+- name: Install pve-lxc-volume-textfile systemd timer
+  ansible.builtin.copy:
+    src: pve-lxc-volume-textfile.timer
+    dest: /etc/systemd/system/pve-lxc-volume-textfile.timer
+    mode: "0644"
+
+- name: Enable and start pve-lxc-volume-textfile timer
+  ansible.builtin.systemd:
+    name: pve-lxc-volume-textfile.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Run pve-lxc-volume-textfile once to populate metrics now
+  ansible.builtin.systemd:
+    name: pve-lxc-volume-textfile.service
+    state: started

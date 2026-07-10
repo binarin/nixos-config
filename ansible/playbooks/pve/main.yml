@@ -47,6 +47,9 @@
     - prometheus.prometheus.node_exporter
     - aroberts.zfs_exporter
 
+  tasks:
+    - import_tasks: tasks/lxc-volume-textfile.yml
+
 - hosts: pve
   vars_files:
     - vars/main.yml
