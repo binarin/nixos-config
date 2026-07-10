@@ -55,6 +55,24 @@ class TestParseZfsList(unittest.TestCase):
             ("spinning/pve-data/subvol-111-disk-5", "/spinning/pve-data/subvol-111-disk-5"),
         )
 
+    def test_duplicate_basename_warns_and_last_wins(self):
+        import io
+        import contextlib
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            mp = m.parse_zfs_list(
+                "rpool/data/subvol-112-disk-0\t/mnt/first\n"
+                "rpool/backup/subvol-112-disk-0\t/mnt/second\n"
+            )
+        captured = stderr.getvalue()
+        self.assertIn("warning: duplicate volume basename", captured)
+        self.assertIn("subvol-112-disk-0", captured)
+        self.assertEqual(
+            mp["subvol-112-disk-0"],
+            ("rpool/backup/subvol-112-disk-0", "/mnt/second"),
+        )
+
 
 class TestRenderProm(unittest.TestCase):
     def _map(self):
@@ -89,6 +107,36 @@ class TestRenderProm(unittest.TestCase):
         recs = [m.VolumeRecord("112", "forgejo", "rootfs", "subvol-112-disk-0", "/")]
         out = m.render_prom(recs, {"subvol-112-disk-0": ("rpool/data/subvol-112-disk-0", "-")})
         self.assertNotIn("forgejo", out)
+
+    def test_help_line_present(self):
+        recs = [m.VolumeRecord("112", "forgejo", "rootfs", "subvol-112-disk-0", "/")]
+        out = m.render_prom(recs, self._map())
+        self.assertIn("# HELP pve_lxc_volume_info", out)
+
+    def test_all_unmounted_sentinels_skipped(self):
+        for sentinel in ["", "-", "none", "legacy"]:
+            with self.subTest(sentinel=sentinel):
+                recs = [m.VolumeRecord("112", "forgejo", "rootfs", "subvol-112-disk-0", "/")]
+                out = m.render_prom(
+                    recs,
+                    {"subvol-112-disk-0": ("rpool/data/subvol-112-disk-0", sentinel)},
+                )
+                self.assertNotIn("forgejo", out)
+
+    def test_deduplicates_identical_labels(self):
+        recs = [
+            m.VolumeRecord("112", "forgejo", "rootfs", "subvol-112-disk-0", "/"),
+            m.VolumeRecord("112", "forgejo", "rootfs", "subvol-112-disk-0", "/"),
+        ]
+        out = m.render_prom(recs, self._map())
+        self.assertEqual(out.count("pve_lxc_volume_info{"), 1)
+
+    def test_escapes_backslash_quote_newline(self):
+        guest = chr(92) + chr(34) + chr(10)  # backslash, double-quote, newline
+        escaped_guest = m._escape(guest)
+        recs = [m.VolumeRecord("112", guest, "rootfs", "subvol-112-disk-0", "/")]
+        out = m.render_prom(recs, self._map())
+        self.assertIn('guest="' + escaped_guest + '"', out)
 
 
 if __name__ == "__main__":
