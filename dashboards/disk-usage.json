@@ -220,7 +220,7 @@
                     {
                       "targetBlank": false,
                       "title": "Show history below",
-                      "url": "/d/pve-lxc-disk/pve-lxc-disk?${__url_time_range}&var-source=${source}&var-sel_bhost=${__data.fields.bhost}&var-sel_mountpoint=${__data.fields.Mountpoint}&var-sel_name=${__data.fields[\"Host / Guest\"]}&var-sel_mount=${__data.fields.Mount}"
+                      "url": "/d/disk-usage/disk-usage?${__url_time_range}&var-source=${source}&var-sel_bhost=${__data.fields.bhost}&var-sel_mountpoint=${__data.fields.Mountpoint}&var-sel_name=${__data.fields[\"Host / Guest\"]}&var-sel_mount=${__data.fields.Mount}"
                     }
                   ]
                 }
@@ -284,7 +284,7 @@
             "refId": "D"
           }
         ],
-        "title": "Disk usage: hosts (per mount) + CTs ($source)",
+        "title": "Filesystems: hosts (per mount) + CTs ($source)",
         "transformations": [
           {
             "id": "merge",
@@ -429,8 +429,8 @@
     "schemaVersion": 42,
     "tags": [
       "disk",
-      "pve",
-      "lxc"
+      "storage",
+      "pve"
     ],
     "templating": {
       "list": [
@@ -502,38 +502,38 @@
           "type": "textbox"
         },
         {
-          "name": "sel_name",
-          "type": "textbox",
-          "label": "Sel name",
-          "query": "",
           "current": {
             "text": "",
             "value": ""
           },
+          "label": "Sel name",
+          "name": "sel_name",
           "options": [
             {
+              "selected": true,
               "text": "",
-              "value": "",
-              "selected": true
+              "value": ""
             }
-          ]
+          ],
+          "query": "",
+          "type": "textbox"
         },
         {
-          "name": "sel_mount",
-          "type": "textbox",
-          "label": "Sel mount(fr)",
-          "query": "",
           "current": {
             "text": "",
             "value": ""
           },
+          "label": "Sel mount(fr)",
+          "name": "sel_mount",
           "options": [
             {
+              "selected": true,
               "text": "",
-              "value": "",
-              "selected": true
+              "value": ""
             }
-          ]
+          ],
+          "query": "",
+          "type": "textbox"
         }
       ]
     },
@@ -556,9 +556,9 @@
       ]
     },
     "timezone": "browser",
-    "title": "PVE LXC Disk",
-    "uid": "pve-lxc-disk"
+    "title": "Disk usage",
+    "uid": "disk-usage"
   },
   "overwrite": true,
-  "message": "history title resolves to name/mount; data link passes friendly labels"
+  "message": "rename dashboard to Disk usage (uid disk-usage); it is disk monitoring, LXC-aware"
 }

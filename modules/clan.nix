@@ -165,9 +165,18 @@ in
           prompts.port.description = "smtp port";
           prompts.user.description = "smtp user";
           prompts.password.description = "smtp password";
-          files.host = { };
-          files.port = { };
-          files.user = { };
+          files.host = {
+            group = "smtp-password";
+            mode = "0640";
+          };
+          files.port = {
+            group = "smtp-password";
+            mode = "0640";
+          };
+          files.user = {
+            group = "smtp-password";
+            mode = "0640";
+          };
           files.password = {
             group = "smtp-password";
             mode = "0640";

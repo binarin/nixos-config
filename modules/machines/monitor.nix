@@ -56,6 +56,7 @@ in
       imports = [
         self.nixosModules.baseline
         self.nixosModules.lxc
+        self.nixosModules.clan-smtp
       ];
 
       config = {
@@ -110,6 +111,10 @@ in
           '';
         };
 
+        # Let Grafana read the shared SMTP credentials (clan-smtp generator
+        # publishes host/port/user/password with group smtp-password, 0640).
+        users.users.grafana.extraGroups = [ "smtp-password" ];
+
         services.grafana = {
           enable = true;
           declarativePlugins = with pkgs.grafanaPlugins; [ victoriametrics-metrics-datasource ];
@@ -121,6 +126,15 @@ in
               admin_user = "$__file{${config.clan.core.vars.generators.grafana.files.admin-username.path}}";
               admin_password = "$__file{${config.clan.core.vars.generators.grafana.files.admin-password.path}}";
               secret_key = "$__file{${config.clan.core.vars.generators.grafana.files.secret-key.path}}";
+            };
+            smtp = {
+              enabled = true;
+              # $__file expands each occurrence, yielding "host:port".
+              host = "$__file{${config.clan.core.vars.generators.smtp.files.host.path}}:$__file{${config.clan.core.vars.generators.smtp.files.port.path}}";
+              user = "$__file{${config.clan.core.vars.generators.smtp.files.user.path}}";
+              password = "$__file{${config.clan.core.vars.generators.smtp.files.password.path}}";
+              from_address = "binarin@binarin.info";
+              from_name = "Grafana (monitor)";
             };
           };
           provision = {
@@ -152,6 +166,37 @@ in
                     "$__file{${config.clan.core.vars.generators."postgresql-postgres-hledger-hledger_monitor_ro".files.password.path}}";
                 }
               ];
+            };
+            alerting = {
+              contactPoints.settings = {
+                apiVersion = 1;
+                contactPoints = [
+                  {
+                    orgId = 1;
+                    name = "binarin-email";
+                    receivers = [
+                      {
+                        uid = "binarin-email";
+                        type = "email";
+                        settings.addresses = "binarin@binarin.info";
+                      }
+                    ];
+                  }
+                ];
+              };
+              policies.settings = {
+                apiVersion = 1;
+                policies = [
+                  {
+                    orgId = 1;
+                    receiver = "binarin-email";
+                    group_by = [
+                      "grafana_folder"
+                      "alertname"
+                    ];
+                  }
+                ];
+              };
             };
           };
         };
