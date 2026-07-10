@@ -218,9 +218,9 @@
                   "id": "links",
                   "value": [
                     {
+                      "targetBlank": false,
                       "title": "Show history below",
-                      "url": "/d/pve-lxc-disk/pve-lxc-disk?${__url_time_range}&var-source=${source}&var-sel_bhost=${__data.fields.bhost}&var-sel_mountpoint=${__data.fields.Mountpoint}",
-                      "targetBlank": false
+                      "url": "/d/pve-lxc-disk/pve-lxc-disk?${__url_time_range}&var-source=${source}&var-sel_bhost=${__data.fields.bhost}&var-sel_mountpoint=${__data.fields.Mountpoint}"
                     }
                   ]
                 }
@@ -311,10 +311,10 @@
                 "Value #B": 4,
                 "Value #C": 3,
                 "Value #D": 2,
+                "bhost": 99,
                 "mount": 5,
                 "mountpoint": 6,
-                "name": 0,
-                "bhost": 99
+                "name": 0
               },
               "renameByName": {
                 "Value #A": "Used %",
@@ -343,58 +343,20 @@
         "type": "table"
       },
       {
-        "id": 6,
-        "type": "timeseries",
         "datasource": {
           "type": "victoriametrics-metrics-datasource",
           "uid": "P4169E866C3094E38"
         },
-        "title": "History: ${sel_bhost}  ${sel_mountpoint}",
-        "gridPos": {
-          "h": 10,
-          "w": 24,
-          "x": 0,
-          "y": 24
-        },
-        "targets": [
-          {
-            "refId": "U",
-            "datasource": {
-              "type": "victoriametrics-metrics-datasource",
-              "uid": "P4169E866C3094E38"
-            },
-            "legendFormat": "Used",
-            "expr": "node_filesystem_size_bytes{bhost=\"$sel_bhost\",mountpoint=\"$sel_mountpoint\"} - node_filesystem_avail_bytes{bhost=\"$sel_bhost\",mountpoint=\"$sel_mountpoint\"}"
-          },
-          {
-            "refId": "S",
-            "datasource": {
-              "type": "victoriametrics-metrics-datasource",
-              "uid": "P4169E866C3094E38"
-            },
-            "legendFormat": "Size",
-            "expr": "node_filesystem_size_bytes{bhost=\"$sel_bhost\",mountpoint=\"$sel_mountpoint\"}"
-          },
-          {
-            "refId": "F",
-            "datasource": {
-              "type": "victoriametrics-metrics-datasource",
-              "uid": "P4169E866C3094E38"
-            },
-            "legendFormat": "Free",
-            "expr": "node_filesystem_avail_bytes{bhost=\"$sel_bhost\",mountpoint=\"$sel_mountpoint\"}"
-          }
-        ],
         "fieldConfig": {
           "defaults": {
-            "unit": "bytes",
-            "min": 0,
             "custom": {
               "drawStyle": "line",
               "fillOpacity": 10,
-              "showPoints": "never",
-              "lineWidth": 1
-            }
+              "lineWidth": 1,
+              "showPoints": "never"
+            },
+            "min": 0,
+            "unit": "bytes"
           },
           "overrides": [
             {
@@ -421,6 +383,13 @@
             }
           ]
         },
+        "gridPos": {
+          "h": 10,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        },
+        "id": 6,
         "options": {
           "legend": {
             "displayMode": "list",
@@ -430,7 +399,29 @@
             "mode": "multi",
             "sort": "desc"
           }
-        }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "node_filesystem_size_bytes{bhost=\"$sel_bhost\",mountpoint=\"$sel_mountpoint\"} - node_filesystem_avail_bytes{bhost=\"$sel_bhost\",mountpoint=\"$sel_mountpoint\"}",
+            "legendFormat": "Used",
+            "refId": "U"
+          },
+          {
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "node_filesystem_size_bytes{bhost=\"$sel_bhost\",mountpoint=\"$sel_mountpoint\"}",
+            "legendFormat": "Size",
+            "refId": "S"
+          }
+        ],
+        "title": "History: ${sel_bhost}  ${sel_mountpoint}",
+        "type": "timeseries"
       }
     ],
     "preload": false,
@@ -477,38 +468,38 @@
           "valuesFormat": "csv"
         },
         {
-          "name": "sel_bhost",
-          "type": "textbox",
-          "label": "Sel host",
-          "query": "",
           "current": {
             "text": "",
             "value": ""
           },
+          "label": "Sel host",
+          "name": "sel_bhost",
           "options": [
             {
+              "selected": true,
               "text": "",
-              "value": "",
-              "selected": true
+              "value": ""
             }
-          ]
+          ],
+          "query": "",
+          "type": "textbox"
         },
         {
-          "name": "sel_mountpoint",
-          "type": "textbox",
-          "label": "Sel mount",
-          "query": "",
           "current": {
             "text": "",
             "value": ""
           },
+          "label": "Sel mount",
+          "name": "sel_mountpoint",
           "options": [
             {
+              "selected": true,
               "text": "",
-              "value": "",
-              "selected": true
+              "value": ""
             }
-          ]
+          ],
+          "query": "",
+          "type": "textbox"
         }
       ]
     },
@@ -535,5 +526,5 @@
     "uid": "pve-lxc-disk"
   },
   "overwrite": true,
-  "message": "clickable rows -> detail history panel via data link + sel_ textbox vars"
+  "message": "history panel: drop Free (mirror of Used)"
 }
