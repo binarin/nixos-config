@@ -115,6 +115,25 @@ in
         # publishes host/port/user/password with group smtp-password, 0640).
         users.users.grafana.extraGroups = [ "smtp-password" ];
 
+        # Telegram bot token + chat id for the Grafana contact point.
+        # Run `clan vars generate` on monitor to enter them, then deploy.
+        clan.core.vars.generators.telegram = {
+          prompts.token.description = "telegram bot token (from @BotFather)";
+          prompts.chatid.description = "telegram chat id";
+          files.token = {
+            secret = true;
+            owner = config.users.users.grafana.name;
+          };
+          files.chatid = {
+            secret = true;
+            owner = config.users.users.grafana.name;
+          };
+          script = ''
+            cat $prompts/token  > $out/token
+            cat $prompts/chatid > $out/chatid
+          '';
+        };
+
         services.grafana = {
           enable = true;
           declarativePlugins = with pkgs.grafanaPlugins; [ victoriametrics-metrics-datasource ];
@@ -170,6 +189,8 @@ in
             alerting = {
               contactPoints.settings = {
                 apiVersion = 1;
+                # Single contact point carrying both integrations, so every
+                # routed alert notifies email AND telegram.
                 contactPoints = [
                   {
                     orgId = 1;
@@ -179,6 +200,14 @@ in
                         uid = "binarin-email";
                         type = "email";
                         settings.addresses = "binarin@binarin.info";
+                      }
+                      {
+                        uid = "binarin-telegram";
+                        type = "telegram";
+                        settings = {
+                          bottoken = "$__file{${config.clan.core.vars.generators.telegram.files.token.path}}";
+                          chatid = "$__file{${config.clan.core.vars.generators.telegram.files.chatid.path}}";
+                        };
                       }
                     ];
                   }
