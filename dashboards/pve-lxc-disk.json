@@ -33,10 +33,10 @@
               "steps": [
                 {
                   "color": "green",
-                  "value": 0
+                  "value": null
                 },
                 {
-                  "color": "red",
+                  "color": "yellow",
                   "value": 1
                 }
               ]
@@ -70,82 +70,16 @@
         "pluginVersion": "13.0.3",
         "targets": [
           {
+            "refId": "A",
             "datasource": {
               "type": "victoriametrics-metrics-datasource",
               "uid": "P4169E866C3094E38"
             },
-            "expr": "count(min by (bhost, mountpoint) (node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) < 5 * 1024 * 1024 * 1024) or vector(0)",
-            "instant": true,
-            "refId": "A"
+            "expr": "count(((label_replace(label_replace(label_join(100 * (1 - node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} / node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) * on(bhost,mountpoint) group_left(guest,vmid,guest_mountpoint) pve_lxc_volume_info, \"name\", \" (\", \"guest\", \"bhost\"), \"name\", \"$1)\", \"name\", \"(.*)\"), \"mount\", \"$1\", \"guest_mountpoint\", \"(.*)\") or label_replace(label_replace(100 * (1 - node_filesystem_avail_bytes{bhost=~\"raum|valak|bael\",mountpoint!~\"/rpool/data/subvol.*\",fstype=\"zfs\"} / node_filesystem_size_bytes{bhost=~\"raum|valak|bael\",mountpoint!~\"/rpool/data/subvol.*\",fstype=\"zfs\"}), \"name\", \"$1\", \"bhost\", \"(.*)\"), \"mount\", \"$1\", \"device\", \"^([^/]+).*\")) and on() (vector($source) != 2)) >= 70) or vector(0)",
+            "instant": true
           }
         ],
-        "title": "Volumes < 5 GiB free (host)",
-        "type": "stat"
-      },
-      {
-        "datasource": {
-          "type": "victoriametrics-metrics-datasource",
-          "uid": "P4169E866C3094E38"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "red",
-                  "value": 0
-                },
-                {
-                  "color": "yellow",
-                  "value": 5368709120
-                },
-                {
-                  "color": "green",
-                  "value": 21474836480
-                }
-              ]
-            },
-            "unit": "bytes"
-          }
-        },
-        "gridPos": {
-          "h": 4,
-          "w": 6,
-          "x": 6,
-          "y": 0
-        },
-        "id": 2,
-        "options": {
-          "colorMode": "background",
-          "graphMode": "none",
-          "justifyMode": "auto",
-          "orientation": "auto",
-          "percentChangeColorMode": "standard",
-          "reduceOptions": {
-            "calcs": [
-              "lastNotNull"
-            ],
-            "fields": "",
-            "values": false
-          },
-          "showPercentChange": false,
-          "textMode": "auto",
-          "wideLayout": true
-        },
-        "pluginVersion": "13.0.3",
-        "targets": [
-          {
-            "datasource": {
-              "type": "victoriametrics-metrics-datasource",
-              "uid": "P4169E866C3094E38"
-            },
-            "expr": "min(min by (bhost, mountpoint) (node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"}))",
-            "instant": true,
-            "refId": "A"
-          }
-        ],
-        "title": "Least free space (worst volume, host)",
+        "title": "Volumes > yellow limit (in table)",
         "type": "stat"
       },
       {
@@ -332,34 +266,34 @@
               "excludeByName": {
                 "Time": true,
                 "__name__": true,
+                "bhost": true,
                 "device": true,
                 "fstype": true,
+                "guest": true,
+                "guest_mountpoint": true,
                 "instance": true,
                 "job": true,
                 "pool": true,
                 "slot": true,
-                "vmid": true,
-                "bhost": true,
-                "guest": true,
-                "guest_mountpoint": true
-              },
-              "renameByName": {
-                "name": "Host / Guest",
-                "Value #A": "Used %",
-                "Value #D": "Used",
-                "Value #C": "Size",
-                "Value #B": "Free",
-                "mount": "Mount",
-                "mountpoint": "Mountpoint"
+                "vmid": true
               },
               "indexByName": {
-                "name": 0,
                 "Value #A": 1,
-                "Value #D": 2,
-                "Value #C": 3,
                 "Value #B": 4,
+                "Value #C": 3,
+                "Value #D": 2,
                 "mount": 5,
-                "mountpoint": 6
+                "mountpoint": 6,
+                "name": 0
+              },
+              "renameByName": {
+                "Value #A": "Used %",
+                "Value #B": "Free",
+                "Value #C": "Size",
+                "Value #D": "Used",
+                "mount": "Mount",
+                "mountpoint": "Mountpoint",
+                "name": "Host / Guest"
               }
             }
           },
@@ -447,5 +381,5 @@
     "uid": "pve-lxc-disk"
   },
   "overwrite": true,
-  "message": "per-mountpoint host rows (usable/raidz-correct via node_filesystem) + Used bytes column"
+  "message": "remove Least-free stat; stat counts table rows over yellow(70%)"
 }
