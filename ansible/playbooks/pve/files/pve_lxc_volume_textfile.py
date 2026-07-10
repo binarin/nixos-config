@@ -44,7 +44,7 @@ def parse_ct_config(vmid, text):
                 if f.startswith("mp="):
                     mp = f[3:]
             vols.append((key, volume, mp))
-    if guest is None:
+    if not guest:
         guest = "ct-%s" % vmid
     return [VolumeRecord(vmid, guest, slot, vol, mp) for (slot, vol, mp) in vols]
 
@@ -120,7 +120,7 @@ def collect(conf_paths, zfs_list_output):
         vmid = os.path.basename(path)
         if vmid.endswith(".conf"):
             vmid = vmid[: -len(".conf")]
-        with open(path) as fh:
+        with open(path, encoding="utf-8") as fh:
             records.extend(parse_ct_config(vmid, fh.read()))
     return render_prom(records, zfs_map)
 
@@ -140,6 +140,7 @@ def _atomic_write(path, content):
     try:
         with os.fdopen(fd, "w") as fh:
             fh.write(content)
+        os.chmod(tmp, 0o644)
         os.replace(tmp, path)
     except BaseException:
         try:
@@ -152,9 +153,13 @@ def _atomic_write(path, content):
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     textfile_dir = argv[0] if argv else TEXTFILE_DEFAULT
-    conf_paths = sorted(glob.glob(CONF_GLOB))
-    content = collect(conf_paths, _run_zfs_list())
-    _atomic_write(os.path.join(textfile_dir, OUTPUT_BASENAME), content)
+    try:
+        conf_paths = sorted(glob.glob(CONF_GLOB))
+        content = collect(conf_paths, _run_zfs_list())
+        _atomic_write(os.path.join(textfile_dir, OUTPUT_BASENAME), content)
+    except Exception as exc:
+        print("pve-lxc-volume-textfile: failed: %s" % exc, file=sys.stderr)
+        raise
 
 
 if __name__ == "__main__":

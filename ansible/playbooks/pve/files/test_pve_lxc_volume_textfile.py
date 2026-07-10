@@ -27,6 +27,11 @@ class TestParseCtConfig(unittest.TestCase):
         recs = m.parse_ct_config("107", "rootfs: local-zfs:subvol-107-disk-0,size=8G\n")
         self.assertEqual(recs[0].guest, "ct-107")
 
+    def test_empty_hostname_falls_back(self):
+        text = "hostname:\nrootfs: local-zfs:subvol-107-disk-0,size=8G\n"
+        recs = m.parse_ct_config("107", text)
+        self.assertEqual(recs[0].guest, "ct-107")
+
     def test_bind_mount_and_non_storage_skipped(self):
         text = (
             "hostname: media\n"
@@ -161,6 +166,14 @@ class TestAtomicWrite(unittest.TestCase):
                 self.assertEqual(fh.read(), "hello\n")
             # no leftover temp files
             self.assertEqual(os.listdir(d), ["out.prom"])
+
+    def test_written_file_is_world_readable(self):
+        import stat
+
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "out.prom")
+            m._atomic_write(path, "hello\n")
+            self.assertEqual(stat.S_IMODE(os.stat(path).st_mode), 0o644)
 
 
 if __name__ == "__main__":
