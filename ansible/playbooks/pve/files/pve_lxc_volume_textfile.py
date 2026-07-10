@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import dataclasses
+import glob
+import os
+import subprocess
 import sys
+import tempfile
 
 
 @dataclasses.dataclass(frozen=True)
@@ -102,3 +106,56 @@ def render_prom(records, zfs_map):
         label_str = ",".join('%s="%s"' % (k, _escape(v)) for k, v in items)
         lines.append("pve_lxc_volume_info{%s} 1" % label_str)
     return "\n".join(lines) + "\n"
+
+
+TEXTFILE_DEFAULT = "/var/lib/node_exporter"
+CONF_GLOB = "/etc/pve/lxc/*.conf"
+OUTPUT_BASENAME = "pve_lxc_volumes.prom"
+
+
+def collect(conf_paths, zfs_list_output):
+    zfs_map = parse_zfs_list(zfs_list_output)
+    records = []
+    for path in conf_paths:
+        vmid = os.path.basename(path)
+        if vmid.endswith(".conf"):
+            vmid = vmid[: -len(".conf")]
+        with open(path) as fh:
+            records.extend(parse_ct_config(vmid, fh.read()))
+    return render_prom(records, zfs_map)
+
+
+def _run_zfs_list():
+    return subprocess.run(
+        ["zfs", "list", "-H", "-o", "name,mountpoint"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+
+
+def _atomic_write(path, content):
+    directory = os.path.dirname(path) or "."
+    fd, tmp = tempfile.mkstemp(dir=directory, prefix=".pve_lxc_volumes.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as fh:
+            fh.write(content)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    textfile_dir = argv[0] if argv else TEXTFILE_DEFAULT
+    conf_paths = sorted(glob.glob(CONF_GLOB))
+    content = collect(conf_paths, _run_zfs_list())
+    _atomic_write(os.path.join(textfile_dir, OUTPUT_BASENAME), content)
+
+
+if __name__ == "__main__":
+    main()

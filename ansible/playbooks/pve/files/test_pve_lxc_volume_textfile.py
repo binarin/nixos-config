@@ -1,4 +1,6 @@
 import unittest
+import os
+import tempfile
 import pve_lxc_volume_textfile as m
 
 
@@ -137,6 +139,28 @@ class TestRenderProm(unittest.TestCase):
         recs = [m.VolumeRecord("112", guest, "rootfs", "subvol-112-disk-0", "/")]
         out = m.render_prom(recs, self._map())
         self.assertIn('guest="' + escaped_guest + '"', out)
+
+
+class TestCollect(unittest.TestCase):
+    def test_reads_configs_and_renders(self):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, "112.conf"), "w") as fh:
+                fh.write("hostname: forgejo\nrootfs: local-zfs:subvol-112-disk-0,size=20G\n")
+            zfs = "rpool/data/subvol-112-disk-0\t/rpool/data/subvol-112-disk-0\n"
+            out = m.collect([os.path.join(d, "112.conf")], zfs)
+            self.assertIn('guest="forgejo"', out)
+            self.assertIn('vmid="112"', out)
+
+
+class TestAtomicWrite(unittest.TestCase):
+    def test_writes_file_contents(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "out.prom")
+            m._atomic_write(path, "hello\n")
+            with open(path) as fh:
+                self.assertEqual(fh.read(), "hello\n")
+            # no leftover temp files
+            self.assertEqual(os.listdir(d), ["out.prom"])
 
 
 if __name__ == "__main__":
