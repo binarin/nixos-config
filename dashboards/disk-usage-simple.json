@@ -1,0 +1,339 @@
+{
+  "dashboard": {
+    "uid": "disk-usage-simple",
+    "title": "Disk usage (node_exporter)",
+    "tags": [
+      "disk",
+      "storage",
+      "node-exporter"
+    ],
+    "timezone": "browser",
+    "refresh": "1m",
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "host",
+          "label": "Host",
+          "type": "query",
+          "datasource": {
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "P4169E866C3094E38"
+          },
+          "query": {
+            "query": "label_values(node_filesystem_size_bytes{fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"}, bhost)",
+            "refId": "hosts"
+          },
+          "definition": "label_values(node_filesystem_size_bytes{fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"}, bhost)",
+          "includeAll": true,
+          "multi": true,
+          "allValue": ".*",
+          "current": {
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "sort": 1,
+          "refresh": 2
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "type": "stat",
+        "title": "Filesystems \u2265 90% full",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "datasource": {
+          "type": "victoriametrics-metrics-datasource",
+          "uid": "P4169E866C3094E38"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "count((100 * (1 - node_filesystem_avail_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"} / node_filesystem_size_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"})) >= 90) or vector(0)",
+            "instant": true
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ]
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          "overrides": []
+        }
+      },
+      {
+        "id": 2,
+        "type": "table",
+        "title": "Filesystems ($host)",
+        "gridPos": {
+          "h": 22,
+          "w": 24,
+          "x": 0,
+          "y": 4
+        },
+        "datasource": {
+          "type": "victoriametrics-metrics-datasource",
+          "uid": "P4169E866C3094E38"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "100 * (1 - node_filesystem_avail_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"} / node_filesystem_size_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"})",
+            "instant": true,
+            "format": "table"
+          },
+          {
+            "refId": "D",
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "node_filesystem_size_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"} - node_filesystem_avail_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"}",
+            "instant": true,
+            "format": "table"
+          },
+          {
+            "refId": "C",
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "node_filesystem_size_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"} * 1",
+            "instant": true,
+            "format": "table"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "merge",
+            "options": {}
+          },
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time": true,
+                "__name__": true,
+                "device": true,
+                "instance": true,
+                "job": true
+              },
+              "renameByName": {
+                "bhost": "Host",
+                "mountpoint": "Mountpoint",
+                "fstype": "Type",
+                "Value #A": "Used %",
+                "Value #D": "Used",
+                "Value #C": "Size"
+              },
+              "indexByName": {
+                "bhost": 0,
+                "mountpoint": 1,
+                "fstype": 2,
+                "Value #A": 3,
+                "Value #D": 4,
+                "Value #C": 5
+              }
+            }
+          },
+          {
+            "id": "sortBy",
+            "options": {
+              "fields": {},
+              "sort": [
+                {
+                  "field": "Used %",
+                  "desc": true
+                }
+              ]
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Used %"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percent"
+                },
+                {
+                  "id": "decimals",
+                  "value": 1
+                },
+                {
+                  "id": "custom.cellOptions",
+                  "value": {
+                    "type": "color-background"
+                  }
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "yellow",
+                        "value": 70
+                      },
+                      {
+                        "color": "orange",
+                        "value": 85
+                      },
+                      {
+                        "color": "red",
+                        "value": 95
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Used"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "bytes"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Size"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "bytes"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 3,
+        "type": "timeseries",
+        "title": "Usage % over time ($host)",
+        "gridPos": {
+          "h": 10,
+          "w": 24,
+          "x": 0,
+          "y": 26
+        },
+        "datasource": {
+          "type": "victoriametrics-metrics-datasource",
+          "uid": "P4169E866C3094E38"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {
+              "type": "victoriametrics-metrics-datasource",
+              "uid": "P4169E866C3094E38"
+            },
+            "expr": "100 * (1 - node_filesystem_avail_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"} / node_filesystem_size_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"})",
+            "legendFormat": "{{bhost}}  {{mountpoint}}"
+          }
+        ],
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "calcs": [
+              "lastNotNull",
+              "max"
+            ]
+          },
+          "tooltip": {
+            "mode": "multi",
+            "sort": "desc"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 5,
+              "showPoints": "never"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 90
+                }
+              ]
+            }
+          },
+          "overrides": []
+        }
+      }
+    ]
+  },
+  "overwrite": true,
+  "message": "simplified node_exporter-only disk dashboard"
+}
