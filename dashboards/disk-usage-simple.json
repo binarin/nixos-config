@@ -265,75 +265,9 @@
             }
           ]
         }
-      },
-      {
-        "id": 3,
-        "type": "timeseries",
-        "title": "Usage % over time ($host)",
-        "gridPos": {
-          "h": 10,
-          "w": 24,
-          "x": 0,
-          "y": 26
-        },
-        "datasource": {
-          "type": "victoriametrics-metrics-datasource",
-          "uid": "P4169E866C3094E38"
-        },
-        "targets": [
-          {
-            "refId": "A",
-            "datasource": {
-              "type": "victoriametrics-metrics-datasource",
-              "uid": "P4169E866C3094E38"
-            },
-            "expr": "100 * (1 - node_filesystem_avail_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"} / node_filesystem_size_bytes{bhost=~\"$host\",fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"})",
-            "legendFormat": "{{bhost}}  {{mountpoint}}"
-          }
-        ],
-        "options": {
-          "legend": {
-            "displayMode": "table",
-            "placement": "right",
-            "calcs": [
-              "lastNotNull",
-              "max"
-            ]
-          },
-          "tooltip": {
-            "mode": "multi",
-            "sort": "desc"
-          }
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percent",
-            "min": 0,
-            "max": 100,
-            "custom": {
-              "drawStyle": "line",
-              "fillOpacity": 5,
-              "showPoints": "never"
-            },
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 90
-                }
-              ]
-            }
-          },
-          "overrides": []
-        }
       }
     ]
   },
   "overwrite": true,
-  "message": "simplified node_exporter-only disk dashboard"
+  "message": "drop usage-over-time graph"
 }

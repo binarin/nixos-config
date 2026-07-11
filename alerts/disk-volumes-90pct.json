@@ -9,8 +9,8 @@
       "rules": [
         {
           "annotations": {
-            "description": "Disk on {{ $labels.bhost }} at {{ $labels.mountpoint }} is {{ printf \"%.1f\" $values.B.Value }}% used (pool-limited free space).",
-            "summary": "{{ if $labels.guest }}{{ $labels.guest }} ({{ $labels.bhost }}) {{ $labels.guest_mountpoint }}{{ else }}{{ $labels.bhost }} {{ $labels.mountpoint }}{{ end }} \u2014 {{ printf \"%.1f\" $values.B.Value }}% full"
+            "description": "Filesystem {{ $labels.mountpoint }} ({{ $labels.fstype }}) on {{ $labels.bhost }} is {{ printf \"%.1f\" $values.B.Value }}% used.",
+            "summary": "{{ $labels.bhost }} {{ $labels.mountpoint }} is {{ printf \"%.1f\" $values.B.Value }}% full"
           },
           "condition": "C",
           "data": [
@@ -22,7 +22,7 @@
                   "uid": "P4169E866C3094E38"
                 },
                 "editorMode": "code",
-                "expr": "(100 * (1 - node_filesystem_avail_bytes{mountpoint=~\"/rpool/data/subvol.*\"} / node_filesystem_size_bytes{mountpoint=~\"/rpool/data/subvol.*\"}) * on(bhost,mountpoint) group_left(guest,guest_mountpoint) pve_lxc_volume_info) or (100 * (1 - node_filesystem_avail_bytes{bhost=~\"raum|valak|bael\",mountpoint!~\"/rpool/data/subvol.*\",fstype=\"zfs\"} / node_filesystem_size_bytes{bhost=~\"raum|valak|bael\",mountpoint!~\"/rpool/data/subvol.*\",fstype=\"zfs\"}))",
+                "expr": "100 * (1 - node_filesystem_avail_bytes{fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|devtmpfs|fuse.*|overlay|ramfs|nsfs|autofs|squashfs|mqueue|proc|sysfs|cgroup.*|bpf|binfmt_misc|debugfs|tracefs|securityfs|pstore|configfs|hugetlbfs|efivarfs|fusectl|selinuxfs\"})",
                 "instant": false,
                 "intervalMs": 60000,
                 "maxDataPoints": 43200,
@@ -104,6 +104,14 @@
             "severity": "warning"
           },
           "noDataState": "OK",
+          "notification_settings": {
+            "group_by": [
+              "grafana_folder",
+              "alertname"
+            ],
+            "receiver": "binarin-email",
+            "repeat_interval": "1w"
+          },
           "title": "Disk volumes \u2265 90% full",
           "uid": "cfrooj2f2rbb4c"
         }
