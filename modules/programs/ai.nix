@@ -4,7 +4,6 @@
   flake-file.inputs.nix-ai-tools.inputs = {
     nixpkgs.follows = "nixpkgs";
     flake-parts.follows = "flake-parts";
-    # treefmt-nix.follows = "treemft-nix";
   };
 
   flake.nixosModules.ai-tools =
@@ -12,7 +11,7 @@
     {
       key = "nixos-config.modules.nixos.ai-tools";
       # nixpkgs.overlays = [
-      #   inputs.nix-ai-tools.overlays.shared-nixpkgs
+      #   self.overlays.llm-agents
       # ];
     };
 

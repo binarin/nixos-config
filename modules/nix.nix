@@ -22,7 +22,7 @@ let
     inputs.deploy-rs.overlays.default
 
     inputs.emacs-overlay.overlays.default
-    inputs.nix-ai-tools.overlays.shared-nixpkgs
+    self.overlays.llm-agents
 
     # hyprland 0.55
     inputs.hyprland.overlays.hyprland-packages
