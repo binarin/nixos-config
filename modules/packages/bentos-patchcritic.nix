@@ -1,9 +1,9 @@
 let
   packageFn =
-    { writeShellApplication, perl, git }:
+    { writeShellApplication, git }:
     writeShellApplication {
       name = "patchcritic";
-      runtimeInputs = [ perl git ];
+      runtimeInputs = [ git ];
       text = ''
         set -euo pipefail
 
