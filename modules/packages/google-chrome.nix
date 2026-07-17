@@ -21,7 +21,10 @@
         };
       in
       final.wrapShittyShit chromeBase {
-        talk = [ ];
+        # Screen sharing goes through the XDG ScreenCast portal: Chrome asks
+        # org.freedesktop.portal.Desktop for a PipeWire node; the actual video
+        # then flows over PipeWire's own socket, not D-Bus.
+        talk = [ "org.freedesktop.portal.Desktop" ];
         own = [ ];
         see = [ ];
       };
