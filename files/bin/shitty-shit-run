@@ -50,5 +50,6 @@ done
 rc=0
 systemd-run --user --scope --collect --same-dir \
   --slice=app-shitty_shit.slice \
+  --unit="${name}-$$.scope" \
   -- env DBUS_SESSION_BUS_ADDRESS="unix:path=${sock}" "$@" || rc=$?
 exit "$rc"
