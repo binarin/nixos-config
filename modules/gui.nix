@@ -112,6 +112,7 @@ in
       imports = [
         self.homeModules.xdg-autostart
         self.homeModules.desktop-essentials
+        self.homeModules.shitty-shit-slice
       ];
 
       options = {
@@ -127,6 +128,8 @@ in
           {
             programs.google-chrome.enable = lib.mkDefault true;
             programs.slack.enable = lib.mkDefault true;
+            programs.shitty-shit-slice.enable =
+              lib.mkDefault (config.programs.slack.enable || config.programs.google-chrome.enable);
 
             xdg.autostart.override."org.kde.xwaylandvideobridge".notShownIn = [
               "Hyprland"
