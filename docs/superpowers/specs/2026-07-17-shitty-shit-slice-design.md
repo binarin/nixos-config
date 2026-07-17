@@ -18,6 +18,10 @@ drop-in trick used elsewhere in this repo (`corporate-bloat.slice` in
 `modules/machines/murmur.nix`, which pins fixed unit names via
 `Slice=` drop-ins) does not apply — there is no fixed unit name to attach to.
 
+Upstream bug: <https://issues.chromium.org/issues/437667316> — *"Detect if
+being started in a systemd unit and do not create own scope."* Until that
+lands, denying the app the ability to make the call is the workaround.
+
 ## Key insight (empirically validated)
 
 The escape call travels over the **session bus** (`DBUS_SESSION_BUS_ADDRESS`),
@@ -57,7 +61,8 @@ refined form: deny only `systemd1`, keep everything else.
 - Not a general sandbox. The proxy blocks exactly one thing (`systemd1`); the
   allowlist exists only to re-permit legitimate session-bus use.
 - No CPU/IO limits (unlike `corporate-bloat.slice`).
-- Allowlist is not a per-home runtime option (see Packaging).
+- Whitelist is not a per-home runtime option — it is Nix data at the
+  `wrapShittyShit` call site (see §3).
 
 ## Architecture
 
@@ -65,13 +70,13 @@ Per app launch:
 
 ```
 fuzzel / PATH / niri bind
-      │   (.desktop Exec= and the PATH binary both point here)
+      │   (every wrapped bin/* and rewritten .desktop Exec= point here)
       ▼
-shitty-shit-run <app-key> -- <real binary> "$@"
-      ├─ 1. select <app-key>'s allowlist (baked in from Nix)
+shitty-shit-run <proxy filter flags…> -- <real binary> "$@"
+      ├─ 1. flags before `--` are this app's whitelist (baked in by wrapShittyShit)
       ├─ 2. fallback: if no user session bus / systemd-run unusable → exec "$@"
-      ├─ 3. mktemp private socket:  $XDG_RUNTIME_DIR/shitty-shit/<app-key>.<pid>.bus
-      ├─ 4. spawn per-launch  xdg-dbus-proxy $UPSTREAM <socket> --filter <allowlist>
+      ├─ 3. mktemp private socket:  $XDG_RUNTIME_DIR/shitty-shit/<name>.<pid>.bus
+      ├─ 4. spawn per-launch  xdg-dbus-proxy $UPSTREAM <socket> --filter <flags>
       │        (NO --talk for org.freedesktop.systemd1 → StartTransientUnit denied)
       ├─ 5. DBUS_SESSION_BUS_ADDRESS=unix:path=<socket> \
       │        systemd-run --user --scope --collect --same-dir \
@@ -107,30 +112,33 @@ xdg.configFile."systemd/user/shitty-shit.slice".text = ''
 
 ### 2. Launcher `shitty-shit-run`
 
-One reusable script (a `writeShellApplication`), invoked as
-`shitty-shit-run <app-key> -- <cmd> "$@"`. `<app-key>` selects the app's
-allowlist. Sketch:
+One reusable, **app-agnostic** script (a `writeShellApplication`), invoked as
+`shitty-shit-run <proxy filter flags…> -- <cmd> "$@"`. Everything before `--`
+is the whitelist for this app, passed in by `wrapShittyShit` at wrap time —
+the launcher has no per-app knowledge. Sketch:
 
 ```sh
 set -euo pipefail
-app_key=${1:?app key required}; shift
-[ "${1:-}" = "--" ] && shift
 
+# Everything before `--` is this app's xdg-dbus-proxy whitelist, baked in
+# per-package by wrapShittyShit. systemd1 is denied simply by never being
+# granted → Chromium/Electron cannot StartTransientUnit, so cannot escape.
+# Upstream: https://issues.chromium.org/issues/437667316
+#   "Detect if being started in a systemd unit and do not create own scope."
 allow=()
-case "$app_key" in
-  chrome) allow=( @CHROME_ALLOW@ ) ;;   # substituted from Nix
-  slack)  allow=( @SLACK_ALLOW@  ) ;;
-  *) echo "shitty-shit-run: unknown app key '$app_key'" >&2; exit 64 ;;
-esac
+while [ "$#" -gt 0 ] && [ "${1:-}" != "--" ]; do allow+=( "$1" ); shift; done
+[ "${1:-}" = "--" ] && shift
+[ "$#" -gt 0 ] || { echo "shitty-shit-run: no command" >&2; exit 64; }
 
 # Fallback: no usable user session → run directly, no isolation.
 if ! systemctl --user show-environment >/dev/null 2>&1; then
   exec "$@"
 fi
 
+name=$(basename "$1")
 upstream=${DBUS_SESSION_BUS_ADDRESS:-unix:path=${XDG_RUNTIME_DIR:?}/bus}
 dir="${XDG_RUNTIME_DIR:?}/shitty-shit"; mkdir -p "$dir"
-sock="$dir/${app_key}.$$.bus"; rm -f "$sock"
+sock="$dir/${name}.$$.bus"; rm -f "$sock"
 
 xdg-dbus-proxy "$upstream" "$sock" --filter "${allow[@]}" &
 proxy=$!
@@ -154,80 +162,106 @@ Design points:
   cleanup `trap`. `--scope` runs synchronously, so the script blocks until the
   app exits, then cleans up.
 - `--collect` GCs the transient scope unit on exit; `--same-dir` preserves CWD.
-- Socket uniqueness via `$$`.
+- Socket uniqueness via `$$`; socket name prefixed with the command basename
+  for readability.
 - **Fallback**: if there is no usable user session bus, `exec "$@"` directly.
   The wrapped binaries are global (see Packaging), so the launcher must not
   assume a graphical session.
 
-### 3. Per-app allowlist (module-level Nix data)
+### 3. `wrapShittyShit` — the wrapper function
 
-Structured, defined in the module, compiled into `shitty-shit-run`:
+The whitelist is **not** central data and there is **no** app-key registry.
+Instead a single Nix function wraps any package:
 
 ```nix
-allowlist = {
-  chrome = { talk = [ ]; own = [ ]; see = [ ]; };
-  slack  = { talk = [ ]; own = [ ]; see = [ ]; };
-};
+wrapShittyShit = pkg: { talk ? [ ], own ? [ ], see ? [ ] }: <derivation>
 ```
 
-- Each list renders to `--talk=<name>` / `--own=<name>` / `--see=<name>` flags
-  for that app's `case` branch.
+It returns a package where:
+- every `bin/*` executable is replaced by a small wrapper that runs
+  `shitty-shit-run <flags> -- <pkg>/bin/<exe> "$@"`, with `<flags>` rendered
+  from `talk`/`own`/`see` (`--talk=<name>` / `--own=<name>` / `--see=<name>`);
+- every `.desktop` `Exec=` is rewritten to the wrapped `bin/*` (so fuzzel and
+  other `.desktop` launches route through the wrapper too);
+- all other outputs (icons, resources, libs) pass through unchanged, and
+  `meta.mainProgram` is preserved.
+
+Likely implementation: a `symlinkJoin` (or `runCommand`) that places the
+generated wrappers and rewritten desktop files **ahead of** the original
+package so they win the name collision; wrappers reference the *original*
+store path so there is no recursion.
+
+Usage (whitelist lives at the call site, starts empty):
+
+```nix
+wrapShittyShit prev.slack { talk = [ ]; own = [ ]; see = [ ]; }
+```
+
 - **Starts empty**: with an empty policy, `xdg-dbus-proxy --filter` grants only
   the bus driver (`org.freedesktop.DBus`) and denies everything else —
   including `systemd1` (goal met). Names are added consciously as features are
-  found broken. This is functionally identical to the validated
+  found broken. Functionally identical to the validated
   `env -u DBUS_SESSION_BUS_ADDRESS` state, but with a growth path.
-- Allowlist is **module-level Nix data, not a per-home option**: overlays are
-  pure functions of `final`/`prev` and cannot read a home-manager option
-  without extra machinery. Since the intent is "start empty, grow by editing,"
-  editing the module and rebuilding is the natural workflow.
+- **Whitelist is Nix data at the wrap site, not a per-home runtime option** —
+  overlays are pure functions of `final`/`prev`. "Start empty, grow by editing
+  the call site" is the intended workflow, and this keeps the moving Nix parts
+  minimal (one function, no central table, reusable for any future app).
 
-### 4. Chrome overlay integration
+### 4. Chrome integration
 
-Extend the existing `modules/packages/google-chrome.nix` `chromeWrapper`. Today
-it `exec`s `google-chrome-stable` (with optional `CHROME_PROXY`). Change the
-final `exec` to route through the launcher:
+Keep the existing `CHROME_PROXY` wrapper in
+`modules/packages/google-chrome.nix`, then wrap its result:
 
+```nix
+google-chrome = final.wrapShittyShit chromeWithProxy {
+  talk = [ ]; own = [ ]; see = [ ];
+};
 ```
-exec ${shitty-shit-run}/bin/shitty-shit-run chrome -- <real google-chrome-stable> "$@"
+
+Composition keeps the two concerns separate (proxy env vs. slice/bus
+isolation). Because `wrapShittyShit` rewrites every `bin/*` and `.desktop` in
+the package it is handed, the bespoke desktop-rewrite `sed` in the current
+chrome overlay is no longer needed.
+
+### 5. Slack integration
+
+Keep the icon fixup in `modules/programs/slack.nix`, then wrap:
+
+```nix
+slack = final.wrapShittyShit slackWithIcons {
+  talk = [ ]; own = [ ]; see = [ ];
+};
 ```
 
-keeping the existing `CHROME_PROXY` logic. The existing `.desktop`-rewrite
-`sed` already points desktop entries at this wrapper, so no change there.
-
-### 5. Slack overlay integration
-
-Slack currently has only an icon-fixup overlay (`modules/programs/slack.nix`)
-and no wrapper. Add the same shape as Chrome:
-
-- A `slack` wrapper on `PATH` = `shitty-shit-run slack -- <real slack> "$@"`.
-- A `.desktop` rewrite (same `sed`-over-`share/applications` trick as Chrome)
-  so fuzzel routes through the wrapper.
-- `symlinkJoin` the wrapper + rewritten desktop files ahead of upstream
-  `slack`.
+No hand-rolled wrapper or desktop `sed` — `wrapShittyShit` handles both.
 
 ### 6. Packaging & gating
 
 - **New module `modules/shitty-shit-slice.nix`** exposes
-  `flake.overlays.shitty-shit-launcher` providing `final.shitty-shit-run`
-  (built from the `allowlist` data), and a home option
-  `programs.shitty-shit-slice.enable` that writes the slice unit file.
+  `flake.overlays.shitty-shit-launcher`, which adds two things to `pkgs`:
+  - `final.shitty-shit-run` — the app-agnostic runtime launcher script.
+  - `final.wrapShittyShit` — the `pkg: { talk, own, see }: derivation` function
+    from §3; its generated wrappers reference `final.shitty-shit-run` by store
+    path (no `PATH` ambiguity).
+
+  The module also defines the home option `programs.shitty-shit-slice.enable`
+  that writes the slice unit file.
 - Add `self.overlays.shitty-shit-launcher` to `defaultOverlays` in
   `modules/nix.nix` (alongside the existing `self.overlays.slack` and
-  `self.overlays.my-google-chrome`, which are already applied globally at
-  `modules/nix.nix:55,57`). Overlay order is irrelevant because the chrome/slack
-  overlays reference `final.shitty-shit-run` (the composed fixpoint).
-- The chrome & slack overlays reference `final.shitty-shit-run` by store path,
-  so there is no `PATH` ambiguity for the wrapper's own call.
+  `self.overlays.my-google-chrome`, already applied globally at
+  `modules/nix.nix:55,57`). Overlay order is irrelevant — the chrome/slack
+  overlays reference `final.wrapShittyShit` (the composed fixpoint).
+- The chrome & slack overlays call `final.wrapShittyShit`; the whitelist lives
+  at those call sites.
 - `modules/gui.nix` enables `programs.shitty-shit-slice` when
   `programs.slack.enable || programs.google-chrome.enable`.
 
 ## Control / data flow
 
-1. User launches Slack/Chrome (any path). The binary on `PATH` and the
-   `.desktop` `Exec=` are both the overlay wrapper.
-2. Wrapper calls `shitty-shit-run <app-key> -- <real binary>`.
-3. Launcher spawns a per-instance `xdg-dbus-proxy` with the app's allowlist,
+1. User launches Slack/Chrome (any path). The wrapped `bin/*` on `PATH` and the
+   rewritten `.desktop` `Exec=` both point at the generated wrapper.
+2. Wrapper calls `shitty-shit-run <whitelist flags> -- <real binary>`.
+3. Launcher spawns a per-instance `xdg-dbus-proxy` with that whitelist,
    exposing a filtered socket.
 4. Launcher runs the real binary via `systemd-run --user --scope --collect
    --same-dir --slice=shitty-shit.slice`, with `DBUS_SESSION_BUS_ADDRESS`
@@ -241,7 +275,7 @@ and no wrapper. Add the same shape as Chrome:
 
 - No usable user session bus → launcher `exec`s the app directly (no slice, no
   proxy) rather than failing to start it.
-- Unknown `<app-key>` → exit 64 with a message.
+- No command after `--` → exit 64 with a message.
 - Proxy socket never appears within the bounded wait → the `systemd-run` step
   still runs; the app gets a dead bus address and behaves as with an empty
   allowlist (degraded, not crashed). (Implementation may harden this.)
@@ -283,20 +317,25 @@ Step 2 is already partially validated by hand via
   escape unit is dynamically named.
 - **One long-running shared proxy** (single filtered socket for both apps):
   simpler wiring, but rejected in favor of per-launch proxies with per-app
-  allowlists for isolation and a self-healing lifetime.
+  whitelists for isolation and a self-healing lifetime.
+- **Per-app-key launcher with a central allowlist table** (`shitty-shit-run
+  chrome`, a `case` in the script): rejected in favor of a single
+  `wrapShittyShit pkg { … }` function that takes the whitelist at the call
+  site — app-agnostic launcher, no registry, reusable for any package, fewer
+  moving Nix parts.
 - **`env -u DBUS_SESSION_BUS_ADDRESS`** (no proxy): validated the mechanism but
-  kills all session-bus features; it is the degenerate empty-allowlist case
+  kills all session-bus features; it is the degenerate empty-whitelist case
   without a growth path.
 
 ## Files touched
 
-- `modules/shitty-shit-slice.nix` (new): launcher overlay, `allowlist` data,
-  `programs.shitty-shit-slice.enable` + slice unit file.
+- `modules/shitty-shit-slice.nix` (new): `shitty-shit-run` + `wrapShittyShit`
+  overlay, `programs.shitty-shit-slice.enable` + slice unit file.
 - `modules/nix.nix`: add `self.overlays.shitty-shit-launcher` to
   `defaultOverlays`.
-- `modules/packages/google-chrome.nix`: route wrapper `exec` through
-  `shitty-shit-run chrome`.
-- `modules/programs/slack.nix`: add wrapper + `.desktop` rewrite routing
-  through `shitty-shit-run slack`.
+- `modules/packages/google-chrome.nix`: wrap the `CHROME_PROXY` variant with
+  `final.wrapShittyShit` (drop the bespoke desktop `sed`).
+- `modules/programs/slack.nix`: wrap the icon-fixup variant with
+  `final.wrapShittyShit`.
 - `modules/gui.nix`: enable `programs.shitty-shit-slice` when Slack/Chrome
   enabled.
