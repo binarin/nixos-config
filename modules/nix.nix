@@ -52,6 +52,7 @@ let
     self.overlays.klaude
 
     self.overlays.sicstus-manual
+    self.overlays.shitty-shit-launcher
     self.overlays.slack
     self.overlays.my-emacs
     self.overlays.my-google-chrome
