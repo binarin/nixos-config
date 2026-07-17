@@ -12,8 +12,15 @@
         });
       in
       final.wrapShittyShit slackWithIcons {
-        talk = [ ];
-        own = [ ];
+        talk = [
+          "org.freedesktop.Notifications" # desktop notifications
+          "org.kde.StatusNotifierWatcher" # system tray: register the item
+        ];
+        # Electron/Chromium owns org.kde.StatusNotifierItem-<pid>-<id> for its
+        # tray icon. xdg-dbus-proxy wildcards only match on '.' boundaries, so
+        # the '-<pid>-<id>' suffix can't be targeted precisely; org.kde.* is the
+        # tightest pattern that covers it.
+        own = [ "org.kde.*" ];
         see = [ ];
       };
   };
