@@ -60,6 +60,12 @@ in
 
       programs.niri.enable = true;
 
+      # Route the file chooser to the gtk portal (classic GtkFileChooser with
+      # XDG dirs + bookmarks) instead of gnome's Nautilus/GTK4 picker. The niri
+      # module keys FileChooser routing off useNautilus; ScreenCast stays on
+      # gnome (required for niri screencast) regardless.
+      programs.niri.useNautilus = false;
+
       environment.systemPackages = with pkgs; [
         # Things used by the default config
         alacritty
