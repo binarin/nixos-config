@@ -1,0 +1,54 @@
+# shellcheck shell=bash
+
+# Everything before `--` is this app's xdg-dbus-proxy whitelist, baked in by
+# wrapShittyShit. org.freedesktop.systemd1 is denied simply by never being
+# granted, so Chromium/Electron cannot StartTransientUnit and therefore cannot
+# escape into their own app-*.scope under app.slice.
+# Upstream bug: https://issues.chromium.org/issues/437667316
+#   "Detect if being started in a systemd unit and do not create own scope."
+allow=()
+while [ "$#" -gt 0 ] && [ "$1" != "--" ]; do
+  allow+=("$1")
+  shift
+done
+[ "${1:-}" = "--" ] && shift
+if [ "$#" -eq 0 ]; then
+  echo "shitty-shit-run: no command after --" >&2
+  exit 64
+fi
+
+# Fallback: no usable user session bus -> run directly, no isolation.
+if ! systemctl --user show-environment >/dev/null 2>&1; then
+  exec "$@"
+fi
+
+runtime="${XDG_RUNTIME_DIR:?XDG_RUNTIME_DIR must be set}"
+upstream="${DBUS_SESSION_BUS_ADDRESS:-unix:path=${runtime}/bus}"
+
+name="${1##*/}"
+dir="${runtime}/shitty-shit"
+mkdir -p "$dir"
+sock="${dir}/${name}.$$.bus"
+rm -f "$sock"
+
+# Per-launch filtering proxy. With an empty whitelist only the bus driver is
+# reachable; systemd1 is never granted.
+xdg-dbus-proxy "$upstream" "$sock" --filter "${allow[@]}" &
+proxy=$!
+trap 'kill "$proxy" 2>/dev/null || true; rm -f "$sock"' EXIT
+
+# Wait (bounded, ~2.5s) for the proxy socket to appear.
+tries=0
+while [ ! -S "$sock" ] && [ "$tries" -lt 50 ]; do
+  sleep 0.05
+  tries=$((tries + 1))
+done
+
+# Launch INTO the slice. systemd-run --user must use the REAL bus to create the
+# scope (it talks to systemd1), so we do NOT override its DBUS address. Only the
+# app gets the filtered socket, applied with `env` inside the scope.
+rc=0
+systemd-run --user --scope --collect --same-dir \
+  --slice=shitty-shit.slice \
+  -- env DBUS_SESSION_BUS_ADDRESS="unix:path=${sock}" "$@" || rc=$?
+exit "$rc"
