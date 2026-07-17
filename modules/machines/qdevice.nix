@@ -123,6 +123,7 @@ in
 
         environment.systemPackages = with pkgs; [
           virt-manager
+          smartmontools
         ];
 
         services.tang = {
