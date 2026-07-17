@@ -74,4 +74,25 @@ in
           fi
         '';
   };
+
+  flake.homeModules.shitty-shit-slice =
+    { config, lib, ... }:
+    {
+      key = "nixos-config.modules.home.shitty-shit-slice";
+
+      options.programs.shitty-shit-slice.enable =
+        lib.mkEnableOption "shitty-shit.slice (memory-capped Slack + Chrome)";
+
+      config = lib.mkIf config.programs.shitty-shit-slice.enable {
+        xdg.configFile."systemd/user/shitty-shit.slice".text = ''
+          [Unit]
+          Description=Memory-capped slice for Slack + Chrome
+
+          [Slice]
+          MemoryHigh=8G
+          MemoryMax=10G
+          MemorySwapMax=0
+        '';
+      };
+    };
 }
