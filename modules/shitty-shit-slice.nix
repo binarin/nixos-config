@@ -81,10 +81,12 @@ in
       key = "nixos-config.modules.home.shitty-shit-slice";
 
       options.programs.shitty-shit-slice.enable =
-        lib.mkEnableOption "shitty-shit.slice (memory-capped Slack + Chrome)";
+        lib.mkEnableOption "app-shitty_shit.slice (memory-capped Slack + Chrome)";
 
       config = lib.mkIf config.programs.shitty-shit-slice.enable {
-        xdg.configFile."systemd/user/shitty-shit.slice".text = ''
+        # Named app-shitty_shit.slice so systemd nests it under the user
+        # app.slice (hierarchy is derived from the dash-delimited unit name).
+        xdg.configFile."systemd/user/app-shitty_shit.slice".text = ''
           [Unit]
           Description=Memory-capped slice for Slack + Chrome
 

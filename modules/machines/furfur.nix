@@ -183,6 +183,15 @@ in
 
       home.sessionVariables.CHROME_PROXY = "socks5://localhost:3128";
 
+      # Cap the user app.slice (parent of app-shitty_shit.slice) at 80% soft /
+      # 95% hard of physical memory, and forbid it any swap.
+      xdg.configFile."systemd/user/app.slice.d/limits.conf".text = ''
+        [Slice]
+        MemoryHigh=80%
+        MemoryMax=95%
+        MemorySwapMax=0
+      '';
+
       programs.waybar.battery = {
         enable = true;
         name = "BAT1";

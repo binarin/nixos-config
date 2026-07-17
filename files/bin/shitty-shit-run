@@ -49,6 +49,6 @@ done
 # app gets the filtered socket, applied with `env` inside the scope.
 rc=0
 systemd-run --user --scope --collect --same-dir \
-  --slice=shitty-shit.slice \
+  --slice=app-shitty_shit.slice \
   -- env DBUS_SESSION_BUS_ADDRESS="unix:path=${sock}" "$@" || rc=$?
 exit "$rc"
