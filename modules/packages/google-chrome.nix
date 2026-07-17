@@ -11,21 +11,19 @@
           fi
         '';
 
-        desktopFiles = final.runCommand "google-chrome-desktop-files" { } ''
-          mkdir -p "$out/share/applications"
-          for f in ${prev.google-chrome}/share/applications/*.desktop; do
-            sed "s|/nix/store/[^-]*-google-chrome-[^/]*/bin/google-chrome-stable|${chromeWrapper}/bin/google-chrome-stable|g" "$f" > "$out/share/applications/$(basename "$f")"
-          done
-        '';
+        chromeBase = final.symlinkJoin {
+          name = prev.google-chrome.name;
+          paths = [
+            chromeWrapper
+            prev.google-chrome
+          ];
+          meta = prev.google-chrome.meta // { mainProgram = "google-chrome-stable"; };
+        };
       in
-      final.symlinkJoin {
-        name = prev.google-chrome.name;
-        paths = [
-          chromeWrapper
-          desktopFiles
-          prev.google-chrome
-        ];
-        meta = prev.google-chrome.meta // { mainProgram = "google-chrome-stable"; };
+      final.wrapShittyShit chromeBase {
+        talk = [ ];
+        own = [ ];
+        see = [ ];
       };
   };
 }
