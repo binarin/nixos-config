@@ -1,4 +1,4 @@
 {
   "redis": "7.4-alpine",
-  "nativelink": "v1.6.1"
+  "nativelink": "v1.6.2"
 }
