@@ -162,7 +162,7 @@ in
       nixpkgs.overlays = [
         inputs.emacs-overlay.overlays.default
         self.overlays.my-emacs
-        self.overlays.llm-agents
+        inputs.nix-ai-tools.overlays.shared-nixpkgs
       ];
 
       xdg.enable = false;

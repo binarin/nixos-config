@@ -11,7 +11,7 @@
     {
       key = "nixos-config.modules.nixos.ai-tools";
       # nixpkgs.overlays = [
-      #   self.overlays.llm-agents
+      #   inputs.nix-ai-tools.overlays.shared-nixpkgs
       # ];
     };
 
@@ -43,7 +43,7 @@
           # pkgs.bleeding.llm-agents.pi
         ]
         ++ (lib.optionals osConfig.services.graphical-desktop.enable [
-          claude-code-router
+          # claude-code-router
         ]);
 
       home.file.".claude/skills/".source =
