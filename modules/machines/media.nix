@@ -166,6 +166,19 @@ in
           '';
         };
 
+        # Random samba password for the dedicated `hass` user
+        # (HomeAssistantBackup share). Auto-generated, no prompt.
+        clan.core.vars.generators.hass-backup-password = {
+          files.password = {
+            secret = true;
+            restartUnits = [ "update-samba-passwords.service" ];
+          };
+          runtimeInputs = [ pkgs.openssl ];
+          script = ''
+            openssl rand -base64 32 | tr -d '\n' > $out/password
+          '';
+        };
+
         environment.systemPackages = with pkgs; [
           docker-compose
           libva-utils
@@ -188,6 +201,15 @@ in
           uid = 1000;
         };
 
+        # Dedicated samba-only user for the HomeAssistantBackup share.
+        users.groups.hass = { };
+        users.users.hass = {
+          isSystemUser = true;
+          group = "hass";
+          home = "/var/empty";
+          createHome = false;
+        };
+
         systemd.services.update-samba-passwords = {
           script = ''
             set -euxo pipefail
@@ -199,6 +221,8 @@ in
             }
             double ${config.clan.core.vars.generators.samba-passwords.files.binarin.path} \
               | ${pkgs.samba}/bin/smbpasswd -L -a -s binarin
+            double ${config.clan.core.vars.generators.hass-backup-password.files.password.path} \
+              | ${pkgs.samba}/bin/smbpasswd -L -a -s hass
           '';
           serviceConfig = {
             Type = "oneshot";
@@ -236,6 +260,7 @@ in
           "Z- /var/lib/tubearchivist/redis 0775 999 100 -"
           "Z- /media/tubearchivist 2775 1000 1000 -"
           "Z- /media/usenet 02775 root usenet -"
+          "Z- /mnt/hass-backup 02775 hass hass -"
           "d /var/lib/org.binarin.info 02750 binarin nginx -"
         ];
 
@@ -822,6 +847,22 @@ in
 
         services.samba.settings.Workspace = smbShareStandartOptions // {
           path = "/media/workspace";
+        };
+
+        # Home Assistant backups: dedicated `hass` user, read-write, restricted
+        # to that user only (separate credentials from the binarin shares).
+        services.samba.settings.HomeAssistantBackup = {
+          browseable = "yes";
+          "read only" = "no";
+          "guest ok" = "no";
+          "valid users" = "hass";
+          "force user" = "hass";
+          "force group" = "hass";
+          "create mask" = "0664";
+          "force create mode" = "0664";
+          "directory mask" = "2775";
+          "force directory mode" = "2775";
+          path = "/mnt/hass-backup";
         };
 
         system.stateVersion = "24.05";
