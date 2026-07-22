@@ -2,10 +2,12 @@
   self,
   inputs,
   config,
+  lib,
   ...
 }:
 let
   selfLib = self.lib.self;
+  flakeConfig = config;
 in
 {
   flake.deploy.nodes.qdevice = {
@@ -16,16 +18,22 @@ in
     };
   };
 
-  flake.nixosConfigurations.qdevice = inputs.nixpkgs.lib.nixosSystem {
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    # system = "x86_64-linux";
-    specialArgs = {
-      inventoryHostName = "qdevice";
-    };
-    modules = [
+  clan.inventory.machines.qdevice = {
+    deploy.targetHost = flakeConfig.inventory.ipAllocation.qdevice.home.primary.address;
+  };
+
+  clan.machines.qdevice = {
+    imports = [
       self.nixosModules.qdevice-configuration
     ];
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
+
+  flake.nixosConfigurations.qdevice = lib.mkForce (
+    self.clan.nixosConfigurations.qdevice.extendModules {
+      specialArgs.inventoryHostName = "qdevice";
+    }
+  );
 
   flake.nixosModules.qdevice-configuration =
     {
@@ -39,8 +47,9 @@ in
       imports = [
         self.nixosModules.baseline
         self.nixosModules.systemd-boot
-        self.nixosModules.disko
+        inputs.disko.nixosModules.disko
         inputs.arion.nixosModules.arion
+        "${self}/my-machines/qdevice/disko.nix"
         "${self}/my-machines/qdevice/hardware-configuration.nix"
       ];
 
