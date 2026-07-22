@@ -3,6 +3,11 @@
   ...
 }:
 {
+  flake-file.inputs.wprintidle-c = {
+    url = "github:devrintalen/wprintidle-c";
+    flake = false;
+  };
+
   flake.nixosModules.wayland =
     { ... }:
     {

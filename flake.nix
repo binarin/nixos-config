@@ -146,5 +146,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     treefmt-nix.url = "github:numtide/treefmt-nix";
+    wprintidle-c = {
+      url = "github:devrintalen/wprintidle-c";
+      flake = false;
+    };
   };
 }
