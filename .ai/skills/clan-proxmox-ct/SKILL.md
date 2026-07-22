@@ -472,6 +472,14 @@ up copying any real closure (a `baseline` machine is 4–5 GB+) and the build sc
 `disko.devices.disk.main.imageSize = "<N>G";` (match the Proxmox `proxmox.disks[].size`). Also note the
 image-build VM's RAM = the machine's `proxmox.memory`, which can be tight for ZFS on a small VM.
 
+**Prefer plain ext4 over `zfs-whole` for stateless/throwaway VMs.** A ZFS root built by `diskoImages`
+is fragile at first boot: the pool is created in the build VM with **hostid 0 / hostname `(none)`** and a
+baked `zpool.cache`, so the real VM (with its clan `networking.hostId` and different device paths) can
+hang importing `rpool` and time out. An ext4 root has none of this — disko mounts it by **partlabel**
+(`disko-main-root`), independent of hostid or the build-time `by-id` device. Use a two-partition GPT
+layout (`ESP` vfat `/boot` + ext4 `/`, still one data partition) with an explicit `imageSize`; see
+`my-machines/xray-front/disko.nix` / `my-machines/xray-exit/disko.nix`.
+
 ## Common Mistakes
 
 | Mistake | Fix |
