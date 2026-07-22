@@ -8,7 +8,12 @@
         files.private-key.secret = true;
         files.public-key.secret = false;
         files.short-id.secret = false;
-        runtimeInputs = [ pkgs.xray pkgs.openssl ];
+        runtimeInputs = [
+          pkgs.xray
+          pkgs.openssl
+          pkgs.gnused
+          pkgs.gnugrep
+        ];
         script = ''
           keys="$(xray x25519 | sed 's/.*:[[:space:]]*//' | grep -v '^$')"
           printf '%s' "$(printf '%s\n' "$keys" | sed -n '1p')" > "$out/private-key"
