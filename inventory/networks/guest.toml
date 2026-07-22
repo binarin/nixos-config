@@ -1,5 +1,6 @@
 [info]
 prefix = 24
+vlan = 4
 network = "192.168.3.0"
 gateway = "192.168.3.1"
 dns = ["192.168.3.1"]

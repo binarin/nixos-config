@@ -833,6 +833,13 @@ def machine_provision_vm_cmd(
         ..., "--proxmox-host", "-p", help="Proxmox host to provision on"
     ),
     bridge: str = typer.Option("vmbr0", "--bridge", "-b", help="Network bridge name"),
+    network: str = typer.Option(
+        "home",
+        "--network",
+        "-n",
+        help="Inventory network whose IP allocation to use (e.g. home, guest). "
+        "Non-home networks tag the VM NIC with that network's VLAN id.",
+    ),
     start: bool = typer.Option(
         False, "--start", "-s", help="Start the VM after provisioning"
     ),
@@ -855,6 +862,7 @@ def machine_provision_vm_cmd(
         machine=machine,
         proxmox_host=proxmox_host,
         bridge=bridge,
+        network=network,
         start=start,
         dry_run=dry_run,
     )

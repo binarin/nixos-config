@@ -45,6 +45,9 @@ let
       (lib.optionalAttrs (info ? "network") {
         inherit (info) network;
       })
+      (lib.optionalAttrs (info ? "vlan") {
+        inherit (info) vlan;
+      })
       (lib.optionalAttrs (info ? "prefix") {
         inherit (info) prefix;
       })

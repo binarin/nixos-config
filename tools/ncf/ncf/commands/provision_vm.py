@@ -139,6 +139,9 @@ def build_qm_create_command(
     net_spec = f"{model},bridge={bridge},firewall={firewall}"
     if mac:
         net_spec += f",macaddr={mac}"
+    vlan = network_config.get("vlan")
+    if vlan is not None:
+        net_spec += f",tag={vlan}"
     cmd.extend(["--net0", net_spec])
 
     # Serial console for NixOS (common for cloud images)
@@ -162,6 +165,7 @@ def run(
     machine: str,
     proxmox_host: str,
     bridge: str = "vmbr0",
+    network: str = "home",
     start: bool = False,
     dry_run: bool = False,
 ) -> None:
@@ -171,6 +175,8 @@ def run(
         machine: NixOS configuration name
         proxmox_host: Proxmox host to provision on
         bridge: Network bridge name (default: vmbr0)
+        network: Inventory network whose IP allocation to use (default: home).
+            A network with a `vlan` in its `[info]` tags the VM NIC with that id.
         start: Start the VM after provisioning
         dry_run: Show what would be done without executing
     """
@@ -212,16 +218,23 @@ def run(
     cloud_init_enabled = cloud_init_config.get("enable", True)
     console.print(f"  Cloud-init: {'enabled' if cloud_init_enabled else 'disabled'}")
 
-    # Get network info
+    # Get network info for the selected inventory network (home, guest, ...)
+    console.print(f"  Network: {network}")
     ip_alloc = query_nixos_config(
-        runner, machine, "config.inventory.hostIpAllocation.home.primary"
+        runner, machine, f"config.inventory.hostIpAllocation.{network}.primary"
     )
     console.print(f"  IP: {ip_alloc['address']}")
     if ip_alloc.get("mac"):
         console.print(f"  MAC: {ip_alloc['mac']}")
 
-    # Get network-wide info (dns, gateway, etc)
-    network_info = query_nixos_config(runner, machine, "config.inventory.networks.home")
+    # Get network-wide info (dns, gateway, vlan, etc)
+    network_info = query_nixos_config(
+        runner, machine, f"config.inventory.networks.{network}"
+    )
+
+    vlan = network_info.get("vlan")
+    if vlan is not None:
+        console.print(f"  VLAN: {vlan}")
 
     network_config = {
         "address": ip_alloc["address"],
@@ -229,6 +242,7 @@ def run(
         "gateway": network_info["gateway"],
         "dns": network_info.get("dns", []),
         "mac": ip_alloc.get("mac"),
+        "vlan": vlan,
     }
 
     # Override bridge from command line
