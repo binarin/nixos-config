@@ -51,10 +51,25 @@ in
         inputs.arion.nixosModules.arion
         "${self}/my-machines/qdevice/disko.nix"
         "${self}/my-machines/qdevice/hardware-configuration.nix"
+        self.nixosModules.qdevice-vm
       ];
 
       config = {
         networking.hostName = "qdevice";
+
+        # Plaintext root password for the qdevice-vm Debian guest. Fed into
+        # cloud-init's `chpasswd` by the qdevice-vm module so the serial
+        # console / password SSH is usable. Auto-generated once, then stored.
+        clan.core.vars.generators.qdevice-vm-root-password = {
+          files.root-password.secret = true;
+          runtimeInputs = [ pkgs.xkcdpass ];
+          script = ''
+            xkcdpass --numwords 4 --delimiter - --count 1 | tr -d '\n' > $out/root-password
+          '';
+        };
+        qdevice-vm.rootPasswordFile =
+          config.clan.core.vars.generators.qdevice-vm-root-password.files.root-password.path;
+
         system.stateVersion = "25.05";
 
         nixos-config.export-metrics.enable = true;
@@ -72,6 +87,9 @@ in
         users.users.root.openssh.authorizedKeys.keys = config.lib.publicKeys.secureWithTag "presence";
 
         networking.useDHCP = false;
+
+        # Tailscale is pulled in by baseline but isn't wanted on qdevice.
+        services.tailscale.enable = lib.mkForce false;
 
         systemd.network = {
           enable = true;
