@@ -107,7 +107,7 @@ in
             attrNames
             (map (
               name:
-              lib.optionalAttrs (name != config.networking.hostName) {
+              lib.optionalAttrs (name != config.networking.hostName && flakeConfig.inventory.ipAllocation."${name}" ? home) {
                 "${flakeConfig.inventory.ipAllocation."${name}".home.primary.address}" = [
                   "${name}.${config.clan.core.settings.domain}"
                 ];
@@ -138,10 +138,10 @@ in
           '';
         };
         networking.hostId = lib.mkForce (
-          if config.clan.core.vars.generators.hostId.files.hostId ? value then
-            lib.trim config.clan.core.vars.generators.hostId.files.hostId.value
-          else
-            "00000000"
+          let
+            v = builtins.tryEval (lib.trim config.clan.core.vars.generators.hostId.files.hostId.value);
+          in
+          if v.success then v.value else "00000000"
         );
       };
     };
