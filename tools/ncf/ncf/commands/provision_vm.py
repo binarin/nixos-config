@@ -483,42 +483,27 @@ def run(
             check=True,
         )
 
-        # Import the disk
-        console.print(f"  Importing disk to {disk_storage}...")
-        import_cmd = ["qm", "importdisk", str(vmid), remote_image, disk_storage]
+        # Import the disk directly onto scsi0. `import-from` creates the volume
+        # and attaches it in one step; the older `importdisk` + parse-output +
+        # attach dance left the disk as 'unusedN' whenever the output didn't
+        # match the expected format (e.g. the line landing on stderr).
+        console.print(f"  Importing disk to {disk_storage} as scsi0...")
+        import_cmd = [
+            "qm",
+            "set",
+            str(vmid),
+            "--scsi0",
+            f"{disk_storage}:0,import-from={remote_image}",
+        ]
         ssh_cmd = ssh_command(proxmox_host, import_cmd)
-        result = subprocess.run(ssh_cmd, capture_output=True, text=True, check=True)
+        subprocess.run(ssh_cmd, check=True)
+        console.print("  [green]Disk imported and attached as scsi0[/green]")
 
-        # Parse the output to get the disk name
-        # Output is like: "Successfully imported disk as 'unused0:local-zfs:vm-123-disk-0'"
-        disk_name = None
-        for line in result.stdout.split("\n"):
-            if "Successfully imported" in line and ":" in line:
-                # Extract the disk reference
-                parts = line.split("'")
-                if len(parts) >= 2:
-                    disk_ref = parts[1].split(":")[1] + ":" + parts[1].split(":")[2]
-                    disk_name = disk_ref
-
-        if disk_name:
-            console.print(f"  Disk imported as: {disk_name}")
-
-            # Attach the disk
-            attach_cmd = ["qm", "set", str(vmid), "--scsi0", disk_name]
-            ssh_cmd = ssh_command(proxmox_host, attach_cmd)
-            subprocess.run(ssh_cmd, check=True)
-            console.print(f"  [green]Disk attached[/green]")
-
-            # Set boot order
-            boot_cmd = ["qm", "set", str(vmid), "--boot", "order=scsi0"]
-            ssh_cmd = ssh_command(proxmox_host, boot_cmd)
-            subprocess.run(ssh_cmd, check=True)
-            console.print(f"  [green]Boot order set[/green]")
-        else:
-            console.print(
-                f"  [yellow]Could not parse disk name from import output[/yellow]"
-            )
-            console.print(f"  Output: {result.stdout}")
+        # Set boot order
+        boot_cmd = ["qm", "set", str(vmid), "--boot", "order=scsi0"]
+        ssh_cmd = ssh_command(proxmox_host, boot_cmd)
+        subprocess.run(ssh_cmd, check=True)
+        console.print("  [green]Boot order set[/green]")
 
         # Cleanup remote image
         subprocess.run(

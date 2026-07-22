@@ -14,6 +14,10 @@
             disk = {
               main = {
                 type = "disk";
+                # Raw-image size for `diskoImages` (ncf provision-vm). disko's
+                # own default is 2G — too small for a real closure. Override
+                # per-machine with `disko.devices.disk.main.imageSize`.
+                imageSize = lib.mkDefault "6G";
                 device = lib.mkDefault (
                   throw "Set `disko.devices.disk.main.device` when importing disko-template-zfs-whole"
                 );
