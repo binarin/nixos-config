@@ -28,4 +28,40 @@ if TEXT is empty or not a non-negative integer."
                (string-match-p "\\`[0-9]+\\'" trimmed))
       (float (string-to-number trimmed)))))
 
+(defun b/wayland-idle-seconds ()
+  "Return seat-level idle seconds under Wayland, via wprintidle-c.
+Opens the daemon's Unix socket directly, sends `QUERY_SECONDS', and
+reads one line.  Returns a float, or nil if the daemon is
+unavailable, the connection times out, or the response is invalid.
+Never signals."
+  (when (featurep 'make-network-process '(:family local))
+    (let ((path (b/wprintidle-socket-path))
+          (buf (generate-new-buffer " *wprintidle*"))
+          proc)
+      (unwind-protect
+          (condition-case nil
+              (progn
+                (setq proc
+                      (make-network-process
+                       :name "wprintidle"
+                       :buffer buf
+                       :family 'local
+                       :service path
+                       :noquery t
+                       :sentinel (lambda (_p _e))))
+                (process-send-string proc "QUERY_SECONDS\n")
+                ;; Wait up to ~0.1s for the response line.
+                (with-local-quit
+                  (accept-process-output proc 0.1))
+                (when (process-live-p proc)
+                  (with-current-buffer buf
+                    (b/parse-wprintidle-response
+                     (buffer-string)))))
+            ;; Any error (connection refused, etc.) -> nil.
+            (error nil))
+        (when (and proc (process-live-p proc))
+          (delete-process proc))
+        (when (buffer-live-p buf)
+          (kill-buffer buf))))))
+
 (provide 'b-wprintidle)

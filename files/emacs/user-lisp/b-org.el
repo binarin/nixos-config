@@ -13,6 +13,7 @@
 (require 'l-lib)
 (require 'b-visual)
 (require 'ox)
+(require 'b-wprintidle)
 
 
 (setf org-startup-folded 'show2levels
@@ -608,8 +609,17 @@ With \\[universal-argument] \\[universal-argument] (C-u C-u): edit the full s-ex
 (add-hook 'org-clock-out-hook 'org-clock-save)
 
 
-(setf org-clock-auto-clockout-timer 600)
+(setf org-clock-auto-clockout-timer 3600)
 (org-clock-auto-clockout-insinuate)
+
+(defun b/org-user-idle-seconds-around (orig &rest args)
+  "Advice around `org-user-idle-seconds': prefer wprintidle-c idle.
+Calls ORIG with ARGS when Wayland idle is unavailable (returns nil)."
+  (or (b/wayland-idle-seconds)
+      (apply orig args)))
+
+(advice-add #'org-user-idle-seconds :around
+            #'b/org-user-idle-seconds-around)
 
 (defun b/org-bZ-capture-target ()
   "Target for `bZ' capture: go to clocked task, find insertion point.
