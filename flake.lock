@@ -1615,7 +1615,8 @@
         "srvos": "srvos",
         "stylix": "stylix",
         "system-manager": "system-manager",
-        "treefmt-nix": "treefmt-nix_2"
+        "treefmt-nix": "treefmt-nix_2",
+        "wprintidle-c": "wprintidle-c"
       }
     },
     "rust-overlay": {
@@ -1990,6 +1991,22 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "wprintidle-c": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1767402236,
+        "narHash": "sha256-xSxv2x4DkqAGzxVV2gwIsqUSgFj9dZmvWivLTg9wthA=",
+        "owner": "devrintalen",
+        "repo": "wprintidle-c",
+        "rev": "25db7efc3adf6a841ad8436430ce9c066214485e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "devrintalen",
+        "repo": "wprintidle-c",
         "type": "github"
       }
     },
