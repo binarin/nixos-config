@@ -261,9 +261,11 @@ def run(
                 continue
 
             if dry_run:
-                console.print(f"  [yellow]Would run: {' '.join(disk_cmd)}[/yellow]")
+                console.print(f"  [yellow]Would run: {shlex.join(disk_cmd)}[/yellow]")
             else:
-                ssh_cmd = ["ssh", f"root@{proxmox_host}"] + disk_cmd
+                # shlex.join quotes each arg for the remote shell (ssh space-joins
+                # a bare list unquoted, breaking on spaces/parens).
+                ssh_cmd = ["ssh", f"root@{proxmox_host}", shlex.join(disk_cmd)]
                 subprocess.run(ssh_cmd, check=True)
                 console.print(f"  [green]Disk {disk_key} configured[/green]")
 

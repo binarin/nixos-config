@@ -1,6 +1,7 @@
 """Provision Proxmox LXC containers."""
 
 import json
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -827,7 +828,9 @@ def run(
         console.print(f"    {' '.join(pct_cmd)}")
     else:
         console.print(f"  Creating container {vmid}...")
-        ssh_cmd = ["ssh", f"root@{proxmox_host}"] + pct_cmd
+        # shlex.join quotes each arg so a description with spaces/parens survives
+        # the remote shell (ssh space-joins a bare list unquoted).
+        ssh_cmd = ["ssh", f"root@{proxmox_host}", shlex.join(pct_cmd)]
         subprocess.run(ssh_cmd, check=True)
         console.print(f"  [green]Container {vmid} created[/green]")
 

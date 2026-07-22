@@ -2,6 +2,7 @@
 
 import base64
 import json
+import shlex
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,18 @@ from ..output import console
 from ..proxmox_api import ProxmoxClient
 from ..secrets_inject import gather_secrets_for_machine, decrypt_secrets_to_tempdir
 from . import build
+
+
+def ssh_command(proxmox_host: str, remote_cmd: list[str]) -> list[str]:
+    """Build an ssh argv that runs remote_cmd on the Proxmox host.
+
+    Each element of remote_cmd is shell-quoted (via shlex.join) so values
+    containing spaces or shell metacharacters -- e.g. a VM description like
+    "xray-exit (residential VPN exit)" -- survive the remote shell intact.
+    Passing the list directly after the host lets ssh space-join it unquoted,
+    which breaks on '(' and friends.
+    """
+    return ["ssh", f"root@{proxmox_host}", shlex.join(remote_cmd)]
 
 
 def query_nixos_config(runner: NixRunner, machine: str, attribute: str) -> Any:
@@ -387,10 +400,10 @@ def run(
 
     if dry_run:
         console.print(f"  [yellow]Would run on {proxmox_host}:[/yellow]")
-        console.print(f"    {' '.join(qm_cmd)}")
+        console.print(f"    {shlex.join(qm_cmd)}")
     else:
         console.print(f"  Creating VM {vmid}...")
-        ssh_cmd = ["ssh", f"root@{proxmox_host}"] + qm_cmd
+        ssh_cmd = ssh_command(proxmox_host, qm_cmd)
         subprocess.run(ssh_cmd, check=True)
         console.print(f"  [green]VM {vmid} created[/green]")
 
@@ -419,10 +432,10 @@ def run(
             console.print(
                 f"  [yellow]Secure Boot: {'enabled' if secure_boot else 'disabled'}[/yellow]"
             )
-            console.print(f"  [yellow]Would run: {' '.join(efi_cmd)}[/yellow]")
+            console.print(f"  [yellow]Would run: {shlex.join(efi_cmd)}[/yellow]")
         else:
             console.print(f"  Secure Boot: {'enabled' if secure_boot else 'disabled'}")
-            ssh_cmd = ["ssh", f"root@{proxmox_host}"] + efi_cmd
+            ssh_cmd = ssh_command(proxmox_host, efi_cmd)
             subprocess.run(ssh_cmd, check=True)
             console.print(f"  [green]EFI disk configured[/green]")
 
@@ -441,9 +454,9 @@ def run(
         ]
 
         if dry_run:
-            console.print(f"  [yellow]Would run: {' '.join(tpm_cmd)}[/yellow]")
+            console.print(f"  [yellow]Would run: {shlex.join(tpm_cmd)}[/yellow]")
         else:
-            ssh_cmd = ["ssh", f"root@{proxmox_host}"] + tpm_cmd
+            ssh_cmd = ssh_command(proxmox_host, tpm_cmd)
             subprocess.run(ssh_cmd, check=True)
             console.print(f"  [green]TPM2 configured[/green]")
 
@@ -473,7 +486,7 @@ def run(
         # Import the disk
         console.print(f"  Importing disk to {disk_storage}...")
         import_cmd = ["qm", "importdisk", str(vmid), remote_image, disk_storage]
-        ssh_cmd = ["ssh", f"root@{proxmox_host}"] + import_cmd
+        ssh_cmd = ssh_command(proxmox_host, import_cmd)
         result = subprocess.run(ssh_cmd, capture_output=True, text=True, check=True)
 
         # Parse the output to get the disk name
@@ -492,13 +505,13 @@ def run(
 
             # Attach the disk
             attach_cmd = ["qm", "set", str(vmid), "--scsi0", disk_name]
-            ssh_cmd = ["ssh", f"root@{proxmox_host}"] + attach_cmd
+            ssh_cmd = ssh_command(proxmox_host, attach_cmd)
             subprocess.run(ssh_cmd, check=True)
             console.print(f"  [green]Disk attached[/green]")
 
             # Set boot order
             boot_cmd = ["qm", "set", str(vmid), "--boot", "order=scsi0"]
-            ssh_cmd = ["ssh", f"root@{proxmox_host}"] + boot_cmd
+            ssh_cmd = ssh_command(proxmox_host, boot_cmd)
             subprocess.run(ssh_cmd, check=True)
             console.print(f"  [green]Boot order set[/green]")
         else:
