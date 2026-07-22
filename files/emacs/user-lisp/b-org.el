@@ -609,7 +609,7 @@ With \\[universal-argument] \\[universal-argument] (C-u C-u): edit the full s-ex
 (add-hook 'org-clock-out-hook 'org-clock-save)
 
 
-(setf org-clock-auto-clockout-timer 3600)
+(setf org-clock-auto-clockout-timer 600)
 (org-clock-auto-clockout-insinuate)
 
 (defun b/org-user-idle-seconds-around (orig &rest args)
