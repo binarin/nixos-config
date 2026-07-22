@@ -462,6 +462,16 @@ the whole system derivation — **15+ GB RAM, minutes**. For quick syntax iterat
   VLAN — override it with `lib.mkForce` pointing at `inventory.networks.guest` /
   `ipAllocation.<name>.guest.primary.addressWithPrefix`.
 
+### disko image builds default to a 2G image → "No space left on device"
+
+`config.system.build.diskoImages` (what `ncf machine provision-vm` builds) sizes the raw image from
+`disko.devices.disk.<name>.imageSize`, which **defaults to 2G**. A `disko-template-zfs-whole` layout
+(root `size = "100%"`, no disk-level size) leaves that default in place, so the image build VM fills
+up copying any real closure (a `baseline` machine is 4–5 GB+) and the build script exits 123 →
+`Kernel panic - not syncing: Attempted to kill init` in the build log. Fix: set an explicit
+`disko.devices.disk.main.imageSize = "<N>G";` (match the Proxmox `proxmox.disks[].size`). Also note the
+image-build VM's RAM = the machine's `proxmox.memory`, which can be tight for ZFS on a small VM.
+
 ## Common Mistakes
 
 | Mistake | Fix |
@@ -472,6 +482,7 @@ the whole system derivation — **15+ GB RAM, minutes**. For quick syntax iterat
 | Importing `self.nixosModules.disko` | Reads `inventoryHostName` (absent under `clan vars`) → throws; import `"${self}/my-machines/<name>/disko.nix"` directly, clan activates disko globally |
 | Guest-VLAN / cloud machine breaks `clan-hosts` for all machines | Guard `clan-hosts` with `(ipAllocation."${name}" or {}) ? home`; guest VLAN also needs a `40-qemu` `mkForce` override |
 | `nix eval …toplevel` OOMs / hangs while iterating | It's 15+ GB; use `nix-instantiate --parse <file>` for syntax, reserve toplevel for final validation |
+| `provision-vm` disko image build panics / "No space left" | disko `imageSize` defaults to 2G; set `disko.devices.disk.main.imageSize = "<N>G"` (match the Proxmox disk) — `zfs-whole`'s 100% root sets no size |
 | Setting MAC before host-id exists | Either set known MAC bytes first, or update MAC after `clan vars generate` |
 | MAC/host-id mismatch | host-id = last 4 bytes of MAC, lowercase, no separators. Verify with step 5 |
 | Forgetting `git add --intent-to-add` | Nix won't see the module file until git knows about it |
