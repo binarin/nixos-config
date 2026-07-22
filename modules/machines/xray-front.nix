@@ -1,12 +1,9 @@
 {
   self,
-  config,
   lib,
-  inputs,
   ...
 }:
 let
-  flakeConfig = config;
   xrayLib = import "${self}/lib/xray/config-lib.nix";
 in
 {

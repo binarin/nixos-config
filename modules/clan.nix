@@ -107,7 +107,7 @@ in
             attrNames
             (map (
               name:
-              lib.optionalAttrs (name != config.networking.hostName && flakeConfig.inventory.ipAllocation."${name}" ? home) {
+              lib.optionalAttrs (name != config.networking.hostName && (flakeConfig.inventory.ipAllocation."${name}" or { }) ? home) {
                 "${flakeConfig.inventory.ipAllocation."${name}".home.primary.address}" = [
                   "${name}.${config.clan.core.settings.domain}"
                 ];

@@ -1,4 +1,4 @@
-# Pure evaluation test: `nix eval --file modules/xray/config-lib-test.nix`
+# Pure evaluation test: `nix eval --file lib/xray/config-lib-test.nix`
 # Returns "ok" on success; throws (assertion) on failure.
 let
   x = import ./config-lib.nix;

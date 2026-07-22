@@ -1,5 +1,5 @@
 # Pure, lib-free xray config builders. Import with:
-#   xrayLib = import "${self}/modules/xray/config-lib.nix";
+#   xrayLib = import "${self}/lib/xray/config-lib.nix";
 # All leaf string params are value-agnostic: real values, sops placeholders,
 # or @SENTINEL@ tokens all pass straight through into the produced attrset.
 rec {
