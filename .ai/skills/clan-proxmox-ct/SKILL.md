@@ -400,11 +400,78 @@ deploy .#<name> -s
 
 Confirm the migrated service still works on the box (e.g. admin login) — that validates the sops→vars cutover.
 
+## Clan Machine Gotchas
+
+These bite both fresh CTs and conversions (and VMs), and several only surface at
+`clan vars generate` / build time — a `nix-instantiate --parse` won't catch them.
+
+### Generator scripts get a minimal PATH — add non-coreutils tools to `runtimeInputs`
+
+A `clan.core.vars.generators.<g>.script` runs with **only `runtimeInputs` + coreutils** on PATH.
+`printf` is a bash builtin and `cat`/`tr`/`head` come from coreutils, but **`sed`, `grep`,
+`jq`, `awk`, `ssh-keygen`, `openssl`, `xray`, … are NOT** — each must be listed in
+`runtimeInputs`. Symptom during `clan vars generate` (locale-translated):
+`generator-<g>: line N: sed: command not found`. Fix: add `pkgs.gnused` / `pkgs.gnugrep` /
+`pkgs.jq` / `pkgs.openssh` / … as needed.
+
+### Don't set `system.stateVersion` — clanCore owns it
+
+clanCore ships a `state-version` generator that sets `system.stateVersion = lib.mkDefault "<ver>"`.
+An explicit `system.stateVersion = lib.mkDefault "…"` in your machine module **collides** with it
+(two `mkDefault`s at equal priority → `The option 'system.stateVersion' has conflicting definition
+values`). Omit it entirely; only override with `lib.mkForce` if you truly must pin a different value.
+
+### Never import `self.nixosModules.disko` on a clan machine (disko/VM machines)
+
+`self.nixosModules.disko` imports `my-machines/${inventoryHostName}/disko.nix`, reading
+`inventoryHostName` from `specialArgs`. That arg is injected **only** by the flake-output
+`extendModules` wrapper — it is **absent when clan evaluates the machine itself** (what `clan vars`
+uses) → the module throws. Import the layout by explicit path instead:
+`imports = [ "${self}/my-machines/<name>/disko.nix" ];` (or use the `disko-template-*` modules like
+`acme`/`llm-runner`). disko is activated globally by clan-core, so **no** separate
+`inputs.disko.nixosModules.disko` import is needed.
+
+### `clan-hosts` throws for machines without a `.home` IP allocation
+
+`modules/clan.nix`'s `clan-hosts` maps `ipAllocation.<name>.home.primary.address` over **every**
+clan machine to build `/etc/hosts`. A machine on a non-home VLAN (e.g. guest `192.168.3.x`) or an
+**isolated cloud machine with no TOML entry at all** makes the selection throw — breaking eval for
+*all* machines. The guard must tolerate both a present-but-no-`.home` entry and a wholly-missing key:
+`... && (flakeConfig.inventory.ipAllocation."${name}" or { }) ? home`.
+
+### Evaluating before `clan vars generate` — `knownHosts` + `tryEval`
+
+If you `nix eval` a machine before its vars exist:
+- clan's sshd (`tags.all`) forces a file-backed `programs.ssh.knownHosts` value → set
+  `programs.ssh.knownHosts = lib.mkForce { };` on machines you want to eval pre-generate.
+- Helpers that read `config.sops.placeholder."vars/…"` or a generator's `.value` should be wrapped in
+  `builtins.tryEval` with a fallback, so eval succeeds before the secret is registered.
+
+### The toplevel eval is heavy
+
+`nix eval .#nixosConfigurations.<name>.config.system.build.toplevel` (and `.drvPath`) instantiates
+the whole system derivation — **15+ GB RAM, minutes**. For quick syntax iteration use
+`nix-instantiate --parse <file>`; reserve the full toplevel eval/build for final validation.
+
+### Cloud / non-home machines: deploy target + guest VLAN
+
+- A cloud box not in any network TOML has no reachable `deploy.targetHost` — omit
+  `deploy.targetHost` / `flake.deploy.nodes.<name>` and deploy with
+  `clan machines update <name> --target-host root@<addr>`.
+- A VM on the guest VLAN: `qemu-guest`'s `40-qemu` systemd-networkd block is hardcoded to the **home**
+  VLAN — override it with `lib.mkForce` pointing at `inventory.networks.guest` /
+  `ipAllocation.<name>.guest.primary.addressWithPrefix`.
+
 ## Common Mistakes
 
 | Mistake | Fix |
 |---------|-----|
 | Using `qemu-guest` instead of `lxc` | CTs use `lxc`, VMs use `qemu-guest` + disko |
+| `sed`/`grep`/`jq` "command not found" in a generator | Only `runtimeInputs` + coreutils are on PATH; add `pkgs.gnused`/`pkgs.gnugrep`/`pkgs.jq`/… |
+| Setting `system.stateVersion` | clanCore's `state-version` generator owns it (mkDefault); an explicit mkDefault collides — omit it |
+| Importing `self.nixosModules.disko` | Reads `inventoryHostName` (absent under `clan vars`) → throws; import `"${self}/my-machines/<name>/disko.nix"` directly, clan activates disko globally |
+| Guest-VLAN / cloud machine breaks `clan-hosts` for all machines | Guard `clan-hosts` with `(ipAllocation."${name}" or {}) ? home`; guest VLAN also needs a `40-qemu` `mkForce` override |
+| `nix eval …toplevel` OOMs / hangs while iterating | It's 15+ GB; use `nix-instantiate --parse <file>` for syntax, reserve toplevel for final validation |
 | Setting MAC before host-id exists | Either set known MAC bytes first, or update MAC after `clan vars generate` |
 | MAC/host-id mismatch | host-id = last 4 bytes of MAC, lowercase, no separators. Verify with step 5 |
 | Forgetting `git add --intent-to-add` | Nix won't see the module file until git knows about it |
