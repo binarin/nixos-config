@@ -107,6 +107,7 @@ in
         self.homeModules.wl-kbptr
         self.homeModules.swayidle
         self.homeModules.niri-dynamic-keybindings
+        self.homeModules.wprintidle
       ];
 
       config = {
