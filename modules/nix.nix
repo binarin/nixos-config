@@ -57,6 +57,7 @@ let
     self.overlays.my-emacs
     self.overlays.my-google-chrome
     self.overlays.waybar-org-clock
+    self.overlays.wprintidle-c
     self.overlays.brownnoise
     self.overlays.git-crypt-patched
 
