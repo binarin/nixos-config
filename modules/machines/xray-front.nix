@@ -149,7 +149,7 @@ in
         enable = true;
         settingsFile = config.sops.templates."xray.json".path;
       };
-
-      system.stateVersion = lib.mkDefault "25.05";
+      # system.stateVersion is managed by clanCore's `state-version` generator
+      # (do not set it here — an explicit mkDefault collides with clanCore's).
     };
 }
