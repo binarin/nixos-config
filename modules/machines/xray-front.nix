@@ -109,7 +109,7 @@ in
       programs.ssh.knownHosts = lib.mkForce { };
 
       # --- EC2 hardware/boot (UEFI). Launch the instance in UEFI boot mode. ---
-      boot.loader.efi.canTouchEfiVariables = false;
+      boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
       boot.initrd.availableKernelModules = [ "nvme" "ena" "xen_blkfront" ];
       boot.growPartition = true;
       boot.kernelParams = [ "console=ttyS0,115200n8" ];

@@ -43,20 +43,29 @@ in
     let
       # ph: get sops placeholder, or a safe fallback when the secret hasn't
       # been registered yet (clan vars generate not run).
-      ph = name:
-        let r = builtins.tryEval config.sops.placeholder."vars/${name}";
-        in if r.success then r.value else "<SOPS:PLACEHOLDER:${name}>";
-      val = g: f:
-        let r = builtins.tryEval (config.clan.core.vars.generators.${g}.files.${f}.value or "");
-        in if r.success then r.value else "";
+      ph =
+        name:
+        let
+          r = builtins.tryEval config.sops.placeholder."vars/${name}";
+        in
+        if r.success then r.value else "<SOPS:PLACEHOLDER:${name}>";
+      val =
+        g: f:
+        let
+          r = builtins.tryEval (config.clan.core.vars.generators.${g}.files.${f}.value or "");
+        in
+        if r.success then r.value else "";
     in
     {
       key = "nixos-config.modules.nixos.xray-exit-configuration";
       imports = [
         self.nixosModules.baseline
         self.nixosModules.qemu-guest
-        self.nixosModules.disko-template-zfs-whole
-        self.nixosModules.disko-template-add-uefi-boot-to-main
+        # Plain ext4 (ESP + ext4 root), NOT ZFS — a stateless proxy VM gains
+        # nothing from ZFS and disko-image ZFS is fragile (hostid/cachefile at
+        # boot). Imported by explicit path (not self.nixosModules.disko, which
+        # needs specialArgs.inventoryHostName absent under `clan vars`).
+        "${self}/my-machines/xray-exit/disko.nix"
         self.nixosModules.xray-shared
         (selfLib.file' "machines/llm-runner/hardware-configuration.nix")
       ];
@@ -70,6 +79,7 @@ in
       # generator's file-backed value before clan vars generate has run.
       # lib.mkForce prevents the sshd perInstance definition from
       # being forced.
+      # XXX
       programs.ssh.knownHosts = lib.mkForce { };
 
       # Guest-VLAN networking: override qemu-guest's home-VLAN 40-qemu block.
@@ -82,7 +92,7 @@ in
         routes = [ { Gateway = flakeConfig.inventory.networks.guest.gateway; } ];
       };
 
-      disko.devices.disk.main.device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0";
+      # Disk layout (device, ext4, imageSize) lives in my-machines/xray-exit/disko.nix.
       nixos-config.qemu-guest.proxmox = {
         memory = 1024;
         balloon = 512;
@@ -94,7 +104,7 @@ in
           {
             type = "image";
             storage = "local-zfs";
-            size = "16G";
+            size = "12G";
             bootOrder = 1;
           }
         ];
@@ -105,13 +115,15 @@ in
 
       sops.templates."xray.json" = {
         restartUnits = [ "xray.service" ];
-        content = builtins.toJSON (xrayLib.mkExitSettings {
-          linkId = ph "xray-link/uuid";
-          exitDest = ph "xray-exit-params/dest";
-          exitSni = ph "xray-exit-params/sni";
-          exitPrivateKey = ph "xray-reality-exit/private-key";
-          exitShortId = val "xray-reality-exit" "short-id";
-        });
+        content = builtins.toJSON (
+          xrayLib.mkExitSettings {
+            linkId = ph "xray-link/uuid";
+            exitDest = ph "xray-exit-params/dest";
+            exitSni = ph "xray-exit-params/sni";
+            exitPrivateKey = ph "xray-reality-exit/private-key";
+            exitShortId = val "xray-reality-exit" "short-id";
+          }
+        );
       };
 
       services.xray = {
