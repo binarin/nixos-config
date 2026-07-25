@@ -40,7 +40,6 @@ in
       settings = {
         domain = "docker-on-nixos.clan.binarin.info";
         extraDomainNames = [
-          "brick-tracker.binarin.info"
           "homebox.binarin.info"
           "karakeep.binarin.info"
           "archivebox.binarin.info"
@@ -65,7 +64,6 @@ in
         "${inputs.nixpkgs}/nixos/modules/profiles/minimal.nix"
         inputs.arion.nixosModules.arion
 
-        self.nixosModules.bricktracker
         self.nixosModules.homebox
         self.nixosModules.karakeep
         self.nixosModules.nativelink
@@ -157,21 +155,18 @@ in
           443
         ];
 
-        services.nginx.virtualHosts."brick-tracker.binarin.info" = {
-          addSSL = true;
-          sslCertificate = "/var/lib/ssl-cert/full.pem";
-          sslCertificateKey = "/var/lib/ssl-cert/full.pem";
-          locations."/" = {
-            proxyPass = "http://localhost:3333";
-          };
-        };
-
         services.nginx.virtualHosts."homebox.binarin.info" = {
           addSSL = true;
           sslCertificate = "/var/lib/ssl-cert/full.pem";
           sslCertificateKey = "/var/lib/ssl-cert/full.pem";
           locations."/" = {
             proxyPass = "http://localhost:7745";
+            # homebox derives its auth cookie's Domain from the Host header it
+            # receives (Domain: noPort(r.Host)). Without forwarding the real Host,
+            # nginx's default sends `Host: localhost`, so the browser rejects the
+            # `hb.auth.token` cookie as "invalid domain" and every request 401s
+            # ("authorization header or query is required") -> silent login loop.
+            recommendedProxySettings = true; # proxy_set_header Host $host; + X-Forwarded-*
           };
         };
 
