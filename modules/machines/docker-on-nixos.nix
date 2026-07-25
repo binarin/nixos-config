@@ -150,7 +150,7 @@ in
         services.nginx.defaultListenAddresses = [
           flakeConfig.inventory.ipAllocation.docker-on-nixos.home.primary.address
           "100.86.235.105" # node tailscale IPv4 (docker-on-nixos.lynx-lizard.ts.net)
-          "fd7a:115c:a1e0::5401:eb69" # node tailscale IPv6
+          "[fd7a:115c:a1e0::5401:eb69]" # node tailscale IPv6 (bracketed for listen)
         ];
         networking.firewall.allowedTCPPorts = [
           80
