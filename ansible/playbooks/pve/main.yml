@@ -22,6 +22,7 @@
       ansible.builtin.apt:
         name:
           - corosync-qnetd
+        update_cache: true
 
 - hosts: pve
   tags:
@@ -62,6 +63,7 @@
     - name: Install corosync-qdevice
       ansible.builtin.apt:
         name: corosync-qdevice
+        update_cache: true
 
 - hosts: pve
   tags:
