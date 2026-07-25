@@ -138,12 +138,19 @@ in
 
         # nginx reverse proxy with clan ACME certs (replaces caddy + cloudflare)
         services.nginx.enable = true;
-        # Bind only to the LAN address, NOT the nixpkgs default 0.0.0.0/[::0]. A
+        # Bind to explicit addresses, NOT the nixpkgs default 0.0.0.0/[::0]. A
         # wildcard :443 bind swallows the :443 of the tailscale vip-services that
-        # share this node (e.g. bazel-cache -> nativelink). These vhosts are
-        # LAN-only; their tailscale exposure is via separate vip-services, not nginx.
+        # share this node (e.g. bazel-cache -> nativelink), which have their own
+        # advertised IPs. Binding specific addresses leaves those vip IPs free.
+        #
+        # LAN address serves these vhosts on the local net; the node's own
+        # tailscale IPs serve them over the tailnet, since their public DNS
+        # (homebox/brick-tracker.binarin.info) points at this node's tailscale
+        # IP and the clan ACME cert already covers those names.
         services.nginx.defaultListenAddresses = [
           flakeConfig.inventory.ipAllocation.docker-on-nixos.home.primary.address
+          "100.86.235.105" # node tailscale IPv4 (docker-on-nixos.lynx-lizard.ts.net)
+          "fd7a:115c:a1e0::5401:eb69" # node tailscale IPv6
         ];
         networking.firewall.allowedTCPPorts = [
           80
