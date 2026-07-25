@@ -7,7 +7,7 @@ let
 in
 {
   flake.nixosModules.homebox =
-    { lib, ... }:
+    { config, pkgs, ... }:
     {
       key = "nixos-config.modules.nixos.homebox";
 
@@ -16,6 +16,17 @@ in
       ];
 
       config = {
+        # homebox >=0.26 fails fast unless auth.api_key_pepper is >=32 bytes.
+        # Auto-generate it once and expose it as an env-file fragment the
+        # container consumes via env_file. Rotating it invalidates all API keys.
+        clan.core.vars.generators.homebox-auth = {
+          files.homebox-env.secret = true;
+          runtimeInputs = [ pkgs.openssl ];
+          script = ''
+            printf 'HBOX_AUTH_API_KEY_PEPPER=%s\n' "$(openssl rand -base64 48 | tr -d '\n')" > $out/homebox-env
+          '';
+        };
+
         virtualisation.arion.backend = "docker";
         virtualisation.arion.projects.homebox = {
           serviceName = "home-box-docker-compose";
@@ -35,6 +46,9 @@ in
                   HBOX_DATABASE_DRIVER = "sqlite3";
                   HBOX_STORAGE_SQLITE_PATH = "/data/homebox.db?_pragma=busy_timeout=999&_pragma=journal_mode=WAL&_fk=1";
                 };
+                env_file = [
+                  config.clan.core.vars.generators.homebox-auth.files.homebox-env.path
+                ];
                 volumes = [
                   "/persist/homebox/data:/data/"
                 ];
