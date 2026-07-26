@@ -4,7 +4,16 @@
 (use-package magit
   :ensure t
   :commands (magit-file-relative-name magit-git-string magit-file-delete)
-  :bind (("C-x g" . magit)))
+  :bind (("C-x g" . magit))
+  :config
+  ;; Suppress the commented status block git writes into the commit
+  ;; message buffer (the "Changes to be committed" summary under the
+  ;; ">8" scissors line).  We force `--no-status' onto every commit so
+  ;; the buffer stays clean regardless of the transient's state.
+  (defun b/magit-commit-add-no-status (args)
+    (cons "--no-status" (remove "--no-status" args)))
+  (advice-add 'magit-commit-arguments :filter-return
+              #'b/magit-commit-add-no-status))
 
 ;;;###autoload
 (defun b/open-forge-link ()
