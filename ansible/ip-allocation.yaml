@@ -397,3 +397,9 @@ ip_allocation:
         _type: leaf
         address: 192.168.2.14
         mac: null
+  xray-exit:
+    guest:
+      primary:
+        _type: leaf
+        address: 192.168.3.10
+        mac: null
