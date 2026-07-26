@@ -21,6 +21,43 @@
 
 
 (require 'b-wprintidle)
+(require 'l-windows)
+
+(ert-deftest b/other-window-forwards-default-count-and-visible ()
+  "b/other-window calls (other-window 1 'visible) by default."
+  (cl-letf (((symbol-function 'niri-rpc-connected-p) (lambda () nil)))
+    (should
+     (equal
+      (catch 'called-with
+        (cl-letf (((symbol-function 'other-window)
+                   (lambda (count all-frames)
+                     (throw 'called-with (list count all-frames)))))
+          (b/other-window)))
+      (list 1 'visible)))))
+
+(ert-deftest b/other-window-forwards-negative-count ()
+  "b/other-window -1 forwards -1 to other-window, still with 'visible."
+  (cl-letf (((symbol-function 'niri-rpc-connected-p) (lambda () nil)))
+    (should
+     (equal
+      (catch 'called-with
+        (cl-letf (((symbol-function 'other-window)
+                   (lambda (count all-frames)
+                     (throw 'called-with (list count all-frames)))))
+          (b/other-window -1)))
+      (list -1 'visible)))))
+
+(ert-deftest b/other-window-no-focus-when-same-frame ()
+  "When connected but other-window doesn't change frame, no FocusWindow."
+  (let (calls)
+    (cl-letf (((symbol-function 'niri-rpc-connected-p) (lambda () t))
+              ;; Stub other-window to be a no-op: selected-frame is unchanged.
+              ((symbol-function 'other-window)
+               (lambda (&rest _) nil))
+              ((symbol-function 'niri-rpc-focus-window)
+               (lambda (id) (push id calls))))
+      (b/other-window))
+    (should (null calls))))
 
 (ert-deftest b-org-test-wprintidle-socket-path-xdg ()
   "Socket path uses $XDG_RUNTIME_DIR when set."

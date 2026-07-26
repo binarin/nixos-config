@@ -1,5 +1,9 @@
 ;; -*- lexical-binding: t; -*-
 
+(declare-function niri-rpc-connected-p "niri-rpc")
+(declare-function niri-frame-niri-id "niri-frame")
+(declare-function niri-rpc-focus-window "niri-rpc")
+
 (defun b/dedicated-frame-p (frame)
   (frame-parameter frame 'b/dedicated-frame))
 
@@ -88,5 +92,40 @@ previously selected frame."
 
 
 
+
+;;;###autoload
+(defun b/other-window-backward (&optional count)
+  "Like `b/other-window', but move in the opposite direction.
+COUNT defaults to 1; pass it to `b/other-window' negated."
+  (interactive "p")
+  (b/other-window (- (or count 1))))
+
+(defvar-keymap b/other-window-repeat-map
+  :doc "Repeat map for `b/other-window'.  Used in `repeat-mode'."
+  :repeat t
+  "o" #'b/other-window
+  "O" #'b/other-window-backward)
+
+;;;###autoload
+(defun b/other-window (&optional count)
+  "Select another window, cycling visible windows only.
+Calls `other-window' with COUNT (default 1) and the symbol
+`visible' as ALL-FRAMES, so minimized/iconified frames are
+skipped.  When the niri IPC connection is live
+\(`niri-rpc-connected-p') and the selected frame changed as a
+result, sync Wayland keyboard focus to the new frame by sending
+a `FocusWindow' action for its niri window id (if known).
+No focus sync is attempted when the frame did not change or
+when `niri-frame-niri-id' returns nil."
+  (interactive "p")
+  (let ((before-frame (selected-frame)))
+    (other-window (or count 1) 'visible)
+    (when (and (niri-rpc-connected-p)
+               (not (eq before-frame (selected-frame))))
+      (when-let* ((id (niri-frame-niri-id (selected-frame))))
+        (niri-rpc-focus-window id)))))
+
+(put 'b/other-window 'repeat-map 'b/other-window-repeat-map)
+(put 'b/other-window-backward 'repeat-map 'b/other-window-repeat-map)
 
 (provide 'l-windows)
