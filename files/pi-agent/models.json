@@ -9,10 +9,12 @@
                     "id": "deepseek/deepseek-v4-flash"
                 },
                 {
-                    "id": "deepseek/deepseek-v4-pro"
+                    "id": "deepseek/deepseek-v4-pro",
+                    "contextWindow": 1048567,
                 },
                 {
-                    "id": "z-ai-coding-plan/glm-5.2"
+                    "id": "z-ai-coding-plan/glm-5.2",
+                    "contextWindow": 1048567,
                 }
             ]
         },
