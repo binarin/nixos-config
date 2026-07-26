@@ -47,9 +47,9 @@ to fail fast); both may share the same underlying test via the new
 function if convenient, but behavior of `ensure-connected` is
 unchanged.
 
-### 2. `niri-other-window` wrapper + repeat map — in `nixos-config`
+### 2. `b/other-window` wrapper + repeat map — in `nixos-config`
 
-Add to `files/emacs/user-lisp/l-windows.el`. The wrapper, `niri-other-window`, takes a `count` (defaults to 1) and:
+Add to `files/emacs/user-lisp/l-windows.el`. The wrapper, `b/other-window`, takes a `count` (defaults to 1) and:
 
 - Captures `(selected-frame)` before delegating.
 - Calls `(other-window count 'visible)` — **always** passing `'visible`
@@ -64,7 +64,7 @@ Add to `files/emacs/user-lisp/l-windows.el`. The wrapper, `niri-other-window`, t
   already correct), and nothing happens when the niri id is missing
   (e.g. a frame not yet mapped to a niri window) — silently degrade.
 
-`C-x o` is bound to `niri-other-window` (replacing the user's current
+`C-x o` is bound to `b/other-window` (replacing the user's current
 anonymous lambda). Note: we deliberately do **not** use
 `[remap other-window]`, because the `'visible`-always behavior is the
 point; any code calling `other-window` directly should keep its own
@@ -72,17 +72,17 @@ point; any code calling `other-window` directly should keep its own
 
 A dedicated repeat map is declared so `repeat-mode` keeps working and
 has room to grow. Crucially, the repeat entries route through
-`niri-other-window` (not the bare built-in), so `'visible` and the
+`b/other-window` (not the bare built-in), so `'visible` and the
 focus sync apply on every repeat:
 
 ```elisp
-(defvar-keymap niri-other-window-repeat-map
-  :doc "Repeat map for `niri-other-window'.  Used in `repeat-mode'."
+(defvar-keymap b/other-window-repeat-map
+  :doc "Repeat map for `b/other-window'.  Used in `repeat-mode'."
   :repeat t
-  "o" #'niri-other-window
-  "O" (lambda () (interactive) (niri-other-window -1)))
+  "o" #'b/other-window
+  "O" (lambda () (interactive) (b/other-window -1)))
 
-(put 'niri-other-window 'repeat-map 'niri-other-window-repeat-map)
+(put 'b/other-window 'repeat-map 'b/other-window-repeat-map)
 ```
 
 `:repeat t` mirrors the built-in `other-window-repeat-map`. Every
@@ -103,7 +103,7 @@ guard rather than a defensive swallow-all.
 | Repo | File | Change |
 |---|---|---|
 | `emacs-niri-awareness` | `niri-rpc.el` | add `niri-rpc-connected-p` (with `;;;###autoload`) |
-| `nixos-config` | `files/emacs/user-lisp/l-windows.el` | add `niri-other-window` command, repeat map, `C-x o` binding (direct, not remap) |
+| `nixos-config` | `files/emacs/user-lisp/l-windows.el` | add `b/other-window` command, repeat map, `C-x o` binding (direct, not remap) |
 
 ## Testing
 
