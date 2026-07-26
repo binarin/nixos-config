@@ -414,26 +414,10 @@ With \\[universal-argument] \\[universal-argument] (C-u C-u): edit the full s-ex
 (add-hook 'delete-frame-functions #'b/full-frame-org-capture--handle-delete-frame)
 
 ;;;###autoload
-(defun b/make-frame (&optional parameters)
-  "Create a new frame, explicitly targeting the Wayland display.
-
-When the Emacs daemon is started by a systemd user service, its
-environment may contain both DISPLAY (from XWayland) and
-WAYLAND_DISPLAY, which confuses pgtk Emacs' auto-detection in
-`make-frame' and leads to \"Unknown terminal type\" or \"trying to
-run emacs for wayland under X11\" errors. Passing the Wayland
-display explicitly disambiguates the backend selection."
-  (let* ((runtime (getenv "XDG_RUNTIME_DIR"))
-         (wayland (getenv "WAYLAND_DISPLAY"))
-         (display (if (and runtime wayland)
-                      (expand-file-name wayland runtime)
-                    (getenv "DISPLAY"))))
-    (make-frame-on-display display parameters)))
-
 (defun b/full-frame-clock-in-select ()
-  (let ((frame (b/make-frame '((name . "*org-clock-in - Emacs(float)*")
-                               (width . 119)
-                               (height . 30)))))
+  (let ((frame (make-frame '((name . "*org-clock-in - Emacs(float)*")
+                             (width . 119)
+                             (height . 30)))))
     (unwind-protect
         (with-selected-frame frame
           (let ((display-buffer-alist `((,(rx "*Clock Task Select*")
@@ -445,7 +429,7 @@ display explicitly disambiguates the backend selection."
   "BODY should leave org-capture buffer as current"
   (declare (indent 0))
   (let ((frame-var (gensym)))
-    `(let  ((,frame-var (b/make-frame '((name . "*org-capture - Emacs(float)*"))))
+    `(let  ((,frame-var (make-frame '((name . "*org-capture - Emacs(float)*"))))
 	    (display-buffer-alist (cons (list (rx bol "CAPTURE-")
 					      '(display-buffer-full-frame))
 					display-buffer-alist)))
@@ -478,7 +462,7 @@ display explicitly disambiguates the backend selection."
 
 ;;;###autoload
 (defun b/new-emacs-frame ()
-  (b/make-frame))
+  (make-frame))
 
 ;;;###autoload
 (defun b/full-frame-org-agenda ()
