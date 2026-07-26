@@ -396,11 +396,11 @@
     "emacs-niri-awareness": {
       "flake": false,
       "locked": {
-        "lastModified": 1779114673,
-        "narHash": "sha256-wLRGeGSl6VQ/JCy70cYhvRCmPgru80Q5CCaY4zozbic=",
+        "lastModified": 1785090164,
+        "narHash": "sha256-2i4HOkbBs8gngwPdnjBQJquNOH14TToQY8bVWvmKU4Q=",
         "owner": "binarin",
         "repo": "emacs-niri-awareness",
-        "rev": "d9112484355907bb060d9aaa98f7bd97c3a1c4ee",
+        "rev": "4ecc8ddb571f21c2fcfd336aa9d4ea96a6941775",
         "type": "github"
       },
       "original": {
