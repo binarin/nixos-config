@@ -877,6 +877,52 @@ in
           mediaLocation = "/mnt/immich";
         };
 
+        # immich-stack: groups similar photos into stacks + fixes trash orphans.
+        # Runs hourly via systemd (RUN_MODE=once) as an ephemeral dynamic user.
+        # The API key is a prompted clan var injected via LoadCredential (readable
+        # only by the service's transient user); v0.3.0 has no API_KEY_FILE support
+        # (it was reverted pre-release), so the script reads the credential and
+        # exports API_KEY itself. The URL targets immich over localhost since both
+        # run on this machine.
+        clan.core.vars.generators.immich-stack = {
+          prompts.api-key.description = "Immich API key for immich-stack";
+          files.api-key.secret = true;
+          script = ''
+            cat $prompts/api-key > $out/api-key
+          '';
+        };
+
+        systemd.services.immich-stack = {
+          description = "Immich photo stacking tool";
+          after = [ "network-online.target" ];
+          wants = [ "network-online.target" ];
+          serviceConfig = {
+            Type = "oneshot";
+            DynamicUser = true;
+            LoadCredential = "api-key:${config.clan.core.vars.generators.immich-stack.files.api-key.path}";
+          };
+          environment = {
+            # immich binds IPv6-only ([::1]) via the nixpkgs module's IMMICH_HOST=localhost,
+            # so target the IPv6 loopback rather than 127.0.0.1.
+            API_URL = "http://[::1]:${builtins.toString config.services.immich.port}/api";
+            RUN_MODE = "once";
+            FIX_TRASH_AFTER_STACKING = "true";
+          };
+          path = [ pkgs.immich-stack ];
+          script = ''
+            export API_KEY="$(cat "$CREDENTIALS_DIRECTORY/api-key")"
+            immich-stack
+          '';
+        };
+
+        systemd.timers.immich-stack = {
+          wantedBy = [ "timers.target" ];
+          timerConfig = {
+            OnCalendar = "hourly";
+            Persistent = true;
+          };
+        };
+
         services.tailscale.serve.enable = true;
         services.tailscale.serve.services.immich = {
           serviceName = "immich";

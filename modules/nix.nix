@@ -63,6 +63,8 @@ let
 
     self.overlays.foot-no-strip-file-url
 
+    self.overlays.immich-stack
+
     self.overlays.niri
   ];
 
