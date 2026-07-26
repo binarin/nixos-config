@@ -49,7 +49,8 @@ unchanged.
 
 ### 2. `b/other-window` wrapper + repeat map — in `nixos-config`
 
-Add to `files/emacs/user-lisp/l-windows.el`. The wrapper, `b/other-window`, takes a `count` (defaults to 1) and:
+Add to `files/emacs/user-lisp/l-windows.el`. The wrapper, `b/other-window` (with `;;;###autoload`), takes a `count`
+(defaults to 1) and:
 
 - Captures `(selected-frame)` before delegating.
 - Calls `(other-window count 'visible)` — **always** passing `'visible`
@@ -64,11 +65,12 @@ Add to `files/emacs/user-lisp/l-windows.el`. The wrapper, `b/other-window`, take
   already correct), and nothing happens when the niri id is missing
   (e.g. a frame not yet mapped to a niri window) — silently degrade.
 
-`C-x o` is bound to `b/other-window` (replacing the user's current
-anonymous lambda). Note: we deliberately do **not** use
-`[remap other-window]`, because the `'visible`-always behavior is the
-point; any code calling `other-window` directly should keep its own
-`all-frames` semantics.
+`C-x o` is bound via `bind-key [remap other-window] #'b/other-window`
+in `init.el`. Remap affects only key lookup (the default `C-x o` and
+any other key bound to `other-window`), not direct Lisp calls — so
+code that calls `(other-window ...)` keeps its own `all-frames`
+semantics, while the user's `C-x o` goes through `b/other-window`.
+This replaces the user's current anonymous lambda.
 
 A dedicated repeat map is declared so `repeat-mode` keeps working and
 has room to grow. Crucially, the repeat entries route through
@@ -103,7 +105,8 @@ guard rather than a defensive swallow-all.
 | Repo | File | Change |
 |---|---|---|
 | `emacs-niri-awareness` | `niri-rpc.el` | add `niri-rpc-connected-p` (with `;;;###autoload`) |
-| `nixos-config` | `files/emacs/user-lisp/l-windows.el` | add `b/other-window` command, repeat map, `C-x o` binding (direct, not remap) |
+| `nixos-config` | `files/emacs/user-lisp/l-windows.el` | add `b/other-window` command (`;;;###autoload`), `b/other-window-repeat-map` |
+| `nixos-config` | `files/emacs/init.el` | `bind-key [remap other-window] #'b/other-window` |
 
 ## Testing
 
