@@ -137,6 +137,8 @@
   (setq repeat-exit-timeout 5)
   (repeat-mode 1))
 
+(bind-key [remap other-window] #'b/other-window)
+
 (use-package avy
   :ensure nil
   :bind (("<f23>" . avy-goto-char-timer)))
