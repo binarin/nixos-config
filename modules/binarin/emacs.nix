@@ -145,6 +145,13 @@ in
             );
           };
 
+          # services.emacs defaults its package to programs.emacs.finalPackage
+          # only when programs.emacs.enable is true, otherwise it falls back to
+          # pkgs.emacs. Since we force programs.emacs.enable = false above, we
+          # must point services.emacs at our own package explicitly so the
+          # daemon runs our emacs instead of the nixpkgs default.
+          services.emacs.package = lib.mkOverride 90 config.programs.emacs.package;
+
           home.sessionVariables.EDITOR = "emacs-as-console-editor";
 
           home.packages = [
@@ -164,6 +171,7 @@ in
         }
 
         (lib.mkIf osConfig.services.graphical-desktop.enable {
+          services.emacs.enable = true;
           xdg.dataFile."applications/org-protocol.desktop".source = selfLib.file "org-protocol.desktop";
 
           xdg.configFile."autostart/emacs.desktop".source =
