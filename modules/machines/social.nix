@@ -48,6 +48,13 @@ in
       pkgs,
       ...
     }:
+    let
+      mastodon = pkgs.mastodon.override {
+        patches = [
+          ./patches/mastodon-longer-posts.patch
+        ];
+      };
+    in
     {
       key = "nixos-config.modules.nixos.social-configuration";
       imports = [
@@ -84,7 +91,7 @@ in
           gnugrep
         ];
         script = ''
-          cd ${pkgs.mastodon}
+          cd ${mastodon}
           RAILS_ENV=production ./bin/rake webpush:generate_keys > $out/all
           cat $out/all | grep '^Public' | awk '{ print $3 }' > $out/public-key
           cat $out/all | grep '^Private' | awk '{ print $3 }' > $out/private-key
@@ -106,7 +113,7 @@ in
           perl
         ];
         script = ''
-          cd ${pkgs.mastodon}
+          cd ${mastodon}
           RAILS_ENV=production ./bin/rails db:encryption:init > $out/all
 
           cat $out/all | perl -nE 'm/^ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=(.*)$/ && say $1' > $out/deterministic-key
@@ -125,7 +132,7 @@ in
           owner = config.services.mastodon.user;
         };
         script = ''
-          cd ${pkgs.mastodon}
+          cd ${mastodon}
           RAILS_ENV=production ./bin/bundle exec rails secret > $out/secret-key-base
         '';
       };
@@ -149,6 +156,7 @@ in
         configureNginx = true;
         localDomain = "binarin.info";
         streamingProcesses = 3;
+        package = mastodon;
 
         extraConfig = {
           SINGLE_USER_MODE = "true";

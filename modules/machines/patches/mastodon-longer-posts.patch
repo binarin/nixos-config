@@ -1,0 +1,13 @@
+diff --git i/app/validators/status_length_validator.rb w/app/validators/status_length_validator.rb
+index 575aaf1869..ecefca6fe9 100644
+--- i/app/validators/status_length_validator.rb
++++ w/app/validators/status_length_validator.rb
+@@ -1,7 +1,7 @@
+ # frozen_string_literal: true
+ 
+ class StatusLengthValidator < ActiveModel::Validator
+-  MAX_CHARS = 500
++  MAX_CHARS = 5000
+   URL_PLACEHOLDER_CHARS = 23
+   URL_PLACEHOLDER = 'x' * 23
+ 
