@@ -2,12 +2,19 @@
 
 ## Problem
 
-`C-x o` (`other-window`) only updates Emacs's internal notion of the
-selected frame. When it lands in a window belonging to a *different*
-Emacs frame, the Wayland (niri) keyboard focus stays on the old frame —
-so the next keystroke is delivered to the wrong window and focus
-visibly snaps back. The result: `C-x o` across frames feels broken
-inside niri.
+The user binds `C-x o` to `(lambda () (interactive) (other-window
+1 'visible))` — passing `'visible` as `all-frames` so navigation skips
+minimized/iconified frames. `other-window` only updates Emacs's
+internal notion of the selected frame, though: when it lands in a
+window belonging to a *different* Emacs frame, the Wayland (niri)
+keyboard focus stays on the old frame — so the next keystroke is
+delivered to the wrong window and focus visibly snaps back. The
+result: `C-x o` across frames feels broken inside niri.
+
+Worse, that binding is currently an anonymous lambda, so `repeat-mode`
+does nothing for it (the built-in `other-window-repeat-map` exists in
+`window.el`, but it binds the bare `other-window`/`other-window-backward`,
+which don't pass `'visible`).
 
 `emacs-niri-awareness` already provides the building blocks:
 - `niri-frame-niri-id` (frame → niri window id)
@@ -42,11 +49,11 @@ unchanged.
 
 ### 2. `niri-other-window` wrapper + repeat map — in `nixos-config`
 
-Add to `files/emacs/user-lisp/l-windows.el`. The wrapper:
+Add to `files/emacs/user-lisp/l-windows.el`. The wrapper, `niri-other-window`, takes a `count` (defaults to 1) and:
 
 - Captures `(selected-frame)` before delegating.
-- Calls `other-window` with the forwarded arguments (so `C-u N C-x o`
-  and the `all-frames` interactive path still work).
+- Calls `(other-window count 'visible)` — **always** passing `'visible`
+  as `all-frames`, which is the whole point of the user's binding.
 - After `other-window` returns, **only** if **both**:
   - `(niri-rpc-connected-p)` is non-nil, and
   - the new `(selected-frame)` differs from the captured frame,
@@ -57,16 +64,20 @@ Add to `files/emacs/user-lisp/l-windows.el`. The wrapper:
   already correct), and nothing happens when the niri id is missing
   (e.g. a frame not yet mapped to a niri window) — silently degrade.
 
-The wrapper is bound via `(keymap-global-set [remap other-window] #'…)`
-or the project's preferred binding form, so `C-x o` and any other
-binding that points at `other-window` are routed through it.
+`C-x o` is bound to `niri-other-window` (replacing the user's current
+anonymous lambda). Note: we deliberately do **not** use
+`[remap other-window]`, because the `'visible`-always behavior is the
+point; any code calling `other-window` directly should keep its own
+`all-frames` semantics.
 
 A dedicated repeat map is declared so `repeat-mode` keeps working and
-has room to grow:
+has room to grow. Crucially, the repeat entries route through
+`niri-other-window` (not the bare built-in), so `'visible` and the
+focus sync apply on every repeat:
 
 ```elisp
 (defvar-keymap niri-other-window-repeat-map
-  :doc "Repeat map for `niri-other-window'."
+  :doc "Repeat map for `niri-other-window'.  Used in `repeat-mode'."
   :repeat t
   "o" #'niri-other-window
   "O" (lambda () (interactive) (niri-other-window -1)))
@@ -74,10 +85,9 @@ has room to grow:
 (put 'niri-other-window 'repeat-map 'niri-other-window-repeat-map)
 ```
 
-`:repeat t` lets the map's `o`/`O` entries themselves repeat (mirroring
-the built-in `other-window-repeat-map`). Every repeat press re-runs the
-frame-change check, so chaining `C-x o o o …` across frames syncs niri
-focus on each hop.
+`:repeat t` mirrors the built-in `other-window-repeat-map`. Every
+repeat press re-runs the frame-change check, so chaining
+`C-x o o o …` across frames syncs niri focus on each hop.
 
 ### Failure mode
 
@@ -93,7 +103,7 @@ guard rather than a defensive swallow-all.
 | Repo | File | Change |
 |---|---|---|
 | `emacs-niri-awareness` | `niri-rpc.el` | add `niri-rpc-connected-p` (with `;;;###autoload`) |
-| `nixos-config` | `files/emacs/user-lisp/l-windows.el` | add `niri-other-window` command, repeat map, `[remap other-window]` binding |
+| `nixos-config` | `files/emacs/user-lisp/l-windows.el` | add `niri-other-window` command, repeat map, `C-x o` binding (direct, not remap) |
 
 ## Testing
 
