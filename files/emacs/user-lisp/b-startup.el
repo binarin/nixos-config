@@ -17,8 +17,9 @@
 
 (defun b-startup--lock-org-file ()
   "Enable `emacs-lock-mode' for personal.org/refile.org when visited."
-  (when (member (file-name-nondirectory (buffer-file-name))
-                '("personal.org" "refile.org"))
+  (when (and (b-startup--wayland-env-p)
+             (member (file-name-nondirectory (buffer-file-name))
+                     '("personal.org" "refile.org")))
     (emacs-lock-mode 'exit)))
 
 ;; Prevent accidental Emacs exits by locking selected buffers. While a
