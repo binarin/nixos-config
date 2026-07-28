@@ -36,6 +36,9 @@ let
         gptel
         gptel-agent
         ox-hugo
+        ghostel
+        bufler
+        jinx
 
         anki-editor
         avy
