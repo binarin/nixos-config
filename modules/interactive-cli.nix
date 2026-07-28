@@ -181,6 +181,7 @@ in
             whois
             yubikey-manager
             zip
+            bleeding.zmx
           ];
 
           programs.readline = {
