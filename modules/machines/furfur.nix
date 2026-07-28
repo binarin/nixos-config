@@ -57,26 +57,6 @@ in
         "${self}/my-machines/furfur/hardware-configuration.nix"
       ];
 
-      programs.weylus = {
-        enable = true;
-        openFirewall = true;
-        users = [ "binarin" ];
-        # Track latest upstream commit (local checkout at ../../Weylus/).
-        package = pkgs.weylus.overrideAttrs (old: rec {
-          version = "unstable-2026-02-16";
-          src = pkgs.fetchFromGitHub {
-            owner = "H-M-H";
-            repo = "weylus";
-            rev = "38a01a8f8e429500c7e9f67fc1c88ca37a4d1e93";
-            hash = "sha256-kcFXwrxg9PQxR4/71s10TMtaFvksuQaNReSoGBbrdM0=";
-          };
-          cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-            inherit src;
-            hash = "sha256-2K+zLgZ3ApTCpj/OYy0f80pkvXPaB6TJe4fcrqsxPPw=";
-          };
-        });
-      };
-
       nixos-config.personal-nix-cache.useHomeNet = false;
       users.users.binarin.extraGroups = [ "i2c" ];
       hardware.i2c.enable = true;
