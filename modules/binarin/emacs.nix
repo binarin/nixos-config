@@ -27,6 +27,7 @@ in
         base:
         final.callPackage ../../packages/my-emacs {
           emacsBasePackage = base;
+          bleedingEmacsPackages = final.bleeding.emacsPackages;
           emacsPackagesFn = epkgs: [
             (epkgs.melpaBuild {
               pname = "niri-rpc";

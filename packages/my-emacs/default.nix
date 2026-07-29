@@ -16,6 +16,8 @@
   emacsBasePackage,
   emacsPackagesFn ? (_: [ ]),
   extraPackages ? [ ],
+  # emacs package set used to source a fresher ghostel than pinned nixpkgs.
+  bleedingEmacsPackages ? null,
   impureConfigDir ? "personal-workspace/nixos-config/files/emacs",
   flakyConfigDir,
   ...
@@ -36,7 +38,7 @@ let
         gptel
         gptel-agent
         ox-hugo
-        ghostel
+        (bleedingEmacsPackages.ghostel or ghostel)
         bufler
         jinx
 
