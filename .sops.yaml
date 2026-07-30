@@ -324,7 +324,7 @@ creation_rules:
         age:
           - *admin_binarin
           - *admin_demandred_binarin
-  - path_regex: secrets/b-db-k/secrets.yaml
+  - path_regex: secrets/git-identity.yaml
     key_groups:
       - pgp:
           - *admin_binarin_gpg
@@ -332,6 +332,7 @@ creation_rules:
           - *admin_binarin
           - *admin_demandred_binarin
           - *server_b-db-k
+          - *server_murmur
   - path_regex: secrets/ssh-local-config.yaml
     key_groups:
       - pgp:

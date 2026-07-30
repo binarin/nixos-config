@@ -94,6 +94,12 @@ in
           mode = "0400";
         };
 
+        sops.secrets.gitconfig-secret = {
+          sopsFile = selfLib.file' "secrets/git-identity.yaml";
+          owner = "allebedev";
+          mode = "0400";
+        };
+
         # Pin corporate security agents to a single E-core (CPU 12)
         environment.etc = let
           corporateBloatDropin = ''
@@ -320,6 +326,12 @@ in
           update-notifier.service
       '';
 
+      # ~/.gitconfig is read after ~/.config/git/config, so a leftover copy
+      # silently overrides the sops-provided identity.
+      home.activation.we-own-the-configs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+        $DRY_RUN_CMD rm -f ~/.gitconfig
+      '';
+
       xdg.autostart.override."nvidia-settings-autostart".notShownIn = [
         "niri"
       ];
@@ -328,11 +340,13 @@ in
       xdg.mime.enable = true;
       xdg.mimeApps.enable = true;
 
+      # Identity comes from sops, not from a checked-in value. programs.git was
+      # previously disabled here, so the settings.user block that used to live
+      # in this spot never had any effect -- ~/.gitconfig was the only git
+      # config on the machine.
       programs.git = {
-        settings.user = {
-          name = "Alexey Lebedeff";
-          email = "binarin@binarin.info";
-        };
+        enable = true;
+        includes = [ { path = "/run/secrets/gitconfig-secret"; } ];
       };
 
       dconf.enable = lib.mkForce false; # XXX no dbus or something

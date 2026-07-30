@@ -30,7 +30,7 @@ in
         bentos.yum.packages = [ "python3-pip" ];
       })
       ({ lib, config, ... }: {
-        sops.defaultSopsFile = selfLib.file' "secrets/b-db-k/secrets.yaml";
+        sops.defaultSopsFile = selfLib.file' "secrets/git-identity.yaml";
         sops.age.keyFile = "/var/lib/sops-nix/key.txt";
 
         # Numeric uid/gid, not owner/group names: allebedev is an LDAP/SSSD
