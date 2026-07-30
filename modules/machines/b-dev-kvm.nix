@@ -58,37 +58,12 @@ in
     ];
   };
 
-  flake.deploy.nodes.b-adb-k = {
-    hostname = "adb.k.b";
-    sshUser = "allebedev";
-    profiles.user = {
-      path = self.lib.deploy-home-manager self.homeConfigurations.b-dev-kvm;
-    };
-  };
-
   flake.deploy.nodes.b-db-k = {
     hostname = "db.k.b";
     sshUser = "allebedev";
     profiles.system = {
       user = "root";
       path = self.lib.deploy-system-manager self.systemConfigs.b-db-k;
-    };
-  };
-
-  flake.homeConfigurations.b-dev-kvm = inputs.home-manager.lib.homeManagerConfiguration {
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-
-    modules = [
-      self.homeModules.b-dev-kvm-configuration
-    ];
-
-    extraSpecialArgs = {
-      osConfig.services.graphical-desktop.enable = false;
-      osConfig.impermanence.enable = false;
-      self'.packages = self.packages.x86_64-linux;
-      inputs' = lib.mapAttrs (_: i: {
-        packages = i.packages.x86_64-linux;
-      }) inputs;
     };
   };
 

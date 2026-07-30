@@ -27,18 +27,6 @@
             "colors-dark.background" = "180000";
           };
         };
-        "adb.k.b" = {
-          remoteShell = "ssh -t";
-          overrides = {
-            "colors-dark.background" = "180000";
-          };
-        };
-        "db3.k.b" = {
-          remoteShell = "ssh -t";
-          overrides = {
-            "colors-dark.background" = "180000";
-          };
-        };
       };
     in
 
