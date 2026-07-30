@@ -83,7 +83,12 @@
           ];
 
           settings = {
-            "originalhost *.k.b" = {
+            # Keys must carry their own "Match "/"Host " prefix: home-manager
+            # only uses the key literally when it starts with one, and otherwise
+            # prepends "Host ". Without it, "originalhost *.k.b" renders as
+            # `Host originalhost *.k.b`, which also matches a host named
+            # "originalhost".
+            "Match originalhost *.k.b" = {
               ForwardAgent = true;
               ControlMaster = "auto";
               ControlPersist = "yes";
@@ -104,7 +109,7 @@
             };
           }
           // lib.optionalAttrs config.binarin-ssh.viaMurmur {
-            "originalhost murmur" = {
+            "Match originalhost murmur" = {
               ForwardAgent = true;
               IdentitiesOnly = true;
               IdentityFile = "~/.ssh/id_ed25519";
@@ -115,7 +120,7 @@
               User = "allebedev";
             };
 
-            "host murmur-wifi.home.binarin.info" = {
+            "Match host murmur-wifi.home.binarin.info" = {
               User = "allebedev";
             };
           };
