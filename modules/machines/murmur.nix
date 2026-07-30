@@ -87,6 +87,13 @@ in
 
         sops.secrets.nix-extra-access-tokens = { };
 
+        sops.secrets.ssh-local-common = {
+          sopsFile = selfLib.file' "secrets/ssh-local-config.yaml";
+          key = "common";
+          owner = "allebedev";
+          mode = "0400";
+        };
+
         # Pin corporate security agents to a single E-core (CPU 12)
         environment.etc = let
           corporateBloatDropin = ''

@@ -173,6 +173,21 @@ in
       users.users.root.hashedPasswordFile = config.sops.secrets.root_password_hash.path;
 
       sops.secrets.agares_password = { };
+
+      sops.secrets.ssh-local-common = {
+        sopsFile = selfLib.file' "secrets/ssh-local-config.yaml";
+        key = "common";
+        owner = "binarin";
+        mode = "0400";
+      };
+
+      sops.secrets.ssh-local-offsite = {
+        sopsFile = selfLib.file' "secrets/ssh-local-config.yaml";
+        key = "offsite";
+        owner = "binarin";
+        mode = "0400";
+      };
+
       sops.templates.networkmanager-env-file.content = ''
         AGARES_PSK=${config.sops.placeholder.agares_password}
       '';
@@ -221,6 +236,8 @@ in
       key = "nixos-config.modules.home.furfur-binarin";
 
       home.sessionVariables.CHROME_PROXY = "socks5://localhost:3128";
+
+      binarin-ssh.viaMurmur = true;
 
       # Cap the user app.slice (parent of app-shitty_shit.slice) at 80% soft /
       # 95% hard of physical memory, and forbid it any swap.
