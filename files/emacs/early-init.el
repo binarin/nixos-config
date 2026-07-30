@@ -34,6 +34,7 @@
                        ".org-id-locations"
                        "org-caldav-backup.org"
                        "magit-githooks"
+                       "ielm-history.eld"
                        "diary")
                       (or eol "/")))
         (cache-rx (rx bol
