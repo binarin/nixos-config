@@ -220,8 +220,21 @@ in
                 sandbox = true;
                 substituters = [ "https://cache.nixos.org" ];
               };
+              # No `ca-derivations` here: it breaks every devenv shell. When the
+              # feature is enabled, `nix print-dev-env` (devenv's way of
+              # materialising a shell) takes the CA branch of
+              # `getDerivationEnvironment`, which writes the `-env` derivation
+              # with a `Deferred` output and `out = hashPlaceholder "out"`.
+              # Determinate Nix >= 2.34 then refuses that derivation, since the
+              # output path is in fact computable:
+              #   error: derivation has incorrect environment variable 'out',
+              #   should be '/nix/store/...-devenv-shell-env' but is actually
+              #   '/1rz4g4znpz...'
+              # Nothing here builds content-addressed derivations anyway, and
+              # the niks3 CA tests enable the feature inside their own test VMs
+              # (nix/checks/nixos-test-niks3.nix), so they are unaffected.
               extraOptions = ''
-                experimental-features = nix-command flakes ca-derivations
+                experimental-features = nix-command flakes
               '';
             };
 
