@@ -273,6 +273,19 @@ in
       programs.starship = {
         enable = true;
         settings = {
+          format = lib.concatStrings [
+            "\${env_var.ZMX_SESSION}"
+            "$username"
+            "$hostname"
+            "$shlvl"
+            "$directory"
+            "$git_branch"
+            "$git_state"
+            "$git_status"
+            "$cmd_duration"
+            "$line_break"
+            "$character"
+          ];
           container.disabled = true; # that one is kinda strange, i.e. showing 'Systemd' on proxmox LXC containers
           username = {
             style_user = "blue bold";
@@ -294,6 +307,12 @@ in
             repeat = true;
             repeat_offset = 3;
             format = "[$symbol](bold yellow) ";
+          };
+          env_var.ZMX_SESSION = {
+            symbol = " ";
+            format = "[$symbol$env_value]($style) ";
+            description = "zmx session name";
+            style = "bold purple"; # starship has no "magenta"; invalid styles render unstyled
           };
         };
       };
