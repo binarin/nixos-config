@@ -221,7 +221,9 @@ in
       ];
 
       home.activation.we-own-the-configs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-        $DRY_RUN_CMD rm -f ~/.zshrc ~/.zshenv ~/.bash_profile ~/.bashrc ~/.profile
+        # ~/.gitconfig is read after ~/.config/git/config, so a leftover copy
+        # silently overrides the sops-provided identity and gitlab helper.
+        $DRY_RUN_CMD rm -f ~/.zshrc ~/.zshenv ~/.bash_profile ~/.bashrc ~/.profile ~/.gitconfig
       '';
 
       home.activation.fix-permissions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
