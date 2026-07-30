@@ -1,6 +1,6 @@
 /* There is an zero-width space inside quotes, the matching setting should be set in Sidebery config */
 #main-window[titlepreface="​"] {
-  & #sidebar-box {
+  & #sidebar-container {
     margin-left: 6px;
   }
   & #sidebar-main {
