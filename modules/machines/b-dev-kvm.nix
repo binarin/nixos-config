@@ -24,11 +24,20 @@ in
     pkgs = bDevKvmPkgs;
     modules = [
       self.systemModules.bentos
+      self.systemModules.sops
       self.systemModules.home-manager
       ({ lib, ... }: {
         bentos.yum.packages = [ "python3-pip" ];
       })
       ({ lib, ... }: {
+        sops.defaultSopsFile = selfLib.file' "secrets/b-db-k/secrets.yaml";
+        sops.age.keyFile = "/var/lib/sops-nix/key.txt";
+
+        sops.secrets.gitconfig-secret = {
+          owner = "allebedev";
+          mode = "0400";
+        };
+
         environment.etc."nix/nix.custom.conf" = {
           text = ''
             trusted-users = allebedev root 15008352
@@ -121,7 +130,7 @@ in
       programs.ssh.enable = lib.mkForce false;
 
       programs.git.includes = [
-        { path = selfLib.file "b-dev-kvm-gitconfig.git-crypt"; }
+        { path = "/run/secrets/gitconfig-secret"; }
       ];
       programs.git.lfs.enable = true;
       programs.git.settings.credential.helper = "cache --timeout 691200";
