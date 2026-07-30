@@ -77,7 +77,7 @@ in
         self.nixosModules.lxc
       ];
 
-      nixos-config.export-metrics.enable = false;
+      nixos-config.export-metrics.enable = true;
 
       services.nginx.enable = true;
       networking.firewall.allowedTCPPorts = [

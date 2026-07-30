@@ -130,6 +130,6 @@ in
         };
       };
 
-      nixos-config.export-metrics.enable = false;
+      nixos-config.export-metrics.enable = true;
     };
 }

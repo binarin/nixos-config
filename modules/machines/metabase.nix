@@ -123,7 +123,6 @@ in
           ];
         };
 
-
         services.tailscale = {
           enable = true;
           serve = {
@@ -146,10 +145,24 @@ in
             sslCertificate = "/var/lib/ssl-cert/full.pem";
             sslCertificateKey = "/var/lib/ssl-cert/full.pem";
             listen = [
-              { addr = config.inventory.hostIpAllocation.home.primary.address; port = 80; }
-              { addr = config.inventory.hostIpAllocation.home.primary.address; port = 443; ssl = true; }
-              { addr = "127.0.0.1";  port = 80; }
-              { addr = "127.0.0.1";  port = 443; ssl = true; }
+              {
+                addr = config.inventory.hostIpAllocation.home.primary.address;
+                port = 80;
+              }
+              {
+                addr = config.inventory.hostIpAllocation.home.primary.address;
+                port = 443;
+                ssl = true;
+              }
+              {
+                addr = "127.0.0.1";
+                port = 80;
+              }
+              {
+                addr = "127.0.0.1";
+                port = 443;
+                ssl = true;
+              }
             ];
             locations."/" = {
               proxyPass = "http://localhost:3000";
@@ -158,7 +171,7 @@ in
           };
         };
 
-        nixos-config.export-metrics.enable = false;
+        nixos-config.export-metrics.enable = true;
       };
     };
 }

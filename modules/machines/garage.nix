@@ -56,7 +56,7 @@ in
       config = {
         networking.hostName = inventoryHostName;
         system.stateVersion = "25.11";
-        nixos-config.export-metrics.enable = false;
+        nixos-config.export-metrics.enable = true;
 
         proxmoxLXC.mounts = [
           {
