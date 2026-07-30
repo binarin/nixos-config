@@ -123,7 +123,8 @@ in
       programs.git.includes = [
         { path = selfLib.file "b-dev-kvm-gitconfig.git-crypt"; }
       ];
-      programs.git.settings.credential.helper = "cache --timeout=86400";
+      programs.git.lfs.enable = true;
+      programs.git.settings.credential.helper = "cache --timeout 691200";
 
       services.emacs = {
         enable = true;
