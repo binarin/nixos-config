@@ -9,18 +9,6 @@ let
   selfLib = self.lib.self;
 in
 {
-  flake-file.inputs = {
-    hyprland = {
-      url = "github:hyprwm/Hyprland/v0.55.3";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.pre-commit-hooks.follows = "pre-commit-hooks";
-    };
-    hyprland-contrib = {
-      url = "github:hyprwm/contrib";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
-
   flake.nixosModules.hyprland =
     {
       pkgs,

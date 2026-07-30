@@ -66,12 +66,12 @@ in
           src = pkgs.fetchFromGitHub {
             owner = "binarin";
             repo = "weylus";
-            rev = "2b64ab7c8783271c41e53701edca4b66d4a245ce";
-            hash = "sha256-NZOzOSuZOxkjoPFSd+eyuqnqZQ70WaBZGjqI1cVFzzU=";
+            rev = "808a2a0929be73c96089d50ca0466121619f18b2";
+            hash = "sha256-2S/EvwDtrVz9nFbE8HTNkJA/S7G6T4VG5SLQJV90GAA=";
           };
           cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
             inherit src;
-            hash = "sha256-fJ1moi/lhK3RN3o/Go/ZCyieNbas2fDUcy8niJ6jUVM=";
+            hash = "sha256-aokIFGGxxihKZNO7uzTu+dCShdPb5avBKR1koguEH+o=";
           };
           # gst-plugins-base 1.26.x (nixos-26.05 pin) has a link-time caps
           # negotiation bug in glupload's DMABuf transform: when a restrictive

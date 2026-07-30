@@ -24,11 +24,6 @@ let
     inputs.emacs-overlay.overlays.default
     inputs.nix-ai-tools.overlays.shared-nixpkgs
 
-    # hyprland 0.55
-    inputs.hyprland.overlays.hyprland-packages
-    inputs.hyprland.overlays.hyprland-extras
-    inputs.hyprland-contrib.overlays.default
-
     # inputs.determinate-nix.overlays.default
     (final: prev: {
       nix = inputs.determinate-nix.packages."${prev.stdenv.hostPlatform.system}".default;
