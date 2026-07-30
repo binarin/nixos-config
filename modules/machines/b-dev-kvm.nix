@@ -44,6 +44,26 @@ in
           mode = "0400";
         };
 
+        # sops-install-secrets owns its secrets mount point by the `keys` group,
+        # falling back to `nogroup`. CentOS ships neither (Debian-based hosts
+        # like murmur do ship `nogroup`, which is why this is only needed here),
+        # so activation dies with "can't find group 'keys' nor 'nogroup'".
+        # Create it before secrets are installed. Absolute paths because the
+        # unit runs with a minimal PATH.
+        systemd.services.ensure-keys-group = {
+          wantedBy = [ "system-manager.target" ];
+          before = [ "sops-install-secrets.service" ];
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+          };
+          script = ''
+            if ! /usr/bin/getent group keys > /dev/null 2>&1; then
+              /usr/sbin/groupadd --system keys
+            fi
+          '';
+        };
+
         environment.etc."nix/nix.custom.conf" = {
           text = ''
             trusted-users = allebedev root 15008352
