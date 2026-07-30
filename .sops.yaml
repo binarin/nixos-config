@@ -332,3 +332,12 @@ creation_rules:
           - *admin_binarin
           - *admin_demandred_binarin
           - *server_b-db-k
+  - path_regex: secrets/ssh-local-config.yaml
+    key_groups:
+      - pgp:
+          - *admin_binarin_gpg
+        age:
+          - *admin_binarin
+          - *admin_demandred_binarin
+          - *server_furfur
+          - *server_murmur
