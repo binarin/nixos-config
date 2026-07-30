@@ -29,12 +29,18 @@ in
       ({ lib, ... }: {
         bentos.yum.packages = [ "python3-pip" ];
       })
-      ({ lib, ... }: {
+      ({ lib, config, ... }: {
         sops.defaultSopsFile = selfLib.file' "secrets/b-db-k/secrets.yaml";
         sops.age.keyFile = "/var/lib/sops-nix/key.txt";
 
+        # Numeric uid/gid, not owner/group names: allebedev is an LDAP/SSSD
+        # user and is absent from /etc/passwd. sops-install-secrets is a Go
+        # binary whose user.Lookup parses /etc/passwd directly and never
+        # consults NSS, so `owner = "allebedev"` fails with "unknown user".
+        # With Owner/Group left null it uses UID/GID verbatim.
         sops.secrets.gitconfig-secret = {
-          owner = "allebedev";
+          uid = config.users.users.allebedev.uid;
+          gid = config.ids.gids.users;
           mode = "0400";
         };
 
