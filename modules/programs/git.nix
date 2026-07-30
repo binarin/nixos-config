@@ -60,6 +60,9 @@ in
               file-style = "bold yellow ul";
               file-decoration-style = "none";
             };
+            "diff \"perl\"" = {
+              xfuncname = "^((has|sub).*)$";
+            };
             init = {
               defaultBranch = "master";
             };
