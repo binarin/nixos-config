@@ -57,6 +57,45 @@ in
         "${self}/my-machines/furfur/hardware-configuration.nix"
       ];
 
+      programs.weylus = {
+        enable = true;
+        openFirewall = true;
+        users = [ "binarin" ];
+        package = pkgs.bleeding.weylus.overrideAttrs (old: rec {
+          version = "unstable-2026-07-30";
+          src = pkgs.fetchFromGitHub {
+            owner = "binarin";
+            repo = "weylus";
+            rev = "2b64ab7c8783271c41e53701edca4b66d4a245ce";
+            hash = "sha256-NZOzOSuZOxkjoPFSd+eyuqnqZQ70WaBZGjqI1cVFzzU=";
+          };
+          cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+            inherit src;
+            hash = "sha256-fJ1moi/lhK3RN3o/Go/ZCyieNbas2fDUcy8niJ6jUVM=";
+          };
+          # gst-plugins-base 1.26.x (nixos-26.05 pin) has a link-time caps
+          # negotiation bug in glupload's DMABuf transform: when a restrictive
+          # DMABuf capsfilter feeds glupload with no GL context yet,
+          # _dma_buf_upload_transform_caps returns empty caps, so
+          # glcolorconvert ! gldownload fails to link -> black screen on niri.
+          # Fixed upstream in gst-plugins-base commit 8112ede498 ("gl: upload:
+          # Fix linking glupload with restrictive caps filter", 1.28.x).
+          # Base weylus on nixpkgs-unstable (pkgs.bleeding) so it links gst
+          # 1.28.4, and point GST_PLUGIN_PATH at the matching plugins.
+          postFixup =
+            let
+              gstPlugins = with pkgs.bleeding.gst_all_1; [ gst-plugins-base gst-plugins-bad ];
+              GST_PLUGIN_PATH = pkgs.lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" (
+                gstPlugins ++ [ pkgs.pipewire ]
+              );
+            in
+            ''
+              wrapProgram $out/bin/weylus \
+                --prefix GST_PLUGIN_PATH : ${GST_PLUGIN_PATH}
+            '';
+        });
+      };
+
       nixos-config.personal-nix-cache.useHomeNet = false;
       users.users.binarin.extraGroups = [ "i2c" ];
       hardware.i2c.enable = true;
