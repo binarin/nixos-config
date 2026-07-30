@@ -42,6 +42,7 @@ let
         bufler
         jinx
 
+        wgrep
         anki-editor
         avy
         bazel
