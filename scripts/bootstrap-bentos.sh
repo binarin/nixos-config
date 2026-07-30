@@ -44,6 +44,11 @@ fi
 
 FLAKE_REF="$REPO_ROOT#systemConfigs.b-db-k"
 
+echo "==> Injecting shared sops age key on $HOST..."
+sops --decrypt --input-type binary --output-type binary "$REPO_ROOT/secrets/b-db-k/age-key" \
+  | ssh "$SSH_USER@$HOST" \
+      "sudo install -D -m 0400 -o root -g root /dev/stdin /var/lib/sops-nix/key.txt"
+
 if [[ "$REMOTE_BUILD" == "true" ]]; then
   echo "==> Building system-manager config on $HOST..."
   STORE_PATH=$(ssh "$SSH_USER@$HOST" "source $NIX_DAEMON_SH && nix build --no-link --print-out-paths '$FLAKE_REF'")
