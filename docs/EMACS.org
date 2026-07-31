@@ -1,0 +1,38 @@
+* Testing
+
+There is a harness that runs emacs tests in a clean/isolated
+environment. That's the first thing to try if there were dependency
+changes in ~.nix~-files, or if there are any test failures from
+running tests outside of harness.
+
+#+begin_src sh
+  ./scripts/test-emacs.sh
+#+end_src
+
+* Reference source code
+
+There are a bunch of source-code repos already checked out for
+reference. What exact ref is checked out needs to be controlled.
+
+** Emacs
+
+In ~/personal-workspace/emacs
+
+** Emacs niri awareness
+
+Custom package to give emacs more insigth into niri state - the
+primary function is the ability to determine the factual emacs frame
+visibility.
+
+Checked out in ~/personal-workspace/emacs-niri-awareness.
+
+Can be freely edited/pushed. When changes are made in that repo, it
+should be pushed upstream, and the the flake here updated/re-locked to
+see the changes.
+
+* Common gotchas
+
+** Docstrings
+
+- Docstrings are ~"~ deliniated, so putting a literal ~"~ inside a
+  docstring requires escaping.

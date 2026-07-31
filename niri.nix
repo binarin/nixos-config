@@ -1,4 +1,0 @@
-{
-  rev = "";
-  cargo = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-}

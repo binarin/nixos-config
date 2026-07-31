@@ -2,6 +2,4 @@
   "tui.editor.cursorUp": ["up", "ctrl+p"],
   "tui.editor.cursorDown": ["down", "ctrl+n"],
   "app.model.cycleForward": [],
-  "app.session.toggleNamedFilter": [],
-  "app.clear": []
 }

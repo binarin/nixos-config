@@ -1,7 +1,23 @@
-This is nix flake - if adding/removing new files, make nix aware of
-their existence by git-staging (not necessary to keep the staged
-content up to date, just the fact that file is known/unknown to git).
+General
+=======
 
-See `.ai/BUBUNTU.md` for system-manager (bubuntu) architecture decisions and patterns.
-See `.ai/EMACS.md` for emacs config testing, autoloads, and byte-compilation notes.
-See `.ai/skills/clan-proxmox-ct/SKILL.md` for creating new Proxmox LXC CT machines.
+- Never search for source code in /nix/store/ without permission. Also,
+  a lot of nix-related source-code is checked out in ../nix/ subdirs
+  (nixpkgs, home-manager, system-manager, clan, ...)
+
+- This is nix flake - if adding/removing new files, make nix aware of
+  their existence by `git add --intent-to-add`/`git rm`. After that
+  everything is auto-wired.
+
+- This flake follows dendritic pattern, where most of .nix files are a
+  flake-parts modules, exporting other types of modules, such as
+  nixos/home-manager/system-manager modules.
+
+- This flakes uses ~flake-file~, so changing `flake.nix` directly is
+  not allowed. To change dependecies, the underlying .nix-files should
+  be modified, and `nix run .#write-flake` should be executed.
+
+Emacs
+=====
+
+If you need to make emacs-related changes, read ./docs/EMACS.org
