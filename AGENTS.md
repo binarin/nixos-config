@@ -21,3 +21,16 @@ Emacs
 =====
 
 If you need to make emacs-related changes, read ./docs/EMACS.org
+
+Allowed modifications
+=====================
+
+~AGENTS.md~ and files in ./docs are off limits, only humans can change
+them.
+
+Planning and progress tracking
+==============================
+
+Plan/progress .org documents live in todo/ directory. These are live
+dynamic documents, so all planning/debugging/discovery/progress
+information should be added/updated reasonably often.
