@@ -22,16 +22,58 @@ In ~/personal-workspace/emacs
 
 Custom package to give emacs more insigth into niri state - the
 primary function is the ability to determine the factual emacs frame
-visibility.
+visibility. Note that this also depends on a custom niri patch that's
+applied within this configuration to work properly.
 
 Checked out in ~/personal-workspace/emacs-niri-awareness.
 
-Can be freely edited/pushed. When changes are made in that repo, it
-should be pushed upstream, and the the flake here updated/re-locked to
-see the changes.
+Can be freely edited/pushed.
+
+When changes are made in that repo, it MUST be pushed upstream, and
+the the flake here updated/re-locked to see the changes:
+
+#+begin_src sh
+  nix flake update emacs-niri-awareness
+#+end_src
+
+Then the output of the following command MUST have the expected git commit id:
+#+begin_src sh
+  nix flake metadata --json | jq '.locks.nodes.["emacs-niri-awareness"].locked.rev'
+#+end_src
+
+* Live debugging
+
+When explicitly asked to, it's allowed to connect to a running emacs
+instance using ~emacsclient --eval~.
+
+The process must look the same every time.
+
+Create an emacs lisp file somewhere in temp directory, e.g. ~/tmp/m8f.el~:
+
+#+BEGIN_SRC emacs-lisp
+  ;; -*- lexical-binding: t; -*-
+  (condition-case e
+      (progn
+        ;; code goes here
+        )
+    (error
+     (with-temp-file "/tmp/m8f.out" (insert (format "ERR %S" e)))))
+#+END_SRC
+
+Note that ~lexical-binding~ cookie should be always there to reduce
+noice, and the out file name for error debugging is matching the
+~.el~-file name.
+
+Then it can be invoked like this:
+#+begin_src sh
+emacsclient --eval '(load-file "/tmp/m8f.el")'
+#+end_src
+
+~End of file during parsing~ error during such ~emacsclient~ call have
+only one precise meaning - delimiters (almost 100% parens) are
+misbalanced in there, this should be fixed outside of emacs first.
 
 * Common gotchas
-
 ** Docstrings
 
 - Docstrings are ~"~ deliniated, so putting a literal ~"~ inside a
