@@ -10,3 +10,7 @@ for closing windows) incorrectly triggers emacs-lock-mode protection
 with only one remaining emacs frame on active niri workspaces. In that
 case emacs-niri-awareness extended behaviour of `frame-visible-p` is
 playing a bad joke with us.
+
+* Conclusion
+
+~emacs-niri-awareness~ pinned to stale commit, the fix itself was sound.

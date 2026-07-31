@@ -12,7 +12,12 @@ running tests outside of harness.
 * Reference source code
 
 There are a bunch of source-code repos already checked out for
-reference. What exact ref is checked out needs to be controlled.
+reference - this is more useful for general discovery, as slightly
+different git revision can be checked out.
+
+During live debugging the real source code should be used instead. For
+example, emacs lisp code can be discovered with the help of
+
 
 ** Emacs
 
@@ -29,8 +34,9 @@ Checked out in ~/personal-workspace/emacs-niri-awareness.
 
 Can be freely edited/pushed.
 
-When changes are made in that repo, it MUST be pushed upstream, and
-the the flake here updated/re-locked to see the changes:
+When changes are made in that repo, it MUST be pushed upstream. The
+flake input is configured to track ~master~ of that repo, so the only
+way to pull the new changes in is pushing and re-locking onto the new revision with:
 
 #+begin_src sh
   nix flake update emacs-niri-awareness
@@ -46,7 +52,10 @@ Then the output of the following command MUST have the expected git commit id:
 When explicitly asked to, it's allowed to connect to a running emacs
 instance using ~emacsclient --eval~.
 
-The process must look the same every time.
+Single function calls with simple (not having potential to cause
+quoting/escaping issues) arguments can go directly into
+~--eval~. Everything else should go through the following process with
+temporary .el/.out files.
 
 Create an emacs lisp file somewhere in temp directory, e.g. ~/tmp/m8f.el~:
 
