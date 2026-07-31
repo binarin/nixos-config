@@ -22,6 +22,12 @@
 
 (require 'b-wprintidle)
 (require 'l-windows)
+(require 'b-startup)
+
+;; Defined in niri-frame-visible.el (emacs-niri-awareness), which is
+;; not on the test load-path.  Provide a default so consumer code that
+;; binds it can be exercised.
+(defvar niri-frame-visible-inhibit nil)
 
 ;; Shared harness for the window-cycle tests.  Windows and frames are
 ;; plain symbols; the window primitives are stubbed to read from an
@@ -155,6 +161,88 @@ and no FocusWindow is sent."
         (b/other-window 2)))
     (should (null selected))
     (should (null focus-calls))))
+
+(defmacro b/with-fake-frames (spec &rest body)
+  "Run BODY with frame primitives stubbed from SPEC.
+SPEC is (:frames FRAMES :selected SF :closing CLOSE
+         :visible-p FN :parent PARENT-ALIST :delete-before DB-ALIST).
+:closing is the frame being closed.  :visible-p defaults to all-visible
+and is what `frame-visible-p' (advised or not) will report.
+:parent / :delete-before are alists frame->value for frame-parent /
+the delete-before parameter."
+  (declare (indent 1))
+  `(let* ((spec (list ,@spec))
+          (frames (plist-get spec :frames))
+          (sf (plist-get spec :selected-frame))
+          (visible-p (or (plist-get spec :visible-p) (lambda (_f) t)))
+          (parents (plist-get spec :parents))
+          (delete-before (plist-get spec :delete-before)))
+     (cl-letf (((symbol-function 'frame-list) (lambda () frames))
+               ((symbol-function 'selected-frame) (lambda () sf))
+               ((symbol-function 'frame-visible-p) visible-p)
+               ((symbol-function 'frame-parent)
+                (lambda (f) (cdr (assq f parents))))
+               ((symbol-function 'frame-parameter)
+                (lambda (f prop)
+                  (when (and (eq prop 'delete-before)
+                             (assq f delete-before))
+                    (cdr (assq f delete-before))))))
+       ,@body)))
+
+(ert-deftest b/handle-delete-frame-deletes-when-siblings-on-other-workspaces ()
+  "Closing the last frame on the active niri workspace must
+`delete-frame' — not escalate to `save-buffers-kill-emacs' — when
+other frames exist on inactive workspaces.
+
+Regression: `track-niri-frame-visibility-mode' advises
+`frame-visible-p' to return nil for frames on inactive workspaces,
+which made `handle-delete-frame' think no other frame existed and
+route the close to `save-buffers-kill-emacs', where `emacs-lock'
+then vetoed the quit — stranding the frame."
+  ;; Model the two-layer structure: an underlying `frame-visible-p'
+  ;; that truthfully reports every frame visible, plus a fake niri
+  ;; override layered on top that hides frames not on the active
+  ;; workspace.  `b/handle-delete-frame-1' must (by binding
+  ;; `niri-frame-visible-inhibit') bypass that override and see the
+  ;; siblings, routing to `delete-frame'.
+  (let (route
+        (override (lambda (orig f)
+                    (if niri-frame-visible-inhibit
+                        (funcall orig f)
+                      (eq f 'ws-a)))))
+    (cl-letf* (((symbol-function 'frame-list) (lambda () '(ws-a ws-b ws-c)))
+              ((symbol-function 'selected-frame) (lambda () 'ws-a))
+              ((symbol-function 'frame-parent) (lambda (_f) nil))
+              ((symbol-function 'frame-parameter) (lambda (_f _prop) nil))
+              ;; Underlying `frame-visible-p': all frames visible.
+              ((symbol-function 'frame-visible-p) (lambda (_f) t))
+              ((symbol-function 'delete-frame)
+               (lambda (&rest _) (setq route 'delete-frame)))
+              ((symbol-function 'save-buffers-kill-emacs)
+               (lambda (&optional _arg)
+                 (setq route 'save-buffers-kill-emacs))))
+      ;; niri override: only the active-workspace frame is visible.
+      (advice-add 'frame-visible-p :around override)
+      (unwind-protect
+          (b/handle-delete-frame-1 'ws-a)
+        (advice-remove 'frame-visible-p override)))
+    (should (eq route 'delete-frame))))
+
+(ert-deftest b/handle-delete-frame-quits-when-truly-last-frame ()
+  "Closing the globally-last frame still routes to
+`save-buffers-kill-emacs' (pgtk Emacs cannot run frameless, so the
+last close must quit)."
+  (let (route)
+    (b/with-fake-frames (:frames '(sole)
+                         :selected-frame 'sole
+                         :visible-p (lambda (_f) t))
+      (cl-letf (((symbol-function 'delete-frame)
+                 (lambda (&rest _) (setq route 'delete-frame)))
+                ((symbol-function 'save-buffers-kill-emacs)
+                 (lambda (&optional _arg)
+                   (setq route 'save-buffers-kill-emacs))))
+        (b/handle-delete-frame-1 'sole)))
+    (should (eq route 'save-buffers-kill-emacs))))
 
 (ert-deftest b-org-test-wprintidle-socket-path-xdg ()
   "Socket path uses $XDG_RUNTIME_DIR when set."

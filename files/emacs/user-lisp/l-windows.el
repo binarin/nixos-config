@@ -5,9 +5,72 @@
 (declare-function niri-rpc-connected-p "niri-rpc")
 (declare-function niri-frame-niri-id "niri-frame")
 (declare-function niri-rpc-focus-window "niri-rpc")
+(defvar niri-frame-visible-inhibit) ; defined in niri-frame-visible.el
 
 (defun b/dedicated-frame-p (frame)
   (frame-parameter frame 'b/dedicated-frame))
+
+(defun b/another-toplevel-frame-p (frame)
+  "Return non-nil if FRAME has a usable sibling it can fall back to.
+
+Mirrors the other-frame test inside `handle-delete-frame' (a
+visible, non-child frame with no `delete-before' parameter, other
+than FRAME), but evaluates visibility with the niri-awareness
+override on `frame-visible-p' disabled.
+
+`track-niri-frame-visibility-mode' advises `frame-visible-p' to
+report frames on inactive niri workspaces as invisible.  Left in
+place, that advice would make `handle-delete-frame' believe no
+other frame exists when the only siblings live on other
+workspaces — so closing the last frame on the active workspace
+would be escalated to `save-buffers-kill-emacs' (and then vetoed
+by `emacs-lock-mode', stranding the frame).  Binding
+`niri-frame-visible-inhibit' for this scan restores the intended
+meaning: any live sibling, on any workspace, counts."
+  (let ((niri-frame-visible-inhibit t))
+    (catch 'other-frame
+      (dolist (other (frame-list))
+        (when (and (not (eq other frame))
+                   (frame-visible-p other)
+                   (not (frame-parent other))
+                   (not (frame-parameter other 'delete-before)))
+          (throw 'other-frame t))))))
+
+(defun b/handle-delete-frame-1 (frame)
+  "Decide what a WM close of FRAME should do.
+If FRAME has a sibling it can fall back to (per
+`b/another-toplevel-frame-p'), delete just FRAME; otherwise signal
+Emacs to quit via `save-buffers-kill-emacs'.
+
+This is the routing core factored out of the
+`b/handle-delete-frame-around' advice so it can be tested without
+constructing a real input event."
+  (if (b/another-toplevel-frame-p frame)
+      (delete-frame frame t)
+    (save-buffers-kill-emacs)))
+
+;;;###autoload
+(defun b/handle-delete-frame-around (_orig event &rest _args)
+  "Around advice for `handle-delete-frame'.
+
+ORIG is the original `handle-delete-frame'; EVENT is the
+`delete-frame' event from the window system.  Routes the close
+through `b/handle-delete-frame-1', which uses niri-unaware
+visibility so siblings on other workspaces keep a close from
+being escalated to a full Emacs quit."
+  (b/handle-delete-frame-1 (posn-window (event-start event))))
+
+;;;###autoload
+(defun b/maybe-install-handle-delete-frame-advice ()
+  "Install the niri-aware `handle-delete-frame' advice, once.
+Idempotent; safe to call from an idle timer after the niri frame
+visibility mode may have been enabled."
+  (unless (advice-member-p #'b/handle-delete-frame-around
+                           'handle-delete-frame)
+    (advice-add 'handle-delete-frame :around
+                #'b/handle-delete-frame-around)))
+
+(b/maybe-install-handle-delete-frame-advice)
 
 ;;;###autoload
 (defun b/display-buffer-use-dedicated-frame (buffer alist)
