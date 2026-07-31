@@ -43,7 +43,8 @@
 ;; (keymap-set vertico-directory-map "DEL" #'vertico-directory-delete-char)
 
 (use-package orderless-kwd
-  :ensure nil)
+  :ensure nil
+  :commands (orderless-kwd-dispatch))
 
 (use-package orderless
   :ensure nil
