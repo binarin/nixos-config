@@ -45,7 +45,9 @@
 (use-package orderless
   :ensure t
   :custom
-  (completion-styles '(orderless basic)))
+  (completion-styles '(orderless basic))
+  :config
+  (add-to-list 'orderless-style-dispatchers #'orderless-kwd-dispatch))
 
 (use-package corfu-history :ensure nil :after corfu :commands (corfu-history-mode))
 (use-package corfu-popupinfo :ensure nil :after corfu :commands (corfu-popupinfo-mode))
