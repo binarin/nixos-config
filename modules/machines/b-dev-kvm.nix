@@ -179,7 +179,36 @@ in
       xdg.enable = false;
       programs.zsh.dotDir = config.home.homeDirectory;
 
-      programs.zsh.envExtra = ''
+      # CentOS ships almost no terminfo, so the Puppet-managed
+      # /etc/profile.d/env_fallbacks.sh rewrites TERM=xterm on login when
+      # infocmp can't resolve the current terminal. ~/.zshenv (envExtra)
+      # runs before that check, so we point TERMINFO_DIRS at a nix-store
+      # database covering every terminal we might SSH in from. The package
+      # list mirrors nixpkgs' environment.enableAllTerminfo.
+      programs.zsh.envExtra = let
+        terminfoDirs = lib.concatStringsSep ":" (
+          map (p: "${p.terminfo}/share/terminfo") (
+            with pkgs;
+            [
+              alacritty
+              contour
+              foot
+              ghostty
+              kitty
+              mtm
+              rio
+              rxvt-unicode-unwrapped
+              rxvt-unicode-unwrapped-emoji
+              st
+              tmux
+              wezterm
+              yaft
+            ]
+          )
+        );
+      in ''
+        export TERMINFO_DIRS=''${TERMINFO_DIRS:+$TERMINFO_DIRS:}${terminfoDirs}
+
         if [[ -n $SSH_AUTH_SOCK && -e $SSH_AUTH_SOCK && $SSH_AUTH_SOCK != *ssh-agent-stable.sock ]]; then
           ln -sf "$SSH_AUTH_SOCK" "$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
         fi
