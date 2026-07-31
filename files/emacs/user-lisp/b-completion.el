@@ -42,8 +42,11 @@
 ;; XXX - not working, picking DEL from global map
 ;; (keymap-set vertico-directory-map "DEL" #'vertico-directory-delete-char)
 
+(use-package orderless-kwd
+  :ensure nil)
+
 (use-package orderless
-  :ensure t
+  :ensure nil
   :custom
   (completion-styles '(orderless basic))
   :config
@@ -53,7 +56,7 @@
 (use-package corfu-popupinfo :ensure nil :after corfu :commands (corfu-popupinfo-mode))
 
 (use-package corfu
-  :ensure t
+  :ensure nil
   :commands (global-corfu-mode)
   :init
   (global-corfu-mode)
