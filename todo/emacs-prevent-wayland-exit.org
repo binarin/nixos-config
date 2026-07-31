@@ -1,0 +1,12 @@
+* Problem
+
+pgtk emacs has problems being run as a daemon do to idiosyncrasies van
+wayland/pgtk implementation. As an alternative, `emacs-lock-mode` is
+used on a bunch of important buffers, making accidental exit impossible.
+
+There were a few attempts already to do this (see git history), but
+the remaining quirk is still there: pressing 'S-q' (niri keybinding
+for closing windows) incorrectly triggers emacs-lock-mode protection
+with only one remaining emacs frame on active niri workspaces. In that
+case emacs-niri-awareness extended behaviour of `frame-visible-p` is
+playing a bad joke with us.
