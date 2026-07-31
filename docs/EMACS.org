@@ -16,8 +16,12 @@ reference - this is more useful for general discovery, as slightly
 different git revision can be checked out.
 
 During live debugging the real source code should be used instead. For
-example, emacs lisp code can be discovered with the help of
-
+example, emacs lisp code can be discovered with the help of calls to
+~symbol-file~/~load-file-name~. Emacs C source code is also available
+at a path pointed by ~find-function-C-source-directory~ variable. THIS
+IS EXTREMELY IMPORTANT, especially if deductions made from checked out
+source code do not match live observations. (for my own repos/forks
+~flake.lock~ pinning should be separately controlled).
 
 ** Emacs
 
@@ -31,6 +35,10 @@ visibility. Note that this also depends on a custom niri patch that's
 applied within this configuration to work properly.
 
 Checked out in ~/personal-workspace/emacs-niri-awareness.
+
+As the remote repo is fully controlled by me, it's not pinned to a
+commit in .nix files - only in ~flake.lock~. And whatever ~HEAD~ of
+the remote repo is, it's good for me personally.
 
 Can be freely edited/pushed.
 
@@ -46,6 +54,14 @@ Then the output of the following command MUST have the expected git commit id:
 #+begin_src sh
   nix flake metadata --json | jq '.locks.nodes.["emacs-niri-awareness"].locked.rev'
 #+end_src
+
+** tramp-rpc
+
+Checked out in ~/personal-workspace/emacs-tramp-rpc
+
+Right now it's my fork of upstream package with not all patches making
+it through code-review yet. So the same story qua ~HEAD~ / locking as
+for emacs niri awareness really.
 
 * Live debugging
 
