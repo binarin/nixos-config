@@ -52,6 +52,10 @@ run_emacs() {
 
 failed=0
 
+run_emacs \
+    --batch \
+    --eval '(prepare-user-lisp)'
+
 for f in "$EMACS_DIR"/**/*.el; do
     f=${f#$REPO_DIR/}
     early_init_array=()
@@ -62,6 +66,7 @@ for f in "$EMACS_DIR"/**/*.el; do
     run_emacs \
          --batch \
 	 "${early_init_array[@]}" \
+         --eval '(prepare-user-lisp t)' \
          --eval '(setf byte-compile-error-on-warn t)' \
          --eval "(unless (byte-compile-file \"$f\") (message \"Failed to compile: %s\" \"$f\") (kill-emacs 1))" \
         || { failed=1; echo "FAILED: $f"; }

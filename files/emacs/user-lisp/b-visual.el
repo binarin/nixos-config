@@ -3,6 +3,10 @@
   :config
   (setf treesit-font-lock-level 4))
 
+(use-package tool-bar
+  :ensure nil)
+
+
 (context-menu-mode t)
 (menu-bar-mode -1)
 (tool-bar-mode -1)

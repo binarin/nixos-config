@@ -50,7 +50,8 @@
 (setopt dired-isearch-filenames 'dwim
 	dired-dwim-target 'dired-dwim-target-recent
 	wdired-allow-to-change-permissions t
-	dired-hide-details-hide-symlink-targets nil)
+	dired-hide-details-hide-symlink-targets nil
+        dired-hide-details-hide-absolute-location t)
 
 (autoload 'dired-omit-mode "dired-x")
 (defun b/dired-mode-hook ()

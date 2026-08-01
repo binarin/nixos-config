@@ -41,6 +41,7 @@ let
         (bleedingEmacsPackages.ghostel or ghostel)
         bufler
         jinx
+        ace-window
 
         wgrep
         anki-editor

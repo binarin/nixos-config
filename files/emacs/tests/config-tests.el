@@ -13,6 +13,7 @@
 		      ("early-init.el" t)
 		      ("tests" t)
 		      ("user-lisp" t)
+                      ("eln" t)
 		      ("." t)
 		      (".."t))
 	     do (push file-name unnecessary-files))
@@ -67,100 +68,6 @@ FRAMES is the `frame-list' order.  :visible-p defaults to all-visible.
                                   (cl-subseq ws 0 (cl-position w ws)))
                       ws)))))
        ,@body)))
-
-(ert-deftest b/window-cycle-is-stable-regardless-of-selection ()
-  "b/window-cycle returns a fixed ring in frame-list / natural window
-order, independent of which window is selected."
-  ;; Same frames/windows, different selected-window: identical cycle.
-  (b/with-fake-windows (:frames '(f1 f2)
-                        :windows '((f1 a b) (f2 c d))
-                        :selected-frame 'f1 :selected-window 'a)
-    (should (equal (b/window-cycle) '(a b c d))))
-  (b/with-fake-windows (:frames '(f1 f2)
-                        :windows '((f1 a b) (f2 c d))
-                        :selected-frame 'f1 :selected-window 'b)
-    (should (equal (b/window-cycle) '(a b c d)))))
-
-(ert-deftest b/window-cycle-excludes-invisible-frames ()
-  "Frames failing frame-visible-p are excluded from the cycle,
-but the selected frame is always kept."
-  (b/with-fake-windows (:frames '(f1 f2 f3)
-                        :windows '((f1 a) (f2 b) (f3 c))
-                        :selected-frame 'f1 :selected-window 'a
-                        :visible-p (lambda (f) (not (eq f 'f2))))
-    ;; f2 hidden -> dropped; f1 (selected) and f3 remain.
-    (should (equal (b/window-cycle) '(a c)))))
-
-(ert-deftest b/window-cycle-drops-no-other-windows ()
-  "Windows for which window-no-other-p is non-nil are dropped."
-  (b/with-fake-windows (:frames '(f1 f2)
-                        :windows '((f1 a) (f2 b c))
-                        :selected-frame 'f1 :selected-window 'a
-                        :no-other '(b))
-    ;; b is no-other -> dropped; a and c remain.
-    (should (equal (b/window-cycle) '(a c)))))
-
-(ert-deftest b/other-window-selects-crossing-frame-window ()
-  "b/other-window 1 selects the next window in the cycle, crossing to
-another visible frame, and does not FocusWindow when disconnected."
-  (let (selected focus-calls)
-    (b/with-fake-windows (:frames '(f1 f2)
-                          :windows '((f1 a) (f2 b))
-                          :selected-frame 'f1 :selected-window 'a)
-      (cl-letf (((symbol-function 'select-window)
-                 (lambda (w &rest _) (setq selected w)))
-                ((symbol-function 'niri-rpc-connected-p) (lambda () nil))
-                ((symbol-function 'niri-rpc-focus-window)
-                 (lambda (id) (push id focus-calls))))
-        (b/other-window 1)))
-    (should (eq selected 'b))
-    (should (null focus-calls))))
-
-(ert-deftest b/other-window-crosses-from-multi-window-frame ()
-  "From the last window of a multi-window frame, b/other-window 1
-advances to the next frame instead of looping back inside the frame.
-Regression: a rotated cycle trapped navigation inside the frame."
-  (let (selected)
-    (b/with-fake-windows (:frames '(f1 f2)
-                          :windows '((f1 a b) (f2 c))
-                          ;; selected is the SECOND window of f1.
-                          :selected-frame 'f1 :selected-window 'b)
-      (cl-letf (((symbol-function 'select-window)
-                 (lambda (w &rest _) (setq selected w)))
-                ((symbol-function 'niri-rpc-connected-p) (lambda () nil)))
-        (b/other-window 1)))
-    ;; cycle (a b c), start b (idx 1), +1 -> c on the other frame.
-    (should (eq selected 'c))))
-
-(ert-deftest b/other-window-negative-count-wraps-backward ()
-  "b/other-window -1 moves backward through the cycle (mod length)."
-  (let (selected)
-    (b/with-fake-windows (:frames '(f1 f2)
-                          :windows '((f1 a) (f2 b))
-                          :selected-frame 'f1 :selected-window 'a)
-      (cl-letf (((symbol-function 'select-window)
-                 (lambda (w &rest _) (setq selected w)))
-                ((symbol-function 'niri-rpc-connected-p) (lambda () nil)))
-        (b/other-window -1)))
-    ;; cycle (a b), (mod -1 2) = 1 -> b.
-    (should (eq selected 'b))))
-
-(ert-deftest b/other-window-no-select-when-target-is-start ()
-  "When COUNT wraps back to the starting window, nothing is selected
-and no FocusWindow is sent."
-  (let (selected focus-calls)
-    (b/with-fake-windows (:frames '(f1 f2)
-                          :windows '((f1 a) (f2 b))
-                          :selected-frame 'f1 :selected-window 'a)
-      (cl-letf (((symbol-function 'select-window)
-                 (lambda (w &rest _) (setq selected w)))
-                ((symbol-function 'niri-rpc-connected-p) (lambda () t))
-                ((symbol-function 'niri-rpc-focus-window)
-                 (lambda (id) (push id focus-calls))))
-        ;; cycle length 2, count 2 -> (mod 2 2) = 0 -> start (a).
-        (b/other-window 2)))
-    (should (null selected))
-    (should (null focus-calls))))
 
 (defmacro b/with-fake-frames (spec &rest body)
   "Run BODY with frame primitives stubbed from SPEC.

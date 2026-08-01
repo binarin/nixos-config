@@ -17,7 +17,11 @@
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
 
-(global-set-key (kbd "C-x C-b") 'ibuffer)
+(use-package ibuffer
+  :ensure nil
+  :bind (("C-x C-b" . ibuffer))
+  :config
+  (setq ibuffer-human-readable-size t))
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -137,11 +141,12 @@
   (setq repeat-exit-timeout 5)
   (repeat-mode 1))
 
-(bind-key [remap other-window] #'b/other-window)
-
 (use-package avy
   :ensure nil
-  :bind (("<f23>" . avy-goto-char-timer)))
+  :bind (("<f23>" . avy-goto-char-timer))
+  :config
+  (advice-add 'avy-window-list :around #'b/avy-window-list-visible-frame-advice)
+  (setf avy-all-windows 'all-visible-frames))
 
 (keymap-global-set "C-g" #'prot/keyboard-quit-dwim)
 
@@ -161,6 +166,10 @@
     (run-with-idle-timer
      0 nil
      #'track-niri-frame-visibility-mode 1)))
+
+(setq delete-pair-push-mark t) ;; after delete-pair, insides are selectable with C-x C-x
+
+(setq kill-region-dwim 'emacs-word) ;; kills word backward with no region, instead of killing invisible region
 
 (bind-key "<Back>" 'previous-error)
 (bind-key "<Forward>" 'next-error)
