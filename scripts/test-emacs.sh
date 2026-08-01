@@ -52,6 +52,7 @@ run_emacs() {
 
 failed=0
 
+# prepare autoloads, so that (prepare-user-lisp t) below can activate them
 run_emacs \
     --batch \
     --eval '(prepare-user-lisp)'
