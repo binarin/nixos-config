@@ -94,9 +94,21 @@
   :init
   (marginalia-mode t))
 
+(defun b/switch-to-buffer-dedicated-frame (buffer-or-name)
+  (interactive
+   (list (read-buffer-to-switch "Switch to buffer in dedicated frame: ")))
+  (let ((dedicated-frame (cl-remove-if-not #'b/dedicated-frame-p (frame-list))))
+    (if dedicated-frame
+        (with-selected-frame (car dedicated-frame)
+          (switch-to-buffer buffer-or-name))
+      (switch-to-buffer-other-frame buffer-or-name))))
+
 (use-package embark
   :ensure t
-  :bind (("C-;" . embark-act))
+  :bind (("C-;" . embark-act)
+         :map embark-buffer-map
+         ("F" . switch-to-buffer-other-frame)
+         ("f" . b/switch-to-buffer-dedicated-frame))
   :commands (embark-context-menu)
   :init
   (add-hook 'context-menu-functions #'embark-context-menu 100)
