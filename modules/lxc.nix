@@ -130,6 +130,16 @@ in
         # Automatically add /persist and /local mounts for impermanence
         proxmoxLXC.mounts = lib.mkIf config.impermanence.enable [
           {
+            # /sbin must outlive the pre-start `zfs rollback -r ...@blank` done by
+            # files/pve-impermanence-hook.pl. Otherwise every cold start restores the
+            # /sbin/init that the provisioning tarball shipped, pinning the container
+            # to its original generation forever - and it stops booting altogether
+            # once a GC removes that closure.
+            mountPoint = "/sbin";
+            size = "1G";
+            backup = true;
+          }
+          {
             mountPoint = "/nix";
             size = "32G";
             backup = true;
