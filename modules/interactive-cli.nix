@@ -124,6 +124,10 @@ in
 
           programs.gh.enable = true;
 
+          impermanence.persist-directories = [
+            ".config/gcx"
+          ];
+
           home.packages = with pkgs; [
             age
             ansible
