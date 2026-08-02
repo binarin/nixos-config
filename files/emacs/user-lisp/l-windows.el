@@ -7,6 +7,7 @@
 (declare-function niri-rpc-focus-window "niri-rpc")
 (defvar niri-frame-visible-inhibit) ; defined in niri-frame-visible.el
 
+;;;###autoload
 (defun b/dedicated-frame-p (frame)
   (frame-parameter frame 'b/dedicated-frame))
 
