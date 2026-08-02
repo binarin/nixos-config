@@ -21,7 +21,14 @@
             port = 9100;
             extraFlags = [
               "--collector.filesystem.fs-types-exclude='^(tmpfs|proc|sysfs|ramfs)'"
-            ];
+            ]
+            # In a CT /sys/class/hwmon belongs to the host, so every guest reports the
+            # same sensors as if they were its own. On valak that also means each guest
+            # hammers the host's Aquacomputer OCTO, which needs ~7s per attribute read
+            # while holding the driver mutex, wedging scrapes in uninterruptible sleep
+            # until they hit --web.max-requests. Only furfur and qdevice are real
+            # hardware, and both keep the collector.
+            ++ lib.optional config.boot.isContainer "--no-collector.hwmon";
             # enabledCollectors = [
             #   "logind"
             #   "systemd"
