@@ -4,9 +4,13 @@
     { lib, ... }:
     let
       # --- identity helpers (instance-namespaced so multiple instances co-exist) ---
-      identOf = instanceName: machine: idx: "${instanceName}-${machine}-${toString idx}";
+      identOf =
+        instanceName: machine: idx:
+        "${instanceName}-${machine}-${toString idx}";
       displayNameOf = machine: idx: if idx == 1 then machine else "${machine}-${toString idx}";
-      genNameOf = instanceName: machine: idx: "forgejo-runner-${identOf instanceName machine idx}";
+      genNameOf =
+        instanceName: machine: idx:
+        "forgejo-runner-${identOf instanceName machine idx}";
       registerUnitOf = ident: "forgejo-register-${ident}";
       daemonUnitOf = ident: "forgejo-runner-${ident}";
 
@@ -25,9 +29,9 @@
       runnersForInstance =
         instanceName: roles:
         lib.concatLists (
-          lib.mapAttrsToList (
-            machine: m: runnersForMachine instanceName machine m.settings
-          ) (roles.runner.machines or { })
+          lib.mapAttrsToList (machine: m: runnersForMachine instanceName machine m.settings) (
+            roles.runner.machines or { }
+          )
         );
     in
     {
@@ -172,6 +176,8 @@
               in
               {
                 virtualisation.podman.enable = true;
+
+                nix.settings.trusted-users = [ instanceName ];
 
                 users.groups.${instanceName} = { };
                 users.users.${instanceName} = {
