@@ -166,6 +166,15 @@ Measured against the original =baseline=-based xray-exit closure (1400 MiB):
   adds only 16 MiB over the bare nixpkgs floor. The remaining ~1.2 GiB is the
   irreducible nix-daemon + systemd cost; only =profiles/image-based-appliance=
   (=nix.enable = false=) goes below it, at the cost of no in-place rebuilds.
+- **Iteration 3**: =nixpkgs.flake.setFlakeRegistry = false= (and
+  =setNixPath = false=, which asserts on the former). By default flake-built
+  NixOS pins =/etc/nix/registry.json= to the full nixpkgs source tree
+  (~206 MiB closure entry) so =nix run nixpkgs#hello= reuses system deps —
+  irrelevant on deployed-only machines. /etc/nix/registry.json now contains
+  ={"flakes":[],"version":2}= (144 bytes, zero references).
+  xray-exit 1203 → 951 MiB (-21%). This puts us *below* nixpkgs' own
+  =profiles/minimal.nix= floor (1131 MiB), which still has setFlakeRegistry on.
+  Running total from the original baseline xray-exit: 1400 → 951 MiB (-32%).
 - Considered but rejected for =nixos-base=: the nuclear "~100 KiB" sidecar
   profile (fake =boot.isContainer=, stubbed =systemd.package=, no kernel/initrd,
   =system.activatable = false=). It targets non-NixOS hosts (system-manager /

@@ -82,6 +82,14 @@ in
       # build fail if a machine legitimately needs a perl-based tool.
       system.forbiddenDependenciesRegexes = lib.mkForce [ ];
 
+      # nixpkgs.flake.setFlakeRegistry is on by default for flake-built
+      # systems and pins /etc/nix/registry.json to the full nixpkgs source tree
+      # (~206 MiB closure entry). It exists so `nix run nixpkgs#hello` reuses
+      # system deps — irrelevant on deployed-only machines, so drop it (and
+      # setNixPath, which asserts on setFlakeRegistry).
+      nixpkgs.flake.setFlakeRegistry = lib.mkDefault false;
+      nixpkgs.flake.setNixPath = lib.mkDefault false;
+
       imports = [
         # Bootable nixpkgs shrink profiles:
         #  - minimal: docs off, defaultPackages [], stub-ld off, xdg off, ...
