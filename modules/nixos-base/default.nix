@@ -56,6 +56,7 @@ in
     {
       config,
       lib,
+      modulesPath,
       ...
     }:
     {
@@ -75,6 +76,15 @@ in
       system.disableInstallerTools = lib.mkDefault true;
 
       imports = [
+        # Bootable nixpkgs shrink profiles:
+        #  - minimal: docs off, defaultPackages [], stub-ld off, xdg off, ...
+        #  - perlless: initrd systemd + etc-overlay + userborn (replaces
+        #    perl-based activation), forbids perl from the closure.
+        # Together these get a real bootable system close to the nixpkgs floor
+        # without the nuclear stubbing used for non-NixOS sidecars.
+        (modulesPath + "/profiles/minimal.nix")
+        (modulesPath + "/profiles/perlless.nix")
+
         # Clan is mandatory in nixos-base. We import the two minimal clan
         # pieces directly rather than `clan-baseline`, so the tailscale OAuth
         # generators are not pulled into the bare base.

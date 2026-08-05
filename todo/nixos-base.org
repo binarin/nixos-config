@@ -146,6 +146,24 @@ Measured against the original =baseline=-based xray-exit closure (1400 MiB):
 - Remaining ~1.3 GiB floor is nix + systemd + dbus-broker + perl/python that
   any NixOS machine with =nix-daemon= carries. Further cuts require disabling
   =nix.enable= (not viable for a real machine) or shrinking nixpkgs itself.
+- **Iteration 2**: imported nixpkgs =(modulesPath + "/profiles/minimal.nix")=
+  and =(modulesPath + "/profiles/perlless.nix")= into =nixos-base=.
+  =perlless= replaces perl-based activation with =boot.initrd.systemd.enable=,
+  =system.etc.overlay.enable=, =services.userborn.enable= and sets
+  =forbiddenDependenciesRegexes = [ "perl" ]=. Result:
+  xray-exit 1323 → 1203 MiB, perl fully gone, =system-path= 644 → 453 MiB.
+- **Floor comparison** (same pinned nixpkgs 21ea275):
+  | pure nixpkgs profiles/minimal.nix | 1187 MiB | floor       |
+  | xray-exit (nixos-base + extras)   | 1203 MiB | +16 MiB     |
+  | original baseline xray-exit       | 1400 MiB | +213 MiB    |
+  Our full stack (clan + sops + xray + disko + qemu-guest + binarin + sshd)
+  adds only 16 MiB over the bare nixpkgs floor. The remaining ~1.2 GiB is the
+  irreducible nix-daemon + systemd cost; only =profiles/image-based-appliance=
+  (=nix.enable = false=) goes below it, at the cost of no in-place rebuilds.
+- Considered but rejected for =nixos-base=: the nuclear "~100 KiB" sidecar
+  profile (fake =boot.isContainer=, stubbed =systemd.package=, no kernel/initrd,
+  =system.activatable = false=). It targets non-NixOS hosts (system-manager /
+  containers), not bootable machines — would produce an unbootable xray-exit.
 
 * Risks / open questions
 
