@@ -149,9 +149,15 @@ Measured against the original =baseline=-based xray-exit closure (1400 MiB):
 - **Iteration 2**: imported nixpkgs =(modulesPath + "/profiles/minimal.nix")=
   and =(modulesPath + "/profiles/perlless.nix")= into =nixos-base=.
   =perlless= replaces perl-based activation with =boot.initrd.systemd.enable=,
-  =system.etc.overlay.enable=, =services.userborn.enable= and sets
-  =forbiddenDependenciesRegexes = [ "perl" ]=. Result:
+  =system.etc.overlay.enable=, =services.userborn.enable=. Result:
   xray-exit 1323 → 1203 MiB, perl fully gone, =system-path= 644 → 453 MiB.
+  NB: =perlless.nix= also sets =forbiddenDependenciesRegexes = [ "perl" ]=,
+  which is a *hard build-time assertion* — it greps the whole system closure
+  and fails the build if perl appears anywhere (even an explicit
+  =environment.systemPackages = [ pkgs.perl ]=). =nixos-base= keeps all the
+  perlless activation machinery but overrides the regex to =[]= via =mkForce=,
+  so perl stays out by default (modernized activation doesn't need it) but a
+  machine can legitimately pull in a perl tool without the build exploding.
 - **Floor comparison** (same pinned nixpkgs 21ea275):
   | pure nixpkgs profiles/minimal.nix | 1187 MiB | floor       |
   | xray-exit (nixos-base + extras)   | 1203 MiB | +16 MiB     |

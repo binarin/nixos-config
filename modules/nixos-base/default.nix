@@ -75,11 +75,18 @@ in
       # `config.nix.enable && !config.system.disableInstallerTools`.
       system.disableInstallerTools = lib.mkDefault true;
 
+      # Keep all the perlless activation-modernization (initrd systemd,
+      # etc-overlay, userborn) but drop the hard `forbiddenDependenciesRegexes
+      # = [ "perl" ]` assertion. The modernized activation means perl is no
+      # longer pulled in by default, so we keep the size win without making the
+      # build fail if a machine legitimately needs a perl-based tool.
+      system.forbiddenDependenciesRegexes = lib.mkForce [ ];
+
       imports = [
         # Bootable nixpkgs shrink profiles:
         #  - minimal: docs off, defaultPackages [], stub-ld off, xdg off, ...
         #  - perlless: initrd systemd + etc-overlay + userborn (replaces
-        #    perl-based activation), forbids perl from the closure.
+        #    perl-based activation).
         # Together these get a real bootable system close to the nixpkgs floor
         # without the nuclear stubbing used for non-NixOS sidecars.
         (modulesPath + "/profiles/minimal.nix")
