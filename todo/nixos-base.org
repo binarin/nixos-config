@@ -129,6 +129,24 @@ CLOSED: [2025-07-27 Sun]
      tailscale, monitoring, sops, binarin home-manager) get added per-machine
      or via a new =nixos-server= / =binarin-desktop= layer on top.
 
+* Closure-size trimming (xray-exit guinea pig)
+
+Measured against the original =baseline=-based xray-exit closure (1400 MiB):
+
+- =clan.core.enableRecommendedDefaults = mkDefault false= in =nixos-base= ::
+  removes gitMinimal + dnsutils + tcpdump + curl + jq + htop + nixos-facter
+  that clan forces into every machine. ~5 MiB net closure savings (their
+  transitive deps — perl, openssl, zlib, curl-libs — are still needed by
+  nix/systemd/sops).
+- =system.disableInstallerTools = mkDefault true= in =nixos-base= :: removes
+  nixos-rebuild-ng (310M), nixos-generate-config (265M), nixos-option (196M),
+  nixos-install/enter/build-vms. ~8 MiB net closure savings for the same
+  reason (nix + python3 + perl remain for nix-daemon / activation).
+- Combined: 1400 → 1323 MiB. =system-path= alone went 823 → 644 MiB.
+- Remaining ~1.3 GiB floor is nix + systemd + dbus-broker + perl/python that
+  any NixOS machine with =nix-daemon= carries. Further cuts require disabling
+  =nix.enable= (not viable for a real machine) or shrinking nixpkgs itself.
+
 * Risks / open questions
 
 1. *Dangling overrides in xray-exit.nix*: =services.tailscale.enable =

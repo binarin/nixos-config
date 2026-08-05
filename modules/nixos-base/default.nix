@@ -61,6 +61,19 @@ in
     {
       key = "nixos-config.modules.nixos.nixos-base";
 
+      # clan.core.enableRecommendedDefaults is true by default and adds
+      # gitMinimal + dnsutils + tcpdump + curl + jq + htop + nixos-facter to
+      # every machine's system closure (~250 MiB). A bare base does not want
+      # those debugging tools forced in.
+      clan.core.enableRecommendedDefaults = lib.mkDefault false;
+
+      # nixos-base targets machines that are deployed to (via clan/deploy-rs),
+      # not machines that rebuild themselves. Drop nixos-rebuild,
+      # nixos-generate-config, nixos-install, nixos-option etc. from the system
+      # closure (~870 MiB combined). These are gated on
+      # `config.nix.enable && !config.system.disableInstallerTools`.
+      system.disableInstallerTools = lib.mkDefault true;
+
       imports = [
         # Clan is mandatory in nixos-base. We import the two minimal clan
         # pieces directly rather than `clan-baseline`, so the tailscale OAuth
