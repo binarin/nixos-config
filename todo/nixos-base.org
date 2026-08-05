@@ -175,6 +175,24 @@ Measured against the original =baseline=-based xray-exit closure (1400 MiB):
   xray-exit 1203 → 951 MiB (-21%). This puts us *below* nixpkgs' own
   =profiles/minimal.nix= floor (1131 MiB), which still has setFlakeRegistry on.
   Running total from the original baseline xray-exit: 1400 → 951 MiB (-32%).
+- **stateVersion follow-up**: disabling =clan.core.enableRecommendedDefaults=
+  had a non-obvious side effect — clan bundles the automatic
+  =system.stateVersion= generator into that same defaults bundle, so it was
+  lost too (manifesting as the "system.stateVersion is not set" eval warning).
+  Re-enabled just =clan.core.settings.state-version.enable = true= in
+  =nixos-base=; it picks up the version from =system.nixos.release= (26.05),
+  same value as before. No closure-size change (resolves identically).
+- **Kernel modules tree (~163 MiB) is the irreducible runtime cost.** Unlike
+  the initrd (which =makeModulesClosure= shrinks to rootModules + deps → 2 KB
+  for xray-exit), there is no nixpkgs-level lever to shrink the *runtime*
+  =linux-X.module.out= tree. =boot.kernelPackages.kernel.out= *is* the 163 MB
+  modules tree (kernel image itself is only 22 MB), referenced directly by
+  =system.build.toplevel=. NixOS tests avoid this because =qemu-vm.nix= boots
+  with an externally-supplied kernel and never deploys a real toplevel. Only
+  escapes: custom trimmed kernel (per-machine maintenance), a fragile
+  =nukeReferences= hack on =.ko= files (breaks module autoloading), or
+  =profiles/image-based-appliance.nix= (=boot.kernel.enable = false=, kernel
+  supplied out-of-band — appliance territory, not a normal deployed machine).
 - Considered but rejected for =nixos-base=: the nuclear "~100 KiB" sidecar
   profile (fake =boot.isContainer=, stubbed =systemd.package=, no kernel/initrd,
   =system.activatable = false=). It targets non-NixOS hosts (system-manager /

@@ -68,6 +68,13 @@ in
       # those debugging tools forced in.
       clan.core.enableRecommendedDefaults = lib.mkDefault false;
 
+      # enableRecommendedDefaults bundles the debug-package bloat (gitMinimal,
+      # tcpdump, ...) together with clan's automatic stateVersion generator.
+      # We disabled the whole bundle above, so re-enable just the stateVersion
+      # generator (it picks up system.stateVersion from the nixos release or
+      # from a clan var) to avoid the "system.stateVersion is not set" warning.
+      clan.core.settings.state-version.enable = lib.mkDefault true;
+
       # nixos-base targets machines that are deployed to (via clan/deploy-rs),
       # not machines that rebuild themselves. Drop nixos-rebuild,
       # nixos-generate-config, nixos-install, nixos-option etc. from the system
