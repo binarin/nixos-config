@@ -16,6 +16,7 @@ let
   murmurOverlays = [
     inputs.nixgl.overlay
     inputs.system-manager.overlays.default
+    self.lib.determinateNixOverlay
     (final: prev: {
       swaylock = final.writeShellScriptBin "swaylock" ''
         exec /usr/bin/swaylock "$@"

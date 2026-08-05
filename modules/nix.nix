@@ -24,11 +24,6 @@ let
     inputs.emacs-overlay.overlays.default
     inputs.nix-ai-tools.overlays.shared-nixpkgs
 
-    # inputs.determinate-nix.overlays.default
-    (final: prev: {
-      nix = inputs.determinate-nix.packages."${prev.stdenv.hostPlatform.system}".default;
-    })
-
     # gcx 0.4.3 — newer than nixpkgs
     (final: prev: {
       gcx = prev.gcx.overrideAttrs (finalAttrs: {
@@ -76,6 +71,16 @@ let
       overlays = extraOverlays ++ defaultOverlays;
     };
 
+  # Overlay that swaps the `nix` package for the DeterminateSystems build
+  # (https://flakehub.com/f/DeterminateSystems/nix-src). It is intentionally
+  # *not* part of `defaultOverlays`: Determinate is only wanted on the
+  # system-manager-managed foreign distros (bubuntu/bentos), which opt in via
+  # `self.lib.determinateNixOverlay` in their machine definitions. Every
+  # proper NixOS host uses stock nixpkgs `nix`.
+  determinateNixOverlay = final: prev: {
+    nix = inputs.determinate-nix.packages."${prev.stdenv.hostPlatform.system}".default;
+  };
+
 in
 {
   config = {
@@ -99,16 +104,9 @@ in
           git-hooks-nix.inputs.flake-compat.follows = "flake-compat";
         };
       };
-
-      determinate = {
-        url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
-        inputs = {
-          nixpkgs.follows = "nixpkgs";
-          nix.follows = "determinate-nix";
-        };
-      };
     };
 
+    flake.lib.determinateNixOverlay = determinateNixOverlay;
     flake.lib.importNixpkgs = importNixpkgs;
 
     flake.configured-pkgs = lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (system: rec {
@@ -192,11 +190,8 @@ in
         };
 
         imports = [
-          inputs.determinate.nixosModules.default
-        ]
-        # Backend selection lives here, outside config eval — driven purely by
-        # specialArgs, exactly like clan-baseline is included.
-        ++ [
+          # Backend selection lives here, outside config eval — driven purely by
+          # specialArgs, exactly like clan-baseline is included.
           (
             if specialArgs ? clan-core then
               self.nixosModules.nix-access-tokens-clan
@@ -210,7 +205,6 @@ in
             # nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
             nix = {
-              package = lib.mkForce pkgs.nix; # from determinate-nix overlay
               settings = {
                 sandbox = true;
                 substituters = [ "https://cache.nixos.org" ];

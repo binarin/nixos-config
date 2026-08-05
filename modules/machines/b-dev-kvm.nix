@@ -17,6 +17,7 @@ let
 
   bDevKvmPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays [
     inputs.system-manager.overlays.default
+    self.lib.determinateNixOverlay
   ];
 in
 {

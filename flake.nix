@@ -25,13 +25,6 @@
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    determinate = {
-      url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
-      inputs = {
-        nix.follows = "determinate-nix";
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
     determinate-nix = {
       url = "https://flakehub.com/f/DeterminateSystems/nix-src/*";
       inputs = {
