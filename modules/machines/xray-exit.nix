@@ -59,8 +59,11 @@ in
     {
       key = "nixos-config.modules.nixos.xray-exit-configuration";
       imports = [
-        self.nixosModules.baseline
+        self.nixosModules.nixos-base
         self.nixosModules.qemu-guest
+        # sops is needed for config.sops.templates / config.sops.placeholder
+        # used by the xray.json template below. nixos-base does not include it.
+        self.nixosModules.sops
         # Plain ext4 (ESP + ext4 root), NOT ZFS — a stateless proxy VM gains
         # nothing from ZFS and disko-image ZFS is fragile (hostid/cachefile at
         # boot). Imported by explicit path (not self.nixosModules.disko, which
@@ -69,10 +72,6 @@ in
         self.nixosModules.xray-shared
         (selfLib.file' "machines/llm-runner/hardware-configuration.nix")
       ];
-
-      # No Tailscale on this machine.
-      services.tailscale.enable = lib.mkForce false;
-      nixos-config.export-metrics.enable = false;
 
       # Bypass clan openssh generator requirement. The binarin-admin
       # sshd instance uses tags.all, which would trigger the openssh

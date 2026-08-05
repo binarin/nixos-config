@@ -9,38 +9,6 @@ let
   selfLib = self.lib.self;
 in
 {
-  clan.inventory.instances.binarin-user = {
-    module.name = "users";
-    roles.default.tags.all = { };
-    roles.default.settings = {
-      user = "binarin";
-      groups = [
-        "wheel"
-      ];
-    };
-    # roles.default.extraModules = self.nixosModules.binarin-baseline;
-  };
-
-  clan.inventory.instances.binarin-admin = {
-    module.name = "sshd";
-    roles.server.tags.all = { };
-    roles.server.settings = {
-      authorizedKeys =
-        with lib;
-        pipe (import "${self}/inventory/public-keys.nix") [
-          (filterAttrs (
-            _:
-            {
-              secure ? null,
-              ...
-            }:
-            secure == true
-          ))
-          (mapAttrs (_: { public_key, ... }: public_key))
-        ];
-    };
-  };
-
   flake.nixosModules.binarin-baseline =
     { config, lib, ... }:
     {

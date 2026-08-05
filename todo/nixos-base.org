@@ -1,0 +1,159 @@
+* Goal
+
+Create a new, minimal base module =nixos-base= to replace the current
+=baseline= (system) + =binarin-baseline= (user) modules, which have grown too
+large and entangled.
+
+Design constraints:
+- Clan is **mandatory** (not conditionally loaded like the old =baseline=).
+- First iteration must be **absolutely bare**: an empty =binarin= user with no
+  config at all, plus SSH access for =root= and =binarin=.
+- Guinea pig machine: =xray-exit=.
+
+* Design
+
+** Module structure
+
+Create =modules/nixos-base/default.nix= exporting =self.nixosModules.nixos-base=.
+
+It will contain (first iteration):
+1. =clan.inventory.instances.binarin-user= :: same as today (distributed
+   service =users=, =roles.default=, user =binarin=, groups =[ "wheel" ]=).
+   - This creates the =binarin= user + group via clan's built-in =users=
+     service module.
+2. =clan.inventory.instances.binarin-admin= :: same as today (distributed
+     service =sshd=, =roles.server=, authorizedKeys from secure public keys).
+   - This provisions SSH authorized keys via clan's built-in =sshd= service
+     module.
+3. The =self.nixosModules.nixos-base= NixOS module itself:
+   - Imports =self.nixosModules.clan-hostId= and =self.nixosModules.clan-hosts=
+     directly (makes clan **mandatory** at the host-config level, without
+     pulling in the tailscale OAuth generators that live in =clan-baseline=).
+     This is Option A from the clan-baseline split discussion: =clan-baseline=
+     stays untouched for the 27 existing =baseline= machines, while =nixos-base=
+     only takes the two minimal clan pieces it needs.
+   - Does NOT set =hardware.facter.report.system = mkForce false= — that was a
+     belt-and-suspenders no-op added in commit 681e3eca. The pinned-pkgs setup
+     (via =configured-pkgs= + =_module.args.pkgs=) already makes
+     =nixpkgs.hostPlatform= read-only, so facter's own guard short-circuits.
+   - Imports =self.nixosModules.sshd= (enables openssh + root authorized keys
+     + CA-based principals).
+   - Imports =self.nixosModules.inventory= (hostId, =/etc/hosts=, ipAllocation).
+   - Imports =self.nixosModules.public-keys= (provides =config.lib.publicKeys=).
+   - *Deliberately does NOT import*: emacs, git, interactive-cli, monitored,
+     security, sops, tailscale, ci, eternal-terminal, nix, use-nix-cache,
+     srvos update-diff, readOnlyPkgs, clan-baseline. Those are out of scope
+     for the bare base.
+
+The =binarin= user in the first iteration:
+- Created by the clan =users= instance (=binarin-user=).
+- Has NO home-manager config (no =home-manager.users.binarin=).
+- Has NO shell customization, NO dotfiles.
+- SSH authorized keys come from the clan =sshd= =binarin-admin= instance,
+  which uses =tags.all= so all machines get the keys.
+
+** What =nixos-base= guarantees (first iteration)
+
+- A working clan core (vars, settings, domain).
+- openssh enabled, firewall open on 22.
+- root authorized keys (secure, tagged =default=) via =self.nixosModules.sshd=.
+- binarin user (uid 1000, group binarin gid 1000, isNormalUser) via clan
+  =users= instance.
+- binarin SSH authorized keys + principals (=root=, =binarin=) via clan
+  =sshd= =binarin-admin= instance.
+
+** What =nixos-base= does NOT include (by design, first iteration)
+
+- No shell (binarin gets the default =bash=).
+- No home-manager.
+- No sops / secrets wiring.
+- No impermanence.
+- No nix settings / caches / builders.
+- No tailscale, monitoring, security hardening, interactive CLI tools.
+- No sudo passwordless config (=security.sudo= belongs to the system baseline,
+  not this bare base).
+
+* Implementation steps
+
+** DONE Understand current baseline + binarin-baseline + clan wiring
+CLOSED: [2025-07-27 Sun]
+
+** TODO Create =modules/nixos-base/default.nix=
+   - Export =self.nixosModules.nixos-base=.
+   - Define =clan.inventory.instances.binarin-user= and =binarin-admin=.
+   - nixos-base module imports: =clan-hostId= + =clan-hosts= (NOT
+     =clan-baseline=), =sshd=, =inventory=, =public-keys=.
+   - =git add --intent-to-add= the new file.
+
+   NOTE: the two =clan.inventory.instances= are global flake-level config
+   (applied per-machine via tags, not via NixOS module imports). They were
+   previously defined in =modules/binarin/baseline.nix=. Moved them into
+   =nixos-base= and removed from =binarin/baseline.nix= to avoid a duplicate
+   definition error. All =baseline= machines still get the binarin user/keys
+   because the instances apply globally regardless of which module hosts
+   them.
+
+** TODO Rewire =xray-exit= machine module to use =nixos-base=
+   - Replace =self.nixosModules.baseline= with =self.nixosModules.nixos-base=
+     in =modules/machines/xray-exit.nix=.
+   - Keep =self.nixosModules.qemu-guest=, disko, xray-shared,
+     hardware-configuration imports.
+   - Add =self.nixosModules.sops= to imports (xray-exit uses
+     =config.sops.templates= / =config.sops.placeholder= for xray.json;
+     nixos-base deliberately excludes sops).
+   - Remove =services.tailscale.enable = mkForce false= and
+     =nixos-config.export-metrics.enable = false= overrides — those options
+     were defined by old-baseline modules (=tailscale=, =monitored=) and no
+     longer exist under nixos-base.
+   - Keep the =programs.ssh.knownHosts = mkForce {}= hack.
+   - Keep networking/firewall/network/systemd overrides for the VM.
+   - Keep xray service + sops template.
+
+** TODO Regenerate flake inputs if needed
+   - Run =nix run .#write-flake= if any =flake-file.inputs= changed (likely
+     none needed since =nixos-base= adds no new inputs).
+
+** TODO Build and validate =xray-exit=
+   - =nix build .#nixosConfigurations.xray-exit.config.system.build.toplevel=
+     (or clan eval) to confirm the bare base evaluates. DONE — dry-run clean.
+   - Also verified =iso= and =demandred= (representative =baseline= machines)
+     still evaluate after moving the clan inventory instances out of
+     =binarin/baseline.nix=.
+   - Watch for dangling option references left over from the old baseline
+     (e.g. =nixos-config.export-metrics=, =services.tailscale=, =services.xray=).
+     - =export-metrics= / =tailscale= overrides removed from xray-exit.nix.
+     - =services.xray= resolves fine (built-in / from nixpkgs).
+
+** TODO (future iterations, NOT now) Layer features back as composable modules
+   - =nixos-base= stays minimal; richer features (interactive-cli, nix caches,
+     tailscale, monitoring, sops, binarin home-manager) get added per-machine
+     or via a new =nixos-server= / =binarin-desktop= layer on top.
+
+* Risks / open questions
+
+1. *Dangling overrides in xray-exit.nix*: =services.tailscale.enable =
+   lib.mkForce false= and =nixos-config.export-metrics.enable = false= — these
+   options were defined by modules pulled in by the old =baseline= (=tailscale=,
+   =monitored=). With =nixos-base= they won't exist → these lines will error.
+   :: *Resolution*: remove these two override lines from =xray-exit.nix= in this
+   iteration (tailscale and metrics simply won't be present).
+
+2. *clan openssh generator / =programs.ssh.knownHosts = lib.mkForce {}=* hack
+   in =xray-exit.nix= — referenced =XXX= comment about =binarin-admin= sshd.
+   Keep it for now; verify it still evaluates with =nixos-base=.
+
+3. *srvos update-diff removed*: old baseline imported
+   ="${inputs.srvos}/nixos/common/update-diff.nix"=. =nixos-base= drops it.
+   Deploy diffing on xray-exit will be lost unless re-added later. Acceptable
+   for the bare base.
+
+4. *Is =self.nixosModules.inventory= needed explicitly?* The old =baseline=
+   imported it. =clan-baseline= imports =clan-hosts= / =clan-hostId= but not
+   =inventory= (=ipAllocation= / =networking.hosts=). xray-exit uses
+   =flakeConfig.inventory.ipAllocation= at the flake-parts level (fine) but the
+   NixOS =networking.hosts= from inventory is used elsewhere. Include
+   =self.nixosModules.inventory= in =nixos-base= to keep host resolution working.
+5. *clan-baseline split (Option A)*: =nixos-base= imports =clan-hostId= +
+   =clan-hosts= directly rather than =clan-baseline=, so the tailscale-admin /
+   tailscale-auth OAuth generators are not pulled into the bare base.
+   =clan-baseline= itself is left untouched. RESOLVED.
