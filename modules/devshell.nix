@@ -280,6 +280,8 @@
             # For ncf tool
             ncf
             ncfPythonEnv
+            # For nct tool
+            self'.packages.nct
             # For monitoring dashboards
             monitoring
             monitoringPythonEnv

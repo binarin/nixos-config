@@ -1,0 +1,75 @@
+#+TITLE: nct (nixos-config-tool)
+
+* Goal
+
+Scaffold a new Rust-based CLI tool =nct= (executable =nct=) to eventually
+assist with NixOS configuration management in this repo. Companion / eventual
+successor-ish to the Python-based =ncf= tool, but starting from a minimal
+scaffold.
+
+* Stage 0 — scaffold [DONE]
+
+** What was created
+- =tools/nct/= :: Rust binary crate (edition 2024).
+  - =Cargo.toml= :: deps: =clap= (derive), =anyhow=, =tokio= (full);
+    dev-dep =assert_cmd=.
+  - =Cargo.lock= :: generated + committed (required by =buildRustPackage=).
+  - =src/main.rs= :: clap-derive =Cli= with a =nct machine provision <name>=
+    stub + 2 unit tests (parse + missing-subcommand rejection).
+  - =.gitignore= (=target=), =.envrc= (=use flake ../../#nct=), =README.md=.
+- =modules/nct.nix= :: flake-parts module (dendritic pattern, auto-discovered
+  by =import-tree=):
+  - =packages.nct= :: =rustPlatform.buildRustPackage=, =meta.mainProgram =
+    "nct"=.
+  - =devShells.nct= :: cargo / rustc / rust-analyzer / clippy / rustfmt.
+  - =overlays.nct=.
+- =modules/devshell.nix= :: added =self'.packages.nct= to =devShells.default=.
+- =modules/formatter.nix= :: enabled =programs.rustfmt= in treefmt.
+- =.forgejo/workflows/nct-tests.yaml= :: CI mirroring =tool-tests.yaml=
+  conventions (=runs-on: native=, =env-aware-nix-develop=, master + PR
+  triggers): runs =cargo test= in =.#devShells.x86_64-linux.nct= and =nix build
+  .#nct=.
+
+** Decisions
+- Async-first: =tokio= (full) pulled in from the start; =main= is
+  =#[tokio::main]=.
+- =nct= lives in the default devshell (like =ncf=) so it's on PATH in the main
+  shell, in addition to its dedicated =.#devShells.x86_64-linux.nct=.
+- No new flake inputs were added, so =nix run .#write-flake= was **not**
+  needed (=flake.nix= untouched).
+- Used =selfLib.dir'= / =file'= for src + cargoLock (avoids flake-source
+  leakage, consistent with =niri-dynamic-keybindings= / =waybar-org-clock=).
+
+** Verification [DONE]
+- [X] =nix build .#nct= builds; =cargo test= runs during check (2/2 pass).
+- [X] =./result/bin/nct --version= = =nct 0.1.0=;
+      =nct machine provision test-host= works.
+- [X] =cargo test= in =.#devShells.x86_64-linux.nct= = 2 passed.
+- [X] =nct= resolves via =command -v nct= in =.#devShells.x86_64-linux.default=.
+- [X] =nix fmt= runs rustfmt over =.rs= files.
+
+* Stage 1+ — TODO
+
+** =machine provision= implementation
+Currently just prints the machine name. Needs real logic. Likely overlaps with
+=ncf='s =add_machine= / =init_machine= / =provision_vm= commands — decide
+whether =nct= ports those or wraps =ncf=.
+
+** Subcommand surface
+Decide the command tree. Candidate stubs mirroring =ncf=:
+- =nct machine {add,init,provision,list,...}=
+- =nct build=, =nct eval=, =nct deploy=
+- =nct secret ...= (sops), =nct ts ...= (tailscale), =nct ci ...=
+
+** Shared infra with =ncf=
+- Determine whether =nct= reuses =ncf= runtime deps (git-crypt, sops,
+  ssh-to-age, deploy-rs, ...) by wrapping them at the nix level
+  (=postFixup wrapProgram=) like =ncf= does, or shells out at runtime.
+- Decide on nix invocation strategy (eval/build via =Command= calls vs. an
+  in-process nix library).
+
+** Quality
+- [ ] Add clippy to CI (not a treefmt program; run via devshell).
+- [ ] Consider =deny(warnings)= once surface stabilizes.
+- [ ] Integration tests via =assert_cmd= (already a dev-dep) exercising the CLI
+      end-to-end.
