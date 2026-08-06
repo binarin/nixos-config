@@ -50,6 +50,19 @@
         args:
         {
           serviceConfig.ExecStart = lib.mkForce "${lib.getExe launcher} ${args}";
+          # cloud-init's stages are boot-time one-shots: re-running them during
+          # a nixos-rebuild/deploy switch re-crawls the datasource and re-runs
+          # the `always`-frequency modules for no benefit, and it can fail the
+          # whole activation. `cloud-init init` loads the existing
+          # /var/lib/cloud/data/status.json, *extends* v1.init.errors with the
+          # current run's errors, and exits `len(v1[mode]["errors"])` (see
+          # cloudinit/cmd/main.py::status_wrapper). Only the `init-local` stage
+          # clears that file. So a single module error recorded at boot makes
+          # every later restart of cloud-init.service exit non-zero for the
+          # rest of the boot, even when the restarted run itself has zero
+          # failures — which fails the deploy and triggers an auto-rollback.
+          restartIfChanged = false;
+
           path = lib.mkForce (
             lib.remove pkgs.cloud-init (
               with pkgs;
