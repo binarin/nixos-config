@@ -78,9 +78,10 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
     {
         bail!(
             "VM '{}' already exists (vmid {existing}). Delete it first: \
-             ssh root@{} qm destroy {} --purge",
+             ssh root@{} 'qm stop {} && qm destroy {} --purge'",
             cfg.hostname(),
             proxmox_host,
+            existing,
             existing
         );
     }
