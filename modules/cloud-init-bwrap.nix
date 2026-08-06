@@ -8,10 +8,10 @@
 # and systemd-networkd never reconfigures the interface → no static IP.
 #
 # Fix: run cloud-init inside a bubblewrap namespace that exposes `ip` at
-# /usr/sbin/ip and `systemctl` at /bin/systemctl (re-adding /bin/sh, since
-# --tmpfs /bin hides the host's). Scoped to the four cloud-init systemd units
-# only — no global pkgs.cloud-init overlay (avoids rebuilding everything that
-# depends on it).
+# /usr/sbin/ip and `systemctl` at /bin/systemctl. The host filesystem stays
+# read-write as-is — we're not hardening anything, just injecting the two
+# deps cloud-init's hardcoded search expects. Scoped to the four cloud-init
+# systemd units only — no global pkgs.cloud-init overlay.
 {
   self,
   lib,
@@ -30,22 +30,16 @@
 
       # Launcher: execs the real cloud-init inside a bwrap namespace where
       # /bin and /usr/sbin contain exactly the binaries cloud-init looks for.
-      # Everything else is the real host root (ro), with the dirs cloud-init
-      # writes bound read-write.
+      # Everything else is the real host root (rw); the symlinks layer the
+      # binaries on top.
       launcher = pkgs.writeShellScriptBin "cloud-init-bwrap" ''
         exec ${pkgs.bubblewrap}/bin/bwrap \
-          --ro-bind / / \
+          --bind / / \
           --dev-bind /dev /dev \
           --proc /proc \
-          --tmpfs /bin \
-          --tmpfs /usr \
           --symlink ${shBin} /bin/sh \
           --symlink ${systemctlBin} /bin/systemctl \
           --symlink ${ipBin} /usr/sbin/ip \
-          --bind /run /run \
-          --bind /var/lib/cloud /var/lib/cloud \
-          --bind /etc /etc \
-          --bind /var/log /var/log \
           -- ${realCloudInit}/bin/cloud-init "$@"
       '';
 
