@@ -37,7 +37,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: cargo clippy
+        run: nix run .#env-aware-nix-develop -- .#devShells.x86_64-linux.nct --command cargo clippy --manifest-path tools/nct/Cargo.toml --all-targets -- -D warnings
       - name: cargo test
         run: nix run .#env-aware-nix-develop -- .#devShells.x86_64-linux.nct --command cargo test --manifest-path tools/nct/Cargo.toml
+      - name: cargo test (ignored integration tests, need a working nix store)
+        run: nix run .#env-aware-nix-develop -- .#devShells.x86_64-linux.nct --command cargo test --manifest-path tools/nct/Cargo.toml -- --ignored
       - name: build flake package
         run: nix build .#nct --print-build-logs
