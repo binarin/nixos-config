@@ -225,3 +225,335 @@ Replicated upstream =nciBuildConfig=, simplified via clangStdenv:
   bindgen calls libclang directly (bypassing the cc wrapper).
 - Git deps: =cargoLock.allowBuiltinFetchGit = true= avoids maintaining 11
   =outputHashes= that drift on every upstream bump.
+
+* Stage 3 — experiment: adopt nix-cargo-integration (nci)
+:PROPERTIES:
+:STATUS: INVESTIGATION / PLANNING
+:END:
+
+** Motivation
+Stage 2 hand-wired a =rustPlatform.buildRustPackage= derivation for =nct=
+and replicated upstream =nix-bindings-rust='s =nciBuildConfig= by hand
+(=nixBindingsBuild= attr in =modules/nct.nix=). That works, but:
+- The build config (pkg-config / libclang / bindgen args / clangStdenv) is
+  duplicated between the package derivation and the dev shell, and maintained
+  by us instead of consumed from upstream.
+- We lose nci's niceties: automatic per-profile packages (dev/release),
+  =check= / =clippy= / =docs= outputs, the crate-aware dev shell, lockfile
+  generation app, etc.
+- =nix-bindings-rust= *natively targets nci*: it ships an =nciBuildConfig=
+  deferred module + an =input-propagation-workaround= that auto-adds the
+  correct Nix C libraries (=nix-expr-c=, =nix-store-c=, ...) based on which
+  =nix-bindings-*= crates are *direct* deps. Using nci lets us consume that
+  instead of reverse-engineering it.
+
+** What nci is
+- A [[https://github.com/hercules-ci/flake-parts][flake-parts]] module
+  ([[https://github.com/90-008/nix-cargo-integration][90-008/nix-cargo-integration]], checked out at
+  =../nix/nix-cargo-integration/=).
+- Builds Cargo projects via [[https://github.com/nix-community/dream2nix][dream2nix]]
+  (crane-backed), provides a dev shell, and exposes per-crate outputs:
+  =config.nci.outputs."<crate>".{packages,devShell,check,clippy,docs}=.
+- Config surface (see =../nix/nix-cargo-integration/src/{interface,modules}=):
+  - =nci.projects."<name>".path= :: project/workspace root.
+  - =nci.crates."<name>"= :: per-crate config (=export=, =profiles=,
+    =runtimeLibs=, =drvConfig= / =depsDrvConfig=).
+  - =drvConfig= / =depsDrvConfig= :: =attrsOf anything= merged into the
+    dream2nix derivation. Shape = { mkDerivation = {...}; env = {...}; }=.
+    Set =deps.stdenv = pkgs.clangStdenv= to override stdenv (see
+    =examples/customize-stdenv=).
+  - =nci.toolchainConfig= / =nci.toolchains.{mkBuild,mkShell}= :: toolchain
+    (defaults to =pkgs.rustPlatform= toolchain; rust-overlay optional).
+
+** How =nix-bindings-rust= integrates with nci (=the native support=)
+From =../nix/nix-bindings-rust/flake.nix= (=config.nix-bindings-rust=):
+- =nixPackage= (default =pkgs.nix=).
+- =nciBuildConfig= :: a *deferred module* to import into your crate's
+  =drvConfig= / =depsDrvConfig=. It sets:
+  - =mkDerivation.buildInputs = [ pkgs.stdenv.cc ]= (stdbool.h).
+  - =mkDerivation.nativeBuildInputs = [ pkgs.pkg-config ]=.
+  - =mkDerivation.postConfigure= = gcc bindgen shim (only if gcc stdenv).
+  - =env.LIBCLANG_PATH=, =env.BINDGEN_EXTRA_CLANG_ARGS = "-x c++ -std=c++2a"=.
+- =input-propagation-workaround.nix= :: auto-detects direct =nix-bindings-*=
+  deps from the dream lock and adds the matching =nix-*-c= libraries to
+  =buildInputs=. Toggle via
+  =nix-bindings-rust.inputPropagationWorkaround.enable=.
+
+So with nci + the =nix-bindings-rust= flake-parts module imported, our entire
+=nixBindingsBuild= block in =modules/nct.nix= collapses to ~3 lines.
+
+** Consumption pattern in *this* repo (dendritic + flake-file)
+This flake is =flake-parts=-based and modules auto-discovered via
+=import-tree ./modules=. Inputs are declared per-module through
+=flake-file.inputs.<name>= (see =modules/formatter.nix=, =modules/srvos.nix=,
+=modules/stylix.nix=) and regenerated with =nix run .#write-flake=. A
+flake-parts =flakeModule= input is consumed by =imports = [
+inputs.<x>.flakeModule ];= at the top of the module that needs it (e.g.
+=modules/formatter.nix= imports =inputs.treefmt-nix.flakeModule=).
+
+=> To adopt nci we add a =flake-file.inputs.nci= (and
+=nci.inputs.nixpkgs.follows = "nixpkgs"=) somewhere, then =imports =
+[ inputs.nci.flakeModule ]= + nci config in =modules/nct.nix=. We also need
+the =nix-bindings-rust= flake-parts *module* (=config.nix-bindings-rust=)
+available, which means a *flake input* for =nix-bindings-rust= (not just the
+Cargo git dep). Note: =nix-bindings-rust= itself =imports nci=, so its flake
+input will transitively pull nci too — we can =follows= them to dedupe.
+
+** Proposed wiring (modules/nct.nix rewrite)
+#+begin_src nix
+{ self, inputs, ... }:
+let
+  selfLib = self.lib.self;
+in
+{
+  flake-file.inputs = {
+    nci = {
+      url = "github:90-008/nix-cargo-integration";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    # For the nciBuildConfig + input-propagation-workaround flake-parts module.
+    # (The Cargo crates themselves still come via the git dep in Cargo.toml.)
+    nix-bindings-rust = {
+      url = "github:nixops4/nix-bindings-rust";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  imports = [
+    inputs.nci.flakeModule
+    inputs.nix-bindings-rust.modules.flake.basic # -> perSystem.nix-bindings-rust
+  ];
+
+  perSystem = { pkgs, config, ... }: {
+    nci.projects."nct".path = selfLib.dir' "tools/nct";
+    nci.crates."nct" = {
+      export = true;  # -> config.nci.outputs."nct".packages.<profile> as flake packages
+      depsDrvConfig.deps.stdenv = pkgs.clangStdenv;
+      drvConfig = {
+        imports = [ config.nix-bindings-rust.nciBuildConfig ];
+        deps.stdenv = pkgs.clangStdenv;
+      };
+    };
+  };
+}
+#+end_src
+Then re-export as =packages.nct= / devshell / overlay from
+=config.nci.outputs."nct"=, replacing the hand-rolled =packageFn= and
+=devShells.nct=.
+
+** Open questions / risks — detailed analysis
+:PROPERTIES:
+:CUSTOM_ID: stage3-risks
+:END:
+All three core risks have been *traced through the upstream source* (dream2nix
+@ rev =dd8a3eb=, nci source in =../nix/nix-cargo-integration/src/=). Findings:
+
+*** RISK 1 — flake-source leakage via =nci.projects.<n>.path=  (LOW)
+:PROPERTIES:
+:VERDICT: likely fine, but must verify empirically
+:END:
+- *What we need:* =nct='s source enters the store as a path whose hash depends
+  /only/ on =tools/nct='s contents, so editing unrelated repo files does not
+  rebuild =nct= (the repo invariant documented in =modules/flake-packages.nix=
+  and enforced by =packages.check-no-flake-source-leak=).
+- *How Stage 2 achieves it:* =selfLib.dir' "tools/nct"= evaluates to
+  =builtins.path { path = self.outPath + "/tools/nct"; name = ...; }= — an
+  *independent* store entry, content-addressed by that subtree.
+- *How nci consumes path:* in =src/implementation.nix=,
+  =evalCrate= sets =mkDerivation.src = mkForce project.path=, and
+  =getProjectCrates.nix= does ="${path}/Cargo.toml"= (string coercion). A
+  =builtins.path= coerces to a store path string just fine, and the
+  =builtins.path= call (not =self= interpolation) is what governs the hash.
+- *The subtlety / the actual risk:* dream2nix's =rust-cargo-lock= translator
+  walks the source tree via =prepareSourceTree { source = cfg.source; }= and
+  parses *all* =Cargo.toml= + =Cargo.lock= it finds. If =prepareSourceTree=
+  materializes the whole =src= path verbatim (it does — it's an opaque tree
+  copy), then because =selfLib.dir'="tools/nct"= already narrows to that
+  subtree, only =tools/nct= contents matter. /If instead we passed =self= or
+  a ="${self}/tools/nct"= string/, leakage would return. So the rule is:
+  /keep passing the =builtins.path= (dir'), never a bare-string =self= path./
+- *Failure mode if wrong:* =nix build .#nct= rebuilds on every unrelated edit;
+  =check-no-flake-source-leak= (already in =devShells.default=) would catch
+  it on the nixos-system closure, but =nct= itself is a dev tool not in the
+  closure, so we must add a targeted check (see Probe #1).
+- *Residual unknown:* whether dream2nix's =getRootSource= / =prepareSourceTree=
+  pulls in anything beyond =src= (e.g. parent dirs for workspace resolution).
+  =tools/nct= is a single-crate, not a workspace, so workspace-member globbing
+  in =getProjectCrates.nix= is a no-op — low risk.
+
+*** RISK 2 — transitive-input weight (dream2nix + crane + rust-overlay?)  (LOW–MED)
+:PROPERTIES:
+:VERDICT: acceptable; purely a cost, not correctness
+:END:
+- *New transitive inputs:* =nci= itself pulls =dream2nix=, =crane= (pinned
+  =v0.19.0= / =v0.21.1= depending on nci rev), =rust-overlay=, =mk-naked-shell=.
+  Note crane is a =flake: false= tarball (see =nci/flake.nix=), so it's a single
+  fetch, not a live input. dream2nix is the heavy one (large repo).
+- *Plus =nix-bindings-rust= as a flake input* (for the =nciBuildConfig= module)
+  pulls its own =nix= + =nci= — but with =inputs.nixpkgs.follows= and nci
+  deduped, the marginal cost is just one more lock node.
+- *Impact:* larger =flake.lock= (cosmetic), slightly slower *first*
+  =nix flake metadata= / =nix develop= (more nodes to fetch). No effect on
+  =nix build= wall-time after inputs are cached, and /no/ effect on the
+  =nct= derivation itself.
+- *Why it's not a blocker:* every other flake-parts consumer in this repo
+  (=treefmt-nix=, =stylix=, =clan-core=, =arion=, =direnv-instant=) already
+  carries comparable weight. nci is in the same class.
+- *Decision:* accept. Optionally measure =nix flake archive --dry-run |
+  wc -l= before/after to quantify.
+
+*** RISK 3 — git deps under dream2nix's =rust-crane= backend  (was: biggest unknown → now LOW)
+:PROPERTIES:
+:VERDICT: resolved by source reading — should "just work" with NO outputHashes
+:END:
+This was flagged as the biggest unknown. Reading dream2nix's actual vendoring
+path resolves it favorably:
+
+- *Pipeline:* =nci= → =dream2nix= =rust-cargo-lock= (parses =Cargo.lock= into
+  a =dreamLock=) → =rust-cargo-vendor= (materializes each dep) → =rust-crane=
+  (=crane.buildPackage= with =cargoVendorDir= pointing at the vendored tree).
+- *How a git dep is parsed:* =translate.nix → parseSourceImpl= recognizes
+  =git+<url>?<type>=<value>#<sha>= and emits ={type="git"; value={url; sha;
+  type?; value?;};}= into the dreamLock =sources=.
+- *How a git dep is fetched:* =lib/internal/fetchers/git/default.nix=,
+  =fetched = hash: ...=. The decisive branch:
+  #+begin_src nix
+  fetched = hash:
+    if hash == null
+    then if ! refAndRev ? rev
+         then throw "Cannot fetch git repo without integrity..."
+         else builtins.fetchGit (refAndRev // { inherit url submodules;
+               shallow = true; allRefs = ! hasGitRef; })
+    else fetchgit (refAndRev // { inherit url; fetchSubmodules = submodules;
+               sha256 = hash; });
+  #+end_src
+  i.e. when there is /no/ hash (the common case for git deps, which carry no
+  =sha256= metadata in =Cargo.lock='s =[metadata]= table — only crates.io
+  crates get checksums), dream2nix falls back to =builtins.fetchGit= with
+  =shallow = true=. This is *precisely* the same primitive our current
+  =cargoLock.allowBuiltinFetchGit = true= uses; dream2nix just invokes it
+  itself during source materialization rather than letting cargo/nixpkgs do
+  it during vendor.
+- *Consequence:* the =nix-bindings-*= git deps should resolve with /zero/
+  =outputHashes= maintenance — same trust model (content of the git rev) as
+  today. The =sha= from =Cargo.lock= pins the rev; =builtins.fetchGit=
+  verifies the tree is fetched at that rev.
+- *Caveats that could still bite:*
+  1. dream2nix rewrites =.cargo/config.toml= (via =writeGitVendorEntries=) to
+     point git sources at the vendored dir. If =nix-bindings-rust='s crates
+     have *path* deps among themselves (they're a workspace!),
+     =replaceRelativePathsWithAbsolute= must rewrite them. The upstream repo
+     dogfoods nci on itself, so this path /is/ exercised — but our
+     consumption is as a *consuming crate*, not the workspace root, so the
+     path-rewrite logic runs against the /fetched/ nix-bindings tree, which is
+     intact. Low risk, but Probe #2 confirms.
+  2. =builtins.fetchGit= during evaluation = pure eval incompatibility. This
+     repo is /not/ evaluated in pure-eval mode for builds, so fine; but if we
+     ever run =nix flake check --pure-eval=, git deps without hashes fail.
+     Stage 2 has the identical limitation today.
+  3. dream2nix's =prepareSourceTree= / =translate= run during /evaluation/
+     (IFD-free; they just read files), but =fetchDreamLockSources= (the
+     =builtins.fetchGit= calls) also run at eval time. That means *every*
+     =nix eval= touching =packages.nct= fetches the git deps unless cached in
+     the nix store. Same as today's =allowBuiltinFetchGit=. No regression.
+- *Net:* Risk #3 is downgraded from "biggest unknown" to "verify with a real
+  build". The mechanism is sound and matches our existing trust model.
+
+*** RISK 4 — dev-shell parity  (LOW)
+:PROPERTIES:
+:VERDICT: mechanical, solvable via overrideAttrs
+:END:
+- nci's dev shell (=modules/dream2nix/rust-crane/devshell.nix=) is
+  =mkShell.override { stdenv = mainDrv.out.stdenv; }= with the union of
+  =buildInputs=/=nativeBuildInputs= from deps + main drv, plus =cargo=.
+- It does /not/ add =rust-analyzer= / =clippy= / =rustfmt= by default.
+- *Fix:* =devShells.nct =
+  config.nci.outputs."nct".devShell.overrideAttrs (old: {
+    packages = (old.packages or []) ++ [ rust-analyzer clippy rustfmt ];
+  });= — exactly the =customize-devshell= example pattern.
+- *BINDGEN_EXTRA_CLANG_ARGS / LIBCLANG_PATH:* these come from the =nciBuildConfig=
+  =env=, which dream2nix propagates into the dev shell (the devshell module
+  copies =mkDerivation= env, filtering an illegal-vars blocklist — and
+  =LIBCLANG_PATH=/=BINDGEN_EXTRA_CLANG_ARGS= are /not/ in that blocklist).
+  So the FFI env should land in the shell automatically. Probe to confirm.
+- *Default-devshell registration* (=modules/devshell.nix=): =self'.packages.nct=
+  is unaffected (still a package output). The dedicated =devShells.nct=
+  just changes its construction.
+
+*** RISK 5 — CI wiring  (LOW)
+:PROPERTIES:
+:VERDICT: keep current steps; optionally enrich later
+:END:
+- Current =nct-tests= job runs =cargo {clippy,test,test --ignored}= inside
+  =.#devShells.x86_64-linux.nct= + =nix build .#nct=. All of that still works
+  after the rewrite (the shell + package still exist, just built differently).
+- /Optional/ improvement: add CI steps building
+  =config.nci.outputs."nct".{check,clippy}= as flake checks for cached,
+  reproducible test runs. Not required; defer.
+
+*** RISK 6 & 7 — minor (numtide shell, output naming)  (TRIVIAL)
+- Numtide =devshell=: not used anywhere in this repo; nci's =mkShell=-based
+  shell is the right choice. No action.
+- Output naming: =config.nci.outputs."nct".packages.{dev,release}=; we
+  re-export =packages.nct = outputs.packages.release= explicitly. Trivial.
+
+** Experiment plan (confirmation probes — risks now LOW after source review)
+All three core risks are resolved by reading the upstream source. The probes
+below are *confirmations*, not open investigations — do them on a throwaway
+branch before the real rewrite, but expect them to pass.
+
+1. *Spike on a throwaway branch.* Add =nci= + =nix-bindings-rust= flake inputs
+   (via =flake-file.inputs= with =nixpkgs.follows=), =git add --intent-to-add=
+   any new file, =nix run .#write-flake=.
+2. *Probe #1 (path leakage — confirms RISK 1):* in a scratch module, set
+   =nci.projects."nct-probe".path = selfLib.dir' "tools/nct"= and build
+   =config.nci.outputs."nct-probe".packages.dev=. Then =nix path-info --derivation=
+   on the result, and grep the .drv's inputSrcs / =nix derivation show= JSON for
+   any store path whose name does *not* start with the isolated =tools__nct=
+   hash. Expected: only the isolated crate dir. /Bonus:/ run
+   =packages.check-no-flake-source-leak= against =packages.nct= once wired.
+3. *Probe #2 (git deps — confirms RISK 3):* build =packages.nct= via nci
+   (=config.nci.outputs."nct".packages.release=). Expected: success with no
+   =outputHashes= and no manual vendoring — dream2nix calls
+   =builtins.fetchGit { shallow = true; }= for the =nix-bindings-*= deps
+   (verified in =fetchers/git/default.nix=). If it /does/ fail, the
+   =writeGitVendorEntries= / =replaceRelativePathsWithAbsolute= step is the
+   likely culprit (workspace path deps); inspect the failing phase.
+4. *Probe #3 (nciBuildConfig import — confirms the core payoff):* confirm
+   =config.nix-bindings-rust.nciBuildConfig= imports cleanly into the crate
+   =drvConfig= and that =nix derivation show= on the resulting =nct= .drv has
+   =nix-expr-c= / =nix-store-c= / =nix-flake-c= in =buildInputs= (added by
+   the =input-propagation-workaround=) and =LIBCLANG_PATH= /
+   =BINDGEN_EXTRA_CLANG_ARGS= in =env=. This is the whole point of the
+   migration — verifies we can delete =nixBindingsBuild= from
+   =modules/nct.nix=.
+5. Only if all probes pass → rewrite =modules/nct.nix= to the proposed wiring,
+   re-export =packages.nct= + =devShells.nct= + overlay from nci outputs,
+   update CI, regenerate flake, and update this section to DONE with
+   verification.
+
+** Decision gate (updated — lower-risk posture)
+- *Expected outcome:* all probes pass → adopt nci (Stage 3 DONE). Win:
+  upstream-maintained nix-bindings build config (=nciBuildConfig= +
+  propagation workaround) replaces our hand-maintained =nixBindingsBuild=,
+  plus nci gives per-profile packages + =check=/=clippy=/=docs= outputs for
+  free.
+- *If Probe #1 leaks (unlikely):* keep Stage 2's =builtins.path= discipline
+  but file an nci issue; fall back to manual =buildRustPackage=.
+- *If Probe #3 fails (unlikely — it's upstream's own dogfooded path):* keep
+  Stage 2 manual build; nci provides only marginal value without it.
+- *If Probe #2 fails:* two fallbacks — (a) pin the nix-bindings rev and add a
+  local =.cargo/config.toml= path override pointing at
+  =../nix/nix-bindings-rust= so dream2nix sees a *path* dep (which it handles
+  via =replaceRelativePathsWithAbsolute=) instead of a git dep; (b) keep
+  Stage 2 manual =buildRustPackage=. Git-dep handling is the one place
+  dream2nix has historically been fragile, so don't over-invest if it fights.
+
+** Status
+- [ ] Spike branch created.
+- [ ] Probe #1 (path leakage) — expected PASS.
+- [ ] Probe #2 (git deps under crane) — expected PASS (mechanism verified in source).
+- [ ] Probe #3 (nciBuildConfig import) — expected PASS (upstream dogfoods this).
+- [ ] Rewrite =modules/nct.nix= (gated on probes).
+- [ ] Update CI =nct-tests= job.
+- [ ] =nix run .#write-flake= + verify =nix build .#nct= / dev shell / tests.
