@@ -51,6 +51,7 @@ in
         self.nixosModules.sops
         self.nixosModules.xray-shared
         self.nixosModules.provision-clan-key
+        self.nixosModules.cloud-init-bwrap
       ];
 
       fileSystems."/" = {
