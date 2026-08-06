@@ -70,23 +70,26 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
     };
     println!("  ok ({} bytes)", age_key.len());
 
-    // 3. VM existence.
+    // 3. VM existence + allocate vmid (needed early so we can name the
+    //    remote image with it).
     let pve = Proxmox::new(&proxmox_host);
     if !dry_run
-        && let Some(vmid) = pve.vmid_for_name(cfg.hostname()).await?
+        && let Some(existing) = pve.vmid_for_name(cfg.hostname()).await?
     {
         bail!(
-            "VM '{}' already exists (vmid {vmid}). Delete it first: \
+            "VM '{}' already exists (vmid {existing}). Delete it first: \
              ssh root@{} qm destroy {} --purge",
             cfg.hostname(),
             proxmox_host,
-            vmid
+            existing
         );
     }
+    let vmid = if dry_run { 999 } else { pve.next_vmid().await? };
 
     // 4. Build cloud image (skipped if --test-reuse-image and the remote
-    //    image already exists).
-    let remote_image = format!("/tmp/{machine}-disk.qcow2");
+    //    image already exists). Named with vmid so concurrent/iterative runs
+    //    don't collide.
+    let remote_image = format!("/tmp/{machine}-{vmid}-disk.qcow2");
     let skip_build = test_reuse_image
         && !dry_run
         && pve.file_exists(&remote_image).await?;
@@ -121,11 +124,6 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
     }
 
     // 6. qm create.
-    let vmid = if dry_run {
-        999
-    } else {
-        pve.next_vmid().await?
-    };
     println!("\nStep 6: creating VM {vmid}");
     let disk_storage = disk_storage
         .clone()
