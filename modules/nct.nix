@@ -1,121 +1,86 @@
-{ self, ... }:
+{ self, inputs, ... }:
 let
   selfLib = self.lib.self;
-
-  # Common build inputs / env needed by the nix-bindings-* FFI crates
-  # (pkg-config + bindgen against Nix's C headers). Mirrors upstream's
-  # `nix-bindings-rust.nciBuildConfig`, simplified by building nct with
-  # clangStdenv (so bindgen finds compiler headers without a gcc shim).
-  nixBindingsBuild =
-    { pkgs, lib }:
-    let
-      inherit (pkgs)
-        pkg-config
-        nix
-        llvmPackages
-        ;
-      libclang = llvmPackages.clang-unwrapped.lib;
-    in
-    {
-      deps = {
-        nativeBuildInputs = [
-          pkg-config
-        ];
-        buildInputs = [
-          nix
-          # stdbool.h and friends
-          pkgs.stdenv.cc
-        ];
-        env = {
-          LIBCLANG_PATH = "${libclang}/lib";
-          BINDGEN_EXTRA_CLANG_ARGS = "-x c++ -std=c++2a";
-        };
-      };
-      shell = {
-        packages = [
-          nix
-          pkg-config
-          llvmPackages.clang-unwrapped
-        ];
-        env = {
-          LIBCLANG_PATH = "${libclang}/lib";
-          BINDGEN_EXTRA_CLANG_ARGS = "-x c++ -std=c++2a";
-        };
-      };
-    };
-
-  packageFn =
-    { rustPlatform, lib, pkgs }:
-    let
-      build = (nixBindingsBuild { inherit pkgs lib; }).deps;
-    in
-    rustPlatform.buildRustPackage (
-      {
-        pname = "nct";
-        version = "0.1.0";
-        src = selfLib.dir' "tools/nct";
-        cargoLock = {
-          lockFile = selfLib.file' "tools/nct/Cargo.lock";
-          # nix-bindings-* crates are git deps; fetch them via builtins so we
-          # don't have to maintain outputHashes that drift on every upstream
-          # bump. These are public, content-addressed git revs.
-          allowBuiltinFetchGit = true;
-        };
-        meta = {
-          mainProgram = "nct";
-          description = "nixos-config-tool: CLI for NixOS configuration management";
-        };
-      }
-      // build
-    );
+  # `inputs` is used via the `imports` below (inputs.nci.flakeModule,
+  # inputs.nix-bindings-rust.modules.flake.basic).
 in
 {
+  flake-file.inputs = {
+    nci = {
+      url = "github:90-008/nix-cargo-integration";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    # For the nciBuildConfig + input-propagation-workaround flake-parts module.
+    # (The Cargo crates themselves still come via the git dep in Cargo.toml.)
+    nix-bindings-rust = {
+      url = "github:nixops4/nix-bindings-rust";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  imports = [
+    inputs.nci.flakeModule
+    # Makes perSystem.nix-bindings-rust.{nciBuildConfig,nixPackage} available.
+    inputs.nix-bindings-rust.modules.flake.basic
+  ];
+
   perSystem =
-    { pkgs, lib, ... }:
+    { pkgs, config, ... }:
     let
-      # Use clang stdenv so bindgen finds compiler headers (features.h, etc.)
-      # without a gcc include-path shim.
-      rustPlatform = pkgs.makeRustPlatform {
-        inherit (pkgs) cargo rustc;
-        stdenv = pkgs.clangStdenv;
-      };
-      # bindgen (via libclang) doesn't read the stdenv cc wrapper, so add the
-      # libc + cc include paths explicitly. clangStdenv gives us these via
-      # its cc and libc_dev.
-      clangIncludeArgs = lib.concatStringsSep " " (
-        ["-x c++ -std=c++2a"]
-        ++ map (p: "-I${p}") ["${pkgs.glibc.dev}/include"]
-      );
-      shellBuild = (nixBindingsBuild { inherit pkgs lib; }).shell;
+      nciOut = config.nci.outputs."nct";
+      # nci per-profile packages: dev, release.
+      nctRelease = nciOut.packages.release;
     in
     {
-      packages.nct = pkgs.callPackage packageFn { inherit rustPlatform; };
+      nci.projects."nct".path = selfLib.dir' "tools/nct";
 
-      devShells.nct = pkgs.clangStdenv.mkDerivation {
-        name = "nct";
-        nativeBuildInputs = with pkgs; [
-          cargo
-          rustc
-          rust-analyzer
-          clippy
-          rustfmt
-          pkg-config
-          llvmPackages.clang-unwrapped
-        ];
-        buildInputs = [ pkgs.nix ];
-        LIBCLANG_PATH = "${pkgs.llvmPackages.clang-unwrapped.lib}/lib";
-        BINDGEN_EXTRA_CLANG_ARGS = clangIncludeArgs;
-      };
-    };
-
-  flake.overlays.nct = final: _prev: {
-    nct =
-      let
-        rustPlatform = final.makeRustPlatform {
-          inherit (final) cargo rustc;
-          stdenv = final.clangStdenv;
+      nci.crates."nct" = {
+        export = true;
+        # Use clangStdenv for both the deps derivation and the main one so
+        # bindgen finds compiler headers (features.h, stdbool.h, ...) without
+        # upstream's gcc bindgen shim.
+        #
+        # nciBuildConfig (pkg-config, libclang, bindgen args + the
+        # input-propagation-workaround that auto-adds the nix-*-c libraries)
+        # must go into depsDrvConfig: the nix-bindings-*-sys crates run
+        # build.rs (pkg-config + bindgen) during the *deps* build.
+        # (See nix-bindings-rust/nci.nix: "Downstream projects import this
+        # into depsDrvConfig instead".)
+        depsDrvConfig = {
+          imports = [ config.nix-bindings-rust.nciBuildConfig ];
+          deps.stdenv = pkgs.clangStdenv;
         };
-      in
-      final.callPackage packageFn { inherit rustPlatform; };
-  };
+        drvConfig = {
+          imports = [ config.nix-bindings-rust.nciBuildConfig ];
+          deps.stdenv = pkgs.clangStdenv;
+        };
+      };
+
+      packages.nct = nctRelease;
+
+      # Expose nci's native clippy / check outputs as flake checks, built with
+      # the same toolchain nci uses for the package (avoids the rustc/clippy
+      # version skew you'd hit by adding pkgs.clippy to the dev shell).
+      checks.nct-clippy = nciOut.clippy;
+      checks.nct-test = nciOut.check;
+
+      devShells.nct = nciOut.devShell.overrideAttrs (old: {
+        # nci's dev shell already adds the full Rust toolchain from its
+        # `mkShell` toolchain (cargo, rustc, cargo-clippy, clippy-driver,
+        # rustfmt, cargo-fmt — all at a consistent version). Only rust-analyzer
+        # isn't bundled in the rust toolchain, so add it from nixpkgs. Do NOT
+        # add pkgs.clippy / pkgs.rustfmt: they'd come from a different rustc
+        # than the toolchain and cause E0514 "incompatible version" errors.
+        packages = (old.packages or [ ]) ++ [ pkgs.rust-analyzer ];
+        # nciBuildConfig sets BINDGEN_EXTRA_CLANG_ARGS="-x c++ -std=c++2a",
+        # but in the dev shell bindgen calls libclang directly (bypassing the
+        # cc wrapper), so it can't find glibc's features.h. Add the include
+        # path explicitly. (Same fix as Stage 2.)
+        BINDGEN_EXTRA_CLANG_ARGS = "${old.BINDGEN_EXTRA_CLANG_ARGS or "-x c++ -std=c++2a"} -I${pkgs.glibc.dev}/include";
+      });
+    };
 }
+# NOTE: the Stage 2 `flake.overlays.nct` was dropped — it had no consumers
+# (not in modules/nix.nix defaultOverlays, nothing uses pkgs.nct). nct is only
+# consumed as a flake output (self'.packages.nct in devshell.nix). Re-add a
+# plain overlay if a consumer appears.

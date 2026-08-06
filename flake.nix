@@ -74,6 +74,10 @@
     impermanence.url = "github:nix-community/impermanence";
     import-tree.url = "github:vic/import-tree";
     lan-mouse.url = "github:feschber/lan-mouse";
+    nci = {
+      url = "github:90-008/nix-cargo-integration";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     niks3 = {
       url = "github:Mic92/niks3";
       inputs = {
@@ -87,6 +91,10 @@
         flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
       };
+    };
+    nix-bindings-rust = {
+      url = "github:nixops4/nix-bindings-rust";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-index-database = {
       url = "github:nix-community/nix-index-database";

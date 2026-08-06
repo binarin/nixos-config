@@ -228,7 +228,7 @@ Replicated upstream =nciBuildConfig=, simplified via clangStdenv:
 
 * Stage 3 — experiment: adopt nix-cargo-integration (nci)
 :PROPERTIES:
-:STATUS: INVESTIGATION / PLANNING
+:STATUS: DONE
 :END:
 
 ** Motivation
@@ -549,11 +549,59 @@ branch before the real rewrite, but expect them to pass.
   Stage 2 manual =buildRustPackage=. Git-dep handling is the one place
   dream2nix has historically been fragile, so don't over-invest if it fights.
 
-** Status
-- [ ] Spike branch created.
-- [ ] Probe #1 (path leakage) — expected PASS.
-- [ ] Probe #2 (git deps under crane) — expected PASS (mechanism verified in source).
-- [ ] Probe #3 (nciBuildConfig import) — expected PASS (upstream dogfoods this).
-- [ ] Rewrite =modules/nct.nix= (gated on probes).
-- [ ] Update CI =nct-tests= job.
-- [ ] =nix run .#write-flake= + verify =nix build .#nct= / dev shell / tests.
+** Status [DONE]
+- [X] Spike branch created (=nct-nci-spike=).
+- [X] Probe #1 (path leakage) — PASS. =nix derivation show .#nct= →
+      =env.src = /nix/store/...-tools__nct= (isolated =builtins.path=, not
+      =self=).
+- [X] Probe #2 (git deps under crane) — PASS. =nix build .#nct= compiles
+      the =nix-bindings-*= git deps with ZERO =outputHashes=; dream2nix calls
+      =builtins.fetchGit { shallow = true; }= exactly as analyzed.
+- [X] Probe #3 (nciBuildConfig import) — PASS. =config.nix-bindings-rust.nciBuildConfig=
+      imports into both =drvConfig= and =depsDrvConfig=; the FFI crates
+      (=nix-bindings-*-sys=) compile via the propagated =nix-*-c= libraries.
+- [X] Rewrite =modules/nct.nix=.
+- [X] Update CI =nct-tests= job.
+- [X] =nix run .#write-flake= + verify =nix build .#nct= / dev shell / tests.
+
+** Decisions / what changed (vs the plan)
+- *nciBuildConfig goes in BOTH =drvConfig= AND =depsDrvConfig=*, not just
+  =drvConfig= as the plan proposed. The plan missed that the
+  =nix-bindings-*-sys= crates (which run =build.rs= with pkg-config + bindgen)
+  are compiled during the *deps* build. nix-bindings-rust's own =nci.nix=
+  hints at this ("Downstream projects import this into depsDrvConfig
+  instead"). Without it, deps build fails with "pkg-config command could not
+  be found".
+- *Use nci's NATIVE clippy output, not =pkgs.clippy= in the dev shell.* The
+  plan proposed adding =pkgs.clippy=/=rustfmt= to the dev shell; that breaks
+  because nci's toolchain (rust-overlay, e.g. 1.97.1) and nixpkgs' clippy
+  (e.g. 1.95.0) are different rustc versions → =E0514 "incompatible
+  version"=. Instead: expose =nciOut.clippy= / =nciOut.check= as flake
+  =checks= (built with the correct toolchain), and in the dev shell add ONLY
+  =rust-analyzer= (not bundled in the rust toolchain) — =cargo-clippy= /
+  =clippy-driver= / =rustfmt= come from the toolchain already.
+- *Dropped the =flake.overlays.nct=* (it had no consumers: not in
+  =modules/nix.nix= =defaultOverlays=, nothing uses =pkgs.nct=). =nct= is only
+  consumed as =self'.packages.nct= in =modules/devshell.nix=. Re-add if a
+  consumer appears.
+- *Dev-shell BINDGEN_EXTRA_CLANG_ARGS still needs =-I${glibc.dev}/include=*
+  appended (same Stage 2 fix) — =nciBuildConfig.env= only sets
+  ="-x c++ -std=c++2a"=, and in the dev shell bindgen calls libclang
+  directly (bypassing the cc wrapper), so it can't find =features.h=.
+- *Ignored integration tests stay shell-based in CI.* nci's native =check=
+  runs =cargo test= but won't run =#[ignore]d= tests (which need a relocated
+  nix store + network). CI keeps a =cargo test -- --ignored= step in the dev
+  shell for those.
+
+** Verification [DONE]
+- [X] =nix build .#nct= clean; =nct --version= = =nct 0.1.0=.
+- [X] =nix build .#checks.x86_64-linux.nct-clippy= — warning-free.
+- [X] =nix build .#checks.x86_64-linux.nct-test= — 4 passed, 2 ignored.
+- [X] Dev shell: =cargo test= (4 pass) + =cargo test -- --ignored= (2 pass)
+      + =cargo clippy -- -D warnings= clean (rustc & clippy both 1.97.1).
+- [X] Playground:
+      =nct machine eval-expr llm-runner 'm: builtins.attrNames m.config.llama-models.configurations'=
+      → 7 configs.
+- [X] Default devshell still has =nct= on PATH (=self'.packages.nct=).
+- [X] =nix fmt= covers =.rs= files (rustfmt program).
+- [X] No flake-source leak: =env.src= is the isolated =tools__nct= path.
