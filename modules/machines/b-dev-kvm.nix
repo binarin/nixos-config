@@ -186,54 +186,56 @@ in
       # runs before that check, so we point TERMINFO_DIRS at a nix-store
       # database covering every terminal we might SSH in from. The package
       # list mirrors nixpkgs' environment.enableAllTerminfo.
-      programs.zsh.envExtra = let
-        terminfoDirs = lib.concatStringsSep ":" (
-          map (p: "${p.terminfo}/share/terminfo") (
-            with pkgs;
-            [
-              alacritty
-              contour
-              foot
-              ghostty
-              kitty
-              mtm
-              rio
-              rxvt-unicode-unwrapped
-              rxvt-unicode-unwrapped-emoji
-              st
-              tmux
-              wezterm
-              yaft
-            ]
-          )
-        );
-      in ''
-        export TERMINFO_DIRS=''${TERMINFO_DIRS:+$TERMINFO_DIRS:}${terminfoDirs}
+      programs.zsh.envExtra =
+        let
+          terminfoDirs = lib.concatStringsSep ":" (
+            map (p: "${p.terminfo}/share/terminfo") (
+              with pkgs;
+              [
+                alacritty
+                contour
+                foot
+                ghostty
+                kitty
+                mtm
+                rio
+                rxvt-unicode-unwrapped
+                rxvt-unicode-unwrapped-emoji
+                st
+                tmux
+                wezterm
+                yaft
+              ]
+            )
+          );
+        in
+        ''
+          export TERMINFO_DIRS=''${TERMINFO_DIRS:+$TERMINFO_DIRS:}${terminfoDirs}
 
-        if [[ -n $SSH_AUTH_SOCK && -e $SSH_AUTH_SOCK && $SSH_AUTH_SOCK != *ssh-agent-stable.sock ]]; then
-          ln -sf "$SSH_AUTH_SOCK" "$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
-        fi
+          if [[ -n $SSH_AUTH_SOCK && -e $SSH_AUTH_SOCK && $SSH_AUTH_SOCK != *ssh-agent-stable.sock ]]; then
+            ln -sf "$SSH_AUTH_SOCK" "$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
+          fi
 
-        export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
-        export BK_DISABLE_EVENTS=true
+          export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent-stable.sock"
+          export BK_DISABLE_EVENTS=true
 
-        # all of this only makes sense when I don't manage my configs with home-manager
-        local -a slow_scripts=(
-           /etc/profile.d/dotfiles.sh
-           /etc/profile.d/bk_completion.sh
-           /etc/profile.d/nvm.sh
-           /etc/profile.d/ssh_warn.sh
-           /etc/profile.d/completion.sh
-           /etc/profile.d/puppet_warn.sh
-         )
+          # all of this only makes sense when I don't manage my configs with home-manager
+          local -a slow_scripts=(
+             /etc/profile.d/dotfiles.sh
+             /etc/profile.d/bk_completion.sh
+             /etc/profile.d/nvm.sh
+             /etc/profile.d/ssh_warn.sh
+             /etc/profile.d/completion.sh
+             /etc/profile.d/puppet_warn.sh
+           )
 
-         for f in $slow_scripts; do
-           if [[ -s $f ]]; then
-             sudo tee $slow_scripts < /dev/null > /dev/null
-             break
-           fi
-         done
-      '';
+           for f in $slow_scripts; do
+             if [[ -s $f ]]; then
+               sudo tee $slow_scripts < /dev/null > /dev/null
+               break
+             fi
+           done
+        '';
 
       programs.zsh.initContent = lib.mkMerge [
         (lib.mkOrder 500 ''
@@ -272,13 +274,17 @@ in
           claude-code
           workmux
         ])
+        ++ (with pkgs.bleeding; [ devenv ])
         ++ (with pkgs; [
           asciinema
           delta
           tramp-rpc-server
           (writeShellApplication {
             name = "bentos-setup";
-            runtimeInputs = [ git jq ];
+            runtimeInputs = [
+              git
+              jq
+            ];
             text = selfLib.read "bin/bentos-setup.git-crypt";
           })
           self.packages.x86_64-linux.bentos-patchcritic
