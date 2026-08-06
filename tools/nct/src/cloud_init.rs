@@ -36,6 +36,14 @@ pub fn user_data(
         }
     }
     out.push_str(&format!("clan-machine-key: {age_key}\n"));
+    // Allow cloud-init to apply the network-config on every boot, not just
+    // boot-new-instance. NoCloud's default only allows network updates on a
+    // new instance-id; without this, cloud-init skips network rendering on
+    // first boot when the instance-id is stable (Proxmox's meta-data has a
+    // fixed id), leaving the image's DHCP fallback in charge.
+    out.push_str("updates:\n");
+    out.push_str("  network:\n");
+    out.push_str("    when: [boot]\n");
     out
 }
 
@@ -120,6 +128,10 @@ mod tests {
         assert!(ud.contains("clan-machine-key: AGE-SECRET-KEY-1XYZ\n"));
         // And the grep target the initrd unit uses:
         assert!(ud.lines().any(|l| l.starts_with("clan-machine-key:")));
+        // And the network-update gate opener:
+        assert!(ud.contains("updates:\n"));
+        assert!(ud.contains("  network:\n"));
+        assert!(ud.contains("    when: [boot]\n"));
     }
 
     #[test]
