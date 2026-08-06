@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use log::{error, info, debug, LevelFilter};
+use log::{LevelFilter, debug, error, info};
 use niri_ipc::socket::Socket;
 use niri_ipc::state::{EventStreamState, EventStreamStatePart};
 use niri_ipc::{Event, Request, Response, Window};
