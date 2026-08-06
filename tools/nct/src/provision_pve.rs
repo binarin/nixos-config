@@ -178,9 +178,16 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
 
     // 8. Import qcow2 (skip rsync if we reused the remote image).
     println!("\nStep 8: importing disk image");
+    // Resize the imported image to the configured size (if any). The qcow2 is
+    // built at the image's native (small) size; `qm resize` grows the virtual
+    // disk, then cloud-init's growpart+resizefs expand the partition + fs.
+    let disk_size = vmc.disks.first().and_then(|d| d.size.clone());
     if dry_run {
         println!("  would rsync {} -> root@{}:{remote_image}", image_path.display(), proxmox_host);
         println!("  would run: qm set {vmid} --scsi0 {disk_storage}:0,import-from={remote_image}");
+        if let Some(ref sz) = disk_size {
+            println!("  would run: qm resize {vmid} scsi0 {sz}");
+        }
     } else {
         if !skip_build {
             pve.rsync_to(&image_path, &remote_image).await?;
@@ -190,6 +197,10 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
         let spec = format!("{disk_storage}:0,import-from={remote_image}");
         pve.qm(&["set", &vmid.to_string(), "--scsi0", &spec]).await?;
         pve.qm(&["set", &vmid.to_string(), "--boot", "order=scsi0"]).await?;
+        if let Some(ref sz) = disk_size {
+            println!("  resizing scsi0 to {sz}");
+            pve.qm(&["resize", &vmid.to_string(), "scsi0", sz]).await?;
+        }
         // Cleanup the temp image on the host — unless we're keeping it for reuse.
         if !test_reuse_image {
             pve.run_remote(&[format!("rm -f {remote_image}")]).await.ok();
