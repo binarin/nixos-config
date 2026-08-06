@@ -234,16 +234,16 @@ fn build_cloud_image(machine: &str) -> Result<PathBuf> {
 /// Decrypt `<machine>-age.key` via clan.
 fn clan_secret_get(machine: &str) -> Result<String> {
     let name = format!("{machine}-age.key");
+    // Inherit stdin + stderr so interactive prompts (yubikey PIN touch/pinentry)
+    // work on a real terminal, but capture stdout since we need the key value.
     let out = std::process::Command::new("clan")
         .args(["secrets", "get", &name])
+        .stdin(std::process::Stdio::inherit())
+        .stderr(std::process::Stdio::inherit())
         .output()
         .with_context(|| format!("spawning `clan secrets get {name}` (is clan on PATH?)"))?;
     if !out.status.success() {
-        bail!(
-            "clan secrets get {name} failed: {}\n{}",
-            out.status,
-            String::from_utf8_lossy(&out.stderr).trim()
-        );
+        bail!("clan secrets get {name} failed: {}", out.status);
     }
     Ok(String::from_utf8_lossy(&out.stdout).trim().to_owned())
 }
