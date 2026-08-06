@@ -25,10 +25,10 @@ scaffold.
   - =overlays.nct=.
 - =modules/devshell.nix= :: added =self'.packages.nct= to =devShells.default=.
 - =modules/formatter.nix= :: enabled =programs.rustfmt= in treefmt.
-- =.forgejo/workflows/nct-tests.yaml= :: CI mirroring =tool-tests.yaml=
-  conventions (=runs-on: native=, =env-aware-nix-develop=, master + PR
-  triggers): runs =cargo test= in =.#devShells.x86_64-linux.nct= and =nix build
-  .#nct=.
+- =.forgejo/workflows/tool-tests.yaml= :: added an =nct-tests= job there
+  (mirroring the existing =ncf-tests= / =monitoring-tests= conventions:
+  =runs-on: native=, =env-aware-nix-develop=, master + PR triggers) running
+  =cargo test= in =.#devShells.x86_64-linux.nct= and =nix build .#nct=.
 
 ** Decisions
 - Async-first: =tokio= (full) pulled in from the start; =main= is
@@ -66,10 +66,162 @@ Decide the command tree. Candidate stubs mirroring =ncf=:
   ssh-to-age, deploy-rs, ...) by wrapping them at the nix level
   (=postFixup wrapProgram=) like =ncf= does, or shells out at runtime.
 - Decide on nix invocation strategy (eval/build via =Command= calls vs. an
-  in-process nix library).
+  in-process nix library). → *resolved in Stage 2: in-process via
+  nix-bindings-rust.*
 
 ** Quality
-- [ ] Add clippy to CI (not a treefmt program; run via devshell).
+- [X] Add clippy to CI (not a treefmt program; run via devshell).
+      Added a =cargo clippy --all-targets -- -D warnings= step to the
+      =nct-tests= job in =.forgejo/workflows/tool-tests.yaml=.
 - [ ] Consider =deny(warnings)= once surface stabilizes.
-- [ ] Integration tests via =assert_cmd= (already a dev-dep) exercising the CLI
-      end-to-end.
+- [~] Integration tests via =assert_cmd= (already a dev-dep) exercising the CLI
+      end-to-end. → *partially superseded*: Stage 2 added =#[ignore]d=
+      in-process integration tests (=eval_flake_apply= against a fixture
+      flake) instead of spawning the =nct= binary via =assert_cmd=. CLI arg
+      parsing is covered by unit tests. A true end-to-end =assert_cmd= test
+      (e.g. =nct machine eval-expr --help=) is still a reasonable follow-up.
+
+* Stage 2 — nix-bindings-rust integration + =machine eval-expr=
+
+** Context / investigation
+
+Upstream: [[https://github.com/nixops4/nix-bindings-rust][nixops4/nix-bindings-rust]], checked out locally at
+=../nix/nix-bindings-rust/= (reference only).
+
+*** Crate layout (workspace)
+- =nix-bindings-util= — version detection (parses =pkg-config --modversion
+  nix-store-c=, emits =cfg(nix_at_least="2.26")= etc.), settings, context.
+- =nix-bindings-store= — =Store::open=, =StorePath=.
+- =nix-bindings-expr= — =EvalState= / =EvalStateBuilder=, =eval_from_string=,
+  =require_*= (int/bool/string/list/attrs), =call=, =call_multi=,
+  =gc_register_my_thread=, =init=.
+- =nix-bindings-flake= — =FlakeSettings= + =EvalStateBuilderExt::flakes=,
+  enables =builtins.getFlake= / flake refs in an =EvalState=. Depends on
+  =nix-bindings-fetchers= (which needs Nix ≥ 2.29).
+- =nix-bindings-fetchers= — =FetchersSettings=; Nix ≥ 2.29.
+- =-sys= siblings: bindgen-generated FFI, not for direct use.
+
+*** Build requirements (the hard part)
+These are not pure-Rust crates. =build.rs= / =pkg-config= / bindgen need, at
+build time:
+- Nix's C headers + libraries, discoverable as =nix-store-c= / =nix-expr-c=
+  via pkg-config. The version string drives =cfg(nix_at_least=...)=.
+- =pkg-config= (nativeBuildInput).
+- =libclang= / =clang-unwrapped= for bindgen (=LIBCLANG_PATH=,
+  =BINDGEN_EXTRA_CLANG_ARGS=-x c++ -std=c++2a=).
+- =stdenv.cc= (for =stdbool.h=).
+- With gcc stdenv: the upstream =bindgen-gcc.sh= shim sets
+  =NIX_CC_UNWRAPPED= so bindgen finds system headers.
+
+Upstream provides an =nciBuildConfig= flake-parts module for nci users; we use
+=rustPlatform.buildRustPackage= (see =modules/nct.nix=), so we must replicate
+that config manually as =nativeBuildInputs= / =buildInputs= / env on the
+derivation. Reference impl: =../nix/nix-bindings-rust/flake.nix= →
+=config.nix-bindings-rust.nciBuildConfig=.
+
+Local Nix version: =2.34.8= (Determinate), so the ≥ 2.29 fetchers floor and
+≥ 2.26 =EvalStateBuilder= are both satisfied.
+
+*** Pull strategy (decided)
+- **No flake input.** Pull the crates via Cargo, not via
+  =inputs.nix-bindings-rust=.
+- Initial: git source in =Cargo.toml=
+  (=git = "https://github.com/nixops4/nix-bindings-rust"=), so it builds in CI
+  and on other machines. Regenerate =Cargo.lock=.
+- Optional dev convenience later: a =.cargo/config.toml= =path= override
+  pointing at =../nix/nix-bindings-rust= for local hacking (kept out of the
+  committed build path).
+
+** Playground target
+
+#+begin_src shell
+nct machine eval-expr llm-runner 'm: builtins.attrNames m.config.llama-models.configurations'
+#+end_src
+
+Semantics (mirrors =nix eval --apply=):
+1. Load this flake's =nixosConfigurations.<name>= (full NixOS module eval) as a
+   Nix value, via =builtins.getFlake=. <name> is =llm-runner=.
+2. Apply the user lambda (=m: ...=) to that value (so =m= is the whole
+   =nixosConfigurations.llm-runner= attrset — /note/: this is the *top-level*
+   machine attrset, i.e. ={ config, pkgs, ... }= result, so =m.config.X= is the
+   right access pattern).
+3. Print the result: strings verbatim, lists/attrsets as a JSON-ish dump
+   (reuse =nix eval='s output shape where cheap; full pretty-print is a
+   follow-up).
+
+A flake ref is needed because the playground reads =.#nixosConfigurations=;
+so =EvalState= must be built with flakes enabled
+(=EvalStateBuilder::flakes(&flake_settings)=).
+
+** Tasks [DONE]
+
+*** DONE Cargo deps
+- [X] Added =nix-bindings-store=, =nix-bindings-expr=, =nix-bindings-flake=
+  (git) to =tools/nct/Cargo.toml=. =util=/=-sys= come transitively.
+  Regenerated =Cargo.lock=.
+
+*** DONE Build wiring in =modules/nct.nix=
+Replicated upstream =nciBuildConfig=, simplified via clangStdenv:
+- [X] =makeRustPlatform { stdenv = clangStdenv; }= (avoids gcc bindgen shim).
+- [X] =nativeBuildInputs = [ pkg-config ]=, =buildInputs = [ nix stdenv.cc ]=.
+- [X] =env.LIBCLANG_PATH= + =BINDGEN_EXTRA_CLANG_ARGS=.
+- [X] Dev shell: =clangStdenv.mkDerivation= with same env + extra
+      =-I${glibc.dev}/include= (bindgen calls libclang directly).
+- [X] =cargoLock.allowBuiltinFetchGit = true= (no =outputHashes= maintenance).
+
+*** DONE Runtime: thread/GC + EvalState bootstrap
+- [X] =tools/nct/src/nix_eval.rs=: =init()= + =gc_register_my_thread()= guard
+      on a dedicated OS thread (=std::thread::scope=).
+- [X] =EvalStateBuilder::new(store)?.flakes(&FlakeSettings::new()?)?.build()?=.
+- [X] =Store::open(None, HashMap::new())?=.
+
+*** DONE =machine eval-expr <name> <expr>= command
+- [X] clap =EvalExpr { name, expr }=; global =-f/--flake= (default =.=).
+- [X] Logic: =getFlake= → dotted attr path navigation → =call(lambda, value)=
+      → =print_value=.
+- [X] Refactored generic =eval_flake_apply(flake_root, attr_path, expr)=
+      under the =machine eval-expr= convenience wrapper.
+
+*** DONE Tests
+- [X] Unit: arg parsing (3), bootstrap error path (1).
+- [X] Integration (=#[ignored]=, fixture-based, no network):
+      =tests/fixtures/min-flake/flake.nix= — attr navigation + lambda apply.
+- [X] CI =.forgejo/workflows/tool-tests.yaml= =nct-tests= job runs both
+      =cargo test= and =cargo test -- --ignored=.
+
+*** DONE Verification
+- [X] =nix build .#nct= clean; =./result/bin/nct --version=.
+- [X] =cargo clippy --all-targets= warning-free.
+- [X] =cargo test= (4 pass) + =cargo test -- --ignored= (2 pass).
+- [X] Playground:
+      =nct machine eval-expr llm-runner 'm: builtins.attrNames m.config.llama-models.configurations'=
+      → =[ "gemma4"; "granite-4.1-30b"; ... ]= (2.5s).
+
+*** TODO Docs / follow-ups
+- [ ] =tools/nct/README.md= usage section.
+- [ ] Generalize CLI: =nct eval-expr <attr-path> <expr>= (currently only
+      =machine eval-expr <name>=).
+- [ ] JSON output flag.
+- [ ] Decide whether to vendor =outputHashes= for reproducibility/pinning
+      instead of =allowBuiltinFetchGit=. (Trade-off: drift vs provenance.)
+
+** Open questions [resolved]
+1. Which Nix package for the =buildInputs=? → *pkgs.nix* (decided).
+2. Should =eval-expr= default to =.#nixosConfigurations.<name>= or accept a
+   generic attribute path? → added generic =eval_flake_apply(flake_root,
+   attr_path, expr)= under the hood; the CLI still exposes the
+   =machine eval-expr <name>= convenience. Generalizing the CLI flag is a
+   follow-up.
+3. Output format → Nix-style pretty print (lists/attrsets with =;=-terminated
+   entries). JSON is a follow-up if needed.
+4. Where to run GC-registered nix work under =#[tokio::main]=? → dedicated OS
+   thread via =std::thread::scope=+spawn (avoids tokio blocking nuances).
+
+** Resolved along the way
+- FFI build wiring: use *clangStdenv* (=makeRustPlatform= with
+  =stdenv = clangStdenv=) instead of upstream's gcc bindgen shim — sidesteps
+  the =features.h= not-found problem entirely. Dev shell still needs
+  =BINDGEN_EXTRA_CLANG_ARGS= extended with =-I${glibc.dev}/include= because
+  bindgen calls libclang directly (bypassing the cc wrapper).
+- Git deps: =cargoLock.allowBuiltinFetchGit = true= avoids maintaining 11
+  =outputHashes= that drift on every upstream bump.
