@@ -1043,9 +1043,50 @@ Why:
     The =fsTypes= option lists =iso9660=/=vfat= but the module does NOT add
     them to =boot.initrd.{available,}kernelModules=. (Adding them works but
     requires a rebuild — breaks =--test-reuse-image= for the current image.)
-    Also: sops needs =/etc/ssh/ssh_host_ed25519_key= too (its age-from-SSH
-    fallback); nct's user-data doesn't inject SSH host keys (ncf does, via
-    cloud-init =write_files=).
+
+    Fix applied: =boot.initrd.kernelModules = cfg.fsTypes= in the
+    provision-clan-key module (needs a rebuild). After rebuild, the seed
+    mounted and the age key was written — but to the WRONG path.
+
+*** UPDATE 2 (live run): age-key path was wrong (sops vs age secret store)
+    provision-clan-key wrote to =clan.core.vars.age.secretLocation=, but this
+    machine uses the **sops** secret store, so clan wires sops-nix's
+    =age.keyFile= to =''${clan.core.vars.sops.secretUploadDirectory}/key.txt=
+    (= /var/lib/sops-nix/key.txt=) — NOT to =age.secretLocation= (that's for
+    the =age= store, a different code path nobody reads here). So
+    sops-install-secrets couldn't find the key.
+
+    Fix applied: the module picks the destination based on secretStore:
+    =sops= → =secretUploadDirectory=, =age= → =age.secretLocation=. After
+    rebuild, =/var/lib/sops-nix/key.txt= is written by the initrd, survives
+    pivot, and clan's sops machinery decrypts + deploys all clan vars
+    (including the SSH host key to =/run/secrets/vars/openssh/...=).
+
+*** RESOLVED: clan age-key bootstrap works end-to-end ✓
+    - net 192.168.3.10 (cloud-init network-config via bwrap'd cloud-init) ✓
+    - =/var/lib/sops-nix/key.txt= provisioned by initrd from NoCloud seed ✓
+    - clan vars deployed (=/run/secrets/vars/=, SSH host key present) ✓
+
+*** OUT OF SCOPE (separate sops-nix setup, NOT clan, NOT a provision-pve bug):
+    The machine also runs **plain sops-nix** (the nixpkgs module) for the
+    **xray server config** secrets (=xray-exit-params=, =xray-reality-exit/
+    private-key=, ...). That sops-nix instance reads
+    =/etc/ssh/ssh_host_ed25519_key= for its age-from-SSH key derivation, but
+    that path is owned by **neither** secret system on this image — on other
+    machines it lives in persistent storage (=monitor= has =/persist/ssh/...=).
+    Here cloud-init generates a random one (racing sops), so sops-nix aborts
+    before decrypting the xray config. =Cannot read ssh key= is a warning +
+    abort from THAT sops-nix instance; it is unrelated to clan's working
+    bootstrap. Fixing it = the xray module's job (point =sops.age.sshKeyFile=
+    somewhere stable, or stop relying on SSH-derived age for the xray config) —
+    **not nct provision-pve's concern**.
+
+*** Minor: cloud-init.service =cc_users_groups= fails on
+    =passwd: cannot open /etc/passwd= — nixos manages =/etc/passwd=, cloud-init
+    can't. Cosmetic, doesn't affect networking or secrets. Could disable the
+    =users-groups= cloud-init module in the image config.
+
+    (Earlier options D/E/F below are superseded by the actual fixes above.)
 
     Fix options:
     - **(D) Add the fs modules to the initrd** (=boot.initrd.kernelModules =
