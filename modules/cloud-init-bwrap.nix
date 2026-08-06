@@ -71,6 +71,23 @@
     in
     {
       config = lib.mkIf config.services.cloud-init.enable {
+        # nixos owns user/group management; cloud-init's `users-groups` module
+        # runs `passwd`, which can't open nixos's overlay-managed /etc/passwd
+        # (`passwd: cannot open /etc/passwd`) and aborts cloud-init.service.
+        # Drop it from the module list so the rest of cloud-init runs clean.
+        services.cloud-init.settings.cloud_init_modules = lib.mkForce [
+          "migrator"
+          "seed_random"
+          "bootcmd"
+          "write-files"
+          "growpart"
+          "resizefs"
+          "update_hostname"
+          "resolv_conf"
+          "ca-certs"
+          "rsyslog"
+        ];
+
         systemd.services = {
           cloud-init-local = wrapUnit "init --local";
           cloud-init = wrapUnit "init";
