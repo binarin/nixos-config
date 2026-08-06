@@ -77,9 +77,13 @@ impl Proxmox {
         Ok(None)
     }
 
-    /// Get the next free VMID from the cluster.
+    /// Get the next free VMID from the cluster via the Proxmox API
+    /// (`pvesh get /cluster/nextid`). There's no `qm` subcommand for this;
+    /// ncf gets it via the proxmoxer REST client, which hits the same endpoint.
     pub async fn next_vmid(&self) -> Result<u64> {
-        let out = self.qm(&["cluster", "nextid"]).await?;
+        let out = self
+            .run_remote(&["pvesh".into(), "get".into(), "/cluster/nextid".into()])
+            .await?;
         out.parse::<u64>()
             .with_context(|| format!("parsing nextid `{out}`"))
     }
