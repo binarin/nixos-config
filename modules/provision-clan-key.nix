@@ -170,6 +170,11 @@
             # tool, so the whole user-data stays valid YAML and the extractor
             # is a targeted grep instead of a prefix scan. The value is a
             # single AGE-SECRET-KEY-1... line.
+            # `set -x` from here on would trace the key assignment verbatim and
+            # burn the machine's age private key into the persistent journal,
+            # which is group-readable (wheel, adm) — not just root. Trace stays
+            # off until the secret is out of scope.
+            set +x
             if key_line="$(grep -m1 '^clan-machine-key:' "$user_data")"; then
               key="''${key_line#clan-machine-key: }"
               case "$key" in
@@ -186,6 +191,8 @@
             else
               echo "provision-clan-key: no clan-machine-key line in $user_data"
             fi
+            unset key key_line
+            set -x
 
             umount "$seed_mnt"
             rmdir "$seed_mnt" 2>/dev/null || true
