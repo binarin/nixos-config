@@ -78,12 +78,6 @@ in
         network.enable = true;
       };
 
-      # nixos overlays /etc at boot, so anything the initrd writes under
-      # /etc (clan's default secretLocation) is shadowed by the overlay and
-      # lost. Point clan's age key location at a real on-root dir instead, so
-      # provision-clan-key's initrd write survives pivot.
-      clan.core.vars.age.secretLocation = lib.mkForce "/var/lib/clan-age-keys";
-
       # Fetch the clan age key from the NoCloud seed (Proxmox CloudInit
       # drive) during Stage 1, so that clan/sops secrets decrypt cleanly
       # on the first boot of an image-provisioned VM.

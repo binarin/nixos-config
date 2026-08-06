@@ -8,10 +8,19 @@
     { pkgs, config, lib, ... }:
     let
       cfg = config.boot.initrd.provisionClanKey;
-      # Mirror clan's own key location so we write where clan's Stage 2
-      # decryption expects to read.
+      # The age key must land where clan's Stage 2 decryption reads it. That
+      # depends on the configured secret store:
+      #   - "sops" -> clan.core.vars.sops.secretUploadDirectory (sops-nix's
+      #     age.keyFile is wired to ${secretUploadDirectory}/key.txt by
+      #     clanCore/vars/secret/sops/default.nix)
+      #   - "age"  -> clan.core.vars.age.secretLocation
+      # Both must be real on-root dirs (NOT under /etc, which nixos overlays at
+      # boot — an initrd write there is shadowed and lost after pivot).
       secretLocation =
-        config.clan.core.vars.age.secretLocation or "/etc/secret-vars";
+        if (config.clan.core.vars.settings.secretStore or "") == "sops" then
+          config.clan.core.vars.sops.secretUploadDirectory or "/var/lib/sops-nix"
+        else
+          config.clan.core.vars.age.secretLocation or "/etc/secret-vars";
       # In the initrd the real root is mounted at /sysroot.
       keyPath = "/sysroot${secretLocation}/key.txt";
     in
