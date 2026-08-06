@@ -89,7 +89,8 @@
 
         boot.initrd.systemd.storePaths = with pkgs; [
           util-linux # mount, umount, findmnt
-          coreutils # mkdir, chmod, grep, etc.
+          coreutils # mkdir, chmod, etc.
+          gnugrep # grep the clan-machine-key line
         ];
 
         # The NoCloud seed (Proxmox CloudInit drive) is iso9660, sometimes
@@ -115,6 +116,7 @@
           path = with pkgs; [
             util-linux
             coreutils
+            gnugrep
           ];
           script = ''
             set -x
