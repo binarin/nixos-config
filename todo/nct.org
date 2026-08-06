@@ -989,11 +989,79 @@ Why:
    worker thread is simpler than reasoning about =!Send= across scopes.)
    If we ever need parallel eval, register more threads — but one is fine
    here; introspection is sequential.
-8. ~~Cloud-init networking~~ → resolved by probe + design: generate a
-   NoCloud =network-config= v2 snippet (=cicustom network=) AND mirror
-   the values into Proxmox-native =--ipconfig0= / =--nameserver= (in sync,
-   both from the one =--network= inventory net). =cicustom network= is
-   what the guest consumes (probe-confirmed verbatim passthrough);
-   =ipconfig0= keeps =qm config= / the UI self-documenting. nixos
-   cloud-init (=services.cloud-init.network.enable=) consumes the
-   NoCloud network-config.
+8. ~~Cloud-init networking~~ → **PARTIALLY RESOLVED, NEW BLOCKER FOUND.**
+   The =cicustom network= (v2) snippet IS read by cloud-init (probe
+   confirmed: logs show it parsed the =192.168.3.10/24= config). But
+   cloud-init **refuses to apply it**, logging:
+   #+begin_quote
+   No network config applied. Neither a new instance nor datasource
+   network update allowed ... Writing to /run/cloud-init/.skip-network
+   #+end_quote
+   Root cause: NoCloud only applies network config on a =boot-new-instance=
+   event (instance-id changed). On nixos the DHCP fallback
+   (=/etc/systemd/network/99-ethernet-default-dhcp.network= from the image)
+   wins because cloud-init never rendered a competing =50-cloud-init.network=.
+   Two fix paths:
+   - **(A) Force instance-id per provision.** Set a unique =instance-id= in
+     =meta-data= (Proxmox's default =meta-data= has a stable id). Either
+     override =cicustom meta=...= with our own, or it may need
+     =network.update_hostname= shenanigans. Fragile.
+   - **(B) Don't use cloud-init for networking — configure it in the nixos
+     image itself.** Since =provision-pve= knows the network at provision
+     time, and the image is built per-machine anyway, bake the static
+     systemd-networkd config into the image (like the existing
+     =qemu-guest.proxmox.staticNetwork= path does for the =home= net).
+     Defeats "portable image" but this image is machine-specific already.
+   - **(C) Drop the DHCP fallback in the image** so cloud-init's rendered
+     config is the only one. Set the image's network config to *not* ship
+     =99-ethernet-default-dhcp.network= when =services.cloud-init.network.enable=
+     is on.
+   → Needs a decision. (C) is the cleanest if the nixos cloud-init module
+   cooperates; (B) is simplest but loses portability; (A) is hacky.
+   Network-config v2 passthrough itself is confirmed working.
+
+*** UPDATE (live run): networking FIXED, secrets bootstrap is the new blocker
+    After two more fixes, cloud-init networking now works end-to-end on the
+    live VM (eth0 gets 192.168.3.10):
+    - =updates: { network: { when: [boot] } }= in user-data opens cloud-init's
+      =boot= event gate (NoCloud default only allows =boot-new-instance=).
+    - route =to: 0.0.0.0/0= (not netplan's =default=) — cloud-init's v2 parser
+      rejects the =default= keyword.
+    - [[=modules/cloud-init-bwrap.nix=]] wraps cloud-init in a bubblewrap
+      namespace exposing =/usr/sbin/ip= + =/bin/systemctl=, because cloud-init's
+      networkd renderer hardcodes =subp.which(search=["/usr/sbin","/bin"])=
+      (ignores $PATH) and those dirs don't exist on nixos → renderer wrote the
+      .network file but NetworkdActivator reported unavailable → wrote
+      =.skip-network=. Scoped to the 4 cloud-init units (mkForce ExecStart +
+      rewritten =path=); no global overlay.
+
+    **NEW BLOCKER — provision-clan-key fails in the initrd:**
+    =modules/provision-clan-key.nix='s initrd unit tries =mount -t iso9660/
+    vfat /dev/disk/by-label/cidata= but the systemd initrd lacks those fs
+    modules → "unknown filesystem type" → age key never extracted →
+    =sops-install-secrets.service= fails (=RequiresMountsFor=/var/lib/sops-nix/key.txt=).
+    The =fsTypes= option lists =iso9660=/=vfat= but the module does NOT add
+    them to =boot.initrd.{available,}kernelModules=. (Adding them works but
+    requires a rebuild — breaks =--test-reuse-image= for the current image.)
+    Also: sops needs =/etc/ssh/ssh_host_ed25519_key= too (its age-from-SSH
+    fallback); nct's user-data doesn't inject SSH host keys (ncf does, via
+    cloud-init =write_files=).
+
+    Fix options:
+    - **(D) Add the fs modules to the initrd** (=boot.initrd.kernelModules =
+      [ "iso9660" "vfat" ]=, or do it in the provision-clan-key module's
+      config). Requires an image rebuild but is the minimal change; the reused
+      image simply can't run this initrd unit.
+    - **(E) Move provision-clan-key to Stage 2**, ordered
+      =Before=sops-install-secrets.service= (=RequiresMountsFor=/dev/sr0=).
+      Avoids the initrd fs-module gap entirely; the "race" the initrd placement
+      guarded against is sops units (=Before=sysinit-reactivation.target=),
+      which a Stage 2 unit with =Before=sops-install-secrets.service= still wins.
+      Cleanest, no rebuild-needed-for-fs-modules, but still needs a rebuild to
+      change the module.
+    - **(F) Inject SSH host keys via cloud-init =write_files=** (port ncf's
+      path) so sops's age-from-SSH fallback works even without the age key —
+      but that's a different secret model than clan's age key.
+    → Lean (E): Stage 2 + proper unit ordering. Rebuild the image once.
+    → Separately: port ncf's SSH-host-key injection to =nct='s user-data so
+      sops has both keys available.

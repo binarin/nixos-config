@@ -92,6 +92,13 @@
           coreutils # mkdir, chmod, grep, etc.
         ];
 
+        # The NoCloud seed (Proxmox CloudInit drive) is iso9660, sometimes
+        # vfat. These fs modules must be in the initrd or `mount -t iso9660/
+        # vfat /dev/disk/by-label/cidata` fails with "unknown filesystem type"
+        # and the age key is never extracted.
+        boot.initrd.kernelModules = cfg.fsTypes;
+        boot.initrd.availableKernelModules = cfg.fsTypes;
+
         boot.initrd.systemd.services.provision-clan-key = {
           description = "Fetch clan age key from NoCloud seed";
           # Run after the real root is mounted, before we pivot.
