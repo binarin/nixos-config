@@ -89,8 +89,9 @@ struct Nameservers {
 pub fn network_config(ip: &IpAlloc, net: &Network) -> String {
     let addresses = vec![format!("{}/{}", ip.address, net.prefix)];
     let routes = net.gateway.as_ref().map(|gw| {
+        // cloud-init's v2 parser expects `0.0.0.0/0`, not netplan's `default`.
         vec![Route {
-            to: "default".into(),
+            to: "0.0.0.0/0".into(),
             via: gw.clone(),
         }]
     });
@@ -157,7 +158,7 @@ mod tests {
         assert!(nc.contains("version: 2"));
         assert!(nc.contains("addresses:"));
         assert!(nc.contains("- 192.168.3.10/24"));
-        assert!(nc.contains("to: default"));
+        assert!(nc.contains("to: 0.0.0.0/0"));
         assert!(nc.contains("via: 192.168.3.1"));
         assert!(nc.contains("- 192.168.3.1"));
         assert!(nc.contains("- guest.binarin.info"));
