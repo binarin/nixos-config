@@ -48,7 +48,7 @@ in
         self.nixosModules.qemu-guest
         (selfLib.file' "machines/llm-runner/hardware-configuration.nix")
 
-        self.nixosModules.sops
+        # self.nixosModules.sops
         self.nixosModules.xray-shared
         self.nixosModules.provision-clan-key
         self.nixosModules.cloud-init-bwrap
@@ -68,25 +68,14 @@ in
 
       networking.useNetworkd = true;
 
-      # Portable cloud image: disable qemu-guest's static home-VLAN networking
-      # so cloud-init / DHCP configures eth0 at boot.
       nixos-config.qemu-guest.proxmox.staticNetwork = false;
 
-      # cloud-init: lets the host inject SSH keys / network at boot.
       services.cloud-init = {
         enable = true;
         network.enable = true;
       };
-
-      # Fetch the clan age key from the NoCloud seed (Proxmox CloudInit
-      # drive) during Stage 1, so that clan/sops secrets decrypt cleanly
-      # on the first boot of an image-provisioned VM.
-      boot.initrd.systemd.enable = true;
       boot.initrd.provisionClanKey.enable = true;
 
-      # Bootable qcow2 image (pure nixpkgs make-disk-image).
-      # Build with:
-      #   nix build '.#nixosConfigurations.xray-exit.config.system.build.cloudImage'
       system.build.cloudImage = import "${pkgs.path}/nixos/lib/make-disk-image.nix" {
         inherit lib pkgs config;
         format = "qcow2";
