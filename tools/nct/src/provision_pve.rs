@@ -189,7 +189,6 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
         let spec = format!("{disk_storage}:0,import-from={remote_image}");
         pve.qm(&["set", &vmid.to_string(), "--scsi0", &spec]).await?;
         pve.qm(&["set", &vmid.to_string(), "--boot", "order=scsi0"]).await?;
-        pve.qm(&["set", &vmid.to_string(), "--delete", "ide2"]).await.ok();
         // Cleanup the temp image on the host — unless we're keeping it for reuse.
         if !test_reuse_image {
             pve.run_remote(&[format!("rm -f {remote_image}")]).await.ok();
