@@ -15,7 +15,10 @@ General
 
 - This flakes uses ~flake-file~, so changing `flake.nix` directly is
   not allowed. To change dependecies, the underlying .nix-files should
-  be modified, and `nix run .#write-flake` should be executed.
+  be modified, and `nix run .#write-flake` should be executed. (One
+  common caveat when adding new flake inputs - new flake-parts modules
+  can't be used until `flake.nix` regen; in that case 2-step process
+  is necessary: first add input/regen, then use the flake-module(s)).
 
 Emacs
 =====
