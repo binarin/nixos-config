@@ -1,3 +1,5 @@
+pub mod nix_eval;
+
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
@@ -5,6 +7,11 @@ use clap::{Parser, Subcommand};
 #[derive(Debug, Parser)]
 #[command(name = "nct", version, about, long_about = None)]
 struct Cli {
+    /// Flake root to evaluate (directory containing flake.nix).
+    /// Defaults to the current working directory.
+    #[arg(short, long, global = true, default_value = ".")]
+    flake: String,
+
     #[command(subcommand)]
     command: Command,
 }
@@ -25,6 +32,23 @@ enum MachineCommand {
         /// Name of the machine to provision.
         name: String,
     },
+
+    /// Evaluate a Nix expression against a machine's full config.
+    ///
+    /// Equivalent to `nix eval .#nixosConfigurations.<name> --apply EXPR`,
+    /// but performed in-process via the nix-bindings library.
+    ///
+    /// The lambda receives the whole `nixosConfigurations.<name>` value as
+    /// its argument, so `m.config.X` is the access pattern.
+    ///
+    /// Example:
+    ///   nct machine eval-expr llm-runner 'm: builtins.attrNames m.config.llama-models.configurations'
+    EvalExpr {
+        /// Name of the machine (attr under nixosConfigurations).
+        name: String,
+        /// Nix lambda applied to the machine value, e.g. `m: m.config.foo`.
+        expr: String,
+    },
 }
 
 #[tokio::main]
@@ -36,6 +60,10 @@ async fn main() -> Result<()> {
             MachineCommand::Provision { name } => {
                 println!("provisioning machine: {name}");
                 // TODO: implement provisioning logic
+            }
+            MachineCommand::EvalExpr { name, expr } => {
+                let out = nix_eval::eval_machine_expr(&cli.flake, &name, &expr)?;
+                print!("{out}");
             }
         },
     }
@@ -54,6 +82,28 @@ mod tests {
             Command::Machine {
                 command: MachineCommand::Provision { name },
             } => assert_eq!(name, "myhost"),
+            _ => panic!("expected Provision"),
+        }
+    }
+
+    #[test]
+    fn parse_machine_eval_expr() {
+        let cli = Cli::try_parse_from([
+            "nct",
+            "machine",
+            "eval-expr",
+            "llm-runner",
+            "m: builtins.attrNames m.config.x",
+        ])
+        .unwrap();
+        match cli.command {
+            Command::Machine {
+                command: MachineCommand::EvalExpr { name, expr },
+            } => {
+                assert_eq!(name, "llm-runner");
+                assert_eq!(expr, "m: builtins.attrNames m.config.x");
+            }
+            _ => panic!("expected EvalExpr"),
         }
     }
 
