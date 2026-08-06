@@ -62,6 +62,12 @@ in
       fileSystems."/boot" = {
         device = "/dev/disk/by-label/ESP";
         fsType = "vfat";
+        # Without these the ESP mounts 0022, and bootctl warns that the mount
+        # point backing /boot/loader/random-seed is world accessible.
+        options = [
+          "fmask=0077"
+          "dmask=0077"
+        ];
       };
 
       boot.growPartition = true;
