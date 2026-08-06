@@ -1,0 +1,328 @@
+//! `nct machine provision-pve`: provision a cloud-image-based Proxmox VM with
+//! the clan age key injected via cloud-init.
+//!
+//! Flow (mirrors ncf's `provision_vm.run()`, adapted for cloud images):
+//!  1. Load config (one nix eval, cached).
+//!  2. Decrypt the machine age key via `clan secrets get`.
+//!  3. Check VM existence by hostname; bail / validate if present.
+//!  4. Build the cloud image (`system.build.cloudImage` -> qcow2).
+//!  5. Generate + upload cloud-init snippets (user-data + network-config).
+//!  6. `qm create` with cicustom + ipconfig0 (in sync) + NIC/vlan.
+//!  7. EFI disk (if ovmf) + TPM2 (if enabled).
+//!  8. Import qcow2 via `qm set --scsi0 <storage>:0,import-from=...`.
+//!  9. Set boot order; optionally start.
+
+use std::path::PathBuf;
+
+use anyhow::{Context, Result, bail};
+
+use crate::cloud_init;
+use crate::config::{self, VmConfig};
+use crate::nix_flake::NixFlake;
+use crate::proxmox::Proxmox;
+
+pub struct ProvisionPveArgs {
+    pub machine: String,
+    pub proxmox_host: String,
+    pub network: String,
+    pub bridge: String,
+    pub snippet_storage: String,
+    pub disk_storage: Option<String>,
+    pub start: bool,
+    pub dry_run: bool,
+}
+
+pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
+    let ProvisionPveArgs {
+        machine,
+        proxmox_host,
+        network,
+        bridge,
+        snippet_storage,
+        disk_storage,
+        start,
+        dry_run,
+    } = args;
+
+    println!("Provisioning VM: {machine} on {proxmox_host}");
+
+    // 1. Config (single eval).
+    println!("\nStep 1: gathering metadata from NixOS config (network: {network})");
+    let cfg = config::load_machine_config(flake, &machine, &network)
+        .context("loading machine config via nix-bindings")?;
+    let vmc = cfg.proxmox();
+    println!("  hostname: {}", cfg.hostname());
+    println!("  memory/cores: {} MB / {}", vmc.memory, vmc.cores);
+    println!("  bios: {}", vmc.bios);
+    println!("  ip: {} (vlan {:?})", cfg.ip_alloc().address, cfg.net().vlan);
+
+    // 2. Age key.
+    println!("\nStep 2: decrypting clan age key");
+    let age_key = if dry_run {
+        "AGE-SECRET-KEY-1DRYRUNPLACEHOLDER".to_string()
+    } else {
+        clan_secret_get(&machine).with_context(|| format!("getting {machine}-age.key"))?
+    };
+    println!("  ok ({} bytes)", age_key.len());
+
+    // 3. VM existence.
+    let pve = Proxmox::new(&proxmox_host);
+    if !dry_run
+        && let Some(vmid) = pve.vmid_for_name(cfg.hostname()).await?
+    {
+        bail!(
+            "VM '{}' already exists (vmid {vmid}). Delete it first: \
+             ssh root@{} qm destroy {} --purge",
+            cfg.hostname(),
+            proxmox_host,
+            vmid
+        );
+    }
+
+    // 4. Build cloud image.
+    println!("\nStep 4: building cloud image");
+    let image_path = if dry_run {
+        PathBuf::from("/tmp/dry-run.qcow2")
+    } else {
+        build_cloud_image(&machine)?
+    };
+    println!("  image: {}", image_path.display());
+
+    // 5. Cloud-init snippets.
+    let userdata = cloud_init::user_data(cfg.hostname(), cfg.authorized_keys(), &age_key);
+    let netcfg = cloud_init::network_config(cfg.ip_alloc(), cfg.net());
+    let user_snip = format!("{}-ci-user.yaml", cfg.hostname());
+    let net_snip = format!("{}-ci-network.yaml", cfg.hostname());
+    if dry_run {
+        println!("\nStep 5 (dry-run): would upload snippets:");
+        println!("--- {user_snip} ---\n{userdata}--- {net_snip} ---\n{netcfg}");
+    } else {
+        println!("\nStep 5: uploading cloud-init snippets to {snippet_storage}");
+        let user_dir = pve.snippet_path(&snippet_storage, &user_snip).await?;
+        let net_dir = pve.snippet_path(&snippet_storage, &net_snip).await?;
+        pve.write_file(&user_dir, &userdata).await?;
+        pve.write_file(&net_dir, &netcfg).await?;
+        println!("  uploaded {user_snip} + {net_snip}");
+    }
+
+    // 6. qm create.
+    let vmid = if dry_run {
+        999
+    } else {
+        pve.next_vmid().await?
+    };
+    println!("\nStep 6: creating VM {vmid}");
+    let disk_storage = disk_storage
+        .clone()
+        .or_else(|| first_disk_storage(vmc))
+        .unwrap_or_else(|| "local-zfs".into());
+    let create_args = build_qm_create(
+        vmid,
+        cfg.hostname(),
+        vmc,
+        cfg.ip_alloc(),
+        cfg.net(),
+        &bridge,
+        &disk_storage,
+        &snippet_storage,
+        &user_snip,
+        &net_snip,
+    );
+    if dry_run {
+        println!("  would run: qm {}", shell_words::join(&create_args));
+    } else {
+        let args_ref: Vec<&str> = create_args.iter().map(|s| s.as_str()).collect();
+        pve.qm(&args_ref).await?;
+        println!("  created");
+    }
+
+    // 7. EFI + TPM.
+    if vmc.bios == "ovmf" {
+        println!("\nStep 7a: configuring EFI disk");
+        let efi = &vmc.efidisk;
+        let storage = efi.storage.clone().unwrap_or_else(|| disk_storage.clone());
+        let efitype = efi.efitype.clone().unwrap_or_else(|| "4m".into());
+        let pre_enrolled = if efi.secure_boot { "1" } else { "0" };
+        let spec = format!("{storage}:1,efitype={efitype},pre-enrolled-keys={pre_enrolled}");
+        if dry_run {
+            println!("  would run: qm set {vmid} --efidisk0 {spec}");
+        } else {
+            pve.qm(&["set", &vmid.to_string(), "--efidisk0", &spec]).await?;
+        }
+    }
+    if vmc.tpm2.enable {
+        println!("\nStep 7b: configuring TPM2");
+        let storage = vmc.tpm2.storage.clone().unwrap_or_else(|| disk_storage.clone());
+        let version = vmc.tpm2.version.clone().unwrap_or_else(|| "v2.0".into());
+        let spec = format!("{storage}:1,version={version}");
+        if dry_run {
+            println!("  would run: qm set {vmid} --tpmstate0 {spec}");
+        } else {
+            pve.qm(&["set", &vmid.to_string(), "--tpmstate0", &spec]).await?;
+        }
+    }
+
+    // 8. Import qcow2.
+    println!("\nStep 8: importing disk image");
+    let remote_image = format!("/tmp/{machine}-disk.qcow2");
+    if dry_run {
+        println!("  would rsync {} -> root@{}:{remote_image}", image_path.display(), proxmox_host);
+        println!("  would run: qm set {vmid} --scsi0 {disk_storage}:0,import-from={remote_image}");
+    } else {
+        pve.rsync_to(&image_path, &remote_image).await?;
+        let spec = format!("{disk_storage}:0,import-from={remote_image}");
+        pve.qm(&["set", &vmid.to_string(), "--scsi0", &spec]).await?;
+        pve.qm(&["set", &vmid.to_string(), "--boot", "order=scsi0"]).await?;
+        pve.qm(&["set", &vmid.to_string(), "--delete", "ide2"]).await.ok();
+        // Cleanup the temp image on the host.
+        pve.run_remote(&[format!("rm -f {remote_image}")]).await.ok();
+    }
+
+    // 9. Start.
+    if start {
+        println!("\nStep 9: starting VM");
+        if dry_run {
+            println!("  would run: qm start {vmid}");
+        } else {
+            pve.qm(&["start", &vmid.to_string()]).await?;
+        }
+    }
+
+    println!("\nDone! vmid={vmid}");
+    Ok(())
+}
+
+/// Run `nix build` for `system.build.cloudImage` and return the qcow2 path.
+fn build_cloud_image(machine: &str) -> Result<PathBuf> {
+    let attr = format!(".#nixosConfigurations.{machine}.config.system.build.cloudImage");
+    println!("  nix build {attr}");
+    let out = std::process::Command::new("nix")
+        .args(["build", "--no-link", "--print-out-paths", &attr])
+        .output()
+        .context("spawning nix build")?;
+    if !out.status.success() {
+        bail!(
+            "nix build failed: {}\n{}",
+            out.status,
+            String::from_utf8_lossy(&out.stderr).trim()
+        );
+    }
+    let dir = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+    Ok(PathBuf::from(dir).join("nixos.qcow2"))
+}
+
+/// Decrypt `<machine>-age.key` via clan.
+fn clan_secret_get(machine: &str) -> Result<String> {
+    let name = format!("{machine}-age.key");
+    let out = std::process::Command::new("clan")
+        .args(["secrets", "get", &name])
+        .output()
+        .with_context(|| format!("spawning `clan secrets get {name}` (is clan on PATH?)"))?;
+    if !out.status.success() {
+        bail!(
+            "clan secrets get {name} failed: {}\n{}",
+            out.status,
+            String::from_utf8_lossy(&out.stderr).trim()
+        );
+    }
+    Ok(String::from_utf8_lossy(&out.stdout).trim().to_owned())
+}
+
+fn first_disk_storage(vmc: &VmConfig) -> Option<String> {
+    vmc.disks.first().and_then(|d| d.storage.clone())
+}
+
+/// Build the `qm create` argv (as owned Strings, for shell_words::join).
+#[allow(clippy::too_many_arguments)]
+fn build_qm_create(
+    vmid: u64,
+    hostname: &str,
+    vmc: &VmConfig,
+    ip: &config::IpAlloc,
+    net: &config::Network,
+    bridge: &str,
+    _disk_storage: &str,
+    snippet_storage: &str,
+    user_snip: &str,
+    net_snip: &str,
+) -> Vec<String> {
+    let mut cmd: Vec<String> = vec![
+        "create".into(),
+        vmid.to_string(),
+        "--name".into(),
+        hostname.into(),
+        "--memory".into(),
+        vmc.memory.to_string(),
+        "--cores".into(),
+        vmc.cores.to_string(),
+        "--sockets".into(),
+        vmc.sockets.to_string(),
+        "--bios".into(),
+        vmc.bios.clone(),
+        "--machine".into(),
+        vmc.machine.clone(),
+        "--scsihw".into(),
+        vmc.scsihw.clone(),
+    ];
+    if vmc.onboot {
+        cmd.push("--onboot".into());
+        cmd.push("1".into());
+    }
+    if vmc.agent {
+        cmd.push("--agent".into());
+        cmd.push("1".into());
+    }
+    if let Some(b) = vmc.balloon {
+        cmd.push("--balloon".into());
+        cmd.push(b.to_string());
+    }
+    if let Some(s) = vmc.shares
+        && s != 1000
+    {
+        cmd.push("--shares".into());
+        cmd.push(s.to_string());
+    }
+    if let Some(desc) = &vmc.description {
+        cmd.push("--description".into());
+        cmd.push(desc.clone());
+    }
+
+    // NIC: bridge + model + firewall + mac + vlan tag.
+    let mut net_spec = format!("virtio,bridge={bridge},firewall=1");
+    if let Some(mac) = &ip.mac {
+        net_spec.push_str(&format!(",macaddr={mac}"));
+    }
+    if let Some(vlan) = net.vlan {
+        net_spec.push_str(&format!(",tag={vlan}"));
+    }
+    cmd.push("--net0".into());
+    cmd.push(net_spec);
+
+    cmd.push("--serial0".into());
+    cmd.push("socket".into());
+    cmd.push("--vga".into());
+    cmd.push("serial0".into());
+
+    // cloud-init snippets: user (age key + authorized_keys) + network (v2).
+    cmd.push("--cicustom".into());
+    cmd.push(format!(
+        "user={snippet_storage}:snippets/{user_snip},network={snippet_storage}:snippets/{net_snip}"
+    ));
+
+    // Mirror networking into Proxmox-native ipconfig0 / nameserver so qm config
+    // is self-documenting (cicustom network is what the guest actually uses).
+    if let Some(gw) = &net.gateway {
+        cmd.push("--ipconfig0".into());
+        cmd.push(format!("ip={}/{},gw={}", ip.address, net.prefix, gw));
+    }
+    if !net.dns.is_empty() {
+        cmd.push("--nameserver".into());
+        cmd.push(net.dns.join(","));
+    }
+
+    // cloud-init drive (the NoCloud seed source).
+    cmd.push("--ide2".into());
+    cmd.push(format!("{}:cloudinit", vmc.cloud_init.storage));
+
+    cmd
+}

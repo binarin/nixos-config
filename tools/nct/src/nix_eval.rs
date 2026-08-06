@@ -76,7 +76,7 @@ pub fn eval_flake_apply(flake_root: &str, attr_path: &str, expr: &str) -> Result
                 .context("applying expression to value")?;
 
             let mut buf = Vec::new();
-            print_value(&mut es, &result, &mut buf, 0)?;
+            print_value_into(&mut es, &result, &mut buf, 0)?;
             String::from_utf8(buf).context("result was not valid UTF-8")
         })
         .join()
@@ -87,7 +87,14 @@ pub fn eval_flake_apply(flake_root: &str, attr_path: &str, expr: &str) -> Result
 
 /// Recursively print a Nix value, roughly matching `nix eval` output:
 /// strings unquoted, ints/bools/null as-is, lists/attrsets pretty-printed.
-fn print_value(es: &mut EvalState, v: &Value, out: &mut Vec<u8>, depth: usize) -> Result<()> {
+///
+/// Public so the long-lived [`crate::nix_flake::NixFlake`] worker can reuse it.
+pub fn print_value_into(
+    es: &mut EvalState,
+    v: &Value,
+    out: &mut Vec<u8>,
+    depth: usize,
+) -> Result<()> {
     let t = es.value_type(v)?;
     match t {
         ValueType::String => {
@@ -112,7 +119,7 @@ fn print_value(es: &mut EvalState, v: &Value, out: &mut Vec<u8>, depth: usize) -
                 for e in &elems {
                     write!(out, "{}", "  ".repeat(depth + 1))?;
                     // Elements may be multi-line (attrsets); print inline-ish.
-                    print_inline(es, e, out, depth + 1)?;
+                    print_inline_into(es, e, out, depth + 1)?;
                 }
                 writeln!(out, "{}]", "  ".repeat(depth))?;
             }
@@ -126,7 +133,7 @@ fn print_value(es: &mut EvalState, v: &Value, out: &mut Vec<u8>, depth: usize) -
                 for name in names {
                     let av = es.require_attrs_select(v, &name)?;
                     write!(out, "{}{name} = ", "  ".repeat(depth + 1))?;
-                    print_inline(es, &av, out, depth + 1)?;
+                    print_inline_into(es, &av, out, depth + 1)?;
                 }
                 writeln!(out, "{}}}", "  ".repeat(depth))?;
             }
@@ -145,7 +152,12 @@ fn print_value(es: &mut EvalState, v: &Value, out: &mut Vec<u8>, depth: usize) -
 
 /// Print a value followed by its terminating `;`/newline, used inside
 /// attrsets/lists where each entry ends with a semicolon (Nix-style).
-fn print_inline(es: &mut EvalState, v: &Value, out: &mut Vec<u8>, depth: usize) -> Result<()> {
+fn print_inline_into(
+    es: &mut EvalState,
+    v: &Value,
+    out: &mut Vec<u8>,
+    depth: usize,
+) -> Result<()> {
     let t = es.value_type(v)?;
     match t {
         ValueType::String | ValueType::Path => {
@@ -159,10 +171,10 @@ fn print_inline(es: &mut EvalState, v: &Value, out: &mut Vec<u8>, depth: usize) 
         ValueType::Null => writeln!(out, "null;")?,
         ValueType::List => {
             // Defer to full pretty-printer for nested compound values.
-            print_value(es, v, out, depth)?;
+            print_value_into(es, v, out, depth)?;
         }
         ValueType::AttrSet => {
-            print_value(es, v, out, depth)?;
+            print_value_into(es, v, out, depth)?;
         }
         other => writeln!(out, "<{other:?}>;")?,
     }

@@ -52,8 +52,9 @@
           default = "user-data";
           description = ''
             File name within the seed to extract the age key from. The
-            unit greps for a line starting with `AGE-SECRET-KEY-1`, so the
-            file may contain arbitrary other cloud-config content.
+            unit greps for a `clan-machine-key:` line whose value is an
+            `AGE-SECRET-KEY-1...` key, planted there by the provisioning
+            tool. The file is otherwise a normal cloud-config document.
           '';
         };
 
@@ -146,16 +147,26 @@
             user_data="$seed_mnt/${cfg.userDataFile}"
             echo "provision-clan-key: reading $user_data"
 
-            # An age secret key is a single line beginning with AGE-SECRET-KEY-1.
-            # That prefix is globally unique, so a grep anchor is a robust
-            # extractor regardless of whatever else is in user-data.
-            if key_line="$(grep -m1 '^AGE-SECRET-KEY-1' "$user_data")"; then
-              mkdir -p "$(dirname "$key_dest")"
-              printf '%s\n' "$key_line" > "$key_dest"
-              chmod 600 "$key_dest"
-              echo "provision-clan-key: wrote $key_dest"
+            # The age secret key is planted in the NoCloud user-data under a
+            # dedicated top-level key (`clan-machine-key:`) by the provisioning
+            # tool, so the whole user-data stays valid YAML and the extractor
+            # is a targeted grep instead of a prefix scan. The value is a
+            # single AGE-SECRET-KEY-1... line.
+            if key_line="$(grep -m1 '^clan-machine-key:' "$user_data")"; then
+              key="''${key_line#clan-machine-key: }"
+              case "$key" in
+                AGE-SECRET-KEY-1*)
+                  mkdir -p "$(dirname "$key_dest")"
+                  printf '%s\n' "$key" > "$key_dest"
+                  chmod 600 "$key_dest"
+                  echo "provision-clan-key: wrote $key_dest"
+                  ;;
+                *)
+                  echo "provision-clan-key: clan-machine-key present but not an AGE-SECRET-KEY-1 value"
+                  ;;
+              esac
             else
-              echo "provision-clan-key: no AGE-SECRET-KEY-1 line in $user_data"
+              echo "provision-clan-key: no clan-machine-key line in $user_data"
             fi
 
             umount "$seed_mnt"

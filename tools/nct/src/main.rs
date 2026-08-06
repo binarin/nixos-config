@@ -1,4 +1,9 @@
 pub mod nix_eval;
+pub mod nix_flake;
+pub mod proxmox;
+pub mod config;
+pub mod cloud_init;
+pub mod provision_pve;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -33,6 +38,47 @@ enum MachineCommand {
         name: String,
     },
 
+    /// Provision a cloud-image VM on Proxmox, with the clan age key injected
+    /// via cloud-init (NoCloud seed) so `provision-clan-key` bootstraps
+    /// clan/sops secrets on first boot.
+    ///
+    /// Builds `system.build.cloudImage` (qcow2), generates cloud-init snippets,
+    /// creates the VM, imports the disk, and optionally starts it.
+    ProvisionPve {
+        /// Name of the machine (attr under nixosConfigurations).
+        name: String,
+
+        /// Proxmox host to provision on.
+        #[arg(short, long)]
+        proxmox_host: String,
+
+        /// Inventory network to wire the VM into (e.g. `home`, `guest`).
+        /// Determines IP, gateway, prefix, DNS, and VLAN tag.
+        #[arg(long)]
+        network: String,
+
+        /// Physical bridge on the Proxmox side.
+        #[arg(long, default_value = "vmbr0")]
+        bridge: String,
+
+        /// Dir-type storage for cloud-init snippets (resolved via `pvesm path`).
+        #[arg(long, default_value = "local")]
+        snippet_storage: String,
+
+        /// Storage for the imported disk + cloud-init drive
+        /// (defaults to the first disk's storage from config, else local-zfs).
+        #[arg(long)]
+        disk_storage: Option<String>,
+
+        /// Start the VM after provisioning.
+        #[arg(short, long)]
+        start: bool,
+
+        /// Show what would be done without executing.
+        #[arg(long)]
+        dry_run: bool,
+    },
+
     /// Evaluate a Nix expression against a machine's full config.
     ///
     /// Equivalent to `nix eval .#nixosConfigurations.<name> --apply EXPR`,
@@ -60,6 +106,32 @@ async fn main() -> Result<()> {
             MachineCommand::Provision { name } => {
                 println!("provisioning machine: {name}");
                 // TODO: implement provisioning logic
+            }
+            MachineCommand::ProvisionPve {
+                name,
+                proxmox_host,
+                network,
+                bridge,
+                snippet_storage,
+                disk_storage,
+                start,
+                dry_run,
+            } => {
+                let flake = nix_flake::NixFlake::open(&cli.flake)?;
+                provision_pve::run(
+                    &flake,
+                    provision_pve::ProvisionPveArgs {
+                        machine: name,
+                        proxmox_host,
+                        network,
+                        bridge,
+                        snippet_storage,
+                        disk_storage,
+                        start,
+                        dry_run,
+                    },
+                )
+                .await?;
             }
             MachineCommand::EvalExpr { name, expr } => {
                 let out = nix_eval::eval_machine_expr(&cli.flake, &name, &expr)?;
@@ -110,5 +182,44 @@ mod tests {
     #[test]
     fn rejects_missing_subcommand() {
         assert!(Cli::try_parse_from(["nct"]).is_err());
+    }
+
+    #[test]
+    fn parse_machine_provision_pve() {
+        let cli = Cli::try_parse_from([
+            "nct",
+            "machine",
+            "provision-pve",
+            "xray-exit",
+            "-p",
+            "valak",
+            "--network",
+            "guest",
+        ])
+        .unwrap();
+        match cli.command {
+            Command::Machine {
+                command: MachineCommand::ProvisionPve {
+                    name,
+                    proxmox_host,
+                    network,
+                    bridge,
+                    snippet_storage,
+                    disk_storage,
+                    start,
+                    dry_run,
+                },
+            } => {
+                assert_eq!(name, "xray-exit");
+                assert_eq!(proxmox_host, "valak");
+                assert_eq!(network, "guest");
+                assert_eq!(bridge, "vmbr0");
+                assert_eq!(snippet_storage, "local");
+                assert_eq!(disk_storage, None);
+                assert!(!start);
+                assert!(!dry_run);
+            }
+            _ => panic!("expected ProvisionPve"),
+        }
     }
 }

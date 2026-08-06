@@ -605,3 +605,395 @@ branch before the real rewrite, but expect them to pass.
 - [X] Default devshell still has =nct= on PATH (=self'.packages.nct=).
 - [X] =nix fmt= covers =.rs= files (rustfmt program).
 - [X] No flake-source leak: =env.src= is the isolated =tools__nct= path.
+
+* Stage 4 — =machine provision-pve= (cloud-image + clan age key via cloud-init)
+
+** Goal
+
+A single =nct machine provision-pve <name> -p <proxmox-host>= command that
+provisions a *cloud-image-based* VM on Proxmox, with the clan age key for the
+machine injected via cloud-init so the custom Stage-1 =provision-clan-key=
+initrd unit can bootstrap clan/sops secrets on first boot.
+
+This is the =ncf machine provision-vm= flow, but:
+- The disk is a prebuilt qcow2 =cloudImage= (=make-disk-image.nix=, see
+  =modules/machines/xray-exit.nix=) instead of disko =diskoImages=.
+- Secrets are *clan*-managed: the machine's age private key
+  (=sops/secrets/<machine>-age.key=) is decrypted via clan's =SecretStore=
+  and planted into the NoCloud =user-data=, not the legacy SSH-host-key-only
+  path.
+
+** What =ncf= already does (reference for the =nct= port)
+
+=ncf='s Proxmox interaction is entirely over SSH (no Proxmox API token):
+- =ncf/proxmox_api.py= =ProxmoxClient= uses =proxmoxer= with the
+  =ssh_paramiko= backend (auth = root SSH keys from =~/.ssh/=). It clears
+  =SSH_AUTH_SOCK=/=SSH_AGENT_PID= to dodge paramiko agent bugs.
+- =qm= commands are issued by *shelling out to plain =ssh root@<host>=*
+  with =shlex.join(remote_cmd)= — NOT via the proxmoxer API. See
+  =provision_vm.py ssh_command()= and =provision_vm_anywhere.py=. This is the
+  key reuse insight: **we don't need a proxmox client library at all** —
+  =ssh root@<host> qm ...= is the whole API surface we touch.
+- =upload_snippet()= opens a raw paramiko/SFTP session to write
+  =/var/lib/vz/snippets/<file>=. The =nct= equivalent can do the same over
+  =ssh ... cat > /var/lib/vz/snippets/<file>= (or =scp=).
+- =upload_iso()= streams a file via =pv | ssh root@<host> 'cat > ...'=.
+
+So =nct='s runtime deps for this are minimal: =ssh=, =shlex=-equivalent
+shell quoting (we already shell out to =ssh= via =tokio::process::Command=).
+No Rust =proxmoxer= equivalent exists/needed. (Optionally =rsync= for the
+  qcow2 copy, or =ssh cat >= like ncf's ISO path — ncf uses =rsync -avP= for
+  the raw disk in =provision_vm.py= Step 8; we'll mirror that.)
+
+*** The full =provision-vm= flow (=provision_vm.py run())
+1. Query NixOS config for metadata: =config.networking.hostName=,
+   =config.nixos-config.qemu-guest.proxmox= (memory/cores/bios/disks/
+   cloudInit/tpm2/efidisk/...), =config.inventory.hostIpAllocation.<net>=,
+   =config.inventory.networks.<net>= (prefix/gateway/vlan/dns).
+2. Check VM existence by hostname (=qm list= via the API → for us, =ssh qm
+   list= / parse, or =ssh qm config <vmid>= on a guessed id).
+3. Build the disk image (=ncf build vm= → =diskoImages=). **We replace
+   this with =system.build.cloudImage=**
+   (=nixosConfigurations.<name>.config.system.build.cloudImage=, qcow2).
+4. Generate cloud-init =user-data= (YAML, =#cloud-config= header) and upload
+   as a snippet; wire via =qm create ... --cicustom user=<storage>:snippets/<file>=.
+   **This is where we inject the clan age key.**
+5. =qm create= with the static =--ipconfig0=, =--net0= (bridge/mac/vlan),
+   =--serial0 socket --vga serial0=, =--agent 1=, memory/cores/bios/machine,
+   =--scsihw virtio-scsi-single=, optional =--onboot= / =--balloon= / =--shares=.
+6. UEFI: =qm set <vmid> --efidisk0 <storage>:1,efitype=4m,pre-enrolled-keys=0|=1=.
+7. TPM2 (if enabled): =qm set <vmid> --tpmstate0 <storage>:1,version=v2.0=.
+8. Import disk: =rsync= the image to =/tmp/<machine>-disk.qcow2= on the host,
+   then =qm set <vmid> --scsi0 <storage>:0,import-from=/tmp/...=, then
+   =qm set <vmid> --boot order=scsi0=, then =rm= the temp file.
+9. Optionally =start= the VM.
+
+*** The clan age-key injection (the important bit)
+
+The target module =modules/provision-clan-key.nix= defines an initrd systemd
+unit =provision-clan-key.service= that, during Stage 1 (after =sysroot.mount=,
+before =initrd.target=):
+- mounts the NoCloud seed =/dev/disk/by-label/cidata= (iso9660 or vfat),
+- greps =^AGE-SECRET-KEY-1= out of the seed's =user-data= file,
+- writes it to =/sysroot<secretLocation>/key.txt= (chmod 600),
+where =secretLocation = clan.core.vars.age.secretLocation or
+"/etc/secret-vars"= (default =/var/lib/sops-nix= per
+=clanCore/vars/secret/sops/default.nix=, but =modules/impermanence.nix=
+overrides to =/persist/var/lib/sops-nix=).
+
+So the =nct provision-pve= command must:
+1. Decrypt the machine's age private key. Source of truth: the sops secret
+   =sops/secrets/<machine>-age.key= (a sops-encrypted JSON blob with
+   =data= holding the key). Clan decrypts it via =SecretStore.populate_dir=
+   (phases =users= → writes =key.txt=). Two implementation options for =nct=:
+   - **(A) Shell out to =clan secrets get=** (or clan_lib) — mirrors how the
+     value travels at runtime, no reimplementation. This is the =ncf= way
+     (=gather_secrets_for_clan_machine= calls clan_lib's =SecretStore=).
+     Simplest, stays correct as clan evolves.
+   - **(B) Shell out to =sops -d sops/secrets/<machine>-age.key=** and parse
+     the JSON =.data= field. More fragile (couples to sops JSON layout);
+     avoid unless clan isn't on PATH.
+   → Prefer (A): =clan secrets get <machine>-age.key= prints the raw key to
+     stdout (it's what =ncf= / clan_lib effectively do under the hood).
+2. Embed it in the cloud-init =user-data= as a =write_files= entry, e.g.:
+   #+begin_src yaml
+   #cloud-config
+   write_files:
+     - path: /user-data   # not really — see below
+   #+end_src
+   …except =provision-clan-key= reads the *seed's user-data file directly*
+   (the whole NoCloud =user-data=), not a =write_files= target. So the key
+   just needs to be a plaintext line in the =user-data= the seed drive
+   serves. Simplest: append the bare =AGE-SECRET-KEY-1...= line to the
+   =user-data= YAML (cloud-init ignores trailing junk it can't parse as
+   cloud-config keys; the grep anchor =^AGE-SECRET-KEY-1= is robust). Or wrap
+   it in a =write_files= entry that's also valid YAML — either works because
+   the initrd unit only greps. **Decision: append the bare key line at the
+   end of user-data** (matches what =provision-clan-key= expects and is
+   minimally invasive).
+3. Upload =user-data= as a Proxmox snippet and reference via =--cicustom
+   user=<storage>:snippets/<machine>-cloud-init.yaml=.
+
+Note: Proxmox's CloudInit drive (=qm set <vmid> --ide0 <storage>:cloudinit=)
+provides the =cidata=-labelled NoCloud seed that =provision-clan-key=
+mounts. =--cicustom user=...= makes Proxmox bake our =user-data= into that
+seed drive. So the wiring is: snippet → =cicustom= → CloudInit drive →
+NoCloud seed → initrd grep → =key.txt=. All already designed for this.
+
+** The disk image
+
+=modules/machines/xray-exit.nix= defines:
+#+begin_src nix
+system.build.cloudImage = import "${pkgs.path}/nixos/lib/make-disk-image.nix" {
+  inherit lib pkgs config;
+  format = "qcow2";
+  partitionTableType = "efi";
+  additionalSpace = "1024M";
+};
+#+end_src
+Build + locate:
+#+begin_src shell
+nix build --no-link --print-out-paths '.#nixosConfigurations.xray-exit.config.system.build.cloudImage'
+# → /nix/store/...-nixos-disk-image/nixos.qcow2
+#+end_src
+So =nct= builds that attr and reads =<out>/nixos.qcow2=. (Unlike disko's
+=result/main.raw=, the cloud image is a single qcow2.) Import path differs
+slightly from ncf: =import-from=/tmp/<machine>.qcow2= (qcow2, not raw) —
+Proxmox's =qm set ... --scsi0 <storage>:0,import-from=...= handles qcow2
+fine.
+
+** Proposed =nct= implementation
+
+*** CLI
+#+begin_src
+nct machine provision-pve <name> \
+  --proxmox-host <host>        # -p, required
+  [--network home|guest]       # inventory network (REQUIRED: picks the IP,
+                               #   gateway, prefix, dns, vlan for both the
+                               #   qm NIC and cloud-init networking)
+  [--bridge vmbr0]             # physical bridge on the proxmox side
+  [--snippet-storage local]    # dir-type storage for cloud-init snippets
+                               #   (default: local; resolved via
+                               #   `pvesm path <storage>:snippets/<file>`)
+  [--disk-storage local-zfs]   # disk + cloud-init drive storage
+  [--start]                    # start after provision
+  [--dry-run]
+#+end_src
+=--network= selects *which* inventory network (home / guest / ...) the VM is
+wired into — xray-exit lives on =guest= (vlan 4, 192.168.3.0/24), so
+provision would be =... --network guest=. Everything (IP, gateway, prefix,
+DNS, VLAN tag, MAC) is read from =config.inventory.{hostIpAllocation,networks}.<network>=.
+
+=--snippet-storage= defaults to =local= (the conventional snippets
+storage) per the valak probe: snippets only resolve on =dir=-type storages
+(=pvesm path local-zfs:snippets/x= fails with "unable to parse zfs volume
+name"; only =dir: local= works, mapping to =/var/lib/vz/snippets/=). We
+=pvesm path= it to find the write dir and fail loudly if it doesn't
+resolve. (To *enable* snippets on =local=, add it to the content list:
+=pvesm set local --content snippets,iso,backup,vztmpl= — already done on
+valak.)
+
+*** Config introspection via nix-bindings (NOT =nix eval --json=)
+
+**Decision: use the in-process EvalState (already wired in Stage 2), not
+=nix eval= subprocesses, for all config introspection.** Rationale:
+- A single =builtins.getFlake= + navigation through one long-lived
+  =EvalState= means the full =nixosConfigurations.<name>= module eval is
+  computed **once** and memoised in the EvalState's value graph. Every
+  subsequent =require_attrs_select= / =require_string= / =require_int=
+  reuses the already-forced thunks → near-free. ncf spawns a fresh =nix eval=
+  per attribute (=NixRunner.run_eval= × ~6), each re-evaluating the whole
+  module system from scratch (or hitting the eval cache, but still
+  process-spawn overhead + re-navigation).
+- We already pay for the FFI build (Stage 2/3); reusing it for introspection
+  is the actual ROI beyond the =eval-expr= playground.
+- The API surface we need is tiny and already proven by =eval_flake_apply=:
+  =eval_from_string= (getFlake), =require_attrs_select{,_opt}= (navigate),
+  =require_string= / =require_int= / =require_bool= / =require_list_strict=
+  (extract typed leaves). No serde structs for the whole qemu-guest schema —
+  we navigate attrset-by-attrset and build a small Rust =VmConfig= struct by
+  hand. This is *more* robust than a big serde derive (schema drift only
+  breaks the one field being read, not the whole parse).
+
+Proposed =nix_eval.rs= additions (a long-lived =NixFlake= handle):
+#+begin_src rust
+pub struct NixFlake {
+    es: EvalState,           // GC-registered-thread-owned
+    flake_value: Value,      // builtins.getFlake "<root>"
+    // thread handle / scope guard so all calls land on the GC thread
+}
+impl NixFlake {
+    pub fn open(flake_root: &str) -> Result<Self>;
+    /// Navigate dotted attr path under the flake root, return the Value.
+    pub fn attr(&mut self, path: &str) -> Result<Value>;
+    /// Convenience: attr + require_string.
+    pub fn attr_str(&mut self, path: &str) -> Result<String>;
+    pub fn attr_int(&mut self, path: &str) -> Result<i64>;
+    pub fn attr_bool(&mut self, path: &str) -> Result<bool>;
+    /// Load a whole nixosConfigurations.<name> once; subsequent
+    /// config.* reads reuse the forced value.
+    pub fn machine_config(&mut self, machine: &str) -> Result<MachineConfig>;
+}
+#+end_src
+The =EvalState= must live on the GC-registered thread (Stage 2 invariant),
+so =NixFlake= either owns a dedicated thread + channel, or exposes a
+=with_es(|es| ...)= closure API. Simplest: keep the =std::thread::scope=
+pattern but hold it open for the process lifetime via a ='static= worker
+thread (spawn once in =main=, send closures over a channel). Defer the
+exact ergonomics; the point is *one EvalState, many reads*.
+
+Query plan (all off one =machine_config= force):
+- =config.networking.hostName=
+- =config.networking.hostId= (→ vsock CID)
+- =config.nixos-config.qemu-guest.proxmox= → ={memory, balloon?, cores,
+  sockets?, bios, machine, scsihw?, onboot?, agent?, shares?, description?,
+  disks[], network{bridge,model,firewall}, cloudInit{enable,storage},
+  tpm2{enable,storage?,version?}, efidisk{storage,efitype,secureBoot},
+  pci-passthrough{}}=
+- =config.inventory.hostIpAllocation.<network>.primary= → ={address, mac?}=
+- =config.inventory.networks.<network>= → ={prefix, gateway?, dns?[],
+  vlan?, network?, searchdomain?}=
+- =config.users.users.root.openssh.authorizedKeys.keys= → =[string]
+
+*** Cloud-init networking from the chosen network
+
+Since cloud-image VMs have =staticNetwork = false= (systemd-networkd not
+wired), cloud-init is the sole network configurator. We generate **two**
+cloud-init inputs in sync:
+1. A NoCloud =network-config= (v2) snippet, wired via =--cicustom
+   network=<snippet-storage>:snippets/<machine>-ci-network.yaml=. This is
+   what the guest actually consumes (addresses/routes/nameservers/search).
+2. The matching Proxmox-native =--ipconfig0 ip=X/prefix,gw=Y= + =--nameserver=
+   for the same values. =--ipconfig0= is reflected in =qm config= / the web
+   UI / =qm cloudinit dump=, while =cicustom network= is what lands in the
+   NoCloud seed (probe-confirmed: Proxmox bakes =cicustom= files *verbatim*
+   into the seed ISO; =ipconfig0= generates Proxmox's *own* network-config
+   which =cicustom network= overrides). **Setting both, in sync** keeps
+   =qm config= self-documenting for operators while the actual seed comes
+   from our v2 snippet (full DNS + search domain, which =ipconfig0='s
+   =gw=/nameserver= can't fully express). Belt + suspenders: if they ever
+diverge it's a bug, but they won't — both derive from the one inventory
+   network the operator passed via =--network=.
+
+If the net has a =vlan=, tag it on the =qm --net0 ...tag=<vlan>= side (host
+bridges onto the right VLAN; guest sees untagged eth0).
+
+So the snippet set per VM becomes:
+- =<machine>-ci-user.yaml= → =#cloud-config= + authorized_keys + the age
+  key under a dedicated =clan-machine-key:= top-level key (see below).
+- =<machine>-ci-network.yaml= → Network Config v2 from the chosen inventory
+  network.
+- =--cicustom user=<snippet-storage>:snippets/<machine>-ci-user.yaml,network=<snippet-storage>:snippets/<machine>-ci-network.yaml=
+  + =--ipconfig0= / =--nameserver= mirroring the network values.
+
+*** Age-key injection: keep user-data valid YAML
+
+The age key goes into =user-data= under a dedicated top-level key, not a
+bare trailing line:
+#+begin_src yaml
+#cloud-config
+hostname: xray-exit
+ssh_authorized_keys: ["ssh-ed25519 AAA..."]
+clan-machine-key: AGE-SECRET-KEY-1...base64...
+#+end_src
+Why:
+- The whole document stays valid YAML (cloud-init tolerates unknown keys —
+  each =cc_= module only reads the keys it cares for; an extra top-level
+  string key is ignored by the cloud-config pipeline).
+- The initrd extractor is a *targeted* grep:
+  =grep -m1 '^clan-machine-key:' <user-data>=, then strip the prefix, then
+  =case "$key" in AGE-SECRET-KEY-1*) ...= . More precise than scanning for
+  =^AGE-SECRET-KEY-1= and self-validating (rejects a malformed value).
+=modules/provision-clan-key.nix= is already updated to this scheme
+(=clan-machine-key:= grep + =AGE-SECRET-KEY-1= case guard; escaped the bash
+=${...}= as =''${...}= in the Nix =''=-string to dodge Nix interpolation).
+
+*** Modules / code layout (=tools/nct/src/=)
+- =main.rs= :: add =ProvisionPve= variant to =MachineCommand=, clap fields
+  as above (=--network= required).
+- =nix_eval.rs= :: promote to a long-lived =NixFlake= handle (one EvalState,
+  GC-registered worker thread, closures-over-channel). Add typed accessors
+  (=attr= / =attr_str= / =attr_int= / =attr_bool=) and a =MachineConfig=
+  loader that forces the whole machine value once.
+- =proxmox.rs= (new) :: =ssh_qm(host, args)= → runs =ssh root@<host> qm
+  <args>= via =tokio::process=, returns stdout/stderr. =upload_snippet=
+  via =ssh ... cat > /var/lib/vz/snippets/<name>= (stdin pipe). =rsync_image=
+  via =rsync -avP <local> root@<host>:<remote>=.
+- =cloud_init.rs= (new) :: build (a) the =user-data= string:
+  =#cloud-config= + hostname + ssh_authorized_keys + trailing bare
+  =AGE-SECRET-KEY-1= line; (b) the =network-config= v2 from the chosen
+  inventory network (addresses/routes/nameservers/search).
+- =provision_pve.rs= (new) :: orchestrate the 9-step flow, mirroring
+  =ncf/commands/provision_vm.py run()=, but:
+  - build =system.build.cloudImage= (qcow2) not =diskoImages=,
+  - read config via the =NixFlake= handle (one eval),
+  - generate both =user-data= and =network-config= snippets,
+  - =qm import-from= the qcow2.
+
+*** Secret retrieval
+- =clan secrets get <machine>-age.key= via =Command=; capture stdout,
+  strip trailing newline. Fail loudly if missing (machine not clan-managed
+  / not initialized).
+- Optionally =--fake-secrets= for dry-run (ncf has it); defer.
+
+** Tasks
+- [X] =NixFlake= long-lived handle (=nix_flake.rs=: dedicated GC-registered
+      worker thread + mpsc channel of closures; flake eval cached for the
+      handle's lifetime).
+- [X] =MachineConfig= typed loader (=config.rs=: one Nix lambda returning
+      =builtins.toJSON= of the needed attrs; parsed into typed Rust structs).
+- [X] =ProvisionPve= clap variant (=--network= required, =--bridge=,
+      =--snippet-storage= (default =local=), =--disk-storage=, =--start=,
+      =--dry-run=) + wiring in =main.rs=.
+- [X] =proxmox.rs=: =qm=, =run_remote=, =vmid_for_name= (=qm list= grep),
+      =next_vmid=, =snippet_path= (=pvesm path=), =write_file= (ssh stdin),
+      =rsync_to=.
+- [X] =cloud_init.rs=: =user_data= (hostname + authorized_keys +
+      =clan-machine-key:= top-level key) and =network_config= (Netplan v2).
+- [X] =provision_pve.rs=: full orchestration (load config → age key via
+      =clan secrets get= → existence check → build cloudImage → upload
+      snippets → =qm create= with cicustom user+network + ipconfig0 in sync →
+      EFI/TPM → qcow2 import → boot order → optional start).
+- [X] Dry-run mode (prints all qm commands + snippet contents, skips network).
+- [ ] Runtime deps in =modules/nct.nix=: =ssh=/=rsync=/=nix= assumed from
+      devshell/PATH (matches ncf); =clan= required for age-key decrypt
+      (=inputs'.clan-core.packages.clan-cli-full=, devshell-only for now).
+- [ ] End-to-end test against =xray-exit= on a real Proxmox host
+      (=--network guest=, vlan 4). Dry-run validated; live run pending.
+- [ ] Docs in =tools/nct/README.md=.
+
+** Open questions
+1. ~~=clan= on PATH~~ → resolved: =inputs'.clan-core.packages.clan-cli-full=
+   (determinate-patched); devshell-only for now. (See tasks.)
+2. ~~Proxmox snippets storage~~ → resolved by probe on =valak=:
+   snippets only resolve on =dir=-type storages. =pvesm path
+   local-zfs:snippets/foo= fails ("unable to parse zfs volume name");
+   only =dir: local= works → =/var/lib/vz/snippets/foo=. May need
+   =pvesm set local --content snippets,...= to enable the content type
+   (done on valak). → =--snippet-storage= is explicit, no defaulting; we
+   =pvesm path= it to find the write dir.
+3. ~~qcow2 import on zfspool~~ → resolved by probe: =qm set <vmid> --scsi0
+   local-zfs:0,import-from=/tmp/x.qcow2= transfers + converts the qcow2 to
+   a zvol cleanly ("transferred 1.0 MiB ... successfully created disk").
+   No =qemu-img convert= needed on our side.
+4. ~~cicustom user+network actually reaching the guest~~ → resolved by probe:
+   built a scratch VM with =--cicustom
+   user=local:snippets/...yaml,network=local:snippets/...yaml= +
+   =--ide0 local:cloudinit=, then extracted the generated cloud-init ISO
+   (=qemu-img convert= the qcow2 cdrom → =mount -o loop=). Result:
+   - =user-data= file contains our YAML **verbatim**, including a trailing
+     bare =AGE-SECRET-KEY-1TEST...= line.
+   - =network-config= file contains our Network Config **v2** verbatim.
+   - =meta-data= / =vendor-data= populated by Proxmox. So the NoCloud seed
+     (label =cidata=) is exactly what =provision-clan-key= mounts. ✓
+   Note: =qm cloudinit dump <vmid> user|network= shows Proxmox's
+   *generated* (merged-from-ipconfig/ciuser) config, NOT the cicustom
+   snippets — so don't use =dump= to verify cicustom; extract the ISO.
+5. ~~YAML validity of the age-key injection~~ → resolved: plant the key
+   under a dedicated =clan-machine-key:= top-level key (valid YAML;
+   cloud-init ignores unknown top-level keys). =provision-clan-key.nix=
+   already updated: targeted =grep '^clan-machine-key:'= + =case=
+   guard for =AGE-SECRET-KEY-1=, with the bash =''${...}= escaped in the
+   Nix =''=-string. Module eval verified clean.
+6. VM existence check without proxmoxer: =qm list= column format confirmed
+   on valak — =VMID NAME STATUS MEM(MB) BOOTDISK(GB) PID=; =NAME= is the
+   hostname. =ssh root@<host> qm list= + grep the NAME column (or parse all
+   rows) works.
+7. Threading for =NixFlake=: the BDW GC supports *many* registered threads
+   (=GC_register_my_thread= per-thread, RAII guard in nix-bindings). The
+   real constraint is that =EvalState= / =Value= hold raw pointers →
+   =!Send=, so they're thread-/affine. **Decision: own the EvalState on
+   one dedicated worker thread for the lifetime of =NixFlake=, send
+   closures over a channel.** (Not =scope= per-command — we want the flake
+   eval cached across the whole provision run's many reads, and a single
+   worker thread is simpler than reasoning about =!Send= across scopes.)
+   If we ever need parallel eval, register more threads — but one is fine
+   here; introspection is sequential.
+8. ~~Cloud-init networking~~ → resolved by probe + design: generate a
+   NoCloud =network-config= v2 snippet (=cicustom network=) AND mirror
+   the values into Proxmox-native =--ipconfig0= / =--nameserver= (in sync,
+   both from the one =--network= inventory net). =cicustom network= is
+   what the guest consumes (probe-confirmed verbatim passthrough);
+   =ipconfig0= keeps =qm config= / the UI self-documenting. nixos
+   cloud-init (=services.cloud-init.network.enable=) consumes the
+   NoCloud network-config.
