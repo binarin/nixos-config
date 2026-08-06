@@ -50,6 +50,7 @@ in
 
         self.nixosModules.sops
         self.nixosModules.xray-shared
+        self.nixosModules.provision-clan-key
       ];
 
       fileSystems."/" = {
@@ -75,6 +76,12 @@ in
         enable = true;
         network.enable = true;
       };
+
+      # Fetch the clan age key from the NoCloud seed (Proxmox CloudInit
+      # drive) during Stage 1, so that clan/sops secrets decrypt cleanly
+      # on the first boot of an image-provisioned VM.
+      boot.initrd.systemd.enable = true;
+      boot.initrd.provisionClanKey.enable = true;
 
       # Bootable qcow2 image (pure nixpkgs make-disk-image).
       # Build with:
