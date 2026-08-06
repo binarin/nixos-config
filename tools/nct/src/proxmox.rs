@@ -84,6 +84,17 @@ impl Proxmox {
             .with_context(|| format!("parsing nextid `{out}`"))
     }
 
+    /// Check whether a file exists on the host (`test -e`).
+    pub async fn file_exists(&self, remote_path: &str) -> Result<bool> {
+        // `test -e` exits 0 if the file exists; we suppress the remote
+        // shell's non-zero exit (which our `run_remote` would turn into an
+        // error) by explicitly echoing the result.
+        let out = self
+            .run_remote(&["sh".into(), "-c".into(), format!("test -e {remote_path} && echo yes || echo no")])
+            .await?;
+        Ok(out.trim() == "yes")
+    }
+
     /// Resolve the on-host directory for a snippet storage via `pvesm path`.
     /// E.g. `local:snippets/foo` -> `/var/lib/vz/snippets/foo`.
     pub async fn snippet_path(&self, storage: &str, filename: &str) -> Result<String> {

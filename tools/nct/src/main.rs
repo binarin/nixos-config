@@ -74,6 +74,13 @@ enum MachineCommand {
         #[arg(short, long)]
         start: bool,
 
+        /// Skip the (slow) qcow2 build+rsync if the remote image already
+        /// exists at `/tmp/<machine>-disk.qcow2`, and don't delete it
+        /// afterwards. For fast iteration on cloud-init/networking/proxmox
+        /// wiring without rebuilding the image each run.
+        #[arg(long)]
+        test_reuse_image: bool,
+
         /// Show what would be done without executing.
         #[arg(long)]
         dry_run: bool,
@@ -115,6 +122,7 @@ async fn main() -> Result<()> {
                 snippet_storage,
                 disk_storage,
                 start,
+                test_reuse_image,
                 dry_run,
             } => {
                 let flake = nix_flake::NixFlake::open(&cli.flake)?;
@@ -128,6 +136,7 @@ async fn main() -> Result<()> {
                         snippet_storage,
                         disk_storage,
                         start,
+                        test_reuse_image,
                         dry_run,
                     },
                 )
@@ -208,6 +217,7 @@ mod tests {
                     disk_storage,
                     start,
                     dry_run,
+                    test_reuse_image,
                 },
             } => {
                 assert_eq!(name, "xray-exit");
@@ -218,6 +228,7 @@ mod tests {
                 assert_eq!(disk_storage, None);
                 assert!(!start);
                 assert!(!dry_run);
+                assert!(!test_reuse_image);
             }
             _ => panic!("expected ProvisionPve"),
         }

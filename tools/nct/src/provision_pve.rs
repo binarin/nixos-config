@@ -29,6 +29,9 @@ pub struct ProvisionPveArgs {
     pub snippet_storage: String,
     pub disk_storage: Option<String>,
     pub start: bool,
+    /// Skip qcow2 build+rsync if the remote image already exists, and don't
+    /// delete it afterwards. For fast iteration without rebuilding the image.
+    pub test_reuse_image: bool,
     pub dry_run: bool,
 }
 
@@ -41,6 +44,8 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
         snippet_storage,
         disk_storage,
         start,
+        test_reuse_image,
+
         dry_run,
     } = args;
 
@@ -79,14 +84,24 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
         );
     }
 
-    // 4. Build cloud image.
-    println!("\nStep 4: building cloud image");
+    // 4. Build cloud image (skipped if --test-reuse-image and the remote
+    //    image already exists).
+    let remote_image = format!("/tmp/{machine}-disk.qcow2");
+    let skip_build = test_reuse_image
+        && !dry_run
+        && pve.file_exists(&remote_image).await?;
     let image_path = if dry_run {
+        println!("\nStep 4: (dry-run) cloud image");
         PathBuf::from("/tmp/dry-run.qcow2")
+    } else if skip_build {
+        println!("\nStep 4: reusing remote image {remote_image} (--test-reuse-image)");
+        PathBuf::from(&remote_image)
     } else {
-        build_cloud_image(&machine)?
+        println!("\nStep 4: building cloud image");
+        let p = build_cloud_image(&machine)?;
+        println!("  image: {}", p.display());
+        p
     };
-    println!("  image: {}", image_path.display());
 
     // 5. Cloud-init snippets.
     let userdata = cloud_init::user_data(cfg.hostname(), cfg.authorized_keys(), &age_key);
@@ -162,20 +177,25 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
         }
     }
 
-    // 8. Import qcow2.
+    // 8. Import qcow2 (skip rsync if we reused the remote image).
     println!("\nStep 8: importing disk image");
-    let remote_image = format!("/tmp/{machine}-disk.qcow2");
     if dry_run {
         println!("  would rsync {} -> root@{}:{remote_image}", image_path.display(), proxmox_host);
         println!("  would run: qm set {vmid} --scsi0 {disk_storage}:0,import-from={remote_image}");
     } else {
-        pve.rsync_to(&image_path, &remote_image).await?;
+        if !skip_build {
+            pve.rsync_to(&image_path, &remote_image).await?;
+        } else {
+            println!("  (reusing {remote_image}, skipping rsync)");
+        }
         let spec = format!("{disk_storage}:0,import-from={remote_image}");
         pve.qm(&["set", &vmid.to_string(), "--scsi0", &spec]).await?;
         pve.qm(&["set", &vmid.to_string(), "--boot", "order=scsi0"]).await?;
         pve.qm(&["set", &vmid.to_string(), "--delete", "ide2"]).await.ok();
-        // Cleanup the temp image on the host.
-        pve.run_remote(&[format!("rm -f {remote_image}")]).await.ok();
+        // Cleanup the temp image on the host — unless we're keeping it for reuse.
+        if !test_reuse_image {
+            pve.run_remote(&[format!("rm -f {remote_image}")]).await.ok();
+        }
     }
 
     // 9. Start.
