@@ -75,6 +75,17 @@
         # and a sane unit graph. Stage 1 only.
         boot.initrd.systemd.enable = true;
 
+        assertions = [
+          {
+            assertion = config.boot.initrd.systemd.enable;
+            message = ''
+              boot.initrd.provisionClanKey requires boot.initrd.systemd.enable.
+              The unit depends on initrd.target / sysroot.mount ordering, which
+              only exists with a systemd-managed initrd.
+            '';
+          }
+        ];
+
         boot.initrd.systemd.storePaths = with pkgs; [
           util-linux # mount, umount, findmnt
           coreutils # mkdir, chmod, grep, etc.
