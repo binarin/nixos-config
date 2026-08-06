@@ -25,16 +25,18 @@ in
     };
   };
 
-  # Provisions SSH authorized keys for `binarin` on every machine via clan's
-  # built-in `sshd` distributed-service module. Keys come from the secure
-  # (hardware-backed) entries in inventory/public-keys.nix.
+  # Provisions SSH authorized keys for `root` on every machine via clan's
+  # built-in `sshd` distributed-service module (its server role only ever
+  # writes `users.users.root.openssh.authorizedKeys.keys` — never a normal
+  # user; `binarin` is granted access in the nixos-base module below). Keys
+  # come from the secure (hardware-backed) entries in inventory/public-keys.nix.
   clan.inventory.instances.binarin-admin = {
     module.name = "sshd";
     roles.server.tags.all = { };
     roles.server.settings = {
       authorizedKeys =
         with lib;
-        pipe (import "${self}/inventory/public-keys.nix") [
+        pipe (import "${self}/inventory/public-keys.nix").ssh_keys [
           (filterAttrs (
             _:
             {
@@ -96,6 +98,28 @@ in
       # setNixPath, which asserts on setFlakeRegistry).
       nixpkgs.flake.setFlakeRegistry = lib.mkDefault false;
       nixpkgs.flake.setNixPath = lib.mkDefault false;
+
+      # The `binarin` user comes from the clan `users` service instance above,
+      # but clan's `sshd` service grants *root* only, and modules/sshd.nix
+      # likewise covers root only. Without this, binarin exists on every
+      # nixos-base machine yet has neither an authorized_keys.d entry nor an
+      # authorized_principals.d entry, so sshd rejects it with "Certificate
+      # does not contain an authorized principal".
+      #
+      # `authorizedKeys.keys` must NOT be mkDefault here: clan's `users`
+      # service assigns `openssh.authorizedKeys` at normal priority (with an
+      # empty `keys` default), which would outrank a mkDefault and leave the
+      # list empty. At equal priority the two list definitions concatenate.
+      # `authorizedPrincipals` is untouched by clan, so mkDefault is fine there
+      # and lets the fuller binarin-baseline definition win if a machine ever
+      # imports both.
+      users.users.binarin.openssh = {
+        authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser "binarin";
+        authorizedPrincipals = lib.mkDefault [
+          "root"
+          "binarin"
+        ];
+      };
 
       imports = [
         # Bootable nixpkgs shrink profiles:
