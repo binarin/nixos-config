@@ -186,6 +186,16 @@ in
           description = "Enable QEMU guest agent.";
         };
 
+        staticNetwork = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = ''
+            Configure eth0 with a static IP from the home inventory allocation.
+            Disable for portable cloud images that should obtain networking
+            via DHCP / cloud-init.
+          '';
+        };
+
         description = lib.mkOption {
           type = lib.types.nullOr lib.types.str;
           default = null;
@@ -325,7 +335,7 @@ in
         ];
         systemd.services."serial-getty@ttyS0".enable = true;
 
-        systemd.network.networks."40-qemu" = {
+        systemd.network.networks."40-qemu" = lib.mkIf config.nixos-config.qemu-guest.proxmox.staticNetwork {
           matchConfig.Name = "eth0";
           dns = flakeConfig.inventory.networks.home.dns;
           address = [

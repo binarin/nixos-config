@@ -66,14 +66,24 @@ in
 
       networking.useNetworkd = true;
 
-      # Guest-VLAN networking: override qemu-guest's home-VLAN 40-qemu block.
-      systemd.network.networks."40-qemu" = lib.mkForce {
-        matchConfig.Name = "eth0";
-        dns = flakeConfig.inventory.networks.guest.dns;
-        address = [
-          flakeConfig.inventory.ipAllocation.xray-exit.guest.primary.addressWithPrefix
-        ];
-        routes = [ { Gateway = flakeConfig.inventory.networks.guest.gateway; } ];
+      # Portable cloud image: disable qemu-guest's static home-VLAN networking
+      # so cloud-init / DHCP configures eth0 at boot.
+      nixos-config.qemu-guest.proxmox.staticNetwork = false;
+
+      # cloud-init: lets the host inject SSH keys / network at boot.
+      services.cloud-init = {
+        enable = true;
+        network.enable = true;
+      };
+
+      # Bootable qcow2 image (pure nixpkgs make-disk-image).
+      # Build with:
+      #   nix build '.#nixosConfigurations.xray-exit.config.system.build.cloudImage'
+      system.build.cloudImage = import "${pkgs.path}/nixos/lib/make-disk-image.nix" {
+        inherit lib pkgs config;
+        format = "qcow2";
+        partitionTableType = "efi";
+        additionalSpace = "1024M";
       };
 
       nixos-config.qemu-guest.proxmox = {
