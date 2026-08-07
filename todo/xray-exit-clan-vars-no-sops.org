@@ -1,0 +1,273 @@
+#+TITLE: xray-exit config assembly without coupling to sops internals
+
+* Problem
+
+The commented-out xray service block in =modules/machines/xray-exit.nix=
+mirrors what =xray-front= does: build =xray.json= via
+=sops.templates."xray.json"=, with secret leaves referenced as
+=sops.placeholder."vars/<gen>/<file>"=, and point =services.xray.settingsFile=
+at the rendered template path.
+
+That approach is fragile because the ="vars/<gen>/<file>"= secret naming is
+an *implementation detail of clan's sops secret backend*
+(=vars/secret/sops/default.nix= + =generators-to-sops.nix=). Clan ships three
+interchangeable secret backends — =sops=, =age=, =password-store= — selected
+per-machine via =clan.core.vars.settings.secretStore=. Only the sops backend
+ever populates =config.sops.secrets=, so the =sops.placeholder."vars/..."=
+references:
+
+- silently produce empty values under the =age= backend (secrets land in
+  =/run/secrets/<gen>/<file>= via an activation script; no =config.sops.*= at
+  all),
+- silently produce empty values under =password-store= (tarball unpack into
+  =/run/secrets=),
+- are not contractually stable even within the sops backend.
+
+The only backend-agnostic consumption contract clan exposes is per-file:
+
+| =file.config.path=  | on-disk path to the decrypted secret (set by every backend)   |
+| =file.config.value= | Nix-readable contents, *only for =secret = false= files*     |
+
+So we must stop reaching for =sops.placeholder= / =sops.templates= and instead
+assemble =xray.json= at *service start time* from already-decrypted
+=file.config.path= files.
+
+* Constraint: generators are the wrong tool here
+
+A clan vars *generator* could assemble =xray.json= (the repo already does this
+for =client.json= on =xray-front=). But generators run on the management host
+during =clan vars generate=, which means:
+
+- regenerating requires decrypting every dependent secret on the management
+  host, and
+- every secret rotation forces a full =clan vars generate= round-trip just to
+  re-render one JSON file.
+
+The decrypted material already lives on the target machine at boot. We want to
+assemble the config there, from those local files, with no management-host
+involvement.
+
+* Design
+
+** Shape
+
+A root-owned systemd oneshot — =xray-exit-assemble.service= — that:
+
+1. reads the decrypted clan-var secret files via their =file.config.path=,
+2. substitutes them into a pre-rendered JSON skeleton (the
+   =@TOKEN@ + sed= pattern already used for =client.json= on =xray-front=),
+3. writes the result to a =RuntimeDirectory=-backed path
+   (=/run/xray-assembled/config.json=).
+
+=xray.service= then loads that file.
+
+The skeleton keeps =lib/xray/config-lib.nix='s =mkExitSettings= as the single
+source of truth for the JSON structure: we call it with =@TOKEN@= sentinel
+strings as leaves, =builtins.toJSON= it into a store-path skeleton, and the
+assembler =sed=s the real values in at runtime. No duplication of the config
+shape in shell/jq.
+
+** Leaves and their generators
+
+=mkExitSettings= takes 5 leaves. Mapping to clan-var generators (all declared
+in =modules/xray/shared.nix=, all =share = true=):
+
+| leaf (param)   | generator / file             | secret? | token       |
+|----------------+------------------------------+---------+-------------|
+| =linkId=       | =xray-link/uuid=             | yes     | =@LINK@=    |
+| =exitDest=     | =xray-exit-params/dest=      | yes     | =@DEST@=    |
+| =exitSni=      | =xray-exit-params/sni=       | yes     | =@SNI@=     |
+| =exitPrivateKey= | =xray-reality-exit/private-key= | yes   | =@PK@=      |
+| =exitShortId=  | =xray-reality-exit/short-id= | no (public, =secret = false=) | =@SID@= |
+
+Note =short-id= is public, but we read it uniformly via =.path= at runtime
+rather than inlining =.value= in Nix. Mixing Nix-inline + runtime-cat in one
+skeleton would complicate the =sed= story; reading all five from disk is
+simpler and negligibly costly. (Its =.path= is set by the =in_repo= public
+store and is valid even pre-generation.)
+
+** Skeleton (Nix-side, build time)
+
+#+begin_src nix
+exitSkeleton = pkgs.writeText "xray-exit-skeleton.json" (builtins.toJSON (
+  xrayLib.mkExitSettings {
+    linkId         = "@LINK@";
+    exitDest       = "@DEST@";
+    exitSni        = "@SNI@";
+    exitPrivateKey = "@PK@";
+    exitShortId    = "@SID@";
+  }
+));
+#+end_src
+
+This is a pure nix store path; identical in spirit to =clientSkeleton= in
+=xray-front.nix=.
+
+** Assembler script (nix store path, invoked by the service)
+
+Reads each =file.config.path= and =sed=s into the skeleton:
+
+#+begin_src shell
+set -euo pipefail
+out="$1"
+sed \
+  -e "s|@LINK@|$(cat ${linkPath})|g" \
+  -e "s|@DEST@|$(cat ${destPath})|g" \
+  -e "s|@SNI@|$(cat  ${sniPath})|g" \
+  -e "s|@PK@|$(cat   ${pkPath})|g" \
+  -e "s|@SID@|$(cat  ${sidPath})|g" \
+  ${exitSkeleton} > "$out.tmp"
+mv "$out.tmp" "$out"   # atomic-ish; LoadCredential reads at xray start, not here
+#+end_src
+
+The =${linkPath}= etc. are spliced at eval time from
+=config.clan.core.vars.generators.<g>.files.<f>.path=, each guarded by
+=tryEval= so the configuration still evaluates before =clan vars generate= has
+run (same idiom as the existing =ph= / =val= helpers in =xray-front.nix=,
+falling back to =/run/secrets/<g>/<f>=).
+
+** Dependencies (the part this plan exists to nail down)
+
+Backend-neutral ordering relies on a fact verified in clan-core: *all three*
+secret backends decrypt =neededFor = "services"= secrets via a one-shot unit
+that is =wantedBy = [ "sysinit.target" ]=:
+
+- sops:  =sops-install-secrets.service= (=useSystemdActivation=) or the
+  =setupSecrets= activation script otherwise,
+- age:   =age-decrypt-secrets.service=,
+- password-store: =pass-install-secrets.service=.
+
+So:
+
+#+begin_src nix
+systemd.services.xray-exit-assemble = {
+  description = "Assemble xray.json from decrypted clan vars";
+  # --- assembler depends on the secrets it reads ---
+  # Pull in whichever backend decrypt unit exists, without naming it.
+  wants = [ "sysinit.target" ];
+  after  = [ "sysinit.target" ];
+  # --- xray depends on the assembler ---
+  before = [ "xray.service" ];
+  requiredBy = [ "xray.service" ];   # xray will not start until we finish
+  serviceConfig = {
+    Type = "oneshot";
+    ExecStart = "${assembler} /run/xray-assembled/config.json";
+    RemainAfterExit = true;
+    RuntimeDirectory = "xray-assembled";      # /run/xray-assembled, root-owned
+    RuntimeDirectoryMode = "0700";
+  };
+};
+#+end_src
+
+- =wants = [ "sysinit.target" ]= + =after = [ "sysinit.target" ]=: ensures the
+  backend's decrypt unit has run (it is =wantedBy= that target) before we read
+  the secret paths. =wants= not =requires=: if a machine has no services-phase
+  secrets at all the decrypt unit may be absent/masked, and we must not
+  dead-lock boot.
+- =before = [ "xray.service" ]= + =requiredBy = [ "xray.service" ]=: hard
+  ordering; =xray.service= cannot start until the oneshot completes
+  successfully, so =LoadCredential= always finds the file.
+
+** xray unit wiring
+
+Upstream =services.xray= uses =DynamicUser= + =LoadCredential =
+"config.json:${settingsFile}"=. Two consequences:
+
+1. =settingsFile= must be a real path (not null, not a credential name).
+   =/run/xray-assembled/config.json= satisfies the assertion.
+2. =LoadCredential= copies the file into xray's private =$CREDENTIALS_DIRECTORY=
+   at start, so the assembler only needs to write a root-owned file; no
+   permission dance for xray's dynamic UID.
+
+The =settingsFile= we pass is just a path string; upstream embeds it into
+=LoadCredential= verbatim, which is exactly what we want:
+
+#+begin_src nix
+services.xray = {
+  enable = true;
+  settingsFile = "/run/xray-assembled/config.json";
+};
+#+end_src
+
+No =mkForce LoadCredential= override should be needed — upstream already wires
+=settingsFile= into =LoadCredential=. (Verify during implementation; if
+upstream's =LoadCredential= line doesn't pick up our path for any reason,
+override with =mkForce = "config.json:/run/xray-assembled/config.json"=.)
+
+** Module imports in =xray-exit.nix=
+
+- =self.nixosModules.sops= stays *commented out* (or is removed). This is the
+  whole point: xray-exit no longer needs sops-nix at all.
+- =self.nixosModules.xray-shared= stays (it declares the generators).
+- No new module import required; the assembler is inline in
+  =xray-exit-configuration=.
+
+* Caveats / open questions
+
+** Restart on secret rotation
+
+This is the one feature the sops backend gave us for free (via the
+=restartUnits= field on each var file, propagated by
+=generators-to-sops.nix= into =sops.secrets."vars/...".restartUnits=). The
+assembler model loses that.
+
+Options, in increasing sophistication:
+
+1. *Do nothing initially.* Accept that after =clan vars generate= +
+   machine update, the operator runs =systemctl restart xray= (or just reboots,
+   since the assembler regenerates on every boot anyway). Simplest; fine for a
+   personal config where rotations are rare and deliberate.
+2. *Path-based trigger.* Add a =systemd.paths.xray-exit-assemble= watching the
+   five =file.config.path=s with =PathChanged=, plus wire the assembler to
+   restart =xray.service= on completion (=PartOf=/=BindsTo= or a =ExecStartPost=
+   =systemctl try-restart xray.service=). ~6 lines. Fully automatic, still
+   backend-neutral.
+
+Recommend deferring this to a follow-up: get the basic assembler + ordering
+working and validated first, then add the path unit if rotation ergonomics
+matter.
+
+** =neededFor= of the read secrets
+
+All five read secrets default to =neededFor = "services"= (the generator-file
+default in =generic-generator.nix=), which is exactly the phase the
+=sysinit.target=-ordered decrypt units handle. No change needed — but if any
+were ever flipped to =neededFor = "activation"= the ordering target would
+differ. Note for future maintainers.
+
+** xray-front has the same coupling
+
+=xray-front.nix= has the identical =sops.placeholder."vars/..."= problem and a
+larger leaf set (11 leaves, including per-user UUIDs from per-machine
+=xray-user-<n>/uuid= generators). The assembler pattern scales there directly
+(longer =sed= list, per-user UUID =sed= tokens). xray-exit is the pilot; if it
+lands cleanly, xray-front gets the same treatment in a follow-up. Do *not*
+touch xray-front in this change.
+
+* Implementation checklist
+
+- [ ] =modules/machines/xray-exit.nix=:
+  - [ ] =let= block: =exitSkeleton= (=pkgs.writeText= of =mkExitSettings= with
+        =@TOKEN@= leaves), =secretPath= helper (=tryEval=guarded =.path=), the
+        five resolved paths.
+  - [ ] =assembler= script (=pkgs.writeShellScript= or
+        =writeShellApplication=): =sed= substitution + atomic write.
+  - [ ] =systemd.services.xray-exit-assemble=: ordering + =RuntimeDirectory= as
+        specified above.
+  - [ ] Uncomment + repoint =services.xray=: =enable = true=,
+        =settingsFile = "/run/xray-assembled/config.json"=.
+  - [ ] Confirm =self.nixosModules.sops= remains commented out.
+- [ ] Verify evaluation: =nix flake check= (or =nixos-rebuild build= for the
+      xray-exit host) succeeds *before* =clan vars generate= has produced exit
+      secrets (the =tryEval= guards must hold).
+- [ ] Verify runtime (post-deploy): =systemctl status xray-exit-assemble= then
+      =systemctl status xray=; =xray -test -config /run/xray-assembled/config.json=.
+- [ ] (Follow-up, deferred) =systemd.paths.xray-exit-assemble= for rotation.
+- [ ] (Follow-up, deferred) port the pattern to =xray-front.nix=.
+
+* Non-goals
+
+- Changing any clan-var generator definitions in =modules/xray/shared.nix=
+  (they stay as-is; only consumption changes).
+- Removing sops-nix from the flake (other machines still use it).
+- Touching =xray-front.nix= in this change.
