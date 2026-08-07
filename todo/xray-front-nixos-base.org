@@ -1,0 +1,207 @@
+#+TITLE: Convert xray-front to nixos-base (drop the old baseline)
+
+* Context / motivation
+
+=nixos-base= was introduced (see =todo/nixos-base.org=) as the minimal,
+clan-mandatory replacement for the legacy =baseline= system module + the
+=binarin-baseline= user module. The first guinea pig was =xray-exit=, which
+was converted in the same change set and is now significantly smaller
+(1400 → 951 MiB closure) and free of the old-baseline's kitchen sink
+(tailscale/monitoring/emacs/git/interactive-cli/srvos update-diff/...).
+
+=xray-front= is the other machine that is a natural fit for =nixos-base=:
+it is a single-purpose EC2 VPS (Reality front-end), it deliberately
+disables tailscale and metrics today, and it already carries its own
+EC2-specific boot/network/disk config on top of the module imports. It is
+*the* next candidate for the same conversion.
+
+This document is the **investigation + plan** for that conversion, modelled
+on the =xray-exit= conversion (see =todo/nixos-base.org= → "Rewire
+=xray-exit= machine module to use =nixos-base=").
+
+* Current state of =modules/machines/xray-front.nix=
+
+Today the configuration module imports:
+#+begin_src nix
+imports = [
+  self.nixosModules.baseline          # <-- the thing we are dropping
+  self.nixosModules.systemd-boot
+  "${self}/my-machines/xray-front/disko.nix"
+  self.nixosModules.xray-shared
+];
+#+end_src
+
+and then overrides pieces of baseline away:
+#+begin_src nix
+services.tailscale.enable = lib.mkForce false;     # don't want tailscale
+nixos-config.export-metrics.enable = false;         # don't want monitoring
+programs.ssh.knownHosts = lib.mkForce { };          # pre-`clan vars` eval hack
+#+end_src
+
+The EC2 specifics already live on the machine module itself:
+- =boot.loader.efi.canTouchEfiVariables = mkForce false=
+- =boot.initrd.availableKernelModules = [ "nvme" "ena" "xen_blkfront" ]=
+- =boot.growPartition = true=
+- =boot.kernelParams = [ "console=ttyS0,115200n8" ]=
+- =systemd.network= DHCP on =en*=, =networking.useDHCP = false=
+- =networking.firewall.allowedTCPPorts = [ 22 443 ]=
+
+Secrets / xray config:
+- Uses =config.sops.templates."xray.json"= + =config.sops.placeholder."vars/..."=
+  (the fragile sops-internals coupling — see =todo/xray-exit-clan-vars-no-sops.org=).
+  This is the **same pattern** =xray-exit= used to have and *deliberately moved
+  away from* in favour of a start-time assembler reading decrypted
+  =clan.core.vars...path= files. **That work is a prerequisite / sibling to
+  this conversion** (see "Open questions" #2).
+- Declares per-user clan var generators (=xray-user-<name>/uuid=,
+  =xray-user-<name>/client.json=) and the front-side generators
+  (=xray-front-params=, =xray-reality-front=, =xray-geo=, =xray-link=),
+  shared via =modules/xray/shared.nix=.
+
+Deploy note (already correct, keep as-is): no =flake.deploy.nodes.xray-front=
+and no committed static =deploy.targetHost=, because the EC2 public address
+isn't known ahead of time. Deploy is =clan machines update xray-front
+--target-host root@<ec2-public-dns>=.
+
+* What the conversion changes
+
+** Imports — swap baseline → nixos-base (+ re-add sops explicitly)
+
+Modelled 1:1 on what =xray-exit= ended up with:
+#+begin_src nix
+imports = [
+  self.nixosModules.nixos-base      # minimal, clan-mandatory
+  # nixos-base deliberately excludes sops; xray-front still uses it (see below)
+  self.nixosModules.sops
+  "${self}/my-machines/xray-front/disko.nix"
+  self.nixosModules.xray-shared
+];
+#+end_src
+
+Differences vs the =xray-exit= imports list:
+- *No* =self.nixosModules.qemu-guest= — xray-front is not a Proxmox VM; it has
+  its own EC2 boot/network block already. Don't import the Proxmox guest module.
+- *No* =selfLib.file' "machines/.../hardware-configuration.nix"= — xray-front
+  uses =disko= (the =my-machines/xray-front/disko.nix= import) instead of a
+  hand-written hardware-configuration.
+- =systemd-boot= is currently imported explicitly; check whether =nixos-base=
+  pulls it in. **Investigation:** =nixos-base= imports =clan-hostId=,
+  =clan-hosts=, =sshd=, =inventory=, =public-keys= + the two nixpkgs
+  profiles. It does *not* import =systemd-boot=. So **keep**
+  =self.nixosModules.systemd-boot= in the imports — it's what wires
+  =boot.loader.systemd-boot= for the UEFI-on-EBS boot path.
+- *Keep* the =self.nixosModules.xray-shared= import (reality generators etc.).
+
+** Dangling overrides to DELETE
+
+These three lines reference options that were defined by modules pulled in
+*only* via the old =baseline=. Under =nixos-base= the options don't exist
+and the lines will hard-error at eval time (this is exactly the risk the
+=nixos-base.org= plan flagged for xray-exit, and the same resolution applies):
+
+#+begin_src nix
+- services.tailscale.enable = lib.mkForce false;
+- nixos-config.export-metrics.enable = false;
+#+end_src
+Under =nixos-base=, tailscale and =export-metrics= are simply absent — nothing
+to disable. (Behaviour is preserved: xray-front wanted both off.)
+
+** Overrides to KEEP
+
+- =programs.ssh.knownHosts = lib.mkForce { };= — the pre-`clan vars generate`
+  eval hack. =xray-exit= kept it; =nixos-base= still imports =sshd= which is
+  where the known-hosts forcing originates. Keep verbatim.
+
+** Everything else stays
+
+- The EC2 boot / network / firewall block — already correct, untouched.
+- The =boot.loader.efi.canTouchEfiVariables = mkForce false= (EC2 NVRAM is
+  read-only) — keep.
+- =services.xray= + =sops.templates."xray.json"= + the per-user generators —
+  keep *for this iteration*. (See open questions #2 re the sops-internals
+  coupling; that is a separate, already-planned change.)
+
+* Prerequisites / ordering
+
+1. **Optional but recommended: port the start-time xray.json assembler first**
+   (=todo/xray-exit-clan-vars-no-sops.org=). =xray-exit= did this *before/at*
+   its =nixos-base= conversion and it removed the last sops.templates
+   dependency, which in turn lets a future xray-front drop the
+   =self.nixosModules.sops= import entirely. If we do the =nixos-base=
+   conversion *first*, xray-front still needs =self.nixosModules.sops= in its
+   imports (sops templates don't exist without it) — which is fine, just one
+   more import to carry until the assembler port lands.
+   → **Decision for this plan:** do the =nixos-base= conversion standalone;
+     keep =self.nixosModules.sops= in the imports. The two changes are
+     orthogonal and don't need to be sequenced into one PR.
+
+* Implementation steps
+
+** TODO Convert =modules/machines/xray-front.nix=
+   - Replace =self.nixosModules.baseline= with =self.nixosModules.nixos-base=
+     in the configuration module's =imports=.
+   - Add =self.nixosModules.sops= to the imports (nixos-base excludes it;
+     xray-front still uses =sops.templates=).
+   - Keep =self.nixosModules.systemd-boot=, the disko path import, and
+     =self.nixosModules.xray-shared=.
+   - Delete the =services.tailscale.enable = mkForce false= and
+     =nixos-config.export-metrics.enable = false= lines (dangling overrides).
+   - Keep =programs.ssh.knownHosts = mkForce { };=.
+   - Leave the EC2 boot/network/firewall block and the xray service / sops
+     template / generators untouched.
+
+** TODO Regenerate flake inputs if needed
+   - =nixos-base= adds no new flake inputs (verified during the xray-exit
+     conversion). =nix run .#write-flake= should be a no-op, but run it to
+     confirm.
+
+** TODO Build and validate =xray-front=
+   - =nix build '.#nixosConfigurations.xray-front.config.system.build.toplevel'=
+     — confirms the bare base + sops + xray evaluates.
+   - =nix build '.#nixosConfigurations.xray-front.config.system.build.diskoScript'=
+     (or the disko image path) — confirms disko still wires against the new
+     base. NB: =my-machines/xray-front/disko.nix= uses =/dev/nvme0n1= for
+     Nitro EC2; that's a runtime concern, not an eval one.
+   - Sanity: rebuild a representative =baseline= machine (=iso= or =demandred=)
+     to confirm the global clan inventory instances (=binarin-user=,
+     =binarin-admin=) move didn't regress (already verified during xray-exit,
+     but re-check since xray-front is the second consumer).
+   - Compare closure size before/after
+     (=nix path-info -Sh .#nixosConfigurations.xray-front.config.system.build.toplevel=).
+     Expect a drop comparable to xray-exit's (~30%), modulo the xray server
+     binary + sops deps that xray-front carries and xray-exit may not.
+
+* Risks / open questions
+
+1. *Dangling override hard-error* (the tailscale/export-metrics lines).
+   Resolved by deleting them — same resolution as xray-exit. Low risk; the
+   eval will fail loudly and point at the offending line if any are missed.
+
+2. *sops.templates coupling.* Not introduced by this change, but worth
+   flagging: xray-front still uses =sops.placeholder."vars/..."=, the fragile
+   pattern =xray-exit= moved away from. This conversion *preserves* that
+   pattern (it's orthogonal). The follow-up is =todo/xray-exit-clan-vars-no-sops.org=
+   applied to xray-front.
+
+3. *srvos update-diff removed.* Old baseline imported
+   ="${inputs.srvos}/nixos/common/update-diff.nix"=; =nixos-base= drops it.
+   Deploy-time diffing on xray-front is lost unless re-added. Acceptable for
+   the bare base (same call made for xray-exit).
+
+4. *=systemd-boot= import.* Confirmed: =nixos-base= does *not* import
+   =systemd-boot=, so the explicit import in xray-front.nix must stay. If it's
+   accidentally removed, eval will still pass but the machine won't boot
+   (no bootloader configured) — so this is a *runtime* risk, not an eval one.
+   Double-check the import survives the edit.
+
+5. *EC2-specific boot pieces.* =boot.loader.efi.canTouchEfiVariables = mkForce false=
+   stays; verify it still composes with =systemd-boot= (which sets
+   =efi.canTouchEfiVariables = true= by default). The =mkForce= is precisely
+   there to win that fight; keep it.
+
+6. *Closure-size regression check.* xray-front pulls in =services.xray=
+   (xray binary, geoip/geosite DBs via the generators) and the per-user
+   generator runtime inputs. None of that changes with the base swap, but
+   measure to confirm the =nixos-base= shrink profiles (perlless/minimal,
+   setFlakeRegistry off, disableInstallerTools) actually apply and aren't
+   silently re-enabled by something xray-front imports.

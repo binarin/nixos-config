@@ -1399,3 +1399,451 @@ Key findings baked into the implementation (not predicted by the plan):
   a documented dead-end with the rationale preserved.
 - Either way, =provision-clan-key.nix='s self-skip (=if [ -s key_dest ]=)
   means a baked-in key and a seed can coexist safely during any transition.
+
+* Stage 6 — investigation: =machine build-aws-image= + =machine provision-aws= (opentofu)
+:PROPERTIES:
+:STATUS: PLANNING (investigation only; no code yet)
+:END:
+
+** Motivation
+
+=xray-front= is the repo's one EC2-hosted machine. Today it is a *manual*
+AWS workflow: build the configuration, somehow get a disk onto EC2, launch
+an instance, then =clan machines update xray-front --target-host root@<dns>=.
+None of that "somehow" is captured in tooling — it's the last machine with
+no =nct= (or =ncf=) provision path. Stage 4 gave Proxmox VMs a one-shot
+=nct machine provision-pve=; this stage is the AWS analogue, and it splits
+cleanly into two sub-commands because AWS *forces* that split:
+
+- =nct machine build-aws-image <name>= — a pure-ish nix build that produces
+  an importable AMI artifact (a VHD), with *no* AWS credentials required.
+- =nct machine provision-aws <name>= — the impure, credentials-bearing step
+  that imports the VHD as an AMI and launches (or replaces) an instance,
+  almost certainly via opentofu.
+
+Splitting them mirrors how the AWS image pipeline actually works (build
+locally → upload → register AMI → run) and lets the expensive, cacheable,
+credential-free build happen in CI / on any builder, while the cheap,
+stateful, credential-bearing provision is an explicit operator action.
+
+** Why the split is mandatory on AWS (vs Proxmox)
+
+Proxmox =provision-pve= could fold build + provision into one command
+because Proxmox import is =qm set --scsi0 <st>:0,import-from=<local file>=
+— a single host-local call against a file we just =rsync='d over. AWS has
+no such primitive:
+
+- The disk artifact must be uploaded to S3 as a *VHD* (AWS's =vpc= format),
+  then =aws ec2 import-snapshot= (a VM Import Service *job* that polls for
+  minutes), then =aws ec2 register-image= against the resulting snapshot to
+  get an AMI id. None of that is a single RPC; it's a stateful workflow.
+- That workflow needs AWS credentials *and* an S3 bucket *and* a service
+  role with the VM Import trust policy (=vmimport=). Building the VHD does
+  not. Conflating them would mean =nix build= requires live AWS creds,
+  which breaks CI and every offline rebuild.
+- The instance itself is best modelled declaratively (instance type, subnet,
+  security group, EBS volume, elastic IP, SSH key) — i.e. as *infrastructure
+  as code*. Hand-rolling =aws ec2 run-instances= JSON in Rust reimplements a
+  worse terraform. opentofu is the right tool for the instance half.
+
+=> =build-aws-image= is nix + a thin =nct= wrapper; =provision-aws= is
+   opentofu all the way down.
+
+** Part A — =nct machine build-aws-image <name>=
+
+*** What nixpkgs gives us for free
+
+The EC2 image story in nixpkgs is *not* =make-disk-image.nix= called by hand
+(which is what xray-exit's cloudImage does for Proxmox). There is a dedicated,
+supported module:
+
+- =nixos/modules/virtualisation/amazon-image.nix= (=../nix/nixpkgs/...=) ::
+  the EC2 *config* module. Imports =ec2-data.nix= (applies instance user-data
+  SSH host keys) + =amazon-init.nix= (optionally rebuilds from user-data) and
+  sets up nvme/ena/xen kernel modules, =ttyS0= console, growPartition, the
+  =fetch-ec2-metadata= service, amazon-ssm-agent, =amazon-ec2-utils= udev
+  rules, and the right =boot.loader.grub= UEFI/BIOS wiring.
+- =nixos/maintainers/scripts/ec2/amazon-image.nix= :: the EC2 *image builder*
+  module. Imports the config module above + =disk-size-option.nix= +
+  =image/file-options.nix=, and defines =config.system.build.amazonImage=
+  via =make-disk-image.nix= with =format = "vpc"= (VHD),
+  =partitionTableType = "efi"= (or =legacy+gpt=), =fsType = "ext4"=, and a
+  =postVM= that emits =nix-support/image-info.json= with =boot_mode=,
+  =logical_bytes=, =system_version=, and the disk file path.
+
+So unlike the Proxmox =cloudImage= (a hand-rolled =make-disk-image= call),
+the AWS path has a first-class =system.build.amazonImage= output that already
+knows how to be an AMI. nixpkgs' own =release.nix= builds its public AMIs
+*exactly* this way (the =amazonImage= attr, ~line 330).
+
+*** What xray-front needs to import
+
+Today =modules/machines/xray-front.nix= hand-rolls the EC2 specifics
+(=nvme=/=ena=/=xen_blkfront= modules, =ttyS0= console, DHCP networking,
+UEFI-on-EBS, growPartition). Most of that is *duplicated* by
+=amazon-image.nix=. The clean conversion (part of the =nixos-base= work in
+=todo/xray-front-nixos-base.org=, or a follow-up) is to import the nixpkgs
+EC2 module instead and delete the hand-rolled block. For =build-aws-image=
+the machine module *must* evaluate with the EC2 image-builder module
+imported, or =system.build.amazonImage= won't exist.
+
+*** Networking: plain DHCP via systemd-networkd (NOT cloud-init, NOT baked-in static)
+
+:REQUIREMENT:
+The EC2 instance gets its IP/gateway/DNS by sending a DHCP request on
+its primary NIC at boot; AWS's hypervisor-side DHCP server assigns them
+from the subnet's range. The guest just needs to DHCP on =en*= — *nothing
+else*, and emphatically *not* cloud-init's network renderer.
+:END:
+
+This is the deliberate design for =xray-front= and it sharply simplifies
+the AMI vs the Proxmox cloud-image story. Key points:
+
+- *EC2 networking is real DHCP at the hypervisor level.* Unlike NoCloud
+  (Stage 4's Proxmox path), where there is no DHCP server and the network
+  config has to be rendered from a static =network-config= v2 seed, EC2's
+  virtual network actually serves a DHCP server that hands out the
+  subnet-assigned IP, default gateway, and DNS. The guest does not need to
+  query IMDS for networking, does not need a network-config file, and does
+  not need cloud-init's =NetworkdActivator= at all. A plain
+  =systemd-network= DHCP stanza is the complete solution.
+- *What xray-front does today is already correct:*
+  #+begin_src nix
+  networking.useDHCP = false;
+  systemd.network.networks."10-ec2" = {
+    matchConfig.Name = "en*";
+    networkConfig.DHCP = "yes";
+  };
+  #+end_src
+  Keep this verbatim in the conversion. (The =matchConfig.Name = "en*"=
+  is deliberately loose because the EC2 NIC name varies by instance
+  family — =ens5= / =eth0= / =enX0= — and DHCP-by-name glob is robust to
+  all of them.)
+- *cloud-init's networking path is irrelevant here.* The entire Stage 4
+  saga (NoCloud's =boot-new-instance= network-apply gate, the
+  =updates: {network: {when: [boot]}}= knob, the =/usr/sbin= / =/bin=
+  hardcoded-path bug that forced =modules/cloud-init-bwrap.nix=, the
+  =NetworkdActivator= =.skip-network= failure) was a NoCloud problem.
+  None of it touches EC2, because on EC2 cloud-init is not in the network
+  path at all — systemd-networkd brings up the NIC via DHCP directly. So:
+  - =services.cloud-init.network.enable= stays =false= (the nixpkgs
+    default) — do *not* enable it.
+  - =modules/cloud-init-bwrap.nix= is *not* needed for the EC2 AMI.
+    (Generalising it stays a Proxmox-only concern; it should not be
+    imported into the EC2 image.)
+  - cloud-init itself may still be useful on EC2 for non-networking tasks
+    (authorized_keys from user-data, growing the filesystem), but it is
+    optional, not required for bring-up. The =amazon-image.nix= module
+    does *not* enable cloud-init — it ships its own =apply-ec2-data=
+    service for SSH host keys + hostname, and =fetch-ec2-metadata= for
+    metadata harvest. So we may not enable cloud-init on xray-front at
+    all; decide during the conversion.
+
+*Bottom line:* the EC2 AMI is *simpler* than the Proxmox cloud image on
+the networking axis. No cloud-init networking, no bwrap, no static config
+in the image, no per-subnet baking — just DHCP. The IP is assigned at
+launch by the subnet and learned dynamically by the guest.
+
+*** Interaction with clan-managed SSH host keys (no conflict, but trim =apply-ec2-data=)
+
+:QUESTION:
+Does nixpkgs' =apply-ec2-data= / =fetch-ec2-metadata= (shipped by
+=amazon-image.nix=) conflict with clan, which decrypts the SSH host key
+from an age-key-protected var into =/run/secrets/...= automatically?
+:END:
+
+Reading both sides: **no real conflict on the host key**, but the EC2
+services are mostly dead weight on a clan-managed machine and one piece
+(=authorized_keys=) does tread on clan's toes. Detail:
+
+- *Clan's host-key wiring is path-based, not =/etc/ssh=-based.* The clan
+  =sshd= service (see =../nix/clan-core/clanServices/sshd/default.nix=)
+  sets =services.openssh.hostKeys = [{ path =
+  <clan-var-path>; type = "ed25519"; }]=, where =<clan-var-path>= is the
+  decrypted clan var (=config.clan.core.vars.generators.openssh.files."ssh.id_ed25519".path=,
+  i.e. something under =/run/secrets/vars/openssh/=). sshd's resulting
+  =HostKey <clan-var-path>= directive means sshd reads the key from the
+  clan var, *not* from =/etc/ssh/ssh_host_ed25519_key=.
+- *=apply-ec2-data= writes to =/etc/ssh/=, which sshd ignores.* The EC2
+  service (see =../nix/nixpkgs/nixos/modules/virtualisation/ec2-data.nix=)
+  greps =SSH_HOST_ED25519_KEY:= markers out of EC2 user-data and writes
+  them to =/etc/ssh/ssh_host_ed25519_key= (guarded by =if [ ! -e ... ]=).
+  Since sshd's =HostKey= points at the clan var path, the file
+  =apply-ec2-data= writes is simply never read. **Harmless dead weight**,*
+  /provided/ our EC2 user-data doesn't carry those markers — and it won't,
+  because we are not putting host keys in user-data (Stage 5 bakes the age
+  key into the image; clan generates + deploys the host key itself).
+- *=sshd-keygen= self-skips via =ConditionFileNotEmpty=.* nixpkgs'
+  =sshd-keygen= service has =unitConfig.ConditionFileNotEmpty = map (k:
+  "|!${k.path}") cfg.hostKeys= — the =|!= means "skip the unit if the file
+  exists and is non-empty". Because =cfg.hostKeys[0].path= is the clan
+  var, once clan's sops decryption has landed it, =sshd-keygen= doesn't
+  even run. So there is no "who generates the host key first" race that
+  matters: clan wins by virtue of owning the =HostKey= path, and
+  =sshd-keygen= defers.
+- *The one real toe-step: =authorized_keys=.* =apply-ec2-data= also does
+  =cat /etc/ec2-metadata/public-keys-0-openssh-key >> /root/.ssh/authorized_keys=
+  (guarded by =if ! [ -e /root/.ssh/authorized_keys ]=). On a clan-managed
+  machine, =root='s authorized_keys come from the clan =sshd= service
+  instance (=binarin-admin= in =nixos-base=), materialised via the =sshd=
+  NixOS module — not from =/root/.ssh/authorized_keys= on disk (NixOS
+  sshd doesn't even read that file by default; it uses
+  =users.users.root.openssh.authorizedKeys=). So this half of
+  =apply-ec2-data= is also inert, but it's the half most likely to
+  surprise someone debugging "why does root have an extra key" if the
+  NixOS sshd config ever changes.
+
+*Decision for xray-front:* leave =amazon-image.nix= imported as-is (it's
+the supported EC2 module and the services are inert on a clan-managed
+machine), but **disable the two EC2 services explicitly** to make the
+intent unambiguous and to avoid the dead =/etc/ssh/ssh_host_*_key= files
+lying around on a system whose real host key lives in a clan var:
+#+begin_src nix
+# Clan owns the SSH host key (decrypted from a vars generator) and root's
+# authorized_keys (via the `sshd` service instance). nixpkgs' EC2 services
+# that do the same job from EC2 user-data / metadata are therefore inert
+# here; disable them so they don't write dead files to /etc/ssh and so the
+# system's secret model has exactly one source of truth.
+systemd.services.apply-ec2-data.enable = false;
+systemd.services.fetch-ec2-metadata.enable = lib.mkForce false;
+#+end_src
+(=fetch-ec2-metadata= is also only useful for the hostname + SSH key path
+that clan replaces; if we ever want EC2 instance tags / IAM metadata for
+something else, re-enable selectively.)
+
+*Net:* clan's host-key management is the single source of truth; the age
+key baked into the image (Stage 5) is what lets clan decrypt it on first
+boot; the nixpkgs EC2 metadata services are redundant and get disabled.
+The only EC2-specific bring-up that actually matters on xray-front is the
+DHCP network stanza (above) and =boot.growPartition= (already on).
+
+Two ways to wire it, decision deferred:
+- *(A) Permanent import in the machine module.* xray-front always imports
+  =amazon-image.nix= (it /is/ an EC2 machine). Then =build-aws-image= is
+  literally =nix build '.#nixosConfigurations.xray-front.config.system.build.amazonImage'=
+  + reading =<out>/nix-support/image-info.json=. Pro: zero special-casing.
+  Con: pulls the EC2 image-builder module into every eval of xray-front
+  (including =clan vars=, =nixosConfigurations= for deploy). Probably fine —
+  it's cheap.
+- *(B) =build-aws-image= extends modules.* =nct= evaluates the machine with
+  an extra =[ (modulesPath + "/maintainers/scripts/ec2/amazon-image.nix") ]=
+  via =extendModules=, like =ncf build vm= does for disko images. Pro: the
+  machine module stays deploy-only. Con: another =extendModules= eval path
+  to maintain; mirrors what =ncf='s =build_vm= already does and =nct=
+  deliberately wants to move away from (Stage 2's in-process eval is the
+  ROI).
+
+→ Lean (A): the EC2-ness is intrinsic to xray-front, import the module
+  permanently, delete the hand-rolled EC2 block, and =build-aws-image=
+  becomes a thin =nix build= + =image-info.json= reader. (This depends on / is
+  adjacent to the =nixos-base= conversion in =todo/xray-front-nixos-base.org=.)
+
+*** CLI surface (proposed)
+
+#+begin_src
+nct machine build-aws-image <name>
+  [--out-link aws-image]   # -o, nix --out-link
+  [--print-ids]            # also print the image-info.json fields
+#+end_src
+Behaviour:
+1. =nix build --print-out-paths '.#nixosConfigurations.<name>.config.system.build.amazonImage'=.
+2. Read =<out>/nix-support/image-info.json= → ={ file, logical_bytes,
+   boot_mode, system, label }=.
+3. Print the VHD path + the =image-info.json= summary. The VHD is the input
+   to Part B's AMI import.
+
+No AWS credentials touched. Pure build. Cacheable in the nix store and in
+CI's binary cache. This is the deliverable that makes the rest tractable.
+
+** Part B — =nct machine provision-aws <name>= (opentofu)
+
+*** Why opentofu (not raw =aws= CLI calls, not pulumi, not CDK)
+
+- *Raw =aws ec2= calls in Rust* would reimplement: snapshot import polling,
+  AMI registration with the right block-device mapping, the =vmimport= role
+  + trust policy, the instance + EBS + ENI + EIP + SG + subnet wiring, and
+  *state tracking* (is this run a create or an in-place update? has the AMI
+  changed? do we replace the instance?). That state tracking *is* what
+  terraform/opentofu is. Reimplementing it is a known tar pit.
+- *opentofu* is the license-safe terraform fork (BSL → MPL). Its =aws=
+  provider covers EC2 AMI import (=aws_ec2_import_image= / the older
+  =aws_ami_from_instance=) and the full instance lifecycle. State lives in a
+  =tfstate= we can commit or remote-backend. Drift detection + plan/apply is
+  free.
+- *pulumi / CDK* add a runtime (a language VM) for no gain here — our
+  infrastructure surface is ~6 resources and static. HCL is fine.
+
+*** The AMI-import gap (the one place opentofu's aws provider is weak)
+
+The awkward part: getting our nix-built VHD *into* AWS as an AMI. The AWS
+=aws ec2 import-snapshot= API is a long-running *job* (poll until
+=completed=) that reads the VHD from S3. opentofu's =aws= provider has
+limited first-class support for this:
+
+- =aws_ec2_import_image= resource (newer) :: imports a VM *as an AMI*
+  directly. Takes =disk_container = { s3 = { ... } }=. This is the closest
+  fit: it yields an AMI id usable by =aws_instance=.
+- =aws_snapshot_import= + =aws_ami= (compose) :: import as snapshot, then
+  register an AMI from it. More moving parts, more control (block device
+  mapping, boot mode).
+
+Both are *job-based* resources — apply can take minutes and the resource is
+  not idempotent across VHD content changes without a =triggers= hash. =nct=
+  will likely need to:
+  1. =aws s3 cp= the VHD to =s3://<bucket>/<name>-<nix-store-hash>.vhd=
+     (content-addressed so re-uploads are skipped by S3 iff the hash matches).
+  2. Feed that S3 key into the opentofu =aws_ec2_import_image= resource,
+     with =triggers = { vhd_hash = "..." }= so a new image forces a re-import.
+
+Alternatively (simpler, less pure): =nct= does the S3 upload +
+=import-snapshot= + =register-image= dance itself via the =aws= CLI, writes
+the resulting AMI id to a =tfvars= file, and opentofu only manages the
+*instance* (which references =var.ami_id=). This keeps opentofu's state
+small and fast (no multi-minute import job inside =tofu apply=) at the cost
+of a bit of Rust/CLI glue. **Decision deferred** — needs a probe of how
+=aws_ec2_import_image= behaves in practice (does =tofu plan= block on the
+job? does =tofu apply= re-run it every time or respect =triggers=?).
+
+*** Proposed layout
+
+#+begin_src
+tools/nct/aws/                 # new, generated/rendered at provision time
+  terraform/
+    main.tf                    # provider + instance + eip + sg + key
+    variables.tf               # ami_id, instance_type, subnet, ...
+    outputs.tf                 # instance_id, public_ip, ...
+  tofu.tfvars.tmpl             # rendered from machine config + CLI flags
+#+end_src
+The HCL is small enough to ship as a template rendered by =nct= from the
+machine's =config= (instance type, region, SSH key name, security group
+rules from =networking.firewall.allowedTCPPorts=) — mirroring how
+=provision-pve= renders =qm= args from =MachineConfig=.
+
+*** CLI surface (proposed)
+
+#+begin_src
+nct machine provision-aws <name>
+  --region <aws-region>           # required
+  --instance-type t3.micro        # required (no silent default)
+  --ami <id|latest-built>         # default: the AMI id from the last
+                                  #   build-aws-image run (read from a
+                                  #   local state file / tfvars)
+  --key-name <ec2-keypair-name>   # SSH keypair registered in AWS
+  [--subnet-id ...] [--security-group ...]
+  [--elastic-ip]                  # allocate + associate an EIP
+  [--replace]                     # terminate + recreate the instance
+  [--import-image]                # run the S3+import-snapshot+register
+                                  #   dance before the instance step
+  [--dry-run]                     # tofu plan only / print the dance
+#+end_src
+Behaviour (sketch):
+1. Load =MachineConfig= via the =NixFlake= handle (reuse Stage 4's typed
+   loader) for =networking.firewall.allowedTCPPorts=, =networking.hostName=,
+   authorized keys (for the EC2 keypair or a cloud-init user-data).
+2. If =--import-image=: =nix build ... amazonImage= (or reuse a path passed
+   via =--ami-vhd=), =aws s3 cp= the VHD to the content-addressed S3 key,
+   run the import-snapshot/register-image job, capture the AMI id.
+3. Render =aws/terraform/*.tf= + =tofu.tfvars= from the machine config +
+   flags.
+4. =tofu init && tofu apply= in =tools/nct/aws/terraform=.
+5. Print the instance's public DNS (the value the operator then passes to
+   =clan machines update xray-front --target-host root@<that dns>=).
+
+** Credentials / runtime deps
+
+- =build-aws-image=: none beyond =nix= (pure build). No AWS SDK in =nct=.
+- =provision-aws=: =aws= CLI (for S3 + the import job if we go that route),
+  =opentofu=, and standard AWS env vars (=AWS_PROFILE= / =AWS_ACCESS_KEY_ID=
+  / region). Like =provision-pve= (which assumes =ssh=/=rsync=/=clan= on
+  PATH), =provision-aws= assumes =aws= + =tofu= on PATH — wrap them into the
+  =nct= package via =makeWrapper= (=modules/nct.nix=) when it stabilises.
+  No Rust AWS SDK (=aws-sdk-rust= is heavy and would couple us to a
+  tokio/rustc version); the CLI is the boundary, exactly as =provision-pve=
+  treats =ssh= as the boundary.
+
+** Relationship to the clan age-key injection (Stage 5)
+
+=xray-front= is an EC2 machine, so it boots from an AMI, not a Proxmox
+qcow2. Stage 5's =inject_age_key= (guestfish) applies *verbatim* to the
+VHD/amazonImage output too — it's a qcow2/vhd with an ext4 root either way.
+So =build-aws-image= should gain an =--inject-key= step that writes
+=/var/lib/sops-nix/key.txt= into the VHD before upload, exactly as
+=provision-pve= does before =rsync=. The AMI then carries the baked-in key,
+the instance boots with it, clan's sops machinery decrypts on first boot,
+and *no* user-data secret channel is needed on EC2 at all — and on EC2 this
+is not just a convenience but a *security requirement*: EC2 user-data is
+readable via the IMDS proxy (=http://169.254.169.254/latest/user-data=)
+unless IMDSv2 + hop-limit is enforced, so it must never carry the age key.
+(See the "Security" subsection under Part A for the full argument.)
+
+** Tasks (gated on decisions above; nothing implemented yet)
+
+- [ ] *Decision: import amazon-image.nix permanently in xray-front (A) vs
+      extendModules at build time (B).* Lean A; blocks on the =nixos-base=
+      conversion landing first.
+- [ ] *Networking: plain DHCP, no cloud-init.* Keep the existing
+      =systemd.network.networks."10-ec2" = { matchConfig.Name = "en*";
+      networkConfig.DHCP = "yes"; }= + =networking.useDHCP = false=. Do
+      *not* enable =services.cloud-init=; do *not* import
+      =cloud-init-bwrap.nix=. (=amazon-image.nix= ships =apply-ec2-data= /
+      =fetch-ec2-metadata= for SSH keys + hostname, so cloud-init has no
+      remaining job on EC2.)
+- [ ] *Disable the redundant EC2 metadata services* on xray-front
+      (=systemd.services.{apply-ec2-data,fetch-ec2-metadata}.enable =
+      false;) — clan owns the SSH host key (decrypted from a var) and
+      root's authorized_keys (via the =sshd= service instance), so the
+      nixpkgs EC2 services that do the same job from IMDS/user-data are
+      inert and only write dead files. (See the "Interaction with
+      clan-managed SSH host keys" subsection for the full analysis.)
+- [ ] =build-aws-image=: clap variant + =nix build= + =image-info.json= reader.
+      Trivial once (A) is decided.
+- [ ] *Probe: =aws_ec2_import_image= behaviour under opentofu.* Does plan
+      block? Does =triggers= force re-import on VHD hash change? Pick between
+      "tofu imports the AMI" vs "nct imports via aws CLI, tofu runs instance".
+- [ ] =provision-aws= CLI + HCL templates + =tofu apply= orchestration.
+      EC2 user-data is not used for secrets (Stage 5 bakes the age key into
+      the AMI); if anything flows through user-data it's inert because
+      =apply-ec2-data= is disabled.
+- [ ] =--inject-key= on =build-aws-image= (reuse =image_inject::inject_age_key=).
+- [ ] Runtime deps (=aws=, =opentofu=) wired into =modules/nct.nix= via
+      =makeWrapper= once the surface stabilises.
+- [ ] End-to-end test against a scratch EC2 instance in a throwaway region:
+      confirm eth0 comes up via DHCP with the subnet-assigned address and
+      that clan vars deploy from the baked-in age key.
+- [ ] Docs in =tools/nct/README.md=.
+
+** Open questions
+
+1. *State backend for opentofu.* Commit =tfstate= to the repo (simple,
+   leaks instance ids but this is a personal infra repo), or use S3 + DynamoDB
+   remote state (proper, more setup)? Lean: commit locally for the first cut.
+2. *AMI cleanup / garbage collection.* Each =build-aws-image= + import makes
+   a new AMI + snapshot; old ones accumulate and cost money. =nct= should
+   either deregister old AMIs or at least list them. Out of scope for v1.
+3. *Elastic IP vs DHCP.* xray-front's deploy comment says "the EC2 public
+   address is not committed" — implying today it's a fresh DHCP address per
+   launch. An EIP (=--elastic-ip=) would give a stable deploy target and
+   stable =clan.inventory.machines.xray-front.deploy.targetHost=. Decide
+   whether to make EIP the default.
+4. *Keypair management.* EC2 needs an SSH keypair for the instance. Do we
+   reuse an existing keypair by name (=--key-name=), or have =provision-aws=
+   create one from the inventory's secure public keys (like =provision-pve=
+   bakes authorized_keys into user-data)? EC2 keypairs are a per-region AWS
+   object, not per-instance, so a managed =nixos-config-<region>= keypair
+   created on first provision is reasonable.
+5. *Region / account discovery.* Hardcode via =--region=, or read from a
+   machine-level =config.nixos-config.aws= options block (instance type,
+   region, key name)? A new =aws= options submodule (mirroring
+   =qemu-guest.proxmox=) is the clean long-term home; defer to v2.
+6. *cloud-init vs the nixpkgs EC2 services.* Confirmed by reading
+   =amazon-image.nix=: it ships =apply-ec2-data= (SSH host keys + hostname
+   from =/etc/ec2-metadata=) and =fetch-ec2-data= (harvests IMDS to
+   =/etc/ec2-metadata/=), but does *not* enable =services.cloud-init=. So
+   the decision to skip cloud-init on xray-front is consistent with what
+   nixpkgs’ own EC2 module assumes. Nothing to re-confirm; just don’t add
+   =services.cloud-init.enable = true=.
+7. *cloud-init-bwrap stays Proxmox-only.* The Stage 4 =cloud-init-bwrap.nix=
+   module exists to paper over NoCloud + cloud-init’s hardcoded =/usr/sbin=
+   path bug. Since the EC2 image drops cloud-init entirely, this module is
+   not imported and does not need generalising. (If we ever want cloud-init
+   on EC2 for some future feature, revisit then.)
