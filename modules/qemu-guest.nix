@@ -147,6 +147,15 @@ in
                 default = true;
                 description = "Enable Proxmox firewall for this interface.";
               };
+
+              inventoryNetwork = lib.mkOption {
+                type = lib.types.str;
+                default = "home";
+                description = ''
+                  Inventory network name used to source the static IP allocation,
+                  DNS and gateway for eth0 (see inventory/networks/*.toml).
+                '';
+              };
             };
           };
           default = { };
@@ -335,14 +344,19 @@ in
         ];
         systemd.services."serial-getty@ttyS0".enable = true;
 
-        systemd.network.networks."40-qemu" = lib.mkIf config.nixos-config.qemu-guest.proxmox.staticNetwork {
-          matchConfig.Name = "eth0";
-          dns = flakeConfig.inventory.networks.home.dns;
-          address = [
-            flakeConfig.inventory.ipAllocation."${config.networking.hostName}".home.primary.addressWithPrefix
-          ];
-          routes = [ { Gateway = flakeConfig.inventory.networks.home.gateway; } ];
-        };
+        systemd.network.networks."40-qemu" =
+          let
+            inherit (config.nixos-config.qemu-guest.proxmox.network) inventoryNetwork;
+            netInfo = flakeConfig.inventory.networks."${inventoryNetwork}";
+            allocation =
+              flakeConfig.inventory.ipAllocation."${config.networking.hostName}"."${inventoryNetwork}".primary;
+          in
+          lib.mkIf config.nixos-config.qemu-guest.proxmox.staticNetwork {
+            matchConfig.Name = "eth0";
+            dns = netInfo.dns;
+            address = [ allocation.addressWithPrefix ];
+            routes = [ { Gateway = netInfo.gateway; } ];
+          };
 
         assertions =
           let

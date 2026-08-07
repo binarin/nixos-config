@@ -51,7 +51,6 @@ in
         # self.nixosModules.sops
         self.nixosModules.xray-shared
         self.nixosModules.provision-clan-key
-        self.nixosModules.cloud-init-bwrap
       ];
 
       fileSystems."/" = {
@@ -74,12 +73,6 @@ in
 
       networking.useNetworkd = true;
 
-      nixos-config.qemu-guest.proxmox.staticNetwork = false;
-
-      services.cloud-init = {
-        enable = true;
-        network.enable = true;
-      };
       boot.initrd.provisionClanKey.enable = true;
 
       system.build.cloudImage = import "${pkgs.path}/nixos/lib/make-disk-image.nix" {
@@ -91,6 +84,7 @@ in
 
       nixos-config.qemu-guest.proxmox = {
         memory = 1024;
+        network.inventoryNetwork = "guest";
         balloon = 512;
         cores = 2;
         bios = "ovmf";
