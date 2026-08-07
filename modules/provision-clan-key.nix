@@ -146,6 +146,17 @@
             fi
 
             seed_mnt="$(mktemp -d)"
+            # The generated job script runs under `set -e`, so any failure
+            # between here and the end (mkdir/printf/chmod on the key) would
+            # skip a trailing umount and leave the seed — which holds the age
+            # key in plaintext — mounted across the pivot. Unmount on every
+            # exit path instead.
+            cleanup() {
+              umount "$seed_mnt" 2>/dev/null || true
+              rmdir "$seed_mnt" 2>/dev/null || true
+            }
+            trap cleanup EXIT
+
             mounted=no
             for fst in ${lib.concatMapStringsSep " " (s: s) cfg.fsTypes}; do
               echo "provision-clan-key: trying to mount $seed_dev as $fst"
@@ -157,7 +168,6 @@
 
             if [ "$mounted" != yes ]; then
               echo "provision-clan-key: could not mount $seed_dev"
-              rmdir "$seed_mnt" 2>/dev/null || true
               # Not fatal: machine may simply have no seed attached.
               exit 0
             fi
@@ -193,9 +203,6 @@
             fi
             unset key key_line
             set -x
-
-            umount "$seed_mnt"
-            rmdir "$seed_mnt" 2>/dev/null || true
           '';
         };
       };
