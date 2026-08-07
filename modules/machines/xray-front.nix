@@ -1,10 +1,16 @@
 {
   self,
   lib,
+  inputs,
   ...
 }:
 let
   xrayLib = import "${self}/lib/xray/config-lib.nix";
+  # The nixpkgs EC2 image-builder module lives under `nixos/maintainers/`,
+  # not `nixos/modules/`, so it's not reachable via `modulesPath`; and
+  # referencing `pkgs.path` inside the NixOS module causes infinite recursion
+  # (pkgs is derived from this eval). Resolve it here in the flake scope.
+  amazonImageModule = "${inputs.nixpkgs}/nixos/maintainers/scripts/ec2/amazon-image.nix";
 in
 {
   # NOTE: no `flake.deploy.nodes.xray-front` and no static `deploy.targetHost`
@@ -90,26 +96,40 @@ in
         self.nixosModules.nixos-base
         self.nixosModules.systemd-boot
         self.nixosModules.sops
-        # Do NOT use self.nixosModules.disko here: it reads specialArgs.inventoryHostName
-        # to locate my-machines/<host>/disko.nix, but that specialArg is injected only by
-        # the flake-output extendModules wrapper — it is ABSENT when clan evaluates the
-        # machine for `clan vars` (and this machine declares clan-var generators), so the
-        # module throws. Import the layout file by explicit path instead; disko activation
-        # comes from clan-core's global disko module (same as acme / llm-runner, which use
-        # disko without self.nixosModules.disko).
-        "${self}/my-machines/xray-front/disko.nix"
+        # The nixpkgs EC2 image-builder module: defines
+        # `system.build.amazonImage` (VHD via make-disk-image.nix with
+        # partitionTableType "efi"), wires the nvme/ena/xen kernel modules,
+        # ttyS0 console, growPartition, fetch-ec2-metadata, etc. This
+        # replaces the hand-rolled EC2 block we used to carry AND the
+        # my-machines/xray-front/disko.nix layout (make-disk-image owns the
+        # GPT/ESP/ext4 layout itself; disko's runtime activation would
+        # wrongly re-partition an AMI-booted EBS volume).
+        #
+        # NB: this module lives under `nixos/maintainers/`, not
+        # `nixos/modules/`, so it's not reachable via `modulesPath`.
+        amazonImageModule
         self.nixosModules.xray-shared
       ];
+
+      # x86_64 EC2, but we boot UEFI instances (the AMI's partition table is
+      # GPT/ESP). amazon-image.nix derives `partitionTableType` and the
+      # bootloader wiring from `config.ec2.efi`, which defaults to
+      # isAarch64 — so set it explicitly.
+      ec2.efi = true;
+
+      # amazon-image.nix sets `networking.hostName = mkDefault ""` (so EC2
+      # metadata can supply it at boot); clan sets it to the inventory machine
+      # name at the same priority, causing a conflict. We want the clan value
+      # (the machine *is* xray-front), so force it.
+      networking.hostName = lib.mkForce "xray-front";
 
       # Same clan-openssh/sshd (tags.all) pre-`clan vars generate` issue as xray-exit:
       # the file-backed knownHosts value would be forced before generation. mkForce empties it.
       programs.ssh.knownHosts = lib.mkForce { };
 
-      # --- EC2 hardware/boot (UEFI). Launch the instance in UEFI boot mode. ---
-      boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
-      boot.initrd.availableKernelModules = [ "nvme" "ena" "xen_blkfront" ];
-      boot.growPartition = true;
-      boot.kernelParams = [ "console=ttyS0,115200n8" ];
+      # amazon-image.nix already sets boot.loader.grub for UEFI and the
+      # nvme/ena/xen modules + ttyS0 console + growPartition; nothing
+      # EC2-specific to add here.
 
       # EC2 gives an address over DHCP; use systemd-networkd on the primary NIC.
       systemd.network.enable = true;
@@ -120,6 +140,17 @@ in
       };
 
       networking.firewall.allowedTCPPorts = [ 22 443 ];
+
+      # Clan owns the SSH host key (decrypted from a vars generator into
+      # /run/secrets/vars/openssh/...) and root's authorized_keys (via the
+      # `sshd` service instance in nixos-base). nixpkgs' EC2 metadata
+      # services that do the same job from IMDS / user-data are therefore
+      # redundant here — disable them so the system's secret model has
+      # exactly one source of truth and no dead /etc/ssh/ssh_host_*_key
+      # files lying around. (Hostname still comes from EC2 via networking.hostName
+      # = "" default if we ever want it; we set it explicitly via clan/inventory.)
+      systemd.services.apply-ec2-data.enable = false;
+      systemd.services.fetch-ec2-metadata.enable = lib.mkForce false;
 
       # --- Per-user credential + client-config generators ---
       clan.core.vars.generators = builtins.listToAttrs (map mkUserGenerator xrayLib.userNames);

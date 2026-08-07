@@ -1,0 +1,13 @@
+# Example terraform.tfvars for the manual xray-front EC2 test.
+# Copy to terraform.tfvars and fill in, or pass via -var flags.
+
+region    = "eu-central-1"
+bucket    = "binarin-nct-ami-import"   # must already exist in the chosen region
+image_name = "xray-front-CHANGE_ME"    # S3 key + AMI name base; content-address by nix hash
+vhd_hash  = ""                         # nix store hash of the VHD (forces re-import on change)
+
+instance_type = "t3.micro"
+key_name      = "nixos-config-xray-front"
+ssh_pubkey    = "ssh-ed25519 AAAA... replace-me"   # or leave empty if keypair exists
+
+associate_public_ip = true

@@ -152,12 +152,7 @@ pub fn print_value_into(
 
 /// Print a value followed by its terminating `;`/newline, used inside
 /// attrsets/lists where each entry ends with a semicolon (Nix-style).
-fn print_inline_into(
-    es: &mut EvalState,
-    v: &Value,
-    out: &mut Vec<u8>,
-    depth: usize,
-) -> Result<()> {
+fn print_inline_into(es: &mut EvalState, v: &Value, out: &mut Vec<u8>, depth: usize) -> Result<()> {
     let t = es.value_type(v)?;
     match t {
         ValueType::String | ValueType::Path => {

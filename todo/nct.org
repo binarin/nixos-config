@@ -1402,7 +1402,7 @@ Key findings baked into the implementation (not predicted by the plan):
 
 * Stage 6 — investigation: =machine build-aws-image= + =machine provision-aws= (opentofu)
 :PROPERTIES:
-:STATUS: PLANNING (investigation only; no code yet)
+:STATUS: PARTIAL — build-aws-image + manual opentofu landed; provision-aws + live test pending
 :END:
 
 ** Motivation
@@ -1776,40 +1776,53 @@ readable via the IMDS proxy (=http://169.254.169.254/latest/user-data=)
 unless IMDSv2 + hop-limit is enforced, so it must never carry the age key.
 (See the "Security" subsection under Part A for the full argument.)
 
-** Tasks (gated on decisions above; nothing implemented yet)
+** Tasks
 
-- [ ] *Decision: import amazon-image.nix permanently in xray-front (A) vs
-      extendModules at build time (B).* Lean A; blocks on the =nixos-base=
-      conversion landing first.
-- [ ] *Networking: plain DHCP, no cloud-init.* Keep the existing
+- [X] *Decision: import amazon-image.nix permanently in xray-front (A) vs
+      extendModules at build time (B).* → **A**, landed. The builder module
+      is imported in =modules/machines/xray-front.nix= via =amazonImageModule=
+      (path resolved from =inputs.nixpkgs= in the outer flake scope — NOT
+      =modulesPath=, which can't reach =nixos/maintainers/=; and NOT
+      =pkgs.path= inside the module, which infinite-recurses on the pkgs eval).
+- [X] *Networking: plain DHCP, no cloud-init.* Kept the existing
       =systemd.network.networks."10-ec2" = { matchConfig.Name = "en*";
-      networkConfig.DHCP = "yes"; }= + =networking.useDHCP = false=. Do
-      *not* enable =services.cloud-init=; do *not* import
-      =cloud-init-bwrap.nix=. (=amazon-image.nix= ships =apply-ec2-data= /
-      =fetch-ec2-metadata= for SSH keys + hostname, so cloud-init has no
-      remaining job on EC2.)
-- [ ] *Disable the redundant EC2 metadata services* on xray-front
-      (=systemd.services.{apply-ec2-data,fetch-ec2-metadata}.enable =
-      false;) — clan owns the SSH host key (decrypted from a var) and
-      root's authorized_keys (via the =sshd= service instance), so the
-      nixpkgs EC2 services that do the same job from IMDS/user-data are
-      inert and only write dead files. (See the "Interaction with
-      clan-managed SSH host keys" subsection for the full analysis.)
-- [ ] =build-aws-image=: clap variant + =nix build= + =image-info.json= reader.
-      Trivial once (A) is decided.
-- [ ] *Probe: =aws_ec2_import_image= behaviour under opentofu.* Does plan
-      block? Does =triggers= force re-import on VHD hash change? Pick between
-      "tofu imports the AMI" vs "nct imports via aws CLI, tofu runs instance".
-- [ ] =provision-aws= CLI + HCL templates + =tofu apply= orchestration.
-      EC2 user-data is not used for secrets (Stage 5 bakes the age key into
-      the AMI); if anything flows through user-data it's inert because
-      =apply-ec2-data= is disabled.
-- [ ] =--inject-key= on =build-aws-image= (reuse =image_inject::inject_age_key=).
+      networkConfig.DHCP = "yes"; }= + =networking.useDHCP = false=. No
+      =services.cloud-init=, no =cloud-init-bwrap.nix=.
+- [X] *Disable the redundant EC2 metadata services* on xray-front
+      (=systemd.services.{apply-ec2-data,fetch-ec2-metadata}.enable = false;).
+- [X] *Hand-rolled EC2 block + disko layout dropped.* =amazon-image.nix='s
+      =make-disk-image= owns the GPT/ESP/ext4 layout; the old
+      =my-machines/xray-front/disko.nix= import is removed (disko's runtime
+      activation would wrongly re-partition an AMI-booted EBS volume).
+      Also had to resolve two conflicts the import introduced:
+      =ec2.efi = true= (defaults to isAarch64; we're x86_64 UEFI) and
+      =networking.hostName = mkForce "xray-front"= (amazon-image sets
+      mkDefault ""; clan sets the inventory name at the same priority).
+- [X] =build-aws-image=: clap variant + =nix build= + =image-info.json= reader.
+      =tools/nct/src/build_aws_image.rs=. Parses ={file, logical_bytes,
+      boot_mode, system, label}= from the nixpkgs-emitted image-info.json.
+- [X] =--inject-key= on =build-aws-image= (reuse =image_inject::inject_age_key=).
+      Verified guestfish opens the VHD (vfat ESP + ext4 root) — the same
+      mechanism as the qcow2 path works unmodified on VHD.
+- [X] Manual-testing opentofu for the provision half.
+      =tools/nct/aws/terraform/main.tf=: =aws_ec2_import_image= (S3 VHD →
+      AMI, with the =vmimport= IAM role self-contained) + keypair + SG
+      (22/443) + instance + EIP, with outputs for =public_dns= / =ami_id=.
+      Plus =terraform.tfvars.example=. This is the human-driven path; the
+      =nct provision-aws= rendering layer is still TBD.
+- [ ] *Probe: =aws_ec2_import_image= behaviour under opentofu in practice*
+      (the .tf is written but not yet applied against a real account —
+      needs AWS creds + an S3 bucket). Confirm =triggers= re-imports on
+      VHD hash change and that =tofu apply= blocks for minutes as expected.
+- [ ] =provision-aws= CLI (render the .tf from machine config instead of
+      hand-editing tfvars). Defer until the manual .tf path is proven live.
 - [ ] Runtime deps (=aws=, =opentofu=) wired into =modules/nct.nix= via
-      =makeWrapper= once the surface stabilises.
-- [ ] End-to-end test against a scratch EC2 instance in a throwaway region:
-      confirm eth0 comes up via DHCP with the subnet-assigned address and
-      that clan vars deploy from the baked-in age key.
+      =makeWrapper= once the surface stabilises. (=build-aws-image= needs
+      only =nix= + =guestfish=, already wrapped; =aws=/=tofu= are only for
+      the manual opentofu path, run from the operator's shell.)
+- [ ] End-to-end live test against a scratch EC2 instance: confirm eth0
+      comes up via DHCP with the subnet-assigned address and that clan vars
+      deploy from the baked-in age key.
 - [ ] Docs in =tools/nct/README.md=.
 
 ** Open questions

@@ -18,11 +18,7 @@ use serde::{Deserialize, Serialize};
 use crate::config::{IpAlloc, Network};
 
 /// Build the `user-data` cloud-config string.
-pub fn user_data(
-    hostname: &str,
-    authorized_keys: &[String],
-    age_key: &str,
-) -> String {
+pub fn user_data(hostname: &str, authorized_keys: &[String], age_key: &str) -> String {
     // Hand-rolled YAML to keep the structure predictable and the
     // clan-machine-key line a clean top-level scalar (no quoting surprises).
     let mut out = String::from("#cloud-config\n");
@@ -122,7 +118,11 @@ mod tests {
 
     #[test]
     fn user_data_contains_targeted_key() {
-        let ud = user_data("xray-exit", &["ssh-ed25519 AAA".into()], "AGE-SECRET-KEY-1XYZ");
+        let ud = user_data(
+            "xray-exit",
+            &["ssh-ed25519 AAA".into()],
+            "AGE-SECRET-KEY-1XYZ",
+        );
         assert!(ud.starts_with("#cloud-config\n"));
         assert!(ud.contains("hostname: xray-exit\n"));
         assert!(ud.contains("  - ssh-ed25519 AAA\n"));

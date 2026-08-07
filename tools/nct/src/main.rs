@@ -1,10 +1,11 @@
+pub mod build_aws_image;
+pub mod cloud_init;
+pub mod config;
+pub mod image_inject;
 pub mod nix_eval;
 pub mod nix_flake;
-pub mod proxmox;
-pub mod config;
-pub mod cloud_init;
-pub mod image_inject;
 pub mod provision_pve;
+pub mod proxmox;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -95,6 +96,27 @@ enum MachineCommand {
         dry_run: bool,
     },
 
+    /// Build the EC2 AMI artifact (`system.build.amazonImage`, a VHD) for a
+    /// machine, optionally injecting the clan age key into it. This is the
+    /// pure, AWS-credential-free half of EC2 provisioning; feed the resulting
+    /// VHD to opentofu (or `aws ec2 import-snapshot`) to register an AMI.
+    BuildAwsImage {
+        /// Name of the machine (attr under nixosConfigurations).
+        name: String,
+
+        /// Inject the clan age key (decrypted via `clan secrets get`) directly
+        /// into the VHD at `--key-dest` (via guestfish), so the AMI boots with
+        /// the key baked in and clan's sops machinery decrypts on first boot
+        /// without needing EC2 user-data as a secret bearer.
+        #[arg(long)]
+        inject_key: bool,
+
+        /// In-image destination path for the age key when `--inject-key`.
+        /// Defaults to the standard sops-nix location.
+        #[arg(long, default_value = "/var/lib/sops-nix/key.txt")]
+        key_dest: String,
+    },
+
     /// Evaluate a Nix expression against a machine's full config.
     ///
     /// Equivalent to `nix eval .#nixosConfigurations.<name> --apply EXPR`,
@@ -153,6 +175,17 @@ async fn main() -> Result<()> {
                 )
                 .await?;
             }
+            MachineCommand::BuildAwsImage {
+                name,
+                inject_key,
+                key_dest,
+            } => {
+                build_aws_image::run(build_aws_image::BuildAwsImageArgs {
+                    machine: name,
+                    inject_key,
+                    key_dest,
+                })?;
+            }
             MachineCommand::EvalExpr { name, expr } => {
                 let out = nix_eval::eval_machine_expr(&cli.flake, &name, &expr)?;
                 print!("{out}");
@@ -200,6 +233,33 @@ mod tests {
     }
 
     #[test]
+    fn parse_machine_build_aws_image() {
+        let cli = Cli::try_parse_from([
+            "nct",
+            "machine",
+            "build-aws-image",
+            "xray-front",
+            "--inject-key",
+        ])
+        .unwrap();
+        match cli.command {
+            Command::Machine {
+                command:
+                    MachineCommand::BuildAwsImage {
+                        name,
+                        inject_key,
+                        key_dest,
+                    },
+            } => {
+                assert_eq!(name, "xray-front");
+                assert!(inject_key);
+                assert_eq!(key_dest, "/var/lib/sops-nix/key.txt");
+            }
+            _ => panic!("expected BuildAwsImage"),
+        }
+    }
+
+    #[test]
     fn rejects_missing_subcommand() {
         assert!(Cli::try_parse_from(["nct"]).is_err());
     }
@@ -219,18 +279,19 @@ mod tests {
         .unwrap();
         match cli.command {
             Command::Machine {
-                command: MachineCommand::ProvisionPve {
-                    name,
-                    proxmox_host,
-                    network,
-                    bridge,
-                    snippet_storage,
-                    disk_storage,
-                    start,
-                    dry_run,
-                    test_reuse_image,
-                    inject_key,
-                },
+                command:
+                    MachineCommand::ProvisionPve {
+                        name,
+                        proxmox_host,
+                        network,
+                        bridge,
+                        snippet_storage,
+                        disk_storage,
+                        start,
+                        dry_run,
+                        test_reuse_image,
+                        inject_key,
+                    },
             } => {
                 assert_eq!(name, "xray-exit");
                 assert_eq!(proxmox_host, "valak");

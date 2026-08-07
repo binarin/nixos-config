@@ -142,13 +142,14 @@ to disable. (Behaviour is preserved: xray-front wanted both off.)
      in the configuration module's =imports=.
    - Add =self.nixosModules.sops= to the imports (nixos-base excludes it;
      xray-front still uses =sops.templates=).
-   - Keep =self.nixosModules.systemd-boot=, the disko path import, and
-     =self.nixosModules.xray-shared=.
+   - Keep =self.nixosModules.systemd-boot=, and =self.nixosModules.xray-shared=.
    - Delete the =services.tailscale.enable = mkForce false= and
      =nixos-config.export-metrics.enable = false= lines (dangling overrides).
    - Keep =programs.ssh.knownHosts = mkForce { };=.
-   - Leave the EC2 boot/network/firewall block and the xray service / sops
-     template / generators untouched.
+   - Leave the xray service / sops template / generators untouched.
+   - (Follow-up, landed in the same conversion: imported the nixpkgs
+     =amazon-image.nix= builder module and dropped the hand-rolled EC2
+     block + the disko layout — see =todo/nct.org= Stage 6.)
 
 ** DONE Regenerate flake inputs if needed
    - =nixos-base= adds no new flake inputs (verified during the xray-exit

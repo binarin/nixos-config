@@ -34,9 +34,9 @@ pub struct ProvisionPveArgs {
     /// delete it afterwards. For fast iteration without rebuilding the image.
     pub test_reuse_image: bool,
     /// Inject the clan age key directly into the qcow2 (via guestfish) rather
-       /// than shipping it via the cloud-init seed. Implies rebuilding the image
-       /// each run (--test-reuse-image is refused, since a reused image may
-       /// carry a stale key).
+    /// than shipping it via the cloud-init seed. Implies rebuilding the image
+    /// each run (--test-reuse-image is refused, since a reused image may
+    /// carry a stale key).
     pub inject_key: bool,
     pub dry_run: bool,
 }
@@ -76,7 +76,11 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
     println!("  hostname: {}", cfg.hostname());
     println!("  memory/cores: {} MB / {}", vmc.memory, vmc.cores);
     println!("  bios: {}", vmc.bios);
-    println!("  ip: {} (vlan {:?})", cfg.ip_alloc().address, cfg.net().vlan);
+    println!(
+        "  ip: {} (vlan {:?})",
+        cfg.ip_alloc().address,
+        cfg.net().vlan
+    );
 
     // 2. Age key.
     println!("\nStep 2: decrypting clan age key");
@@ -90,9 +94,7 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
     // 3. VM existence + allocate vmid (needed early so we can name the
     //    remote image with it).
     let pve = Proxmox::new(&proxmox_host);
-    if !dry_run
-        && let Some(existing) = pve.vmid_for_name(cfg.hostname()).await?
-    {
+    if !dry_run && let Some(existing) = pve.vmid_for_name(cfg.hostname()).await? {
         bail!(
             "VM '{}' already exists (vmid {existing}). Delete it first: \
              ssh root@{} 'qm stop {} && qm destroy {} --purge'",
@@ -108,9 +110,7 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
     //    image already exists). Named with vmid so concurrent/iterative runs
     //    don't collide.
     let remote_image = format!("/tmp/{machine}-{vmid}-disk.qcow2");
-    let skip_build = test_reuse_image
-        && !dry_run
-        && pve.file_exists(&remote_image).await?;
+    let skip_build = test_reuse_image && !dry_run && pve.file_exists(&remote_image).await?;
     let image_path = if dry_run {
         println!("\nStep 4: (dry-run) cloud image");
         PathBuf::from("/tmp/dry-run.qcow2")
@@ -208,18 +208,24 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
         if dry_run {
             println!("  would run: qm set {vmid} --efidisk0 {spec}");
         } else {
-            pve.qm(&["set", &vmid.to_string(), "--efidisk0", &spec]).await?;
+            pve.qm(&["set", &vmid.to_string(), "--efidisk0", &spec])
+                .await?;
         }
     }
     if vmc.tpm2.enable {
         println!("\nStep 7b: configuring TPM2");
-        let storage = vmc.tpm2.storage.clone().unwrap_or_else(|| disk_storage.clone());
+        let storage = vmc
+            .tpm2
+            .storage
+            .clone()
+            .unwrap_or_else(|| disk_storage.clone());
         let version = vmc.tpm2.version.clone().unwrap_or_else(|| "v2.0".into());
         let spec = format!("{storage}:1,version={version}");
         if dry_run {
             println!("  would run: qm set {vmid} --tpmstate0 {spec}");
         } else {
-            pve.qm(&["set", &vmid.to_string(), "--tpmstate0", &spec]).await?;
+            pve.qm(&["set", &vmid.to_string(), "--tpmstate0", &spec])
+                .await?;
         }
     }
 
@@ -230,7 +236,11 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
     // disk, then cloud-init's growpart+resizefs expand the partition + fs.
     let disk_size = vmc.disks.first().and_then(|d| d.size.clone());
     if dry_run {
-        println!("  would rsync {} -> root@{}:{remote_image}", image_path.display(), proxmox_host);
+        println!(
+            "  would rsync {} -> root@{}:{remote_image}",
+            image_path.display(),
+            proxmox_host
+        );
         println!("  would run: qm set {vmid} --scsi0 {disk_storage}:0,import-from={remote_image}");
         if let Some(ref sz) = disk_size {
             println!("  would run: qm resize {vmid} scsi0 {sz}");
@@ -242,15 +252,19 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
             println!("  (reusing {remote_image}, skipping rsync)");
         }
         let spec = format!("{disk_storage}:0,import-from={remote_image}");
-        pve.qm(&["set", &vmid.to_string(), "--scsi0", &spec]).await?;
-        pve.qm(&["set", &vmid.to_string(), "--boot", "order=scsi0"]).await?;
+        pve.qm(&["set", &vmid.to_string(), "--scsi0", &spec])
+            .await?;
+        pve.qm(&["set", &vmid.to_string(), "--boot", "order=scsi0"])
+            .await?;
         if let Some(ref sz) = disk_size {
             println!("  resizing scsi0 to {sz}");
             pve.qm(&["resize", &vmid.to_string(), "scsi0", sz]).await?;
         }
         // Cleanup the temp image on the host — unless we're keeping it for reuse.
         if !test_reuse_image {
-            pve.run_remote(&[format!("rm -f {remote_image}")]).await.ok();
+            pve.run_remote(&[format!("rm -f {remote_image}")])
+                .await
+                .ok();
         }
     }
 
