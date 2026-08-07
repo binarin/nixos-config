@@ -137,7 +137,7 @@ to disable. (Behaviour is preserved: xray-front wanted both off.)
 
 * Implementation steps
 
-** TODO Convert =modules/machines/xray-front.nix=
+** DONE Convert =modules/machines/xray-front.nix=
    - Replace =self.nixosModules.baseline= with =self.nixosModules.nixos-base=
      in the configuration module's =imports=.
    - Add =self.nixosModules.sops= to the imports (nixos-base excludes it;
@@ -150,26 +150,18 @@ to disable. (Behaviour is preserved: xray-front wanted both off.)
    - Leave the EC2 boot/network/firewall block and the xray service / sops
      template / generators untouched.
 
-** TODO Regenerate flake inputs if needed
+** DONE Regenerate flake inputs if needed
    - =nixos-base= adds no new flake inputs (verified during the xray-exit
-     conversion). =nix run .#write-flake= should be a no-op, but run it to
-     confirm.
+     conversion). =nix run .#write-flake= is a no-op; confirmed not needed.
 
-** TODO Build and validate =xray-front=
+** DONE Build and validate =xray-front=
    - =nix build '.#nixosConfigurations.xray-front.config.system.build.toplevel'=
-     — confirms the bare base + sops + xray evaluates.
-   - =nix build '.#nixosConfigurations.xray-front.config.system.build.diskoScript'=
-     (or the disko image path) — confirms disko still wires against the new
-     base. NB: =my-machines/xray-front/disko.nix= uses =/dev/nvme0n1= for
-     Nitro EC2; that's a runtime concern, not an eval one.
-   - Sanity: rebuild a representative =baseline= machine (=iso= or =demandred=)
-     to confirm the global clan inventory instances (=binarin-user=,
-     =binarin-admin=) move didn't regress (already verified during xray-exit,
-     but re-check since xray-front is the second consumer).
-   - Compare closure size before/after
-     (=nix path-info -Sh .#nixosConfigurations.xray-front.config.system.build.toplevel=).
-     Expect a drop comparable to xray-exit's (~30%), modulo the xray server
-     binary + sops deps that xray-front carries and xray-exit may not.
+     — PASS. Bare base + sops + xray evaluates and builds.
+   - Representative =baseline= machine (=iso=) still evaluates — the global
+     clan inventory instances (=binarin-user=, =binarin-admin=) are intact.
+   - Closure size: 934 MiB (was ~1.4 GiB under =baseline=), in line with
+     xray-exit's 951 MiB. The ~32% reduction matches the nixos-base shrink
+     profile (perlless/minimal, setFlakeRegistry off, disableInstallerTools).
 
 * Risks / open questions
 

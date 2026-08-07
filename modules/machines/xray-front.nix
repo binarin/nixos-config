@@ -87,8 +87,9 @@ in
     {
       key = "nixos-config.modules.nixos.xray-front-configuration";
       imports = [
-        self.nixosModules.baseline
+        self.nixosModules.nixos-base
         self.nixosModules.systemd-boot
+        self.nixosModules.sops
         # Do NOT use self.nixosModules.disko here: it reads specialArgs.inventoryHostName
         # to locate my-machines/<host>/disko.nix, but that specialArg is injected only by
         # the flake-output extendModules wrapper — it is ABSENT when clan evaluates the
@@ -99,10 +100,6 @@ in
         "${self}/my-machines/xray-front/disko.nix"
         self.nixosModules.xray-shared
       ];
-
-      # No Tailscale on this machine.
-      services.tailscale.enable = lib.mkForce false;
-      nixos-config.export-metrics.enable = false;
 
       # Same clan-openssh/sshd (tags.all) pre-`clan vars generate` issue as xray-exit:
       # the file-backed knownHosts value would be forced before generation. mkForce empties it.
