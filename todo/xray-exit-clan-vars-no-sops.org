@@ -216,28 +216,35 @@ override with =mkForce = "config.json:/run/xray-assembled/config.json"=.)
 
 * Caveats / open questions
 
-** Restart on secret rotation
+** Restart on secret rotation [implemented via systemd.path]
 
-This is the one feature the sops backend gave us for free (via the
-=restartUnits= field on each var file, propagated by
-=generators-to-sops.nix= into =sops.secrets."vars/...".restartUnits=). The
-assembler model loses that.
+Investigated whether clan's own =restartUnits= var-file field could drive
+this. It merges fine from =xray-exit.nix= (it's a normal NixOS option on
+=clan.core.vars.generators.<gen>.files.<file>=), and under the sops backend
+the ordering would even be correct: =sops-install-secrets= does
+=systemctl try-restart xray.service=, and systemd re-runs
+=xray-exit-assemble.service= (a =Requires=/=After= dependency, oneshot with
+=RemainAfterExit=) before xray starts — so no stale config. But
+=restartUnits= is sops-only by clan's own admission (the option doc warns
+"currently only sops-nix implements this option"; =generators-to-sops.nix=
+is its sole consumer) and would silently no-op under age/password-store —
+re-introducing exactly the backend coupling we just removed, for the
+rotation path.
 
-Options, in increasing sophistication:
+Instead, rotation is handled backend-neutrally:
 
-1. *Do nothing initially.* Accept that after =clan vars generate= +
-   machine update, the operator runs =systemctl restart xray= (or just reboots,
-   since the assembler regenerates on every boot anyway). Simplest; fine for a
-   personal config where rotations are rare and deliberate.
-2. *Path-based trigger.* Add a =systemd.paths.xray-exit-assemble= watching the
-   five =file.config.path=s with =PathChanged=, plus wire the assembler to
-   restart =xray.service= on completion (=PartOf=/=BindsTo= or a =ExecStartPost=
-   =systemctl try-restart xray.service=). ~6 lines. Fully automatic, still
-   backend-neutral.
+- =systemd.paths.xray-exit-assemble= watches the four runtime secret paths
+  (the public =short-id= is a /nix/store path and immutable at runtime, so it
+  is excluded) with =PathChanged=, ordered =after sysinit.target= so the
+  watched paths exist before monitoring begins. =PathChanged= does not fire
+  on initial existence, so there's no spurious boot trigger.
+- =xray-exit-assemble.service= has =ExecStartPost = systemctl try-restart
+  xray.service=, so every (re)assembly restarts xray with the fresh config.
+  =try-restart= is a no-op on initial boot when xray isn't running yet.
 
-Recommend deferring this to a follow-up: get the basic assembler + ordering
-working and validated first, then add the path unit if rotation ergonomics
-matter.
+NixOS has no per-unit =systemd.services.*.restartUnits= option (only sops
+secrets and clan var files carry that name); the =ExecStartPost= is the
+plain-systemd equivalent here.
 
 ** =neededFor= of the read secrets
 
@@ -258,23 +265,23 @@ touch xray-front in this change.
 
 * Implementation checklist
 
-- [ ] =modules/machines/xray-exit.nix=:
-  - [ ] =let= block: =exitSkeleton= (=pkgs.writeText= of =mkExitSettings= with
+- [X] =modules/machines/xray-exit.nix=:
+  - [X] =let= block: =exitSkeleton= (=pkgs.writeText= of =mkExitSettings= with
         =@TOKEN@= leaves), =secretPath= helper (=tryEval=guarded =.path=), the
         five resolved paths.
-  - [ ] =assembler= script (=pkgs.writeShellScript= or
-        =writeShellApplication=): =sed= substitution + atomic write.
-  - [ ] =systemd.services.xray-exit-assemble=: ordering + =RuntimeDirectory= as
-        specified above.
-  - [ ] Uncomment + repoint =services.xray=: =enable = true=,
+  - [X] =assembler= script (=pkgs.writeShellScript=): =sed= substitution +
+        atomic write.
+  - [X] =systemd.services.xray-exit-assemble=: ordering + =RuntimeDirectory=,
+        plus =ExecStartPost= try-restart of xray.
+  - [X] =systemd.paths.xray-exit-assemble=: watches the four runtime secret
+        paths, =after sysinit.target=.
+  - [X] Repoint =services.xray=: =enable = true=,
         =settingsFile = "/run/xray-assembled/config.json"=.
-  - [ ] Confirm =self.nixosModules.sops= remains commented out.
-- [ ] Verify evaluation: =nix flake check= (or =nixos-rebuild build= for the
-      xray-exit host) succeeds *before* =clan vars generate= has produced exit
-      secrets (the =tryEval= guards must hold).
+  - [X] Confirm =self.nixosModules.sops= remains unimported.
+- [X] Verify evaluation: =nix build .#nixosConfigurations.xray-exit.config.system.build.toplevel=
+      succeeds *before* =clan vars generate= (the =tryEval= guards hold).
 - [ ] Verify runtime (post-deploy): =systemctl status xray-exit-assemble= then
       =systemctl status xray=; =xray -test -config /run/xray-assembled/config.json=.
-- [ ] (Follow-up, deferred) =systemd.paths.xray-exit-assemble= for rotation.
 - [ ] (Follow-up, deferred) port the pattern to =xray-front.nix=.
 
 * Non-goals

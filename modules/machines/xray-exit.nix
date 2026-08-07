@@ -144,9 +144,25 @@ in
         serviceConfig = {
           Type = "oneshot";
           ExecStart = "${assembler} /run/xray-assembled/config.json";
+          ExecStartPost = "${lib.getBin pkgs.systemd}/bin/systemctl try-restart xray.service";
           RemainAfterExit = true;
           RuntimeDirectory = "xray-assembled";
           RuntimeDirectoryMode = "0700";
+        };
+      };
+
+      # Re-run the assembler on secret rotation; ExecStartPost then restarts xray.
+      systemd.paths.xray-exit-assemble = {
+        wantedBy = [ "multi-user.target" ];
+        after = [ "sysinit.target" ];
+        pathConfig = {
+          Unit = "xray-exit-assemble.service";
+          PathChanged = [
+            (secretPath "xray-link" "uuid")
+            (secretPath "xray-exit-params" "dest")
+            (secretPath "xray-exit-params" "sni")
+            (secretPath "xray-reality-exit" "private-key")
+          ];
         };
       };
 
