@@ -137,6 +137,12 @@ that is =wantedBy = [ "sysinit.target" ]=:
 - age:   =age-decrypt-secrets.service=,
 - password-store: =pass-install-secrets.service=.
 
+The assembler\->xray dependency must be expressed from *both* directions.
+=requiredBy= / =before= on the assembler is not sufficient on its own:
+=requiredBy= did not reliably inject =Requires== into =xray.service= (a unit
+declared by the upstream =services.xray= module) during implementation — the
+explicit =requires= / =after= on xray is load-bearing.
+
 So:
 
 #+begin_src nix
@@ -146,9 +152,9 @@ systemd.services.xray-exit-assemble = {
   # Pull in whichever backend decrypt unit exists, without naming it.
   wants = [ "sysinit.target" ];
   after  = [ "sysinit.target" ];
-  # --- xray depends on the assembler ---
+  # --- xray depends on the assembler (reverse direction; see xray below) ---
   before = [ "xray.service" ];
-  requiredBy = [ "xray.service" ];   # xray will not start until we finish
+  requiredBy = [ "xray.service" ];
   serviceConfig = {
     Type = "oneshot";
     ExecStart = "${assembler} /run/xray-assembled/config.json";
@@ -156,6 +162,12 @@ systemd.services.xray-exit-assemble = {
     RuntimeDirectory = "xray-assembled";      # /run/xray-assembled, root-owned
     RuntimeDirectoryMode = "0700";
   };
+};
+
+# Explicit forward dependency — load-bearing (see note above).
+systemd.services.xray = {
+  requires = [ "xray-exit-assemble.service" ];
+  after = [ "xray-exit-assemble.service" ];
 };
 #+end_src
 

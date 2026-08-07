@@ -40,6 +40,37 @@ in
       pkgs,
       ...
     }:
+    let
+      v = config.clan.core.vars.generators;
+
+      # tryEval tolerates eval before `clan vars generate`.
+      secretPath = gen: file:
+        let r = builtins.tryEval v.${gen}.files.${file}.path;
+        in if r.success then r.value else "/run/secrets/${gen}/${file}";
+
+      exitSkeleton = pkgs.writeText "xray-exit-skeleton.json" (builtins.toJSON (
+        xrayLib.mkExitSettings {
+          linkId = "@LINK@";
+          exitDest = "@DEST@";
+          exitSni = "@SNI@";
+          exitPrivateKey = "@PK@";
+          exitShortId = "@SID@";
+        }
+      ));
+
+      assembler = pkgs.writeShellScript "xray-exit-assemble" ''
+        set -euo pipefail
+        out="$1"
+        sed \
+          -e "s|@LINK@|$(cat ${secretPath "xray-link" "uuid"})|g" \
+          -e "s|@DEST@|$(cat ${secretPath "xray-exit-params" "dest"})|g" \
+          -e "s|@SNI@|$(cat ${secretPath "xray-exit-params" "sni"})|g" \
+          -e "s|@PK@|$(cat ${secretPath "xray-reality-exit" "private-key"})|g" \
+          -e "s|@SID@|$(cat ${secretPath "xray-reality-exit" "short-id"})|g" \
+          ${exitSkeleton} > "$out.tmp"
+        mv "$out.tmp" "$out"
+      '';
+    in
     {
       key = "nixos-config.modules.nixos.xray-exit-configuration";
 
@@ -48,7 +79,8 @@ in
         self.nixosModules.qemu-guest
         (selfLib.file' "machines/llm-runner/hardware-configuration.nix")
 
-        # self.nixosModules.sops
+        # No sops: config is assembled from decrypted clan-var files (see
+        # todo/xray-exit-clan-vars-no-sops.org), backend-neutral.
         self.nixosModules.xray-shared
         self.nixosModules.provision-clan-key
       ];
@@ -103,22 +135,29 @@ in
       # Public REALITY inbound reachable via the router port-forward.
       networking.firewall.allowedTCPPorts = [ 8443 ];
 
-      # sops.templates."xray.json" = {
-      #   restartUnits = [ "xray.service" ];
-      #   content = builtins.toJSON (
-      #     xrayLib.mkExitSettings {
-      #       linkId = "xray-link/uuid";
-      #       exitDest = "xray-exit-params/dest";
-      #       exitSni = "xray-exit-params/sni";
-      #       exitPrivateKey = "xray-reality-exit/private-key";
-      #       exitShortId = val "xray-reality-exit" "short-id";
-      #     }
-      #   );
-      # };
+      systemd.services.xray-exit-assemble = {
+        description = "Assemble xray.json from decrypted clan vars";
+        wants = [ "sysinit.target" ];
+        after = [ "sysinit.target" ];
+        before = [ "xray.service" ];
+        requiredBy = [ "xray.service" ];
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${assembler} /run/xray-assembled/config.json";
+          RemainAfterExit = true;
+          RuntimeDirectory = "xray-assembled";
+          RuntimeDirectoryMode = "0700";
+        };
+      };
 
-      # services.xray = {
-      #   enable = true;
-      #   settingsFile = config.sops.templates."xray.json".path;
-      # };
+      systemd.services.xray = {
+        requires = [ "xray-exit-assemble.service" ];
+        after = [ "xray-exit-assemble.service" ];
+      };
+
+      services.xray = {
+        enable = true;
+        settingsFile = "/run/xray-assembled/config.json";
+      };
     };
 }
