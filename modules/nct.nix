@@ -25,7 +25,7 @@ in
   ];
 
   perSystem =
-    { pkgs, config, ... }:
+    { pkgs, config, lib, ... }:
     let
       nciOut = config.nci.outputs."nct";
       # nci per-profile packages: dev, release.
@@ -56,7 +56,20 @@ in
         };
       };
 
-      packages.nct = nctRelease;
+      # Wrap the nci-built binary so guestfish (libguestfs-with-appliance)
+      # is on PATH at runtime — nct shells out to it for `provision-pve
+      # --inject-key` to bake the clan age key into the qcow2. The
+      # `-with-appliance` variant bundles the supermin appliance guestfish
+      # needs to boot its helper VM; plain libguestfs is unusable alone.
+      packages.nct = pkgs.runCommand "nct-${nctRelease.version}"
+        {
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+          meta = nctRelease.meta // { mainProgram = "nct"; };
+        }
+        ''
+          makeWrapper ${lib.getExe' nctRelease "nct"} $out/bin/nct \
+            --prefix PATH : ${lib.makeBinPath [ pkgs.libguestfs-with-appliance ]}
+        '';
 
       # Expose nci's native clippy / check outputs as flake checks, built with
       # the same toolchain nci uses for the package (avoids the rustc/clippy
@@ -71,7 +84,13 @@ in
         # isn't bundled in the rust toolchain, so add it from nixpkgs. Do NOT
         # add pkgs.clippy / pkgs.rustfmt: they'd come from a different rustc
         # than the toolchain and cause E0514 "incompatible version" errors.
-        packages = (old.packages or [ ]) ++ [ pkgs.rust-analyzer ];
+        packages = (old.packages or [ ]) ++ [
+          pkgs.rust-analyzer
+          # Runtime dep nct shells out to for image key injection
+          # (provision-pve --inject-key). Plain libguestfs is unusable: it
+          # needs the supermin appliance only -with-appliance ships.
+          pkgs.libguestfs-with-appliance
+        ];
         # nciBuildConfig sets BINDGEN_EXTRA_CLANG_ARGS="-x c++ -std=c++2a",
         # but in the dev shell bindgen calls libclang directly (bypassing the
         # cc wrapper), so it can't find glibc's features.h. Add the include

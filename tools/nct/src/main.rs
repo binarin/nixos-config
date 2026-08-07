@@ -3,6 +3,7 @@ pub mod nix_flake;
 pub mod proxmox;
 pub mod config;
 pub mod cloud_init;
+pub mod image_inject;
 pub mod provision_pve;
 
 use anyhow::Result;
@@ -81,6 +82,14 @@ enum MachineCommand {
         #[arg(long)]
         test_reuse_image: bool,
 
+        /// Inject the clan age key directly into the qcow2 (via guestfish)
+        /// instead of shipping it via the cloud-init seed. The key lands at
+        /// the machine's resolved `secretLocation/key.txt` so clan's Stage 2
+        /// decryption finds it without a seed drive. Incompatible with
+        /// `--test-reuse-image`.
+        #[arg(long)]
+        inject_key: bool,
+
         /// Show what would be done without executing.
         #[arg(long)]
         dry_run: bool,
@@ -123,6 +132,7 @@ async fn main() -> Result<()> {
                 disk_storage,
                 start,
                 test_reuse_image,
+                inject_key,
                 dry_run,
             } => {
                 let flake = nix_flake::NixFlake::open(&cli.flake)?;
@@ -137,6 +147,7 @@ async fn main() -> Result<()> {
                         disk_storage,
                         start,
                         test_reuse_image,
+                        inject_key,
                         dry_run,
                     },
                 )
@@ -218,6 +229,7 @@ mod tests {
                     start,
                     dry_run,
                     test_reuse_image,
+                    inject_key,
                 },
             } => {
                 assert_eq!(name, "xray-exit");
@@ -229,6 +241,7 @@ mod tests {
                 assert!(!start);
                 assert!(!dry_run);
                 assert!(!test_reuse_image);
+                assert!(!inject_key);
             }
             _ => panic!("expected ProvisionPve"),
         }

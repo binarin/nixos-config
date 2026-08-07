@@ -18,6 +18,7 @@ use anyhow::{Context, Result, bail};
 
 use crate::cloud_init;
 use crate::config::{self, VmConfig};
+use crate::image_inject;
 use crate::nix_flake::NixFlake;
 use crate::proxmox::Proxmox;
 
@@ -32,6 +33,11 @@ pub struct ProvisionPveArgs {
     /// Skip qcow2 build+rsync if the remote image already exists, and don't
     /// delete it afterwards. For fast iteration without rebuilding the image.
     pub test_reuse_image: bool,
+    /// Inject the clan age key directly into the qcow2 (via guestfish) rather
+       /// than shipping it via the cloud-init seed. Implies rebuilding the image
+       /// each run (--test-reuse-image is refused, since a reused image may
+       /// carry a stale key).
+    pub inject_key: bool,
     pub dry_run: bool,
 }
 
@@ -45,9 +51,20 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
         disk_storage,
         start,
         test_reuse_image,
+        inject_key,
 
         dry_run,
     } = args;
+
+    // Injecting the key bakes a secret into the image, so a reused (stale)
+    // image may carry a wrong key. Refuse the combination up front.
+    if inject_key && test_reuse_image && !dry_run {
+        bail!(
+            "--inject-key injects the key into a freshly built image; it is \
+             incompatible with --test-reuse-image (which would skip the build \
+             and reuse a possibly stale key). Drop one of the flags."
+        );
+    }
 
     println!("Provisioning VM: {machine} on {proxmox_host}");
 
@@ -105,6 +122,36 @@ pub async fn run(flake: &NixFlake, args: ProvisionPveArgs) -> Result<()> {
         let p = build_cloud_image(&machine)?;
         println!("  image: {}", p.display());
         p
+    };
+
+    // 4b. Inject the clan age key directly into the qcow2 (guestfish), so the
+    //     cloud-init seed no longer needs to carry it. The destination is the
+    //     resolved secretLocation/key.txt from the machine config — same path
+    //     provision-clan-key would write, so clan's Stage 2 decryption finds
+    //     it without changes.
+    let image_path = if inject_key && !dry_run && !skip_build {
+        println!("\nStep 4b: injecting age key into image");
+        let dest = cfg.secret_key_path();
+        println!("  target: {dest}");
+        let injected = image_inject::inject_age_key(&image_path, &dest, &age_key)
+            .context("injecting age key into image")?;
+        println!("  injected -> {}", injected.display());
+        injected
+    } else if inject_key && dry_run {
+        println!("\nStep 4b: (dry-run) would inject age key into image");
+        println!(
+            "  guestfish --rw -a {} : run : list-filesystems (pick ext4 root)",
+            image_path.display(),
+        );
+        println!(
+            "           : mount <ext4> / : mkdir-p {} : upload <tmp> {} : chmod 0600 {}",
+            image_inject::parent_dir(&cfg.secret_key_path()),
+            cfg.secret_key_path(),
+            cfg.secret_key_path(),
+        );
+        image_path
+    } else {
+        image_path
     };
 
     // 5. Cloud-init snippets.

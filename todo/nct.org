@@ -1106,3 +1106,296 @@ Why:
     → Lean (E): Stage 2 + proper unit ordering. Rebuild the image once.
     → Separately: port ncf's SSH-host-key injection to =nct='s user-data so
       sops has both keys available.
+
+* Stage 5 — investigation: inject clan age key directly into the disk image
+:PROPERTIES:
+:STATUS: IMPLEMENTED (libguestfs path); live validation pending
+:END:
+
+** Motivation
+
+The current Stage 4 design (now working end-to-end) ships the clan age key
+via a **separate NoCloud cloud-init seed** drive: =nct= uploads a =user-data=
+snippet to Proxmox, =qm create ... --cicustom user=...= bakes it into a
+CloudInit ISO (label =cidata=), and =modules/provision-clan-key.nix='s initrd
+unit mounts that ISO and greps =clan-machine-key:= out of it. That works, but
+it carries real operational baggage (all documented in Stage 4's open Qs):
+- A second drive (the CloudInit ISO =--ide2 <st>:cloudinit=) must exist and be
+  wired, even though its /only/ real payload for this flow is the one key line.
+- The initrd must ship =iso9660=/=vfat= kernel modules
+  (=boot.initrd.kernelModules=) or =provision-clan-key= can't mount the seed.
+- cloud-init itself must be coerced into cooperating on this image
+  (=modules/cloud-init-bwrap.nix=, the =updates: {network: {when: [boot]}}=
+  gate, the dropped =users-groups= module, ...).
+- The seed is a plaintext bearer of the age private key sitting on the
+  Proxmox host's snippet storage until the VM is destroyed.
+
+The alternative this section investigates: **bake the age key into the qcow2
+disk image itself** at provision time, removing the seed drive, the initrd
+fs-module requirement, and cloud-init from the secret-bootstrapping path
+entirely. The image is already machine-specific (built per-=-<name>= every
+provision run), so embedding a per-machine secret in it is not a portability
+regression — unlike a generic AMI where that would be a non-starter.
+
+** The hard constraint: =make-disk-image.nix= cannot take a secret
+
+The qcow2 is produced by
+#+begin_src nix
+system.build.cloudImage = import "${pkgs.path}/nixos/lib/make-disk-image.nix" {
+  inherit lib pkgs config;
+  format = "qcow2";
+  partitionTableType = "efi";
+  additionalSpace = "1024M";
+};
+#+end_src
+=make-disk-image.nix= (in =../nix/nixpkgs/nixos/lib/make-disk-image.nix=)
+offers two hooks that look relevant and are /both/ traps for secrets:
+- =contents= :: =[{source, target, mode, user, group}]=. But =source= is
+  interpolated verbatim into the builder bash array
+  (=sources_=(${lib.concatStringsSep " " sources})=, line ~470) and =rsync=-ed
+  into the image root. A nix string is a store path or gets copied /into/ the
+  store first → the age key lands world-readable in =/nix/store=. **Hard no.**
+- =postVM= :: shell code run after the VM finishes installing. It /could/
+  =dd= a secret onto the image, but it's evaluated inside the nix derivation,
+  so any secret it references is again in the store / drv env. Same leak.
+- =additionalPaths= :: more store paths. Not for secrets.
+
+=> The key /cannot/ enter the image through the nix build. It must be
+   injected **after** the pure nix-built qcow2 is materialized, as a impure
+   post-processing step on the build host (the machine running =nct=). This is
+   the same trust boundary as =clan secrets get= today: the secret lives on
+   the operator's machine, never in the nix store.
+
+** The three injection mechanisms (all post-build, all impure)
+
+The qcow2 is a real disk image with an ext4 root labeled =nixos= (per
+=modules/machines/xray-exit.nix= =fileSystems."/"=) and a vfat =ESP=. After
+=nix build= materializes =<store>/nixos.qcow2=, =nct= can:
+
+*** Option A — =libguestfs= (=guestfish=) to write the file in-image
+- Tool: =guestfish --rw -a nixos.qcow2 -i write /var/lib/sops-nix/key.txt <key=
+  (=virt-customize= / =virt-copy-in= are wrappers over the same libguestfs).
+- Pros: no host root needed, no mount, handles qcow2 + LVM + UEFI ESP
+  natively, single tool, well-trodden path (it's what cloud image base
+  customization flows use everywhere).
+- Cons: pulls =libguestfs= as an =nct= runtime dep (nixpkgs has it:
+  =pkgs.libguestfs=, ~tens of MB + a temporary appliance VM per invocation).
+  Slower than a raw mount (boots a micro-VM to manipulate the fs) — but this
+  runs /once per provision/, not in a hot loop, so fine.
+- Secret handling: =guestfish= reads the key from =nct='s process memory (a
+  pipe / temp file with =chmod 600=, unlinked immediately), writes it into the
+  image, =chmod 600=. Never touches the nix store.
+
+*** Option B — =qemu-nbd= + =mount= (loop-mount the qcow2)
+- Tool: =modprobe nbd=; =qemu-nbd --connect=/dev/nbd0 nixos.qcow2=;
+  =mount /dev/nbd0p2 /mnt=; write =/mnt/var/lib/sops-nix/key.txt=; =umount=;
+  =qemu-nbd --disconnect=.
+- Pros: no extra package beyond =qemu= (already implied by the toolchain);
+  fast (direct kernel mount, no appliance VM).
+- Cons: **requires root on the build host** (=nbd= + =mount=), which the
+  operator running =nct= may not have / want to escalate to. Partition index
+  discovery (=nbd0p2= vs =p1=) is image-dependent and brittle. =nbd= module
+  may not be loaded. Leftover mounts on failure.
+- Secret handling: same as A (temp file → mount → write → shred).
+
+*** Option C — =debugfs -w= (ext4 direct, no mount)
+- Tool: =debugfs -w /dev/nbd0p2= then =write temp_key /var/lib/sops-nix/key.txt=
+  (=debugfs= can operate on an unmounted ext4, even inside a qcow2 via nbd).
+- Pros: no =mount=, no root-for-mount (still needs nbd connect → still root).
+  Survives a dirty fs better than a full mount.
+- Cons: same root/nbd requirement as B; =debugfs write= is low-level and
+  fiddly for setting perms/mtime; rarely used for this in the wild.
+
+*** Verdict on mechanism
+- **Prefer A (=libguestfs=)** as the default: no root, robust across image
+  layouts, single self-contained dep, the standard tool for exactly this job.
+- Keep B as a documented fallback for hosts where =libguestfs='s appliance
+  boot is problematic (nested-virt-disabled build hosts, air-gapped).
+- Skip C (no advantage over B, more fiddly).
+
+** Where the key lands in the image
+
+The destination is the /same/ path =provision-clan-key= currently writes to,
+so the downstream consumers (clan's sops machinery, =sops-install-secrets=)
+are identical and need no changes:
+- =clan.core.vars.settings.secretStore == "sops"= →
+  =''${clan.core.vars.sops.secretUploadDirectory}/key.txt= =
+  =/var/lib/sops-nix/key.txt= (the resolved value already encoded in
+  =modules/provision-clan-key.nix='s =secretLocation= logic).
+- So =nct= writes =AGE-SECRET-KEY-1...\n= to =/var/lib/sops-nix/key.txt=
+  (mode 0600, owner root) inside the image, via the chosen mechanism.
+This is the exact invariant =provision-clan-key= enforces; we're just moving
+the write from initrd-time to build-time and dropping the seed drive entirely.
+
+** What gets removed / simplified if we switch
+
+- =modules/provision-clan-key.nix= :: the whole initrd unit, the =iso9660=/
+  =vfat= =kernelModules= additions, the mount/umount/cleanup dance, the
+  =clan-machine-key= grep — **all deletable**. The module can either be
+  dropped or reduced to a no-op guard (or kept only for non-=provision-pve=
+  provisioning paths that still use a seed).
+- =modules/cloud-init-bwrap.nix= :: **may still be needed for networking**
+  (cloud-init's =network-config= v2 path is what configures eth0; that's
+  independent of the age key). This stage is /only/ about removing cloud-init
+  from the /secret/ path. If networking is later baked into the image too
+  (Stage 4 open-Q option B), cloud-init could go away entirely — but that's
+  out of scope here.
+- =nct='s =cloud_init::user_data= :: drops the =clan-machine-key:= line and
+  the =updates: {network: {when: [boot]}}= gate is /still needed/ for
+  networking. So =user-data= shrinks but the snippet upload step stays.
+- =qm create= args :: the =--cicustom user=...= half goes away (keep
+  =--cicustom network=...=). The =--ide2 <st>:cloudinit= drive /can/ stay
+  (it's what serves =network-config=) or be replaced by a plain NoCloud seed
+  — but keeping the CloudInit drive just for networking is fine and matches
+  the current working setup.
+
+  *Net:* the seed drive stops carrying a secret; it (or a slimmer equivalent)
+  may remain for networking only. The initrd secret-extraction complexity is
+  gone entirely.
+
+** Proposed =nct= changes (=tools/nct/src/=)
+
+- =provision_pve.rs= :: after =build_cloud_image()= returns the store path,
+  add an =inject_age_key(&image_path, &age_key)= step (skipped under
+  =--dry-run= and =--test-reuse-image= when reusing). The injected image is
+  written to a temp path (=/tmp/<machine>-<vmid>-disk.qcow2= locally, or
+  operate in-place on a copy), then =rsync=-ed to the host as today. The
+  =cloud_init::user_data= =clan-machine-key:= line is dropped.
+- =image_inject.rs= (new) :: =inject_age_key(image: &Path, key: &str,
+  dest: &str) -> Result<PathBuf>=. Default impl via =guestfish= (Option A):
+  write the key to a =tempfile= (0600), run
+  =guestfish --rw -a <img> -i <<EOF ... write <tmp> <dest> ... EOF=, verify
+  via =guestfish -a <img> -i cat <dest>=, shred the tempfile. Return the
+  (possibly new) image path. Gated by a =--inject-mechanism= flag
+  (=guestfish= default, =nbd= fallback) for the B path.
+- =modules/nct.nix= :: add =pkgs.libguestfs= to the =nct= package's
+  =runtimePaths= / =makeWrapper= =--prefix= so =guestfish= is on PATH when
+  =nct= runs. (=nct= is a dev-shell tool today; wrapping it for the package
+  output is the clean way. Alternatively =nct= resolves =guestfish= via
+  =which= and errors with a hint if missing — simpler, matches how =clan=/
+  =ssh=/=rsync=/=nix= are resolved today from PATH.)
+- =config.rs= :: expose the resolved =secretLocation= (the same logic
+  =provision-clan-key.nix= uses: =sops → sops.secretUploadDirectory=,
+  =age → age.secretLocation=) so =nct= writes to the correct in-image path
+  without hardcoding =/var/lib/sops-nix=. Add it to the one-shot =toJSON=
+  lambda.
+
+** Trade-offs vs the current (cloud-init seed) design
+
+| Aspect                     | Seed drive (now)              | Baked into image (proposed)        |
+|---------------------------+-------------------------------+------------------------------------|
+| Extra Proxmox drive        | CloudInit ISO (carries key)   | CloudInit ISO for net only, or none |
+| Initrd fs modules          | iso9660/vfat required         | Not needed                         |
+| cloud-init on secret path  | Yes (grep from user-data)     | No                                 |
+| Secret location on host    | snippet storage (plaintext)   | Nowhere (lives only in qcow2)      |
+| Build-host privilege       | None                          | None with libguestfs; root w/ nbd  |
+| New runtime dep            | (none)                        | libguestfs (or qemu-nbd)           |
+| Key rotation / re-key      | Re-upload snippet, reboot     | Rebuild image                      |
+| Reuse-image fast iteration | Trivial (snippet is separate) | Must re-inject per build           |
+| Portability of image       | Image is secret-free          | Image embeds a secret (per-machine) |
+
+The last two rows are the real costs. =--test-reuse-image= already implies a
+rebuilt-image invariant; baking the key in means reusing an old image re-uses
+an old key (fine if the key hasn't rotated, a silent footgun if it has —
+=nct= should refuse =--test-reuse-image= when injecting, or warn loudly).
+Portability is a non-issue here because the image is =nixosConfigurations.<name>=
+specific already.
+
+** Open questions to resolve before implementing
+
+1. *Is =libguestfs= acceptable as an =nct= runtime dep?* It's ~30–60 MB and
+   spawns a short-lived appliance VM. Measure =guestfish -i write= wall-time
+   on a real =xray-exit= qcow2 to confirm it's not painful for a per-provision
+   step. If it is, fall back to =nbd= (Option B) and accept the root
+   requirement (document it; =nct= already assumes a capable build host).
+2. *Key freshness with =--test-reuse-image=.* Decide policy: hard error, or
+   inject unconditionally into the reused remote image via a second
+   =guestfish= run over SSH (which reintroduces a libguestfs-on-host dep).
+   Lean: hard-error =--test-reuse-image= + =inject_age_key= combination;
+   force a rebuild when injecting.
+3. *Do we keep =provision-clan-key.nix= at all?* If =provision-pve= becomes
+   the sole provisioning path for cloud-image VMs, the module is dead code.
+   But other provisioning flows (manual seed, future bare-metal-with-seed)
+   might want it. Lean: keep the module, gate it so it's a no-op when the key
+   file already exists (it already does: =if [ -s "$key_dest" ]=), so a
+   baked-in key makes it self-skip on first boot and the seed becomes optional.
+4. *Should the image be rebuilt per-provision, or cached?* Baking a secret in
+   means =system.build.cloudImage= output is /not/ shareable across provision
+   runs of the same machine (key may have rotated) — but it's also not
+   bit-reproducible anyway (qcow2 metadata). Accept: always rebuild + inject.
+   The =nix build= step already dominates wall-time; the inject is marginal.
+5. *Networking strategy independence.* Confirm that removing the age key from
+   =user-data= leaves =network-config= v2 + =cloud-init-bwrap= fully
+   functional (it should — they're orthogonal). Probe on the next live run.
+
+** STATUS: implementation DONE (libguestfs path), live validation pending
+
+The Option A (libguestfs/`guestfish`) path is implemented and verified against
+a real =xray-exit= cloud image via an =#[ignore]d= integration test
+(=inject_into_real_cloud_image=, ~28s, passes). Q1's measurement is in: a
+single inject is ~25s of guestfish appliance boot + <2s of actual fs work —
+acceptable for a once-per-provision step. No nested-virt issue (KVM available).
+
+Key findings baked into the implementation (not predicted by the plan):
+- **Do NOT use guestfish =-i= (inspector).** It fails on NixOS cloud images
+  ("no operating system was found on this disk") even though the filesystems
+  are perfectly mountable. Instead: =run=, =list-filesystems=, pick the ext4
+  partition as the root, =mount= explicitly. (=find_root_device= scans
+  =list-filesystems= output for the ext4 entry; fails loudly if none.)
+- **guestfish argv mode needs =:= separators between commands.** Bare words
+  are treated as args to the previous command, so =run list-filesystems=
+  fails (=run= a.k.a. =launch= takes no args). =run_guestfish= now takes a
+  =&[&[&str]]= (slice of command-slices) and inserts =:= between them.
+- **The qcow2 + its workdir must be world-readable (0644 / 0755).**
+  guestfish's qemu appliance drops privileges to a different user for
+  security; a 0600 image in a 0700 =/tmp= workdir = appliance can't open the
+  image = opaque crash. The qcow2 holds no secret in its own bytes (the key
+  lives inside its filesystem, readable only post-mount), so 0644 is fine;
+  the injected key file inside is still =chmod 0600=.
+- **Use =libguestfs-with-appliance=, not =libguestfs=.** Plain =libguestfs=
+  lacks the supermin appliance =guestfish= needs to boot its helper VM. The
+  =-with-appliance= variant bundles it; its =lib/guestfs/= is what
+  =guestfish= auto-discovers (no =LIBGUESTFS_PATH= needed).
+- **The injected image is persisted to a named tempfile in =/tmp=, not next
+  to the source.** The source is a read-only nix store path; the injected
+  copy must live in a writable location for =rsync= to pick up. =inject_age_key=
+  returns that path; =provision-pve= rsyncs it onward.
+- **Secret hygiene:** the age key is staged in a =tempfile= (0600) and passed
+  to guestfish via =upload <tempfile>= (not =write <content>=), so it never
+  appears in =guestfish='s argv / process listings.
+
+** Proposed task breakdown (gated on Q1's libguestfs measurement)
+
+- [X] Measure: =nix build .#nixosConfigurations.xray-exit.config.system.build.cloudImage=
+      then =guestfish --rw -a result/nixos.qcow2 -i touch /var/lib/sops-nix/probe=
+      — capture wall-time + confirm no nested-virt issue on the build host.
+      (Result: ~25s/invocation, KVM works. =-i= doesn't work on NixOS images —
+      see findings above; use explicit =run=+=mount=.)
+- [X] =image_inject.rs=: =inject_age_key= via =guestfish=, with a tempfile +
+      PATH resolution + clear error if =guestfish= missing. (+=find_root_device=
+      for ext4-root discovery, =:= -separated multi-command =run_guestfish=.)
+- [X] =config.rs=: add =secretLocation= to the =toJSON= lambda + a typed accessor
+      (=secret_key_path()=). (Done in the prior step.)
+- [X] =provision_pve.rs=: wire inject step between build and rsync; drop
+      =clan-machine-key= from =cloud_init::user_data= when injecting; hard-error
+      =--test-reuse-image= when injecting. (=--inject-key= flag added; the
+      =user-data= line is kept for now — dropped only once we retire the seed
+      path in a live test, see open tasks.)
+- [X] =modules/nct.nix=: wrap =packages.nct= with =makeWrapper= so =guestfish=
+      (=libguestfs-with-appliance=) is on PATH at runtime; add it to
+      =devShells.nct= for =cargo run=.
+- [ ] Live test against =xray-exit= (guest net): provision with =--inject-key=,
+      confirm clan vars deploy from the baked-in =/var/lib/sops-nix/key.txt=
+      with /no/ seed-drive secret activity. Then drop =clan-machine-key= from
+      =user-data= and trim =provision-clan-key.nix=.
+- [ ] Docs in =tools/nct/README.md=.
+
+** Decision gate
+- If Q1 (libguestfs perf/availability) is fine → implement Option A, retire
+  the seed-drive secret path. Big simplification: no initrd fs modules, no
+  plaintext key on snippet storage, cloud-init out of the secret loop.
+- If libguestfs is unavailable/slow /and/ the build host can't do nbd-as-root
+  → stay on the current cloud-init-seed design (it works); this stage becomes
+  a documented dead-end with the rationale preserved.
+- Either way, =provision-clan-key.nix='s self-skip (=if [ -s key_dest ]=)
+  means a baked-in key and a seed can coexist safely during any transition.
