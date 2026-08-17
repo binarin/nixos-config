@@ -237,7 +237,12 @@ in
               Type = "oneshot";
               RemainAfterExit = true;
               RuntimeDirectory = "nix-access-tokens";
-              RuntimeDirectoryMode = "0750";
+              # World-executable so that any user's nix client can traverse into
+              # the directory to read the `!include`d file below (the file
+              # itself stays 0440 root:nix-access-tokens). If nix cannot
+              # resolve the include, it silently discards the whole nix.conf,
+              # which e.g. disables `nix-command` for non-root users.
+              RuntimeDirectoryMode = "0755";
               UMask = "0077";
             };
             script = ''
