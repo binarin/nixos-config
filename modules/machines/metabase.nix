@@ -91,37 +91,47 @@ in
             restartUnits = [ "metabase.service" ];
           };
           runtimeInputs = [ pkgs.openssl ];
-          # Metabase's docs suggest `openssl rand -base64 32`; tr -d strips the
-          # trailing newline so the env value is clean.
           script = ''
             openssl rand -base64 32 | tr -d '\n' > $out/secret-key
           '';
         };
 
-        # Render both secrets (DB password in the connection URI, and the Metabase
-        # encryption key) from sops placeholders into a tmpfs EnvironmentFile so they
-        # never enter the store. SSL also requires MB_DB_CONNECTION_URI specifically.
-        sops.templates."metabase-secrets.env" = {
-          restartUnits = [ "metabase.service" ];
-          content = ''
-            MB_DB_CONNECTION_URI=postgres://postgres.lynx-lizard.ts.net:5432/metabase?user=metabase&password=${
-              config.sops.placeholder."vars/postgresql-postgres-metabase-metabase/password"
-            }&sslmode=require
-            MB_ENCRYPTION_SECRET_KEY=${config.sops.placeholder."vars/metabase-encryption/secret-key"}
-          '';
-        };
-
-        systemd.services.metabase.serviceConfig = {
-          EnvironmentFile = [
-            config.sops.templates."metabase-secrets.env".path
-          ];
-          Environment = [
-            "MB_LLM_ANTHROPIC_API_BASE_URL=http://aperture.lynx-lizard.ts.net"
-            "MB_LLM_ANTHROPIC_MODEL=deepseek/deepseek-v4-pro"
-            "MB_LLM_ANTHROPIC_API_KEY=-"
-            "MB_LLM_MAX_TOKENS=16384"
-          ];
-        };
+        systemd.services =
+          let
+            dbPasswordFile = config.clan.core.vars.generators.postgresql-postgres-metabase-metabase.files.password.path;
+            secretKeyFile = config.clan.core.vars.generators.metabase-encryption.files.secret-key.path;
+          in
+          {
+            metabase-secrets = {
+              description = "Render Metabase secrets EnvironmentFile";
+              wantedBy = [ "multi-user.target" ];
+              before = [ "metabase.service" ];
+              requiredBy = [ "metabase.service" ];
+              serviceConfig = {
+                Type = "oneshot";
+                RemainAfterExit = true;
+                RuntimeDirectory = "metabase-secrets";
+                UMask = "0077";
+              };
+              script = ''
+                password=$(<${dbPasswordFile})
+                secretKey=$(<${secretKeyFile})
+                {
+                  printf 'MB_DB_CONNECTION_URI=postgres://postgres.lynx-lizard.ts.net:5432/metabase?user=metabase&password=%s&sslmode=require\n' "$password"
+                  printf 'MB_ENCRYPTION_SECRET_KEY=%s\n' "$secretKey"
+                } > /run/metabase-secrets/env
+              '';
+            };
+            metabase.serviceConfig = {
+              EnvironmentFile = [ "/run/metabase-secrets/env" ];
+              Environment = [
+                "MB_LLM_ANTHROPIC_API_BASE_URL=http://aperture.lynx-lizard.ts.net"
+                "MB_LLM_ANTHROPIC_MODEL=deepseek/deepseek-v4-pro"
+                "MB_LLM_ANTHROPIC_API_KEY=-"
+                "MB_LLM_MAX_TOKENS=16384"
+              ];
+            };
+          };
 
         services.tailscale = {
           enable = true;
@@ -136,8 +146,6 @@ in
 
         services.nginx = {
           enable = true;
-          # Only bind to LAN & localhost addresses so tailscale serve can take
-          # :443 on the tailscale IP without conflict.
           virtualHosts."metabase.home.binarin.info" = {
             forceSSL = true;
             enableACME = false;
