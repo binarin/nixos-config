@@ -37,27 +37,35 @@ in
     }:
     let
       # ph/val tolerate eval before `clan vars generate` (tryEval fallback) — same as xray-exit.
-      ph = name:
-        let r = builtins.tryEval config.sops.placeholder."vars/${name}";
-        in if r.success then r.value else "<SOPS:PLACEHOLDER:${name}>";
-      val = g: f:
-        let r = builtins.tryEval (config.clan.core.vars.generators.${g}.files.${f}.value or "");
-        in if r.success then r.value else "";
+      ph =
+        name:
+        let
+          r = builtins.tryEval config.sops.placeholder."vars/${name}";
+        in
+        if r.success then r.value else "<SOPS:PLACEHOLDER:${name}>";
+      val =
+        g: f:
+        let
+          r = builtins.tryEval (config.clan.core.vars.generators.${g}.files.${f}.value or "");
+        in
+        if r.success then r.value else "";
 
       # Client skeleton: fully generic (only structure + @SENTINEL@ tokens).
       # The per-user generator seds real values in from its uuid + dependencies.
-      clientSkeleton = pkgs.writeText "xray-client-skeleton.json" (builtins.toJSON (
-        xrayLib.mkClientSettings {
-          userId = "@UUID@";
-          frontEndpoint = "@FRONT_ENDPOINT@";
-          frontPort = "@FRONT_PORT@";
-          frontSni = "@FRONT_SNI@";
-          frontPublicKey = "@FRONT_PBK@";
-          frontShortId = "@FRONT_SID@";
-          bypassGeosite = "@BYPASS_GEOSITE@";
-          bypassGeoip = "@BYPASS_GEOIP@";
-        }
-      ));
+      clientSkeleton = pkgs.writeText "xray-client-skeleton.json" (
+        builtins.toJSON (
+          xrayLib.mkClientSettings {
+            userId = "@UUID@";
+            frontEndpoint = "@FRONT_ENDPOINT@";
+            frontPort = "@FRONT_PORT@";
+            frontSni = "@FRONT_SNI@";
+            frontPublicKey = "@FRONT_PBK@";
+            frontShortId = "@FRONT_SID@";
+            bypassGeosite = "@BYPASS_GEOSITE@";
+            bypassGeoip = "@BYPASS_GEOIP@";
+          }
+        )
+      );
 
       mkUserGenerator = userName: {
         name = "xray-user-${userName}";
@@ -72,8 +80,16 @@ in
             secret = true;
             deploy = false;
           };
-          dependencies = [ "xray-front-params" "xray-reality-front" "xray-geo" ];
-          runtimeInputs = [ pkgs.xray pkgs.gnused pkgs.coreutils ];
+          dependencies = [
+            "xray-front-params"
+            "xray-reality-front"
+            "xray-geo"
+          ];
+          runtimeInputs = [
+            pkgs.xray
+            pkgs.gnused
+            pkgs.coreutils
+          ];
           script = ''
             xray uuid | tr -d '\n' > "$out/uuid"
             sed \
@@ -139,7 +155,10 @@ in
         networkConfig.DHCP = "yes";
       };
 
-      networking.firewall.allowedTCPPorts = [ 22 443 ];
+      networking.firewall.allowedTCPPorts = [
+        22
+        443
+      ];
 
       # Clan owns the SSH host key (decrypted from a vars generator into
       # /run/secrets/vars/openssh/...) and root's authorized_keys (via the
@@ -152,31 +171,31 @@ in
       systemd.services.apply-ec2-data.enable = false;
       systemd.services.fetch-ec2-metadata.enable = lib.mkForce false;
 
-      # --- Per-user credential + client-config generators ---
-      clan.core.vars.generators = builtins.listToAttrs (map mkUserGenerator xrayLib.userNames);
+      # # --- Per-user credential + client-config generators ---
+      # clan.core.vars.generators = builtins.listToAttrs (map mkUserGenerator xrayLib.userNames);
 
-      # --- Front server config: inbound :443 with all user UUIDs, chaining to exit ---
-      sops.templates."xray.json" = {
-        restartUnits = [ "xray.service" ];
-        content = builtins.toJSON (xrayLib.mkFrontSettings {
-          userIds = map (n: ph "xray-user-${n}/uuid") xrayLib.userNames;
-          linkId = ph "xray-link/uuid";
-          frontDest = ph "xray-front-params/dest";
-          frontSni = ph "xray-front-params/sni";
-          frontPrivateKey = ph "xray-reality-front/private-key";
-          frontShortId = val "xray-reality-front" "short-id";
-          exitEndpoint = ph "xray-exit-params/endpoint";
-          exitPort = ph "xray-exit-params/port";
-          exitSni = ph "xray-exit-params/sni";
-          exitPublicKey = val "xray-reality-exit" "public-key";
-          exitShortId = val "xray-reality-exit" "short-id";
-        });
-      };
+      # # --- Front server config: inbound :443 with all user UUIDs, chaining to exit ---
+      # sops.templates."xray.json" = {
+      #   restartUnits = [ "xray.service" ];
+      #   content = builtins.toJSON (xrayLib.mkFrontSettings {
+      #     userIds = map (n: ph "xray-user-${n}/uuid") xrayLib.userNames;
+      #     linkId = ph "xray-link/uuid";
+      #     frontDest = ph "xray-front-params/dest";
+      #     frontSni = ph "xray-front-params/sni";
+      #     frontPrivateKey = ph "xray-reality-front/private-key";
+      #     frontShortId = val "xray-reality-front" "short-id";
+      #     exitEndpoint = ph "xray-exit-params/endpoint";
+      #     exitPort = ph "xray-exit-params/port";
+      #     exitSni = ph "xray-exit-params/sni";
+      #     exitPublicKey = val "xray-reality-exit" "public-key";
+      #     exitShortId = val "xray-reality-exit" "short-id";
+      #   });
+      # };
 
-      services.xray = {
-        enable = true;
-        settingsFile = config.sops.templates."xray.json".path;
-      };
+      # services.xray = {
+      #   enable = true;
+      #   settingsFile = config.sops.templates."xray.json".path;
+      # };
       # system.stateVersion is managed by clanCore's `state-version` generator
       # (do not set it here — an explicit mkDefault collides with clanCore's).
     };
