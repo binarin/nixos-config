@@ -26,8 +26,9 @@
       key = "nixos-config.modules.nixos.claude-nixos-config-configuration";
       imports = [
         "${self}/my-machines/claude-nixos-config/hardware-configuration.nix"
+        "${self}/my-machines/claude-nixos-config/disko.nix"
         self.nixosModules.baseline
-        self.nixosModules.disko
+        inputs.disko.nixosModules.disko
         self.nixosModules.systemd-boot
         self.nixosModules.impermanence
         self.nixosModules.qemu-guest
