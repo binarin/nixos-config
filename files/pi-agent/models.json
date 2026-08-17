@@ -15,6 +15,10 @@
                 {
                     "id": "z-ai-coding-plan/glm-5.2",
                     "contextWindow": 1048567,
+                },
+                {
+                    "id": "z-ai-coding-plan/glm-5.3",
+                    "contextWindow": 1048567,
                 }
             ]
         },
