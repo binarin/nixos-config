@@ -2,13 +2,12 @@
 #main-window[titlepreface="​"] {
   & #sidebar-container {
     margin-left: 6px;
-  }
-  & #sidebar-main {
-    /* height: 0 !important; */
     display: none;
+
   }
-  & #browser {
-    background-color: var(--toolbar-bgcolor);
+
+  & #sidebar-box {
+    margin-left: 6px;
   }
 }
 
