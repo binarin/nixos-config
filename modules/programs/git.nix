@@ -17,7 +17,9 @@ in
         home.shellAliases = {
           g = "git";
         };
-        home.packages = [ pkgs.git-filter-tree ];
+        home.packages = [
+          # pkgs.git-filter-tree - not packaged yet
+        ];
 
         programs.delta.enable = true;
         programs.delta.enableGitIntegration = true;
