@@ -10,16 +10,14 @@ let
   flakeConfig = config;
 in
 {
-  flake.furfur = self.nixosConfigurations.furfur.pkgs;
-
-  flake.nixosConfigurations.furfur = inputs.nixpkgs.lib.nixosSystem {
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
-    specialArgs = {
-      inventoryHostName = "furfur";
-    };
-    modules = [
+  clan.machines.furfur = {
+    imports = [
       self.nixosModules.furfur-configuration
+      {
+        networking.hostName = "furfur";
+      }
     ];
+    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
   };
 
   flake.nixosModules.furfur-configuration =
@@ -37,7 +35,8 @@ in
         self.nixosModules.srvos-bits
 
         self.nixosModules.impermanence
-        self.nixosModules.disko
+        inputs.disko.nixosModules.disko
+
         self.nixosModules.systemd-boot
         self.nixosModules.tailscale
         self.nixosModules.impure-nix-setup
@@ -51,50 +50,7 @@ in
         self.nixosModules.binarin-workstation
         self.nixosModules.binarin-podman
         self.nixosModules.binarin-nix-dev
-
-        self.nixosModules.xpu-smi
-
-        "${self}/my-machines/furfur/hardware-configuration.nix"
       ];
-
-      programs.weylus = {
-        enable = true;
-        openFirewall = true;
-        users = [ "binarin" ];
-        package = pkgs.bleeding.weylus.overrideAttrs (old: rec {
-          version = "unstable-2026-07-30";
-          src = pkgs.fetchFromGitHub {
-            owner = "binarin";
-            repo = "weylus";
-            rev = "808a2a0929be73c96089d50ca0466121619f18b2";
-            hash = "sha256-2S/EvwDtrVz9nFbE8HTNkJA/S7G6T4VG5SLQJV90GAA=";
-          };
-          cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-            inherit src;
-            hash = "sha256-aokIFGGxxihKZNO7uzTu+dCShdPb5avBKR1koguEH+o=";
-          };
-          # gst-plugins-base 1.26.x (nixos-26.05 pin) has a link-time caps
-          # negotiation bug in glupload's DMABuf transform: when a restrictive
-          # DMABuf capsfilter feeds glupload with no GL context yet,
-          # _dma_buf_upload_transform_caps returns empty caps, so
-          # glcolorconvert ! gldownload fails to link -> black screen on niri.
-          # Fixed upstream in gst-plugins-base commit 8112ede498 ("gl: upload:
-          # Fix linking glupload with restrictive caps filter", 1.28.x).
-          # Base weylus on nixpkgs-unstable (pkgs.bleeding) so it links gst
-          # 1.28.4, and point GST_PLUGIN_PATH at the matching plugins.
-          postFixup =
-            let
-              gstPlugins = with pkgs.bleeding.gst_all_1; [ gst-plugins-base gst-plugins-bad ];
-              GST_PLUGIN_PATH = pkgs.lib.makeSearchPathOutput "lib" "lib/gstreamer-1.0" (
-                gstPlugins ++ [ pkgs.pipewire ]
-              );
-            in
-            ''
-              wrapProgram $out/bin/weylus \
-                --prefix GST_PLUGIN_PATH : ${GST_PLUGIN_PATH}
-            '';
-        });
-      };
 
       nixos-config.personal-nix-cache.useHomeNet = false;
       users.users.binarin.extraGroups = [ "i2c" ];
@@ -165,12 +121,6 @@ in
           mode = "0755";
         };
       };
-
-      sops.secrets.binarin_password_hash.neededForUsers = true;
-      users.users.binarin.hashedPasswordFile = config.sops.secrets.binarin_password_hash.path;
-
-      sops.secrets.root_password_hash.neededForUsers = true;
-      users.users.root.hashedPasswordFile = config.sops.secrets.root_password_hash.path;
 
       sops.secrets.agares_password = { };
 
