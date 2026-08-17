@@ -19,6 +19,8 @@
                 {
                     "id": "z-ai-coding-plan/glm-5.3",
                     "contextWindow": 1048567,
+                    "thinking": { "type": "enabled" },
+                    "reasoning_effort": "low"
                 }
             ]
         },
