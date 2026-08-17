@@ -123,7 +123,7 @@
       };
     };
     system-manager = {
-      url = "github:numtide/system-manager";
+      url = "github:numtide/system-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     treefmt-nix.url = "github:numtide/treefmt-nix";

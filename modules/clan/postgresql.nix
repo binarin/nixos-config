@@ -4,7 +4,6 @@
     { lib, ... }:
     let
       genName = instanceName: database: user: "postgresql-${instanceName}-${database}-${user}";
-      secretName = instanceName: database: user: "vars/${genName instanceName database user}/password";
 
       # Flatten a client-machines attrset (machineName -> { settings.access = { <label> -> entry }; })
       # into a flat list of entries carrying their machine name.
@@ -37,13 +36,13 @@
         A PostgreSQL server (`server` role) provisions a role + database + password
         for each consumer (`client` role). Passwords are `share = true` clan vars
         generators (one per `(database, user)` pair) declared in `perMachine`, so the
-        server and the owning client decrypt the same secret. Secrets are injected via
-        sops templates (rendered to tmpfs) — never into `/nix/store` or `psql` argv.
+        server and the owning client decrypt the same secret. Secrets are read at
+        runtime from the deployed vars files — never into `/nix/store` or `psql` argv.
 
         The server sets each password at runtime (`ALTER USER`), owns SSL/listen
         config, and emits `hostssl … scram-sha-256` pg_hba lines per client
         `sourceCIDRs`. A client declares its `(database, user)` pairs via `access.<label>`
-        and references the shared password path (or the sops placeholder) itself.
+        and references the shared password path itself.
       '';
 
       roles.client = {
@@ -125,8 +124,8 @@
             };
           };
 
-        # Thin: the shared generators live in perMachine; a consumer references either
-        # the deployed password path or a sops template placeholder itself.
+        # Thin: the shared generators live in perMachine; a consumer references
+        # the deployed password path.
         perInstance = { ... }: { nixosModule = { }; };
       };
 
@@ -212,7 +211,6 @@
                   }
                   .${e.role};
                 unitName = e: "postgresql-provision-${e.database}-${e.user}";
-                tmplName = e: "postgresql-provision-${e.database}-${e.user}.sql";
                 # Serialize provisioning within each database. The per-(db,user) units
                 # otherwise start concurrently (all only after postgresql.service), and
                 # their GRANT/ALTER statements touch shared catalog rows — pg_database,
