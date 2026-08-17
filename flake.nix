@@ -25,15 +25,6 @@
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    determinate-nix = {
-      url = "https://flakehub.com/f/DeterminateSystems/nix-src/*";
-      inputs = {
-        flake-parts.follows = "flake-parts";
-        git-hooks-nix.inputs.flake-compat.follows = "flake-compat";
-        nixpkgs-23-11.follows = "nixpkgs";
-        nixpkgs-regression.follows = "nixpkgs";
-      };
-    };
     direnv-instant = {
       url = "github:Mic92/direnv-instant";
       inputs = {
