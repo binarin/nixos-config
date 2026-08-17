@@ -94,7 +94,11 @@ impl Proxmox {
         // shell's non-zero exit (which our `run_remote` would turn into an
         // error) by explicitly echoing the result.
         let out = self
-            .run_remote(&["sh".into(), "-c".into(), format!("test -e {remote_path} && echo yes || echo no")])
+            .run_remote(&[
+                "sh".into(),
+                "-c".into(),
+                format!("test -e {remote_path} && echo yes || echo no"),
+            ])
             .await?;
         Ok(out.trim() == "yes")
     }
@@ -135,9 +139,7 @@ impl Proxmox {
 
     /// Copy a local file to the host via `rsync -avP`.
     pub async fn rsync_to(&self, local: &Path, remote_path: &str) -> Result<()> {
-        let local_s = local
-            .to_str()
-            .context("local path is not valid UTF-8")?;
+        let local_s = local.to_str().context("local path is not valid UTF-8")?;
         let dest = format!("root@{}:{remote_path}", self.host);
         let status = Command::new("rsync")
             .args(["-avP", local_s, &dest])

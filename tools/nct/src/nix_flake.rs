@@ -18,9 +18,7 @@ use std::collections::HashMap;
 use std::sync::mpsc;
 
 use anyhow::{Context as _, Result};
-use nix_bindings_expr::eval_state::{
-    EvalState, EvalStateBuilder, gc_register_my_thread, init,
-};
+use nix_bindings_expr::eval_state::{EvalState, EvalStateBuilder, gc_register_my_thread, init};
 use nix_bindings_expr::value::{Value, ValueType};
 use nix_bindings_flake::EvalStateBuilderExt;
 use nix_bindings_store::store::Store;
@@ -98,13 +96,11 @@ impl NixFlake {
             let _ = tx.send(Ok(out));
             Ok(String::new())
         });
-        let sender = self
-            .sender
-            .as_ref()
-            .context("nix worker already dropped")?;
-        sender.send(job).map_err(|e| anyhow::anyhow!("nix worker thread died: {e}"))?;
-        rx.recv()
-            .context("nix worker dropped response channel")?
+        let sender = self.sender.as_ref().context("nix worker already dropped")?;
+        sender
+            .send(job)
+            .map_err(|e| anyhow::anyhow!("nix worker thread died: {e}"))?;
+        rx.recv().context("nix worker dropped response channel")?
     }
 
     /// Navigate a dotted attr path under the flake root (e.g.
@@ -159,9 +155,9 @@ fn navigate(es: &mut EvalState, root: &Value, path: &str) -> Result<Value> {
         if attr.is_empty() {
             continue;
         }
-        current = es.require_attrs_select(&current, attr).with_context(|| {
-            format!("attribute `{attr}` not found while navigating `{path}`")
-        })?;
+        current = es
+            .require_attrs_select(&current, attr)
+            .with_context(|| format!("attribute `{attr}` not found while navigating `{path}`"))?;
     }
     Ok(current)
 }

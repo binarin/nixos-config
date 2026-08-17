@@ -1,10 +1,10 @@
+pub mod cloud_init;
+pub mod config;
+pub mod image_inject;
 pub mod nix_eval;
 pub mod nix_flake;
-pub mod proxmox;
-pub mod config;
-pub mod cloud_init;
-pub mod image_inject;
 pub mod provision_pve;
+pub mod proxmox;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -219,18 +219,19 @@ mod tests {
         .unwrap();
         match cli.command {
             Command::Machine {
-                command: MachineCommand::ProvisionPve {
-                    name,
-                    proxmox_host,
-                    network,
-                    bridge,
-                    snippet_storage,
-                    disk_storage,
-                    start,
-                    dry_run,
-                    test_reuse_image,
-                    inject_key,
-                },
+                command:
+                    MachineCommand::ProvisionPve {
+                        name,
+                        proxmox_host,
+                        network,
+                        bridge,
+                        snippet_storage,
+                        disk_storage,
+                        start,
+                        dry_run,
+                        test_reuse_image,
+                        inject_key,
+                    },
             } => {
                 assert_eq!(name, "xray-exit");
                 assert_eq!(proxmox_host, "valak");

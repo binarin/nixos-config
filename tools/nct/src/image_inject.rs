@@ -59,8 +59,7 @@ pub fn inject_age_key(image: &Path, dest: &str, key: &str) -> Result<PathBuf> {
     let out = workdir.path().join("disk.qcow2");
     fs::copy(image, &out)
         .with_context(|| format!("copying {} -> {}", image.display(), out.display()))?;
-    fs::set_permissions(&out, PermissionsExt::from_mode(0o644))
-        .context("chmod image 0644")?;
+    fs::set_permissions(&out, PermissionsExt::from_mode(0o644)).context("chmod image 0644")?;
     // Keep the workdir alive for the whole function; hand off ownership of
     // the file by moving it out at the end. (tempfile::TempDir deletes on
     // drop, so we `persist` the file out before returning.)
@@ -107,11 +106,7 @@ pub fn inject_age_key(image: &Path, dest: &str, key: &str) -> Result<PathBuf> {
     let verify = run_guestfish(
         &guestfish,
         &out,
-        &[
-            &["run"],
-            &["mount", &root_dev, "/"],
-            &["cat", dest],
-        ],
+        &[&["run"], &["mount", &root_dev, "/"], &["cat", dest]],
     );
     // Close (which unlinks) the tempfile now that the upload is done.
     let _ = tmp.close();
@@ -142,7 +137,9 @@ pub fn inject_age_key(image: &Path, dest: &str, key: &str) -> Result<PathBuf> {
     let persisted_path = persisted.path().to_path_buf();
     // `persist` keeps the file after drop (we want it to survive). Use
     // `.keep()` to release ownership without deleting.
-    let _ = persisted.keep().context("keeping injected image tempfile")?;
+    let _ = persisted
+        .keep()
+        .context("keeping injected image tempfile")?;
     fs::set_permissions(&persisted_path, PermissionsExt::from_mode(0o644))
         .context("chmod persisted image 0644")?;
     fs::rename(&out, &persisted_path).or_else(|_| {
@@ -218,9 +215,7 @@ fn which_guestfish() -> Option<PathBuf> {
 /// without shell quoting — and so the key never appears in argv (we `upload`
 /// from the tempfile).
 fn run_guestfish(guestfish: &Path, image: &Path, cmds: &[&[&str]]) -> Result<String> {
-    let img = image
-        .to_str()
-        .context("image path is not valid UTF-8")?;
+    let img = image.to_str().context("image path is not valid UTF-8")?;
     // No `-i` (inspector): it fails on NixOS cloud images. Callers drive
     // `run` + explicit `mount` instead. Commands are given as slices of
     // slices; guestfish's argv mode separates commands with `:` separators
@@ -295,8 +290,8 @@ mod tests {
 
         // 2. Inject.
         let dest = "/var/lib/sops-nix/key.txt".to_string();
-        let injected = super::inject_age_key(&img, &dest, "AGE-SECRET-KEY-1INTEGRATIONTEST")
-            .expect("inject");
+        let injected =
+            super::inject_age_key(&img, &dest, "AGE-SECRET-KEY-1INTEGRATIONTEST").expect("inject");
         assert!(injected.exists(), "injected image missing");
 
         // 3. Re-open and verify contents + perms via guestfish directly.
