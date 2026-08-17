@@ -117,9 +117,8 @@ in
     # The `nix` module is backend-neutral. The access-token *secret backend* is
     # selected at the imports level from `specialArgs` (never with an in-config
     # `mkIf`), mirroring how modules/baseline/default.nix conditionally imports
-    # clan-baseline. Each backend companion sets `_accessTokenSecretNames`
-    # (site -> sops placeholder key) and declares its own secret store; the shared
-    # module renders one `extra-access-tokens` template from those names.
+    # clan-baseline. Each backend renders its own extra-access-tokens file and
+    # wires the `!include` into nix.extraOptions.
     flake.nixosModules.nix =
       {
         lib,
@@ -129,14 +128,6 @@ in
         specialArgs,
         ...
       }:
-      let
-        cfg = config.nixos-config.nix.accessTokens;
-        hasTokens = cfg != { };
-        names = config.nixos-config.nix._accessTokenSecretNames;
-        tokenLine = lib.concatStringsSep " " (
-          lib.mapAttrsToList (site: _: "${site}=${config.sops.placeholder.${names.${site}}}") cfg
-        );
-      in
       {
         key = "nixos-config.modules.nixos.nix";
 
@@ -151,20 +142,7 @@ in
           '';
         };
 
-        options.nixos-config.nix._accessTokenSecretNames = lib.mkOption {
-          type = lib.types.attrsOf lib.types.str;
-          internal = true;
-          default = { };
-          description = ''
-            Resolved mapping of site -> sops placeholder key, set by the sops or
-            clan backend companion module. Used to render the extra-access-tokens
-            line; not intended to be set directly.
-          '';
-        };
-
         imports = [
-          # Backend selection lives here, outside config eval — driven purely by
-          # specialArgs, exactly like clan-baseline is included.
           (
             if specialArgs ? clan-core then
               self.nixosModules.nix-access-tokens-clan
@@ -173,68 +151,64 @@ in
           )
         ];
 
-        config = lib.mkMerge [
-          {
-            nix = {
-              settings = {
-                sandbox = true;
-                substituters = [ "https://cache.nixos.org" ];
-              };
-              extraOptions = ''
-                experimental-features = nix-command flakes
-              '';
+        config = {
+          nix = {
+            settings = {
+              sandbox = true;
+              substituters = [ "https://cache.nixos.org" ];
             };
-
-            users.groups.nix-access-tokens = { };
-            nix.settings.trusted-users = [ "root" ];
-          }
-          (lib.mkIf hasTokens {
-            sops.templates."nix-access-tokens" = {
-              content = "extra-access-tokens = ${tokenLine}\n";
-              group = "nix-access-tokens";
-              mode = "0440";
-            };
-
-            nix.extraOptions = ''
-              !include ${config.sops.templates."nix-access-tokens".path}
+            extraOptions = ''
+              experimental-features = nix-command flakes
             '';
-          })
-        ];
+          };
+
+          users.groups.nix-access-tokens = { };
+          nix.settings.trusted-users = [ "root" ];
+        };
       };
 
-    # Non-clan backend: a plain per-machine sops secret per site; the attrset value
-    # is the sops secret name, used directly as the placeholder key.
     flake.nixosModules.nix-access-tokens-sops =
       { lib, config, ... }:
       let
         cfg = config.nixos-config.nix.accessTokens;
+        hasTokens = cfg != { };
+        tokenLine = lib.concatStringsSep " " (
+          lib.mapAttrsToList (site: name: "${site}=${config.sops.placeholder.${name}}") cfg
+        );
       in
       {
         key = "nixos-config.modules.nixos.nix-access-tokens-sops";
-        config = {
-          nixos-config.nix._accessTokenSecretNames = cfg;
+        config = lib.mkIf hasTokens {
           sops.secrets = lib.mapAttrs' (_site: secretName: {
             name = secretName;
             value = { };
           }) cfg;
+
+          sops.templates."nix-access-tokens" = {
+            content = "extra-access-tokens = ${tokenLine}\n";
+            group = "nix-access-tokens";
+            mode = "0440";
+          };
+
+          nix.extraOptions = ''
+            !include ${config.sops.templates."nix-access-tokens".path}
+          '';
         };
       };
 
-    # Clan backend: one shared prompt clan-vars generator per site (single source
-    # of truth across builders), modeled on clan.core.vars.generators.tailscale-admin.
-    # The clan sops backend registers each secret as sops.secrets."vars/<gen>/token",
-    # so that path is the placeholder key. The raw token file stays root-only 0400 —
-    # only root renders the shared template.
     flake.nixosModules.nix-access-tokens-clan =
       { lib, config, ... }:
       let
         cfg = config.nixos-config.nix.accessTokens;
         genName = site: "nix-access-token-${lib.replaceStrings [ "." ] [ "-" ] site}";
+        tokenFiles = lib.mapAttrs (
+          site: _:
+          config.clan.core.vars.generators."${genName site}".files.token.path
+        ) cfg;
       in
       {
         key = "nixos-config.modules.nixos.nix-access-tokens-clan";
-        config = {
-          nixos-config.nix._accessTokenSecretNames = lib.mapAttrs (site: _: "vars/${genName site}/token") cfg;
+        config = lib.mkIf (cfg != { }) {
           clan.core.vars.generators = lib.mapAttrs' (
             site: _:
             lib.nameValuePair (genName site) {
@@ -243,12 +217,43 @@ in
               files.token = {
                 secret = true;
                 deploy = true;
+                restartUnits = [ "nix-access-tokens.service" ];
               };
               script = ''
                 tr -d '\n' < "$prompts/token" > "$out/token"
               '';
             }
           ) cfg;
+
+          systemd.services.nix-access-tokens = {
+            description = "Render nix extra-access-tokens file";
+            wantedBy = [ "multi-user.target" ];
+            before = [
+              "nix-daemon.service"
+              "nix-daemon.socket"
+            ];
+            unitConfig.ConditionPathExists = lib.attrValues tokenFiles;
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+              RuntimeDirectory = "nix-access-tokens";
+              RuntimeDirectoryMode = "0750";
+              UMask = "0077";
+            };
+            script = ''
+              line="extra-access-tokens ="
+              ${lib.concatStringsSep "\n" (
+                lib.mapAttrsToList (site: path: ''line+=" ${site}=$(<${path})"'') tokenFiles
+              )}
+              printf '%s\n' "$line" > /run/nix-access-tokens/extra-access-tokens
+              chgrp nix-access-tokens /run/nix-access-tokens/extra-access-tokens
+              chmod 0440 /run/nix-access-tokens/extra-access-tokens
+            '';
+          };
+
+          nix.extraOptions = ''
+            !include /run/nix-access-tokens/extra-access-tokens
+          '';
         };
       };
   };
