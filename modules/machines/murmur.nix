@@ -6,17 +6,17 @@
 }:
 let
   selfLib = self.lib.self;
-  makeSystemConfig = (import "${self}/lib/make-system-config.nix" {
-    inherit lib;
-    nixos = "${inputs.nixpkgs}/nixos";
-    userborn = inputs.system-manager.inputs.userborn;
-    system-manager-src = inputs.system-manager;
-  }).makeSystemConfig;
+  makeSystemConfig =
+    (import "${self}/lib/make-system-config.nix" {
+      inherit lib;
+      nixos = "${inputs.nixpkgs}/nixos";
+      userborn = inputs.system-manager.inputs.userborn;
+      system-manager-src = inputs.system-manager;
+    }).makeSystemConfig;
 
   murmurOverlays = [
     inputs.nixgl.overlay
     inputs.system-manager.overlays.default
-    self.lib.determinateNixOverlay
     (final: prev: {
       swaylock = final.writeShellScriptBin "swaylock" ''
         exec /usr/bin/swaylock "$@"
@@ -44,115 +44,125 @@ in
       (
         { pkgs, lib, ... }:
         {
-          services.openssh.managedUsers = [ "root" "allebedev" "binarin" ];
+          services.openssh.managedUsers = [
+            "root"
+            "allebedev"
+            "binarin"
+          ];
           users.users.allebedev = {
             isNormalUser = true;
             group = "allebedev";
             shell = lib.mkForce pkgs.zsh;
             ignoreShellProgramCheck = true;
-            openssh.authorizedPrincipals = [ "allebedev" "binarin" "root" ];
+            openssh.authorizedPrincipals = [
+              "allebedev"
+              "binarin"
+              "root"
+            ];
           };
-        users.users.binarin = {
-          isNormalUser = true;
-          group = "binarin";
-          openssh.authorizedPrincipals = [ "binarin" ];
-        };
-        users.groups.allebedev = { };
-        users.groups.binarin = { };
-
-        programs.uwsm.waylandCompositors.niri = {
-          prettyName = "niri";
-          comment = "niri scrollable-tiling Wayland compositor";
-          execCommand = "nixGLIntel \${UWSM_BIN} start -N niri -D niri -C niri -e -- \"$(which niri-session)\"";
-          preExec = ''
-            __HM_SESS_VARS_SOURCED=
-            __ETC_PROFILE_NIX_SOURCED=
-            . /etc/profile.d/nix.sh
-            . /home/allebedev/.profile
-            export XDG_DATA_DIRS="''${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}/usr/local/share:/usr/share"
-            . /etc/profile.d/zz-prefer-nix-paths.sh
-          '';
-        };
-
-        bubuntu.apt.packages = [ "swaylock" ];
-
-        programs.chromium.extraOpts.AutoLaunchProtocolsFromOrigins = [
-          {
-            allowed_origins = [ "*" ];
-            protocol = "globalprotectcallback";
-          }
-        ];
-
-        sops.defaultSopsFile = selfLib.file' "secrets/murmur/secrets.yaml";
-        sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-
-        sops.secrets.nix-extra-access-tokens = { };
-
-        sops.secrets.ssh-local-common = {
-          sopsFile = selfLib.file' "secrets/ssh-local-config.yaml";
-          key = "common";
-          owner = "allebedev";
-          mode = "0400";
-        };
-
-        sops.secrets.gitconfig-secret = {
-          sopsFile = selfLib.file' "secrets/git-identity.yaml";
-          owner = "allebedev";
-          mode = "0400";
-        };
-
-        # Pin corporate security agents to a single E-core (CPU 12)
-        environment.etc = let
-          corporateBloatDropin = ''
-            [Service]
-            Slice=corporate-bloat.slice
-            Nice=19
-            CPUSchedulingPolicy=idle
-            IOSchedulingPriority=7
-            IOSchedulingClass=idle
-          '';
-        in {
-          "systemd/system/corporate-bloat.slice".text = ''
-            [Slice]
-            AllowedCPUs=12
-          '';
-          "systemd/system/falcon-sensor.service.d/cpu-pin.conf".text = corporateBloatDropin;
-          "systemd/system/nix.service.d/cpu-pin.conf".text = corporateBloatDropin;
-          "systemd/system/nessusagent.service.d/limit.conf".text = corporateBloatDropin;
-        };
-
-        systemd.services.mask-ubuntu-updater = {
-          wantedBy = [ "system-manager.target" ];
-          serviceConfig = {
-            Type = "oneshot";
-            RemainAfterExit = true;
+          users.users.binarin = {
+            isNormalUser = true;
+            group = "binarin";
+            openssh.authorizedPrincipals = [ "binarin" ];
           };
-          script = ''
-            /usr/bin/systemctl mask \
-              apt-daily.timer \
-              apt-daily-upgrade.timer \
-              apt-daily.service \
-              apt-daily-upgrade.service \
-              update-notifier-download.timer \
-              update-notifier-download.service \
-              unattended-upgrades.service
-            /usr/bin/systemctl stop \
-              apt-daily.timer \
-              apt-daily-upgrade.timer \
-              update-notifier-download.timer \
-              unattended-upgrades.service \
-              2>/dev/null || true
-          '';
-        };
+          users.groups.allebedev = { };
+          users.groups.binarin = { };
 
-        systemd.services.kanata = {
-          serviceConfig = {
-            Type = "simple";
-            Restart = "on-failure";
-            RestartSec = 1;
-            ExecStart = "${pkgs.kanata}/bin/kanata --cfg ${selfLib.file "kanata.config"}";
+          programs.uwsm.waylandCompositors.niri = {
+            prettyName = "niri";
+            comment = "niri scrollable-tiling Wayland compositor";
+            execCommand = "nixGLIntel \${UWSM_BIN} start -N niri -D niri -C niri -e -- \"$(which niri-session)\"";
+            preExec = ''
+              __HM_SESS_VARS_SOURCED=
+              __ETC_PROFILE_NIX_SOURCED=
+              . /etc/profile.d/nix.sh
+              . /home/allebedev/.profile
+              export XDG_DATA_DIRS="''${XDG_DATA_DIRS:+$XDG_DATA_DIRS:}/usr/local/share:/usr/share"
+              . /etc/profile.d/zz-prefer-nix-paths.sh
+            '';
           };
-        };
+
+          bubuntu.apt.packages = [ "swaylock" ];
+
+          programs.chromium.extraOpts.AutoLaunchProtocolsFromOrigins = [
+            {
+              allowed_origins = [ "*" ];
+              protocol = "globalprotectcallback";
+            }
+          ];
+
+          sops.defaultSopsFile = selfLib.file' "secrets/murmur/secrets.yaml";
+          sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+
+          sops.secrets.nix-extra-access-tokens = { };
+
+          sops.secrets.ssh-local-common = {
+            sopsFile = selfLib.file' "secrets/ssh-local-config.yaml";
+            key = "common";
+            owner = "allebedev";
+            mode = "0400";
+          };
+
+          sops.secrets.gitconfig-secret = {
+            sopsFile = selfLib.file' "secrets/git-identity.yaml";
+            owner = "allebedev";
+            mode = "0400";
+          };
+
+          # Pin corporate security agents to a single E-core (CPU 12)
+          environment.etc =
+            let
+              corporateBloatDropin = ''
+                [Service]
+                Slice=corporate-bloat.slice
+                Nice=19
+                CPUSchedulingPolicy=idle
+                IOSchedulingPriority=7
+                IOSchedulingClass=idle
+              '';
+            in
+            {
+              "systemd/system/corporate-bloat.slice".text = ''
+                [Slice]
+                AllowedCPUs=12
+              '';
+              "systemd/system/falcon-sensor.service.d/cpu-pin.conf".text = corporateBloatDropin;
+              "systemd/system/nix.service.d/cpu-pin.conf".text = corporateBloatDropin;
+              "systemd/system/nessusagent.service.d/limit.conf".text = corporateBloatDropin;
+            };
+
+          systemd.services.mask-ubuntu-updater = {
+            wantedBy = [ "system-manager.target" ];
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+            };
+            script = ''
+              /usr/bin/systemctl mask \
+                apt-daily.timer \
+                apt-daily-upgrade.timer \
+                apt-daily.service \
+                apt-daily-upgrade.service \
+                update-notifier-download.timer \
+                update-notifier-download.service \
+                unattended-upgrades.service
+              /usr/bin/systemctl stop \
+                apt-daily.timer \
+                apt-daily-upgrade.timer \
+                update-notifier-download.timer \
+                unattended-upgrades.service \
+                2>/dev/null || true
+            '';
+          };
+
+          systemd.services.kanata = {
+            serviceConfig = {
+              Type = "simple";
+              Restart = "on-failure";
+              RestartSec = 1;
+              ExecStart = "${pkgs.kanata}/bin/kanata --cfg ${selfLib.file "kanata.config"}";
+            };
+          };
         }
       )
       ({ config, ... }: {
@@ -290,9 +300,9 @@ in
         Icon=${pkgs.slack}/share/pixmaps/slack.png
       '';
 
-
       xdg.mimeApps.defaultApplications."x-scheme-handler/slack" = "slack.desktop";
-      xdg.mimeApps.defaultApplications."x-scheme-handler/globalprotectcallback" = "globalprotectcallback.desktop";
+      xdg.mimeApps.defaultApplications."x-scheme-handler/globalprotectcallback" =
+        "globalprotectcallback.desktop";
 
       xdg.dataFile."applications/globalprotectcallback.desktop".text = ''
         [Desktop Entry]

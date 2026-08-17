@@ -11,16 +11,6 @@
     let
       selfLib = self.lib.self;
 
-      clan-cli-determinate-compatible =
-        (inputs'.clan-core.packages.clan-cli-full.override {
-          nix = pkgs.nix;
-        }).overrideAttrs
-          (old: {
-            patches = (old.patches or [ ]) ++ [
-              (selfLib.file "clan-determinate.patch")
-            ];
-          });
-
       # Environment variables to preserve when using --ignore-env with nix
       # Essential for nix operations in CI environments
       envVarsToKeep = [
@@ -107,7 +97,7 @@
           tomlkit
           proxmoxer
           paramiko
-          clan-cli-determinate-compatible
+          inputs'.clan-core.packages.clan-cli
         ];
 
         postFixup = ''
@@ -268,7 +258,7 @@
             nixd
             nixfmt
             dnscontrol
-            clan-cli-determinate-compatible
+            inputs'.clan-core.packages.clan-cli
             gcx
             # (terraform_1.withPlugins (p: with p; [ dmacvicar_libvirt ])) # too expensive to build
             cloud-init

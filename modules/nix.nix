@@ -71,16 +71,6 @@ let
       overlays = extraOverlays ++ defaultOverlays;
     };
 
-  # Overlay that swaps the `nix` package for the DeterminateSystems build
-  # (https://flakehub.com/f/DeterminateSystems/nix-src). It is intentionally
-  # *not* part of `defaultOverlays`: Determinate is only wanted on the
-  # system-manager-managed foreign distros (bubuntu/bentos), which opt in via
-  # `self.lib.determinateNixOverlay` in their machine definitions. Every
-  # proper NixOS host uses stock nixpkgs `nix`.
-  determinateNixOverlay = final: prev: {
-    nix = inputs.determinate-nix.packages."${prev.stdenv.hostPlatform.system}".default;
-  };
-
 in
 {
   config = {
@@ -88,25 +78,8 @@ in
       flake-compat = {
         url = "github:NixOS/flake-compat";
       };
-
-      determinate-nix = {
-        url = "https://flakehub.com/f/DeterminateSystems/nix-src/*";
-        inputs = {
-          # XXX nix-functional-tests are broken
-          # nixpkgs.follows = "nixpkgs";
-
-          flake-parts.follows = "flake-parts";
-
-          # stop downloading those 2 old inputs
-          nixpkgs-23-11.follows = "nixpkgs";
-          nixpkgs-regression.follows = "nixpkgs";
-
-          git-hooks-nix.inputs.flake-compat.follows = "flake-compat";
-        };
-      };
     };
 
-    flake.lib.determinateNixOverlay = determinateNixOverlay;
     flake.lib.importNixpkgs = importNixpkgs;
 
     flake.configured-pkgs = lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (system: rec {
@@ -202,40 +175,19 @@ in
 
         config = lib.mkMerge [
           {
-            # nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-
             nix = {
               settings = {
                 sandbox = true;
                 substituters = [ "https://cache.nixos.org" ];
               };
-              # No `ca-derivations` here: it breaks every devenv shell. When the
-              # feature is enabled, `nix print-dev-env` (devenv's way of
-              # materialising a shell) takes the CA branch of
-              # `getDerivationEnvironment`, which writes the `-env` derivation
-              # with a `Deferred` output and `out = hashPlaceholder "out"`.
-              # Determinate Nix >= 2.34 then refuses that derivation, since the
-              # output path is in fact computable:
-              #   error: derivation has incorrect environment variable 'out',
-              #   should be '/nix/store/...-devenv-shell-env' but is actually
-              #   '/1rz4g4znpz...'
-              # Nothing here builds content-addressed derivations anyway, and
-              # the niks3 CA tests enable the feature inside their own test VMs
-              # (nix/checks/nixos-test-niks3.nix), so they are unaffected.
               extraOptions = ''
                 experimental-features = nix-command flakes
               '';
             };
 
             users.groups.nix-access-tokens = { };
-
             nix.settings.trusted-users = [ "root" ];
-
-            # nixpkgs.config = nixpkgsConfig;
           }
-          # Shared rendering (both backends): sops-nix substitutes the placeholder
-          # (clan-var or plain sops) into a tmpfs file readable by nix-access-tokens,
-          # which the forgejo-runner DynamicUser belongs to for flake-input fetches.
           (lib.mkIf hasTokens {
             sops.templates."nix-access-tokens" = {
               content = "extra-access-tokens = ${tokenLine}\n";
@@ -282,9 +234,7 @@ in
       {
         key = "nixos-config.modules.nixos.nix-access-tokens-clan";
         config = {
-          nixos-config.nix._accessTokenSecretNames = lib.mapAttrs (
-            site: _: "vars/${genName site}/token"
-          ) cfg;
+          nixos-config.nix._accessTokenSecretNames = lib.mapAttrs (site: _: "vars/${genName site}/token") cfg;
           clan.core.vars.generators = lib.mapAttrs' (
             site: _:
             lib.nameValuePair (genName site) {

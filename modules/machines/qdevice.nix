@@ -74,6 +74,8 @@ in
 
         nixos-config.export-metrics.enable = true;
 
+        boot.kernelModules = [ "kvm-intel" ];
+
         boot.initrd.clevis.enable = true;
         boot.initrd.clevis.useTang = true;
         boot.initrd.clevis.devices."luks1".secretFile = selfLib.file' "secrets/qdevice/luks.jwe";

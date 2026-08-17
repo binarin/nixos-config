@@ -159,7 +159,7 @@ in
             man-pages
             mc
             (lib.lowPrio moreutils) # `sponge` util; also includes `parallel`, but I want the `GNU parallel`, so lowPrio
-            nil # nix language server
+            bleeding.nil # nix language server
             nix-output-monitor
             nix-tree
             nmap
