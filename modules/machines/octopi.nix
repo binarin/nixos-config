@@ -13,35 +13,35 @@
   #   };
   # };
 
-  flake.nixosConfigurations.octopi = inputs.nixos-raspberrypi.lib.nixosSystem {
-    pkgs = self.configured-pkgs.aarch64-linux.nixpkgs;
-    specialArgs = {
-      nixos-raspberrypi = inputs.nixos-raspberrypi;
-      inventoryHostName = "octopi";
-    };
-    modules = [
-      (
-        { modulesPath, lib, ... }:
-        {
-          imports =
-            (with inputs.nixos-raspberrypi.nixosModules; [
-              raspberry-pi-4.base
-              raspberry-pi-4.display-vc4
-              raspberry-pi-4.bluetooth
-            ])
-            ++ [
-              # Re-add essential alias from rename.nix
-              (lib.mkAliasOptionModule [ "environment" "checkConfigurationOptions" ] [ "_module" "check" ])
-            ];
-          # Remove the conflicting mkRemovedOptionModule from rename.nix
-          disabledModules = [
-            (modulesPath + "/rename.nix")
-          ];
-        }
-      )
-      self.nixosModules.octopi-configuration
-    ];
-  };
+  # flake.nixosConfigurations.octopi = inputs.nixos-raspberrypi.lib.nixosSystem {
+  #   pkgs = self.configured-pkgs.aarch64-linux.nixpkgs;
+  #   specialArgs = {
+  #     nixos-raspberrypi = inputs.nixos-raspberrypi;
+  #     inventoryHostName = "octopi";
+  #   };
+  #   modules = [
+  #     (
+  #       { modulesPath, lib, ... }:
+  #       {
+  #         imports =
+  #           (with inputs.nixos-raspberrypi.nixosModules; [
+  #             raspberry-pi-4.base
+  #             raspberry-pi-4.display-vc4
+  #             raspberry-pi-4.bluetooth
+  #           ])
+  #           ++ [
+  #             # Re-add essential alias from rename.nix
+  #             (lib.mkAliasOptionModule [ "environment" "checkConfigurationOptions" ] [ "_module" "check" ])
+  #           ];
+  #         # Remove the conflicting mkRemovedOptionModule from rename.nix
+  #         disabledModules = [
+  #           (modulesPath + "/rename.nix")
+  #         ];
+  #       }
+  #     )
+  #     self.nixosModules.octopi-configuration
+  #   ];
+  # };
 
   flake.nixosModules.octopi-configuration =
     { config, ... }:
