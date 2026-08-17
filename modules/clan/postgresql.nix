@@ -261,30 +261,9 @@
                   ) entries
                 );
 
-                # Render each pair's provisioning SQL via a sops template: the password is
-                # substituted from the placeholder at activation into a tmpfs file owned by
-                # postgres — never into /nix/store and never into psql argv.
-                sops.templates = lib.listToAttrs (
-                  map (
-                    e:
-                    lib.nameValuePair (tmplName e) {
-                      owner = "postgres";
-                      restartUnits = [ "${unitName e}.service" ];
-                      content = ''
-                        ALTER USER "${e.user}" WITH PASSWORD '${
-                          config.sops.placeholder."${secretName instanceName e.database e.user}"
-                        }';
-                        ${lib.optionalString (
-                          e.role == "owner"
-                        ) ''ALTER DATABASE "${e.database}" OWNER TO "${e.user}";''}
-                        ${grantSql e (ownerByDb.${e.database} or null)}
-                        ${e.initSql}
-                      '';
-                    }
-                  ) entries
-                );
-
-                # One provisioning oneshot per (db, user): apply the rendered SQL as postgres.
+                # One provisioning oneshot per (db, user): apply the SQL as postgres,
+                # with the password read from the clan vars file at runtime and passed
+                # as a psql variable — never into /nix/store or argv.
                 systemd.services = lib.listToAttrs (
                   map (
                     e:
@@ -303,9 +282,17 @@
                       };
                       script = ''
                         set -euo pipefail
-                        runuser -u postgres -- psql -v ON_ERROR_STOP=1 --no-psqlrc -f ${
-                          config.sops.templates."${tmplName e}".path
+                        passwordFile=${
+                          config.clan.core.vars.generators."${genName instanceName e.database e.user}".files.password.path
                         }
+                        runuser -u postgres -- psql -v ON_ERROR_STOP=1 --no-psqlrc -v pw="$(<"$passwordFile")" <<'SQL'
+                        ALTER USER "${e.user}" WITH PASSWORD :'pw';
+                        ${lib.optionalString (
+                          e.role == "owner"
+                        ) ''ALTER DATABASE "${e.database}" OWNER TO "${e.user}";''}
+                        ${grantSql e (ownerByDb.${e.database} or null)}
+                        ${e.initSql}
+                        SQL
                       '';
                     }
                   ) entries
