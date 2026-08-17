@@ -3,6 +3,20 @@ set -euo pipefail
 
 url="$1"
 
+# Inside the shitty-shit slice DBUS_SESSION_BUS_ADDRESS points at a filtered
+# xdg-dbus-proxy socket, so a newly started firefox can't see the running
+# instance's org.mozilla.firefox.* D-Bus name (used for remoting since ~FF121)
+# and would try to start a second instance against a locked profile. Point
+# firefox back at the real session bus. (`exec` skips shell functions, so no
+# recursion.)
+firefox() {
+    if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
+        DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus" exec firefox "$@"
+    fi
+    unset DBUS_SESSION_BUS_ADDRESS
+    exec firefox "$@"
+}
+
 # GP SAML pages: route to Chrome (must be before generic file:// handler)
 if [[ "$url" == file://*GP_HTML*.html || "$url" == /*GP_HTML*.html ]]; then
     exec google-chrome-stable "$@"
@@ -11,12 +25,12 @@ fi
 # Bare paths (foot strips file:// for localhost URLs).
 # Reconstruct file:// URL so fragments (#anchor) work.
 if [[ "$url" == /* ]]; then
-    exec firefox "file://$url"
+    firefox "file://$url"
 fi
 
 # file:// links: open local files in firefox
 if [[ "$url" == file://* ]]; then
-    exec firefox "$@"
+    firefox "$@"
 fi
 
 # Split into host and path
@@ -75,4 +89,4 @@ for pattern in "${chrome_hostpath_patterns[@]}"; do
 done
 
 # default: firefox
-exec firefox "$@"
+firefox "$@"
