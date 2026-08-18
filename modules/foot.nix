@@ -1,6 +1,10 @@
 {
+  self,
   ...
 }:
+let
+  selfLib = self.lib.self;
+in
 {
   flake.homeModules.foot =
     {
@@ -20,6 +24,12 @@
         '';
 
         home.packages = [
+          (pkgs.writeShellApplication {
+            name = "zmx-niri-foot";
+            runtimeInputs = with pkgs; [
+            ];
+            text = selfLib.read "bin/zmx-niri-foot";
+          })
           (pkgs.writeShellApplication {
             name = "foot-unique-window";
             runtimeInputs = with pkgs; [

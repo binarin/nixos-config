@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+pick_name() {
+    zmx ls | SEARCH_PREFIX="$(niri msg --json workspaces | jq -r '.[] | select(.is_focused) | .name')" perl -MList::Util=max -MData::Dumper -E 'my %seen; while (<>) { if (/name=\Q$ENV{SEARCH_PREFIX}\E\.(\d+)/ && $_ !~ /clients=0\b/) { $seen{$1} = 1; } }; for my $cand (1..max(keys %seen)+1) { if (!exists $seen{$cand}) { say "$ENV{SEARCH_PREFIX}.$cand"; last } }'
+}
+
+name="$(pick_name)"
+
+exec uwsm app -a "zmx-$name" -t service -- foot --title "zmx|$name" zmx a "$name"

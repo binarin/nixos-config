@@ -288,7 +288,7 @@ layout {
 // which may be more convenient to use.
 // See the binds section below for more spawn examples.
 
-spawn-sh-at-startup "foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
+// spawn-sh-at-startup "foot --title 'SH|LOCAL' -e tmux new-session -A -s binarin"
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 // spawn-at-startup "waybar"
@@ -382,10 +382,10 @@ window-rule {
 
 
 
-window-rule {
-  match app-id="foot" at-startup=true
-  open-on-workspace "terminal"
-}
+// window-rule {
+//   match app-id="foot" at-startup=true
+//   open-on-workspace "terminal"
+// }
 
 
 window-rule {
@@ -454,7 +454,8 @@ binds {
   Mod+Shift+Slash { show-hotkey-overlay; }
 
   // Suggested binds for running programs: terminal, app launcher, screen locker.
-  Mod+T hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
+  Mod+T hotkey-overlay-title="Open a Terminal: foot" { spawn "zmx-niri-foot"; }
+  Mod+Shift+T hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
   Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn-sh "fuzzel --launch-prefix='uwsm app -t service -p Environment=_UWSM_WRAPPED=1 --'"; }
   Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn-sh "loginctl lock-session"; }
 
