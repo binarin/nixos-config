@@ -13,9 +13,19 @@
 (use-package tramp
   :ensure nil
   :defines (tramp-ssh-controlmaster-options)
+  :commands (tramp-get-default-directory)
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (setf tramp-ssh-controlmaster-options ""))
+
+(defun b/tramp-temp-fix (args)
+  "tramp-file-name-for-operation can call tramp-get-default-directory with
+process instead of a buffer"
+  (if (processp (car args))
+      (list (process-buffer (car args)))
+    args))
+
+(advice-add 'tramp-get-default-directory :filter-args #'b/tramp-temp-fix)
 
 (use-package tramp-rpc
   :ensure nil
