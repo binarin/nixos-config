@@ -35,6 +35,7 @@
 (require 'b-completion)
 (require 'b-direnv)
 (require 'b-prog-modes)
+(require 'b-prolog)
 (require 'b-compilation)
 (require 'b-version-control)
 (require 'b-ledger)
@@ -111,13 +112,6 @@
    (tab-bar-tab-hints t))
   :init
   (tab-bar-history-mode t))
-
-
-(autoload 'b/prolog-config "b-prolog")
-(use-package prolog
-  :ensure nil
-  :mode ("\\.prolog\\'" . prolog-mode)
-  :config (b/prolog-config))
 
 
 (which-key-mode t)
