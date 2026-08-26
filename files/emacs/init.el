@@ -167,3 +167,19 @@
 
 (bind-key "<Back>" 'previous-error)
 (bind-key "<Forward>" 'next-error)
+
+(use-package smtpmail
+  :ensure nil
+  :commands (smtpmail-send-it)
+  :config
+  (setf smtpmail-smtp-server "mail-eu.smtp2go.com"
+        smtpmail-smtp-service 2525
+        smtpmail-servers-requiring-authorization ".")
+  :init
+  (setf send-mail-function #'smtpmail-send-it))
+
+;; (use-package message
+;;   :ensure nil
+;;   :config
+;;   (setf send-mail-function )
+;;   )
