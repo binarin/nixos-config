@@ -12,8 +12,6 @@
         prolog-electric-underscore-flag nil
         prolog-electric-colon-flag nil))
 
-(prolog-program-switches)
-
 ;; (defun b/prolog-config ()
 ;;   (setf prolog-system 'scryer)
 ;;   (setf prolog-program-name "scryer-prolog")
