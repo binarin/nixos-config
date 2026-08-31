@@ -27,6 +27,27 @@
 (column-number-mode 1)
 
 
+(setq mode-line-right-align-edge 'right-fringe)
+(setq-default mode-line-format
+              '("%e"
+                mode-line-front-space
+                mode-line-mule-info
+                mode-line-client
+                mode-line-modified
+                mode-line-remote
+                mode-line-window-dedicated
+                mode-line-frame-identification
+                mode-line-buffer-identification
+                mode-line-format-right-align
+                mode-line-position
+                (project-mode-line project-mode-line-format)
+                (vc-mode vc-mode)
+                "  "
+                mode-line-modes mode-line-misc-info
+                mode-line-end-spaces))
+
+
+
 ;;; I use no RTL languages - perf improvement for large buffers
 (setq-default bidi-display-reordering 'left-to-right
               bidi-paragraph-direction 'left-to-right)
