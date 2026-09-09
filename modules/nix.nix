@@ -202,8 +202,7 @@ in
         cfg = config.nixos-config.nix.accessTokens;
         genName = site: "nix-access-token-${lib.replaceStrings [ "." ] [ "-" ] site}";
         tokenFiles = lib.mapAttrs (
-          site: _:
-          config.clan.core.vars.generators."${genName site}".files.token.path
+          site: _: config.clan.core.vars.generators."${genName site}".files.token.path
         ) cfg;
       in
       {
