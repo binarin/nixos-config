@@ -202,6 +202,24 @@ With \\[universal-argument] \\[universal-argument] (C-u C-u): edit the full s-ex
 	   (ignore-errors
 	     (notifications-notify :title "Link captured"
 				   :body (caar org-stored-links)))))
+        ("cl" "capture link to a clocked task" plain (clock)
+         "%a %U\n%i"
+         :immediate-finish t
+         :prepare-finalize
+         (lambda ()
+           (ignore-errors
+             (notifications-notify :title "Link captured"
+                                   :body (format "for task: %s\n%s"
+                                                 org-clock-heading
+                                                 (caar org-stored-links))))))
+        ("cp" "capture clipboard to a clocked task" plain (clock)
+         "%(progn (shell-command-to-string \"wl-paste -p\")) %U"
+         :immediate-finish t
+         :prepare-finalize
+         (lambda ()
+           (ignore-errors
+             (notifications-notify :title "Note captured"
+                                   :body (format "for task: %s" org-clock-heading)))))
         ("bl" "b.capture link" entry (file+headline ,(file-name-concat b/murmur-home-path "org/bkng.org") "Refile")
 	 ,(b/strip-indentation "
            * %a
@@ -482,8 +500,9 @@ With \\[universal-argument] \\[universal-argument] (C-u C-u): edit the full s-ex
         (org-link-open-from-string link)
       (message "No link in heading."))))
 
-;;;###autoload
 (defvar b/org-capture-gui-selection--body)
+
+;;;###autoload
 (defun b/org-capture-gui-selection ()
   ;; (gui-selection-value) doesn't work on wayland, when emacs doesn't have focus
   ;; XXX it's kinda interesting that `wl-paste` hangs when emacs HAS focus.
