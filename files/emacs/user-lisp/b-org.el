@@ -18,6 +18,7 @@
 
 (setf org-startup-folded 'show2levels
       org-startup-shrink-all-tables t
+      org-cycle-separator-lines 0
       org-fold-catch-invisible-edits 'smart
       org-hide-block-startup t
       org-log-into-drawer "LOGBOOK")
