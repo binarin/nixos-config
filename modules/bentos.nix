@@ -5,7 +5,12 @@
 }:
 {
   flake.systemModules.bentos =
-    { lib, pkgs, nixosModulesPath, ... }:
+    {
+      lib,
+      pkgs,
+      nixosModulesPath,
+      ...
+    }:
     {
       key = "nixos-config.systemModules.bentos";
 
@@ -35,8 +40,9 @@
         impermanence.enable = lib.mkDefault false;
         services.userborn.enable = false;
 
-        environment.systemPackages = [
-          pkgs.system-manager
+        environment.systemPackages = with pkgs; [
+          system-manager
+          zsh
         ];
 
         boot.kernel.sysctl = {
