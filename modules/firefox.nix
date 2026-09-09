@@ -5,6 +5,7 @@ in
 {
   flake.nixosModules.firefox =
     {
+      pkgs,
       ...
     }:
     {
@@ -13,6 +14,7 @@ in
       config = {
         programs.firefox = {
           enable = true;
+          package = pkgs.firefox-devedition;
           policies = {
             Permissions = {
               Autoplay = {
@@ -51,14 +53,17 @@ in
 
       config = {
         stylix.targets.firefox.enable = true;
-        stylix.targets.firefox.profileNames = [ "clean" ];
+        stylix.targets.firefox.profileNames = [ "dev-edition-default" ];
         stylix.targets.firefox.firefoxGnomeTheme.enable = true;
 
         impermanence.local-directories = [ ".config/mozilla/firefox" ];
 
         home.packages = [
+          (pkgs.writeShellScriptBin "firefox" ''
+            exec firefox-devedition "$@"
+          '')
           (pkgs.writeShellScriptBin "x-www-browser" ''
-            exec firefox "$@"
+            exec firefox-devedition "$@"
           '')
           (pkgs.writeShellApplication {
             name = "smart-browser-chooser";
@@ -82,8 +87,9 @@ in
 
         programs.firefox = {
           enable = true;
+          package = pkgs.firefox-devedition;
           configPath = "${config.xdg.configHome}/mozilla/firefox";
-          profiles.clean = {
+          profiles.dev-edition-default = {
             id = 0;
             isDefault = true;
 
@@ -92,6 +98,7 @@ in
             userContent = "";
 
             settings = {
+              "xpinstall.signatures.required" = false;
               "browser.aboutConfig.showWarning" = false;
               "browser.legacyUserProfileCustomizations.stylesheets" = true;
               "browser.search.suggest.enabled" = true;
