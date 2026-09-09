@@ -198,7 +198,7 @@ function properly")
 
 (autoload 'map-delete "map")
 
-(cl-defun b/ripgrep (needle &rest command-args &key name-function &allow-other-keys)
+(cl-defun b/ripgrep (needle &rest command-args &key dir name-function &allow-other-keys)
   (interactive
    (let* ((default (b/active-region-or-symbol-at-point))
           (pattern
@@ -216,10 +216,14 @@ function properly")
              (read-from-minibuffer "Ripgrep: " (or default "") nil nil
                                    'b/ripgrep-history default))))
      (list pattern)))
-  (compilation-start (apply #'b/ripgrep-command needle :heading b/ripgrep-use-headings
-                            (map-delete command-args :name-function))
-		     #'b/ripgrep-mode
-                     name-function))
+
+  (let ((default-directory (or dir default-directory)))
+    (cl-loop for key in '(:name-function :dir)
+             do (setf command-args (map-delete command-args key)))
+    (compilation-start (apply #'b/ripgrep-command needle :heading b/ripgrep-use-headings
+                              command-args)
+		       #'b/ripgrep-mode
+                       name-function)))
 
 
 (defvar b/ripgrep-main-target "/rpc:adb.k.b:/usr/local/git_tree/keep/main-altpayment")
