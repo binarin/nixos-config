@@ -30,6 +30,7 @@ in
             ];
             text = selfLib.read "bin/zmx-niri-foot";
           })
+          pkgs.bleeding.zmx
           (pkgs.writeShellApplication {
             name = "foot-unique-window";
             runtimeInputs = with pkgs; [
