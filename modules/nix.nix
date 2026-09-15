@@ -228,10 +228,7 @@ in
           systemd.services.nix-access-tokens = {
             description = "Render nix extra-access-tokens file";
             wantedBy = [ "multi-user.target" ];
-            before = [
-              "nix-daemon.service"
-              "nix-daemon.socket"
-            ];
+            before = [ "nix-daemon.service" ];
             unitConfig.ConditionPathExists = lib.attrValues tokenFiles;
             serviceConfig = {
               Type = "oneshot";
