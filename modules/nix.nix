@@ -15,6 +15,7 @@ let
       "python3.12-ecdsa-0.19.1"
       "python3.13-ecdsa-0.19.1"
       "olm-3.2.16"
+      "immich-2.7.5"
     ];
   };
 

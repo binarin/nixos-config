@@ -275,6 +275,7 @@ in
         # all interfaces (nginx default: 0.0.0.0 + [::]), exactly as the old caddy
         # did. `tailscale.serve` here uses *named services* on their own service IPs
         # (immich/commafeed), which don't occupy the node IP:443 — so no conflict.
+
         services.nginx = {
           enable = true;
           recommendedProxySettings = true;
