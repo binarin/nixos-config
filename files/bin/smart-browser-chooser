@@ -64,6 +64,8 @@ chrome_host_patterns=(
     # work Slack workspace
     '^b.....g\.enterprise\.slack\.com$'
 
+    '^b.....g\.service-now\.com$'
+
     'repostat-.*\.gitlab\.io$'
 )
 
