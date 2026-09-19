@@ -1,3 +1,4 @@
+---
 name: 'Forgejo API Auth'
 description: 'Authenticate with Forgejo API'
 inputs:
@@ -19,3 +20,4 @@ runs:
         set -x
         fj -H forgejo.lynx-lizard.ts.net auth logout forgejo.lynx-lizard.ts.net || true
         echo "$PR_TOKEN" | fj -H forgejo.lynx-lizard.ts.net auth add-key "$KEY_NAME"
+        fj -H forgejo.lynx-lizard.ts.net whoami
