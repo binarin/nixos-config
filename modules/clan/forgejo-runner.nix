@@ -104,7 +104,7 @@
                   coreutils
                   curl
                   util-linux
-                  forgejo-cli
+                  bleeding.forgejo-cli
                   gawk
                   gitMinimal
                   git-crypt
