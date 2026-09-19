@@ -19,5 +19,5 @@ runs:
       run: |
         set -x
         fj -H forgejo.lynx-lizard.ts.net auth logout forgejo.lynx-lizard.ts.net || true
-        echo "$PR_TOKEN" | fj -H forgejo.lynx-lizard.ts.net auth add-key "$KEY_NAME"
+        echo "$PR_TOKEN" | fj -H forgejo.lynx-lizard.ts.net auth add-token
         fj -H forgejo.lynx-lizard.ts.net whoami
