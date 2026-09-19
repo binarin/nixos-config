@@ -64,14 +64,13 @@ in
             cfg = config.services.forgejo;
             forgejo-cli = pkgs.writeScriptBin "forgejo-cli" ''
               #!${pkgs.runtimeShell}
-              cd ${cfg.stateDir}
               sudo=exec
               if [[ "$USER" != ${cfg.user} ]]; then
                 sudo='exec /run/wrappers/bin/sudo -u ${cfg.user} -g ${cfg.group} --preserve-env=FORGEJO_WORK_DIR --preserve-env=FORGEJO_CUSTOM'
               fi
               export FORGEJO_WORK_DIR=${cfg.stateDir}
               export FORGEJO_CUSTOM=${cfg.customDir}
-              $sudo ${lib.getExe cfg.package} "$@"
+              $sudo ${pkgs.runtimeShell} -c 'cd ${cfg.stateDir} && exec ${lib.getExe cfg.package} "$@"' forgejo-cli "$@"
             '';
           in
           [
