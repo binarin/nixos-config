@@ -1,10 +1,10 @@
+---
 enable-openid-connect: true
-
 on:
+  workflow_dispatch: {}
   push:
     branches:
       - master
-
 jobs:
   flake-check:
     name: nix flake check
@@ -15,7 +15,6 @@ jobs:
         with:
           git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
       - run: nix flake check
-
   define-matrix:
     runs-on: native
     outputs:
@@ -26,7 +25,6 @@ jobs:
         run: |
           echo "$ACTIONS_ID_TOKEN_REQUEST_URL"
           echo "configurations=$(nix run .#env-aware-nix-run -- .#ncf -- ci matrix)" >> "$FORGEJO_OUTPUT"
-
   cache-flake-inputs:
     name: cache flake inputs
     runs-on: native
@@ -43,7 +41,6 @@ jobs:
           name: cached-paths-flake-inputs
           path: ${{ runner.temp }}/flake-inputs.paths
           retention-days: 7
-
   nix-build:
     name: build ${{ matrix.config }}
     runs-on: native
@@ -73,7 +70,6 @@ jobs:
           name: cached-paths-${{ steps.artifact.outputs.name }}
           path: ${{ runner.temp }}/${{ steps.artifact.outputs.name }}.paths
           retention-days: 7
-
   collect-cached-paths:
     name: collect all cached paths
     runs-on: native
