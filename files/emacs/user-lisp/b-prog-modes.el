@@ -148,7 +148,9 @@
 (use-package rust-ts-mode
   :ensure nil
   :mode ("\\.rs\\'". rust-ts-mode)
-  :hook (rust-ts-mode . b/rust-mode-hook))
+  :hook (rust-ts-mode . b/rust-mode-hook)
+  :config
+  (fset 'rust-mode 'rust-ts-mode))
 
 
 (cl-defstruct b/flake-subproject
