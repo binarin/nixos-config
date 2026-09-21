@@ -27,6 +27,12 @@
             "colors-dark.background" = "180000";
           };
         };
+        "db2.k.b" = {
+          remoteShell = "ssh -t";
+          overrides = {
+            "colors-dark.background" = "180000";
+          };
+        };
       };
     in
 

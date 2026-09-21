@@ -2,22 +2,25 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: $0 [--remote-build] <hostname>"
+  echo "Usage: $0 [--remote-build] [--config CONFIG] <hostname>"
   echo ""
   echo "Bootstrap nix + system-manager on a bentos (CentOS/RHEL) host."
   echo ""
   echo "Options:"
   echo "  --remote-build    Build the system-manager closure on the target host"
   echo "                    (default: build locally and copy)"
+  echo "  --config CONFIG   systemConfigs attribute to deploy (default: b-db-k)"
   exit 1
 }
 
 REMOTE_BUILD=false
 HOST=""
+CONFIG="b-db-k"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --remote-build) REMOTE_BUILD=true; shift ;;
+    --config) CONFIG="$2"; shift 2 ;;
     -h|--help) usage ;;
     -*) echo "Unknown option: $1"; usage ;;
     *) HOST="$1"; shift ;;
@@ -42,10 +45,10 @@ else
   echo "    nix installed."
 fi
 
-FLAKE_REF="$REPO_ROOT#systemConfigs.b-db-k"
+FLAKE_REF="$REPO_ROOT#systemConfigs.$CONFIG"
 
 echo "==> Injecting shared sops age key on $HOST..."
-sops --decrypt --input-type binary --output-type binary "$REPO_ROOT/secrets/b-db-k/age-key" \
+sops --decrypt --input-type binary --output-type binary "$REPO_ROOT/secrets/$CONFIG/age-key" \
   | ssh "$SSH_USER@$HOST" \
       "sudo install -D -m 0400 -o root -g root /dev/stdin /var/lib/sops-nix/key.txt"
 
@@ -70,4 +73,4 @@ ssh -t "$SSH_USER@$HOST" "sudo bash -c '
 '"
 
 echo "==> Done. system-manager activated on $HOST."
-echo "    Future deploys: deploy .#b-db-k -s"
+echo "    Future deploys: deploy .#$CONFIG -s"

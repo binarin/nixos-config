@@ -31,6 +31,7 @@ keys:
   - &user_llm-runner_binarin age1sykl9pmp3hvlrx0axmt6dz902smr4g2q773n6lk80hjzwurm0g9swl5u8r
   - &server_murmur age1jyfyczqyt6a20um7jlzrvd0p85qslqvkycm4d8kqkwey24543egqwwqha2
   - &server_b-db-k age1j6p0073k9k6yxq95vpfyk0j050cxawp98r77knw3yrjs9kwhzetsy75shj
+  - &server_b-db2-k age1f0hjddz676ut7yewwd3w9qastu60ds3sxu6nw8r3r88rxutgapksnrjlwn
 creation_rules:
   - path_regex: secrets/tailscale/oauth.yaml
     key_groups:
@@ -317,7 +318,7 @@ creation_rules:
         age:
           - *admin_binarin
           - *server_murmur
-  - path_regex: secrets/b-db-k/age-key
+  - path_regex: secrets/b-db2?-k/age-key
     key_groups:
       - pgp:
           - *admin_binarin_gpg
@@ -332,6 +333,7 @@ creation_rules:
           - *admin_binarin
           - *admin_demandred_binarin
           - *server_b-db-k
+          - *server_b-db2-k
           - *server_murmur
   - path_regex: secrets/ssh-local-config.yaml
     key_groups:

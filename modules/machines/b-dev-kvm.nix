@@ -18,80 +18,85 @@ let
   bDevKvmPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays [
     inputs.system-manager.overlays.default
   ];
+  bDevKvmSystemModules = [
+    self.systemModules.bentos
+    self.systemModules.sops
+    self.systemModules.home-manager
+    ({ lib, ... }: {
+      bentos.yum.packages = [ "python3-pip" ];
+    })
+    ({ lib, config, ... }: {
+      sops.defaultSopsFile = selfLib.file' "secrets/git-identity.yaml";
+      sops.age.keyFile = "/var/lib/sops-nix/key.txt";
+
+      # Numeric uid/gid, not owner/group names: allebedev is an LDAP/SSSD
+      # user and is absent from /etc/passwd. sops-install-secrets is a Go
+      # binary whose user.Lookup parses /etc/passwd directly and never
+      # consults NSS, so `owner = "allebedev"` fails with "unknown user".
+      # With Owner/Group left null it uses UID/GID verbatim.
+      sops.secrets.gitconfig-secret = {
+        uid = config.users.users.allebedev.uid;
+        gid = config.ids.gids.users;
+        mode = "0400";
+      };
+
+      # sops-install-secrets owns its secrets mount point by the `keys` group,
+      # falling back to `nogroup`. CentOS ships neither (Debian-based hosts
+      # like murmur do ship `nogroup`, which is why this is only needed here),
+      # so activation dies with "can't find group 'keys' nor 'nogroup'".
+      # Create it before secrets are installed. Absolute paths because the
+      # unit runs with a minimal PATH.
+      systemd.services.ensure-keys-group = {
+        wantedBy = [ "system-manager.target" ];
+        before = [ "sops-install-secrets.service" ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+        };
+        script = ''
+          if ! /usr/bin/getent group keys > /dev/null 2>&1; then
+            /usr/sbin/groupadd --system keys
+          fi
+        '';
+      };
+
+      environment.etc."nix/nix.custom.conf" = {
+        text = ''
+          trusted-users = allebedev root 15008352
+        '';
+        replaceExisting = true;
+      };
+
+      users.users.allebedev = {
+        name = "allebedev";
+        home = "/home/allebedev";
+        uid = 15008352;
+        group = "users";
+        isNormalUser = true;
+      };
+
+      home-manager.useGlobalPkgs = true;
+      home-manager.backupFileExtension = "backup";
+      home-manager.sharedModules = [ self.homeModules.home-misc ];
+      home-manager.extraSpecialArgs = {
+        self'.packages = self.packages.x86_64-linux;
+        inputs' = lib.mapAttrs (_: i: {
+          packages = i.packages.x86_64-linux;
+        }) inputs;
+      };
+      home-manager.users.allebedev = self.homeModules.b-dev-kvm-configuration;
+    })
+  ];
+
+  makeBDevKvmSystemConfig = makeSystemConfig {
+    pkgs = bDevKvmPkgs;
+    modules = bDevKvmSystemModules;
+  };
 in
 {
-  flake.systemConfigs.b-db-k = makeSystemConfig {
-    pkgs = bDevKvmPkgs;
-    modules = [
-      self.systemModules.bentos
-      self.systemModules.sops
-      self.systemModules.home-manager
-      ({ lib, ... }: {
-        bentos.yum.packages = [ "python3-pip" ];
-      })
-      ({ lib, config, ... }: {
-        sops.defaultSopsFile = selfLib.file' "secrets/git-identity.yaml";
-        sops.age.keyFile = "/var/lib/sops-nix/key.txt";
+  flake.systemConfigs.b-db-k = makeBDevKvmSystemConfig;
 
-        # Numeric uid/gid, not owner/group names: allebedev is an LDAP/SSSD
-        # user and is absent from /etc/passwd. sops-install-secrets is a Go
-        # binary whose user.Lookup parses /etc/passwd directly and never
-        # consults NSS, so `owner = "allebedev"` fails with "unknown user".
-        # With Owner/Group left null it uses UID/GID verbatim.
-        sops.secrets.gitconfig-secret = {
-          uid = config.users.users.allebedev.uid;
-          gid = config.ids.gids.users;
-          mode = "0400";
-        };
-
-        # sops-install-secrets owns its secrets mount point by the `keys` group,
-        # falling back to `nogroup`. CentOS ships neither (Debian-based hosts
-        # like murmur do ship `nogroup`, which is why this is only needed here),
-        # so activation dies with "can't find group 'keys' nor 'nogroup'".
-        # Create it before secrets are installed. Absolute paths because the
-        # unit runs with a minimal PATH.
-        systemd.services.ensure-keys-group = {
-          wantedBy = [ "system-manager.target" ];
-          before = [ "sops-install-secrets.service" ];
-          serviceConfig = {
-            Type = "oneshot";
-            RemainAfterExit = true;
-          };
-          script = ''
-            if ! /usr/bin/getent group keys > /dev/null 2>&1; then
-              /usr/sbin/groupadd --system keys
-            fi
-          '';
-        };
-
-        environment.etc."nix/nix.custom.conf" = {
-          text = ''
-            trusted-users = allebedev root 15008352
-          '';
-          replaceExisting = true;
-        };
-
-        users.users.allebedev = {
-          name = "allebedev";
-          home = "/home/allebedev";
-          uid = 15008352;
-          group = "users";
-          isNormalUser = true;
-        };
-
-        home-manager.useGlobalPkgs = true;
-        home-manager.backupFileExtension = "backup";
-        home-manager.sharedModules = [ self.homeModules.home-misc ];
-        home-manager.extraSpecialArgs = {
-          self'.packages = self.packages.x86_64-linux;
-          inputs' = lib.mapAttrs (_: i: {
-            packages = i.packages.x86_64-linux;
-          }) inputs;
-        };
-        home-manager.users.allebedev = self.homeModules.b-dev-kvm-configuration;
-      })
-    ];
-  };
+  flake.systemConfigs.b-db2-k = makeBDevKvmSystemConfig;
 
   flake.deploy.nodes.b-db-k = {
     hostname = "db.k.b";
@@ -99,6 +104,15 @@ in
     profiles.system = {
       user = "root";
       path = self.lib.deploy-system-manager self.systemConfigs.b-db-k;
+    };
+  };
+
+  flake.deploy.nodes.b-db2-k = {
+    hostname = "db2.k.b";
+    sshUser = "allebedev";
+    profiles.system = {
+      user = "root";
+      path = self.lib.deploy-system-manager self.systemConfigs.b-db2-k;
     };
   };
 
