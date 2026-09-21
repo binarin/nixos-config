@@ -32,23 +32,15 @@ in
     pkgsForSystem = system: self.configured-pkgs."${system}".nixpkgs;
   };
 
-  flake.nixosModules.clan-baseline =
+  flake.nixosModules.clan-tailscale =
     {
       self',
-      inventoryHostName,
-      config,
       lib,
+      config,
       ...
     }:
     {
-      key = "nixos-config.modules.nixos.clan-baseline";
-      imports = [
-        self.nixosModules.clan-hostId
-        self.nixosModules.clan-hosts
-      ];
-
-      hardware.facter.report.system = lib.mkForce false;
-
+      key = "nixos-config.modules.nixos.clan-tailscale";
       clan.core.vars.generators.tailscale-admin = {
         share = true;
         prompts.oauth-client-id = {
@@ -82,6 +74,7 @@ in
           --client-id-file $in/tailscale-admin/oauth-client-id \
           --client-secret-file $in/tailscale-admin/oauth-client-secret \
            --reusable \
+           --no-ephemeral \
            --expiry 604800 \
            > $out/tailscale-auth
         '';
@@ -89,6 +82,26 @@ in
 
       services.tailscale.authKeyFile =
         config.clan.core.vars.generators.tailscale-auth.files.tailscale-auth.path;
+    };
+
+  flake.nixosModules.clan-baseline =
+    {
+      self',
+      inventoryHostName,
+      config,
+      lib,
+      ...
+    }:
+    {
+      key = "nixos-config.modules.nixos.clan-baseline";
+      imports = [
+        self.nixosModules.clan-hostId
+        self.nixosModules.clan-hosts
+        self.nixosModules.clan-tailscale
+      ];
+
+      hardware.facter.report.system = lib.mkForce false;
+
     };
 
   flake.nixosModules.clan-hosts =
@@ -107,11 +120,13 @@ in
             attrNames
             (map (
               name:
-              lib.optionalAttrs (name != config.networking.hostName && (flakeConfig.inventory.ipAllocation."${name}" or { }) ? home) {
-                "${flakeConfig.inventory.ipAllocation."${name}".home.primary.address}" = [
-                  "${name}.${config.clan.core.settings.domain}"
-                ];
-              }
+              lib.optionalAttrs
+                (name != config.networking.hostName && (flakeConfig.inventory.ipAllocation."${name}" or { }) ? home)
+                {
+                  "${flakeConfig.inventory.ipAllocation."${name}".home.primary.address}" = [
+                    "${name}.${config.clan.core.settings.domain}"
+                  ];
+                }
             ))
             mergeAttrsList
           ];

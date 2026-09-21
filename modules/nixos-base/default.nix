@@ -136,6 +136,7 @@ in
         # generators are not pulled into the bare base.
         self.nixosModules.clan-hostId
         self.nixosModules.clan-hosts
+        self.nixosModules.clan-tailscale
 
         # openssh + root authorized keys + CA principals.
         self.nixosModules.sshd
@@ -146,5 +147,6 @@ in
         # config.lib.publicKeys helper used by sshd.
         self.nixosModules.public-keys
       ];
+
     };
 }
