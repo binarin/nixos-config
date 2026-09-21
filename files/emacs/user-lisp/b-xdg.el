@@ -13,4 +13,7 @@
 			       (expand-file-name "~/tmp"))
 			   b/xdg-app))
 
+(setf browse-url-browser-function 'browse-url-generic
+      browse-url-generic-program "smart-browser-chooser")
+
 (provide 'b-xdg)
