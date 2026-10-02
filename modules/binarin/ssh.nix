@@ -33,6 +33,12 @@
             "colors-dark.background" = "180000";
           };
         };
+        "bk.k.b" = {
+          remoteShell = "ssh -t";
+          overrides = {
+            "colors-dark.background" = "180000";
+          };
+        };
       };
     in
 
