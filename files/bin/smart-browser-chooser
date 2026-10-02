@@ -61,10 +61,10 @@ chrome_host_patterns=(
     # any subdomain of booking.com
     '\.booking\.com$'
 
-    # work Slack workspace
-    '^b.....g\.enterprise\.slack\.com$'
+    '\.slack\.com$'
+    '\.enterprise\.slack\.com$'
 
-    '^b.....g\.service-now\.com$'
+    '\.service-now\.com$'
 
     'repostat-.*\.gitlab\.io$'
 )
