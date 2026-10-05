@@ -37,7 +37,6 @@
         [
           claude-code
           pi
-          workmux
         ]
         ++ [
           # pkgs.bleeding.llm-agents.pi
