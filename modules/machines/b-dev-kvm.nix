@@ -285,7 +285,7 @@ in
       home.packages =
         (with pkgs.llm-agents; [
           claude-code
-          workmux
+          pi
         ])
         ++ (with pkgs.bleeding; [ devenv ])
         ++ (with pkgs; [
@@ -316,9 +316,9 @@ in
                 exec ${lib.getExe pkgs.glab} "$@"
               '';
             }).overrideAttrs
-            (_: {
-              name = "cursed-glab";
-            })
+              (_: {
+                name = "cursed-glab";
+              })
           )
           git
         ]);

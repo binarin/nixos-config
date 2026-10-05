@@ -280,7 +280,7 @@ in
         ])
         ++ (with pkgs.llm-agents; [
           claude-code
-          workmux
+          pi
         ]);
 
       xdg.dataFile."applications/niri.desktop".text = ''
