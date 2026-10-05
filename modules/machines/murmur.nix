@@ -276,6 +276,7 @@ in
           xwayland-satellite
           go_1_26
           tramp-rpc-server
+          devenv
         ])
         ++ (with pkgs.llm-agents; [
           claude-code
