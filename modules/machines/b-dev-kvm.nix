@@ -157,6 +157,24 @@ in
       inputs',
       ...
     }:
+    let
+      pi = pkgs.llm-agents.pi;
+      # Bentos's kernel derives a bogus AT_PHDR from this Bun binary's
+      # unsorted PT_LOAD headers. Keep the upstream wrapper's environment,
+      # but bypass the kernel's ELF loading by invoking the loader directly.
+      piViaLoader = pkgs.symlinkJoin {
+        name = "${pi.name}-bentos";
+        paths = [ pi ];
+        inherit (pi) meta;
+        postBuild = ''
+          cp --remove-destination ${pi}/bin/pi "$out/bin/pi"
+          chmod u+w "$out/bin/pi"
+          substituteInPlace "$out/bin/pi" \
+            --replace-fail 'exec "${pi}/libexec/pi/pi"' \
+              'exec "${pkgs.stdenv.cc.bintools.dynamicLinker}" "${pi}/libexec/pi/pi"'
+        '';
+      };
+    in
     {
       key = "nixos-config.modules.home.b-dev-kvm-configuration";
       imports = [
@@ -285,7 +303,7 @@ in
       home.packages =
         (with pkgs.llm-agents; [
           claude-code
-          pi
+          piViaLoader
         ])
         ++ (with pkgs.bleeding; [ devenv ])
         ++ (with pkgs; [
