@@ -1,4 +1,3 @@
----
 # nix-shell -p ssh-to-age --run 'ssh-keyscan 192.168.2.7 | ssh-to-age'
 keys:
   - &admin_binarin_gpg 7668F12EF30BE2A802E1E13E6D4365C3B5E703F5
