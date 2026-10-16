@@ -13,7 +13,8 @@ in
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs";
 
-    emacs-tramp-rpc.url = "github:binarin/emacs-tramp-rpc";
+    emacs-tramp-rpc.url = "github:ArthurHeymans/emacs-tramp-rpc";
+    # emacs-tramp-rpc.url = "github:binarin/emacs-tramp-rpc";
     emacs-tramp-rpc.flake = false;
 
     emacs-niri-awareness.url = "github:binarin/emacs-niri-awareness";
