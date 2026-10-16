@@ -1,0 +1,69 @@
+#+title: Paseo daemon on zeroclaw
+
+* Context
+zeroclaw is a headless guest VM used as a remote dev box for AI coding
+agents. Paseo (https://paseo.sh, AGPL) is a self-hosted daemon + CLI for
+driving agents remotely (mobile/web client via relay). The desktop
+(Electron) package exists in llm-agents.nix as =paseo-desktop=, but the
+headless daemon + CLI package only exists upstream, so both were vendored
+into this repo rather than adding a new flake input.
+
+* What was done (2026-10-16)
+- [X] Vendor upstream daemon package =nix/package.nix@v0.11.4= into
+      =modules/packages/paseo.nix= (fetchFromGitHub source, pinned
+      version + hashes, overlay =self.overlays.paseo= added to
+      =defaultOverlays= in =modules/nix.nix=).
+- [X] Vendor upstream NixOS module =nix/module.nix@v0.11.4= into
+      =modules/services/paseo.nix= (dropped the =allowedHosts= rename
+      shim).
+- [X] Enable on zeroclaw as user/group =binarin=:
+      =PASEO_HOME=/home/binarin/.paseo=, listens on 127.0.0.1:6767,
+      relay enabled (hosted app.paseo.sh), service PATH inherits
+      binarin's profiles so spawned agents find =pi= etc.
+- [X] Dropped the dangling =llm-agents.paseo= attr from zeroclaw's
+      systemPackages (only =paseo-desktop= exists there; the service
+      module installs our =pkgs.paseo= itself).
+- [X] Built =packages.x86_64-linux.paseo= and the zeroclaw toplevel;
+      CLI reports 0.11.4.
+
+* npmDepsHash note
+Our nixpkgs pin (nixos-26.05, e4bae1bd) ships a fetcher-v1
+=fetchNpmDeps= whose Rust implementation differs from upstream's pin
+(nixos-unstable, 9dcb002c), so upstream's =nix/npm-deps.hash= does not
+match. To update the version: bump =version=, refresh the =src= hash,
+temporarily keep the old =npmDepsHash=, build
+=nix build .#packages.x86_64-linux.paseo= and replace it with the
+"got:" hash from the fixed-output-derivation mismatch error.
+
+* Open questions
+- Relay is enabled in hosted mode (app.paseo.sh); revisit if direct
+  LAN/tailnet access is enough (=services.paseo.relay.enable = false=
+  adds =--no-relay=).
+- Web UI auth: the daemon serves the UI unauthenticated until a password
+  is set at runtime (=paseo daemon set-password= as binarin on zeroclaw,
+  state lives in PASEO_HOME). =services.paseo.settings.auth= would be the
+  declarative path if we want it in sops eventually.
+
+* binarin primary group (2026-10-16)
+Clan's =users= service only sets =isNormalUser= true, which defaults the
+primary group to the shared =users= (gid 100) and leaves the uid locally
+allocated — so =services.paseo.group = "binarin"= pointed at a group that
+didn't exist. Fixed in nixos-base: =users.groups.binarin= (gid 1000) +
+=users.users.binarin.{uid,group}= pinned via
+=inventory/users-groups.nix.humanUsers.binarin=. On already-deployed
+machines existing files keep group =users= (uid 1000 still owns them);
+run =chown -R binarin:binarin /home/binarin= once if the mixed group
+ownership ever bothers you.
+
+* Web UI + tailscale serve (2026-10-16)
+- =PASEO_WEB_UI_ENABLED=true= via =services.paseo.environment= (env beats
+  persisted config; keeps runtime config.json mutations working).
+- =services.tailscale.serve.configs.paseo.target = "localhost:6767"=
+  serves https://zeroclaw.lynx-lizard.ts.net/ (per-node serve, https on
+  :443 by default; module resets+reapplies serves on config change).
+- =hostnames = [ "zeroclaw.lynx-lizard.ts.net" ]= lets the serve Host
+  header past DNS-rebinding protection (verified locally: allowed Host ->
+  200 HTML, other Host -> 403).
+- Password/auth for the web UI is managed via =paseo daemon set-password=
+  (runtime state in PASEO_HOME), not declaratively; =services.paseo.settings=
+  would be the declarative path if we ever need config.json managed.
