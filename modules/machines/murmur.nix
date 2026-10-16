@@ -276,7 +276,8 @@ in
           xwayland-satellite
           go_1_26
           tramp-rpc-server
-          devenv
+          bleeding.devenv
+          mysql84
         ])
         ++ (with pkgs.llm-agents; [
           claude-code
