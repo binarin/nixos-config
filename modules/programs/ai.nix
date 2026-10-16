@@ -37,6 +37,7 @@
         [
           claude-code
           pi
+          codex
         ]
         ++ [
           # pkgs.bleeding.llm-agents.pi
