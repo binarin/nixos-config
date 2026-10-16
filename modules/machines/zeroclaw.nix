@@ -2,6 +2,7 @@
   self,
   config,
   lib,
+  inputs,
   ...
 }:
 let
@@ -51,6 +52,8 @@ in
         self.nixosModules.nix
         self.nixosModules.tailscale
         self.nixosModules.clan-tailscale
+
+        inputs.home-manager.nixosModules.home-manager
       ];
 
       boot.initrd.availableKernelModules = [
@@ -92,6 +95,9 @@ in
         htop
         btop
         bat
+        bleeding.devenv
+        llm-agents.pi
+        llm-agents.paseo
       ];
 
       system.build.cloudImage = import "${pkgs.path}/nixos/lib/make-disk-image.nix" {
@@ -120,5 +126,19 @@ in
       };
 
       services.tailscale.enable = true;
+
+      home-manager.useGlobalPkgs = true;
+      home-manager.backupCommand = lib.getExe pkgs.trash-cli;
+      home-manager.users.binarin = { pkgs, ... }: {
+        imports = [
+          self.homeModules.binarin-tmux
+          self.homeModules.binarin-direnv
+        ];
+        programs.bash.enable = true;
+        home.packages = with pkgs; [
+          bleeding.forgejo-cli
+        ];
+        home.stateVersion = "26.05";
+      };
     };
 }

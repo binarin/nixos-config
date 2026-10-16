@@ -1,10 +1,9 @@
-{ ... }:
+{ self, ... }:
 {
-
-  flake.homeModules.direnv =
+  flake.homeModules.binarin-direnv =
     { ... }:
     {
-      key = "nixos-config.modules.home.direnv";
+      key = "nixos-config.modules.home.binarin-direnv";
       config = {
         programs.direnv = {
           enable = true;
@@ -18,7 +17,17 @@
             hide_env_diff = true;
           };
         };
+      };
+    };
 
+  flake.homeModules.direnv =
+    { ... }:
+    {
+      key = "nixos-config.modules.home.direnv";
+      imports = [
+        self.homeModules.binarin-direnv
+      ];
+      config = {
         impermanence.local-directories = [ ".local/share/direnv" ];
       };
     };

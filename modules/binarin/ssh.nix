@@ -39,6 +39,18 @@
             "colors-dark.background" = "180000";
           };
         };
+        "fc.k.b" = {
+          remoteShell = "ssh -t";
+          overrides = {
+            "colors-dark.background" = "180000";
+          };
+        };
+        "zeroclaw" = {
+          remoteShell = "ssh -t";
+          overrides = {
+            "colors-dark.background" = "001800";
+          };
+        };
       };
     in
 

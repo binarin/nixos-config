@@ -1,0 +1,15 @@
+#+title: Diagnose pi SIGILL on zeroclaw
+
+* Investigation
+- [X] Reproduce via unprivileged =ssh zeroclaw=: =pi --version= crashes with SIGILL (illegal instruction), not SIGSEGV.
+- [X] Identify binary: =/nix/store/8wszfw61vfxbn8swxbcifgk95kwgfphr-pi-1.0.2/libexec/pi/pi=.
+- [X] Inspect guest CPU: Common KVM processor, AMD family 15 model 6; SSE/SSE2/SSE3 available, no SSSE3, SSE4, or AVX exposed.
+- [X] Inspect coredump: PID 28173, PC =0x4a4e551=; crash occurs even for =--version=.
+- [X] Disassemble faulting instruction and establish exact CPU requirement: both objdump and GDB on the downloaded core confirm =0x4a4e551: vzeroupper=, which requires AVX. The guest does not expose AVX.
+- [X] Identify VM CPU configuration and recommend smallest fix: =modules/qemu-guest.nix= has no CPU-type option; =modules/packages/proxmox-vm-create.nix= omits =--cpu= from =qm create=. The observed Common KVM processor is consistent with the legacy default CPU model. Recommend =qm set <VMID> --cpu host= on the Proxmox host (assuming physical AVX support), followed by a full VM stop/start. Do not merely reboot the guest.
+
+* Result
+This is a native executable/virtual CPU ISA mismatch, not a Pi configuration or model-provider error. The installed Pi 1.0.2 binary executes AVX during startup, even for =--version=. Alternative if CPU passthrough is unavailable: use a runtime/build compatible with the guest's older instruction set. No VM configuration changes or restarts performed. Diagnosis used unprivileged SSH only; downloaded core to =/tmp/zeroclaw-pi-28173.core= for local GDB inspection.
+
+* Scope
+Diagnosis only; preserve existing user changes to configuration. No root SSH used so far.
