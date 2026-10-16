@@ -138,6 +138,8 @@ in
         # past the daemon's DNS-rebinding protection.
         hostnames = [ "zeroclaw.lynx-lizard.ts.net" ];
         environment.PASEO_WEB_UI_ENABLED = "true";
+        # Direct tailnet access (wss on :443 via tailscale serve) is enough.
+        relay.enable = false;
       };
 
       # https://zeroclaw.lynx-lizard.ts.net/ -> paseo daemon (127.0.0.1:6767)

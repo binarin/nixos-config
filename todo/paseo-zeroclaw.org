@@ -36,9 +36,6 @@ temporarily keep the old =npmDepsHash=, build
 "got:" hash from the fixed-output-derivation mismatch error.
 
 * Open questions
-- Relay is enabled in hosted mode (app.paseo.sh); revisit if direct
-  LAN/tailnet access is enough (=services.paseo.relay.enable = false=
-  adds =--no-relay=).
 - Web UI auth: the daemon serves the UI unauthenticated until a password
   is set at runtime (=paseo daemon set-password= as binarin on zeroclaw,
   state lives in PASEO_HOME). =services.paseo.settings.auth= would be the
