@@ -51,6 +51,7 @@ let
     self.overlays.wprintidle-c
     self.overlays.brownnoise
     self.overlays.git-crypt-patched
+    self.overlays.paseo
 
     self.overlays.foot-no-strip-file-url
 
