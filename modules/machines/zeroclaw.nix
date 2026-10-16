@@ -133,6 +133,17 @@ in
         enable = true;
         user = "binarin";
         group = "binarin";
+        # The web UI is reached via tailscale serve on the zeroclaw name
+        # (https://zeroclaw.lynx-lizard.ts.net/), so allow that Host header
+        # past the daemon's DNS-rebinding protection.
+        hostnames = [ "zeroclaw.lynx-lizard.ts.net" ];
+        environment.PASEO_WEB_UI_ENABLED = "true";
+      };
+
+      # https://zeroclaw.lynx-lizard.ts.net/ -> paseo daemon (127.0.0.1:6767)
+      services.tailscale.serve = {
+        enable = true;
+        configs.paseo.target = "localhost:6767";
       };
 
       home-manager.useGlobalPkgs = true;
