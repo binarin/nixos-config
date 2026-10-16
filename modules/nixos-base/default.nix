@@ -13,9 +13,11 @@ in
   # clan inventory instances
   # ---------------------------------------------------------------------------
 
-  # Creates the `binarin` user (uid 1000) + group (gid 1000) and adds it to
-  # `wheel`, via clan's built-in `users` distributed-service module. The user
-  # itself has no shell customization or home-manager config in this base.
+  # Creates the `binarin` user and adds it to `wheel`, via clan's built-in
+  # `users` distributed-service module. Clan's `isNormalUser` only defaults
+  # the primary group to the shared `users` (gid 100); the user-named primary
+  # group and the pinned uid/gid 1000 are set in the nixos-base module below.
+  # The user itself has no shell customization or home-manager config in this base.
   clan.inventory.instances.binarin-user = {
     module.name = "users";
     roles.default.tags.all = { };
@@ -100,7 +102,19 @@ in
       nixpkgs.flake.setNixPath = lib.mkDefault false;
 
       # The `binarin` user comes from the clan `users` service instance above,
-      # but clan's `sshd` service grants *root* only, and modules/sshd.nix
+      # but clan only sets `isNormalUser = true`, which defaults the primary
+      # group to the shared `users` (gid 100) and leaves the uid locally
+      # allocated. Pin the user-named primary group and uid/gid 1000 (see
+      # inventory/users-groups.nix). Plain priority is enough here: clan
+      # never assigns `group`/`uid` itself, and `isNormalUser`'s group default
+      # is only a mkDefault.
+      users.groups.binarin.gid = flakeConfig.inventory.usersGroups.humanUsers.binarin.gid;
+      users.users.binarin = {
+        uid = flakeConfig.inventory.usersGroups.humanUsers.binarin.uid;
+        group = "binarin";
+      };
+
+      # Clan's `sshd` service grants *root* only, and modules/sshd.nix
       # likewise covers root only. Without this, binarin exists on every
       # nixos-base machine yet has neither an authorized_keys.d entry nor an
       # authorized_principals.d entry, so sshd rejects it with "Certificate

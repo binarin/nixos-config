@@ -1,4 +1,14 @@
 {
+  # Human users with pinned UID/GID. The primary group is named after the
+  # user (NixOS `isNormalUser` would otherwise default it to the shared
+  # `users` group, gid 100).
+  humanUsers = {
+    binarin = {
+      uid = 1000;
+      gid = 1000;
+    };
+  };
+
   # System users/groups with fixed UIDs/GIDs for Docker volume permissions
   # This provides a centralized place to track UID/GID allocations across all services
   systemUsers = {
