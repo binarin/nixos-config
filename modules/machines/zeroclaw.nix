@@ -52,6 +52,7 @@ in
         self.nixosModules.nix
         self.nixosModules.tailscale
         self.nixosModules.clan-tailscale
+        self.nixosModules.paseo
 
         inputs.home-manager.nixosModules.home-manager
       ];
@@ -97,7 +98,6 @@ in
         bat
         bleeding.devenv
         llm-agents.pi
-        llm-agents.paseo
       ];
 
       system.build.cloudImage = import "${pkgs.path}/nixos/lib/make-disk-image.nix" {
@@ -126,6 +126,14 @@ in
       };
 
       services.tailscale.enable = true;
+
+      # Headless paseo daemon, running as binarin so agents share his
+      # environment (PATH below comes from services.paseo.inheritUserEnvironment).
+      services.paseo = {
+        enable = true;
+        user = "binarin";
+        group = "binarin";
+      };
 
       home-manager.useGlobalPkgs = true;
       home-manager.backupCommand = lib.getExe pkgs.trash-cli;
