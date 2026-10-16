@@ -198,7 +198,14 @@
 (use-package eglot
   :ensure nil
   :bind (:map eglot-mode-map
-	      ("<f23>" . eglot-code-actions)))
+	      ("<f23>" . eglot-code-actions))
+  :config
+  (add-to-list 'eglot-server-programs
+             '((rust-ts-mode rust-mode) .
+               ("rust-analyzer"
+                :initializationOptions
+                (:check (:command "clippy")
+                        :rust (:analyzerTargetDir "target-lsp"))))))
 
 
 (cl-defmethod project-root ((project b/flake-subproject))
