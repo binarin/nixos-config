@@ -27,6 +27,9 @@ in
         programs.git = {
           enable = true;
           package = if osConfig.services.graphical-desktop.enable then pkgs.gitFull else pkgs.git;
+          ignores = [
+            "AGENTS.override.md"
+          ];
           settings = {
             column.ui = "auto";
             branch.sort = "-committerdate";
