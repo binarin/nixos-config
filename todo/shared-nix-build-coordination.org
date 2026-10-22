@@ -1,0 +1,164 @@
+#+title: Shared Nix build coordination and CI storage
+#+date: 2026-03-09
+
+* Problem
+Forgejo CI builds multiple configurations concurrently on different runners.
+Independent Nix daemons can build the same dependency before another runner
+publishes it to the binary cache. A binary cache shares completed results;
+it does not coordinate in-progress builds.
+
+Current workflow:
+- =.forgejo/workflows/master.yaml= launches a configuration matrix.
+- =.forgejo/actions/build-nix/action.yaml= invokes =nix build= independently.
+- =.forgejo/actions/sign-and-push-cache/action.yaml= publishes after the
+  configuration finishes, widening the duplication window.
+
+* Decision / preferred architecture
+Start with ordinary distributed Nix builds, not Hydra:
+
+#+begin_example
+Forgejo runners and evaluations in a shared container
+                      |
+            one shared Nix daemon
+       shared /nix/store on HDD-backed ZFS
+              local max-jobs = 0
+                      |
+              remote Nix builders
+           fast local stores/build dirs
+#+end_example
+
+The container will run on a Proxmox host with HDD-backed ZFS. The intended
+trade-off is inexpensive capacity for a large warm store, with RAM/ZFS ARC
+accelerating frequently read files and metadata. Compilation happens on
+remote builders.
+
+All runners must use the same daemon/store, not independent daemons with
+identical remote-builder lists. The shared daemon supplies build coordination
+for concurrent requests for the same derivation and centrally delegates
+remote builds. IFD must use that same daemon as well.
+
+Forgejo remains responsible for orchestration, matrix jobs, streamed logs,
+and CI results. Hydra is not required for this model.
+
+This is an architectural decision, not an implemented or tested configuration.
+
+* Storage reasoning
+A separate SSD evaluator store plus a large HDD binary cache was considered.
+It is not an automatic win: import-from-derivation (IFD) can require substantial
+realised outputs in the evaluator's store. Remote compilation does not remove
+the evaluator's need to access those outputs. An SSD store would still need
+space for the peak active evaluation working set; aggressive GC can cause
+repeated downloads and unpacking.
+
+Preferred initial approach: retain the large shared HDD store and measure
+before adding storage tiers.
+
+ZFS considerations:
+- ARC can accelerate repeated evaluations, but competes with other host workloads.
+- Cold evaluation, source imports, output ingestion, and GC still exercise HDDs.
+- A dedicated dataset for /nix permits independent compression, snapshot,
+  and space-management settings.
+- Snapshots can retain paths deleted by Nix GC; pool space is only reclaimed
+  once the relevant snapshots also expire.
+- User-level flake/evaluation caches are distinct from the shared store.
+- A live /nix/store and a compressed binary cache serve different purposes.
+  Neither should be assumed to retain every source/build-time input forever.
+
+* Hydra research (alternative, not selected initially)
+Research was against the local =../nix/hydra= checkout. Its experimental Rust
+services and =-dev= module options should not be assumed available in stable
+packaged Hydra.
+
+** Shared scheduling
+The queue runner maintains shared build steps keyed by derivation store path.
+Multiple configurations referring to the same derivation share a step;
+already-scheduled steps are not dispatched again. Upload state is tracked too.
+
+Sources:
+- =../nix/hydra/subprojects/hydra-queue-runner/src/state/step.rs=
+  (=Steps=, =Steps::create=)
+- =../nix/hydra/subprojects/hydra-queue-runner/src/state/mod.rs=
+  (=create_step=)
+- =../nix/hydra/subprojects/hydra-queue-runner/src/state/queue.rs=
+
+Builder capacity is tracked across all builds on the queue runner. Modes:
+- =Static= (module default): concurrent jobs below builder =max_jobs=.
+- =Dynamic=: CPU/memory pressure, optional I/O pressure; load-average fallback
+  without CPU PSI data.
+- =DynamicWithMaxJobLimit=: pressure checks plus the concurrent-job cap.
+
+Free space in the store/build directory is checked too. This is not advance
+per-derivation CPU/RAM reservation. Concurrent derivations and cores advertised
+per build are separate configuration dimensions.
+
+Sources:
+- =../nix/hydra/subprojects/hydra-queue-runner/src/state/machine.rs=
+- =../nix/hydra/nixos-modules/queue-runner-module.nix=
+- =../nix/hydra/subprojects/hydra-builder/src/config.rs=
+
+** Ad-hoc daemon endpoint
+This checkout has experimental =hydra-ad-hoc=, exposing the Nix daemon
+protocol over =/run/hydra-ad-hoc/socket=. Requests become builds in a hidden
+=adhoc/adhoc= jobset and use the same shared scheduler as regular builds.
+Read operations and store uploads are proxied to an upstream Nix daemon.
+Build progress and step logs stream back to clients, so Forgejo Actions can
+retain logs without requiring Hydra's UI for the normal CI path.
+
+Enable via =services.hydra-ad-hoc-dev.enable = true=, using this checkout's
+modules. Remote access needs secure transport to the Unix socket. Access
+currently effectively grants trusted Nix-user privileges on the coordinator;
+not appropriate for direct untrusted fork-PR access.
+
+Ad-hoc builds lack evaluation/commit attribution and are inserted with
+=keep = 1=; retention would need explicit management. Persistent queue state,
+log retention, and output retention are separate concerns.
+
+Sources:
+- =../nix/hydra/subprojects/hydra-manual/src/configuration.md=
+  (Ad hoc builds)
+- =../nix/hydra/subprojects/hydra-ad-hoc/src/handler.rs=
+- =../nix/hydra/subprojects/hydra-ad-hoc/src/submit.rs=
+- =../nix/hydra/nixos-modules/ad-hoc-module.nix=
+
+** Forgejo visibility
+The built-in =GiteaStatus= plugin uses a Forgejo-compatible commit-status API.
+It posts pending/final statuses with contexts =Hydra <job-name>= and links to
+Hydra build pages. These are commit/PR statuses, not Forgejo Actions runs.
+
+The plugin takes commit identity from a named Git checkout jobset input;
+a plain flake jobset needs additional attention. The push webhook triggers
+existing jobsets rather than automatically creating per-PR jobsets.
+Evaluation failures before build creation need separate reporting coverage.
+Ad-hoc builds have no such evaluation inputs, so do not automatically gain
+commit statuses through this plugin.
+
+For an Actions-driven ad-hoc workflow, Actions itself can report success/failure
+and retain streamed logs instead.
+
+Sources:
+- =../nix/hydra/subprojects/hydra/lib/Hydra/Plugin/GiteaStatus.pm=
+- =../nix/hydra/subprojects/hydra/lib/Hydra/Controller/API.pm=
+- =../nix/hydra/subprojects/hydra-manual/src/projects.md=
+
+** Output storage
+Hydra need not mirror every builder's store onto the coordinator. A local-store
+setup can receive outputs locally; remote-cache configurations can upload
+outputs to a cache, including directly from builders. Source inputs, build-time
+dependencies, final outputs, and evaluation metadata have separate retention
+and locality concerns.
+
+Hydra remains an option if persistent job queues, jobsets/build history, or
+richer pressure-aware scheduling become requirements. It is unnecessary solely
+to solve duplicate builds when all CI clients already share one Nix daemon.
+
+* Follow-up / validation
+- [ ] Configure and verify one shared daemon for all runners/evaluations.
+- [ ] Disable coordinator-local compilation and configure remote builders.
+- [ ] Verify concurrent identical requests, including IFD, share build work.
+- [ ] Check remote-builder limits and per-build core settings.
+- [ ] Confirm streamed logs remain useful for concurrent consumers.
+- [ ] Configure substitution and cache publication/retention deliberately.
+- [ ] Define trusted-user and fork-PR boundaries.
+- [ ] Define dataset snapshot/GC policy and pool space monitoring.
+- [ ] Measure cold/warm evaluation, ARC effectiveness, output ingestion, and GC
+  before deciding whether any SSD tier is necessary.

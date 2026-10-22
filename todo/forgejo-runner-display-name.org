@@ -1,0 +1,19 @@
+* Forgejo runner hostname versus UUID display
+** Findings
+- modules/clan/forgejo-runner.nix already registers runners with --name
+  nix-builder-raum / nix-builder-valak (with numeric suffixes after instance 1).
+- Current evaluated packages: forgejo-runner 13.1.0, Forgejo server 16.0.4.
+- Upstream runner v13.1.0 internal/app/cmd/daemon.go passes the connection UUID
+  to createRunner, which passes it to run.NewRunner as the runner name.
+- internal/app/run/runner.go logs that name in:
+  Runner %s (version:%s) received task ...
+- Consequently job logs display Runner <UUID> independently of the hostname-based
+  name registered on the server. Declare sends labels/version, not a new name.
+- Sources checked through upstream HTTP endpoints, not /nix/store sources.
+- User confirmed this is job-log output; hostname-based names were visible in
+  the UI runner list. Registration is not the issue. No code change needed
+  unless hostname-based job logging is desired.
+** Verification limits
+- No live server/runner inspection; SSH to nix-builder-raum failed DNS resolution.
+- If the UUID appears in the runner settings list rather than the job log,
+  deployed registration state still needs investigation.
