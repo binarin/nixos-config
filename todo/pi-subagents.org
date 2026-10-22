@@ -1,0 +1,26 @@
+* Pi subagents Nix package
+** Plan
+- [X] Inspect upstream package and existing flake packaging conventions.
+- [X] Build the pinned upstream release with its npm lockfile.
+- [X] Install compiled Pi resources and runtime dependencies, excluding host peers.
+- [X] Verify the build and document activation and compatibility.
+** Findings
+- pi-subagents 0.80.0 corresponds to upstream commit 80f8f79d51ee8075fd39baf7fe8ff36b43c3a790.
+- Upstream's build:pkg compiles TypeScript and assembles dist-pkg with agents, skills, prompts, runner helpers, and docs.
+- Host Pi packages must remain peers, not bundled runtime dependencies.
+- This release requires @earendil-works/pi-ai >=1.2.0; older Pi installations may need upgrading.
+- Expose a package and overlay. Enable through a wrapped Pi command, leaving mutable user settings untouched.
+** Verification
+- nix build .#pi-subagents --no-link passed on x86_64-linux.
+- Install checks verify manifest resource paths, runner helpers, runtime dependency resolution, and absence of bundled host peers.
+- npm prune removed 121 development packages, leaving the six runtime packages.
+- git diff --check passed.
+- After the llm-agents input update, configured-pkgs.x86_64-linux.nixpkgs.llm-agents.pi builds successfully and provides Pi 1.4.0.
+- modules/programs/ai.nix now wraps Pi with --extension pointing at the Nix-built package; this loads its extension, skills, and prompts without replacing settings.json.
+- Built the wrapper using the configured package set and verified --version returns 1.4.0.
+- End-to-end delegation requiring a model API was not tested.
+** Usage
+- Build: nix build .#pi-subagents
+- Try with a compatible Pi: pi -e "$(nix build .#pi-subagents --no-link --print-out-paths)"
+- Declarative Home Manager activation: add "${self.packages.${pkgs.stdenv.hostPlatform.system}.pi-subagents}" to programs.pi-coding-agent.settings.packages.
+- Adding the derivation to home.packages alone does not activate the extension.
