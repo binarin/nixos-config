@@ -1,0 +1,8 @@
+* Use unprivileged pull request workflow events
+- [X] Replace pull_request_target with pull_request in fork-pr.yaml, tool-tests.yaml, and emacs-config-clean.yaml.
+- [X] Preserve opened/synchronize/reopened filters and existing push triggers; avoid a duplicate pull_request key in tool-tests.yaml.
+- [X] Validate the workflow changes: git diff --check passes, trigger changes reviewed, and no pull_request_target occurrences remain under .forgejo.
+- CI execution must be verified on Forgejo; local workflow lint tooling is not installed.
+** Security scope
+The workflows check out and execute PR-controlled code. They should not use the trusted base-repository pull_request_target context.
+This change does not isolate the existing native runners; untrusted code still requires runner isolation and restricted credentials.
