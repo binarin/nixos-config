@@ -2,7 +2,7 @@
   self,
   config,
   lib,
-  inputs,
+  input
   ...
 }:
 let
@@ -158,6 +158,10 @@ in
         programs.bash.enable = true;
         home.packages = with pkgs; [
           bleeding.forgejo-cli
+          ripgrep
+          fd
+          glab
+          jq
         ];
         home.stateVersion = "26.05";
       };
