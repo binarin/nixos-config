@@ -2,7 +2,7 @@
   self,
   config,
   lib,
-  input
+  inputs,
   ...
 }:
 let
