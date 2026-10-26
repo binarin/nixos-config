@@ -97,7 +97,17 @@ in
         btop
         bat
         bleeding.devenv
-        llm-agents.pi
+        (pkgs.symlinkJoin {
+          name = "pi-with-subagents-${llm-agents.pi.version}";
+          paths = [ llm-agents.pi ];
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+          postBuild = ''
+            wrapProgram $out/bin/pi \
+              --add-flags ${lib.escapeShellArg "--extension ${self.packages.${pkgs.stdenv.hostPlatform.system}.pi-subagents}"}
+          '';
+          meta = llm-agents.pi.meta;
+        })
+        llm-agents.codex
       ];
 
       system.build.cloudImage = import "${pkgs.path}/nixos/lib/make-disk-image.nix" {
