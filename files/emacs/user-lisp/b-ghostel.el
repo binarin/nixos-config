@@ -1,4 +1,5 @@
 ;; -*- lexical-binding: t; -*-
+(require 'project)
 ;; (defun ghostel-send-C-k-and-kill ()
 ;;     "Send `C-k' to ghostel.
 ;; Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring."

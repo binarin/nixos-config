@@ -1,0 +1,10 @@
+* DONE Fix Emacs tests
+** Plan
+- Run the isolated harness in scripts/test-emacs.sh.
+- Diagnose and fix compilation / ERT failures.
+- Rerun the full harness.
+** Progress
+- Read docs/EMACS.org and the harness.
+- Dependency builds completed. All 8 ERT tests passed; strict byte-compilation failed in b-ghostel.el on the free variable project-switch-commands.
+- Added an explicit (require 'project) in b-ghostel.el, which also owns the project-prefix-map used there.
+- Full isolated harness rerun passed: all files compiled successfully and all 8 ERT tests passed (exit 0).
