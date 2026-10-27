@@ -281,7 +281,7 @@ in
         ])
         ++ (with pkgs.llm-agents; [
           claude-code
-          pi
+          pkgs.pi-with-extensions
         ]);
 
       xdg.dataFile."applications/niri.desktop".text = ''

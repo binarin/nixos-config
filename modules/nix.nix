@@ -41,6 +41,7 @@ let
     self.overlays.jerk-gpa
     self.overlays.ksso
     self.overlays.klaude
+    self.overlays.pi-with-extensions
 
     self.overlays.sicstus-manual
     self.overlays.shitty-shit-launcher

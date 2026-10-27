@@ -42,8 +42,24 @@
 - Compared original and patched binaries: all segment contents and non-PT_LOAD headers are byte-identical; the same PT_LOAD headers are now in ascending virtual-address order.
 - Original first PT_LOAD was 0x6511000; sorted first PT_LOAD is 0x1ff000.
 - [ ] User to deploy and verify startup, subagents, and tmux process titles on Bentos.
+** Shared pi-with-extensions overlay
+- [X] Confirm scope: shared overlay, pkgs attribute and flake export; preserve pins/settings, include ELF repair for both configured Linux architectures.
+- [X] Extract common package and enable its overlay centrally and in standalone Bentos Home Manager.
+- [X] Replace ordinary, zeroclaw, Bentos and murmur Pi consumers.
+- [X] Build and verify wrapper activation, ELF repair and consumer wiring.
+- Discovery: ELF repair is architecture-independent for ELF64 little-endian Linux and idempotent. Preserve private copies and fail-fast upstream wrapper retargeting.
+- Added modules/packages/pi-with-extensions.nix with matching overlay, pkgs attribute and flake package export; Linux-only metadata reflects the ELF requirement.
+- nix build .#pi-with-extensions --no-link passed on x86_64-linux; bin/pi --version returns 1.4.0.
+- Evaluated furfur Home Manager, zeroclaw system packages, b-db-k Home Manager and murmur Home Manager: all select the same shared derivation.
+- Evaluated aarch64-linux stable and x86_64-linux unstable package derivations; ARM was not built or executed.
+- Standalone overlay evaluation passed with only this overlay applied. Its fallback uses the upstream shared-nixpkgs factory, avoiding an unrelated upstream flake-packages evaluation failure (missing installAgentSkills with stable nixpkgs).
+- Verified exactly one extension flag, private binary/wrapper copies and retargeting, byte-identical data outside PT_LOAD header slots, sorted unchanged PT_LOAD entries, and idempotent repair.
+- Formatted changed Nix files with nixfmt; git diff --check passed.
+- nix flake check --no-build is blocked by unrelated checks.x86_64-linux.nct-clippy: nix-bindings-rust revision 23de26e2eeb9df5cf26edb6cd17e1fec5fded863 is unavailable on refs/heads/main.
+- No deployment or model-backed delegation performed.
 ** Usage
-- Build: nix build .#pi-subagents
+- Build Pi with extensions and the shared ELF repair: nix build .#pi-with-extensions
+- Build extension resources only: nix build .#pi-subagents
 - Try with a compatible Pi: pi -e "$(nix build .#pi-subagents --no-link --print-out-paths)"
 - Declarative Home Manager activation: add "${self.packages.${pkgs.stdenv.hostPlatform.system}.pi-subagents}" to programs.pi-coding-agent.settings.packages.
 - Adding the derivation to home.packages alone does not activate the extension.

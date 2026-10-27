@@ -97,16 +97,7 @@ in
         btop
         bat
         bleeding.devenv
-        (pkgs.symlinkJoin {
-          name = "pi-with-subagents-${llm-agents.pi.version}";
-          paths = [ llm-agents.pi ];
-          nativeBuildInputs = [ pkgs.makeWrapper ];
-          postBuild = ''
-            wrapProgram $out/bin/pi \
-              --add-flags ${lib.escapeShellArg "--extension ${self.packages.${pkgs.stdenv.hostPlatform.system}.pi-subagents}"}
-          '';
-          meta = llm-agents.pi.meta;
-        })
+        pi-with-extensions
         llm-agents.codex
       ];
 

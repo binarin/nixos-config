@@ -36,16 +36,7 @@
         with pkgs.llm-agents;
         [
           claude-code
-          (pkgs.symlinkJoin {
-            name = "pi-with-subagents-${pi.version}";
-            paths = [ pi ];
-            nativeBuildInputs = [ pkgs.makeWrapper ];
-            postBuild = ''
-              wrapProgram $out/bin/pi \
-                --add-flags ${lib.escapeShellArg "--extension ${self.packages.${pkgs.stdenv.hostPlatform.system}.pi-subagents}"}
-            '';
-            meta = pi.meta;
-          })
+          pkgs.pi-with-extensions
           codex
         ]
         ++ [
