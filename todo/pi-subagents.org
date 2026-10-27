@@ -27,6 +27,21 @@
 - Checked upstream GitHub: latest release v0.83.0 (release commit 3a63e0a); main at d9c5ca2 only adds a changelog clarification after that release, and Unreleased is empty. Current parent-wake.ts still intentionally starts custom-message turns.
 - Optional maintenance: update modules/packages/pi-subagents.nix to v0.83.0, recompute source and npm dependency hashes, and run its Nix build/install checks. This brings prompt-cache, child completion, and other fixes, but does not replace the widget guard.
 - Investigation only: no package pins or extension code changed.
+** Bentos deployment fix
+- [X] Trace why deploy .#b-db-k omitted subagents.
+- b-db-k and b-db2-k share a separate piViaLoader package, bypassing the ai-tools Home Manager wrapper.
+- Added the pinned subagents --extension flag to that wrapper while preserving the Bentos dynamic-loader workaround.
+- Evaluated b-db-k's Home Manager package list and built pi-1.4.0-bentos successfully.
+- Verified the generated wrapper includes pi-subagents 0.80.0 and pi --version returns 1.4.0; git diff --check passed.
+- Remote deployment and model-backed delegation were not run.
+** Bentos ELF header ordering experiment
+- [X] Replace direct ld.so invocation with a private Pi binary whose PT_LOAD entries are sorted by virtual address.
+- Added lib/sort-elf-load-segments.py; it only rewrites PT_LOAD slots in the ELF64 little-endian program header table.
+- Renamed piViaLoader to piForBentos; retained upstream wrapper environment/assets and the subagents flag.
+- Build passed; patched Pi --version returns 1.4.0 on the local host.
+- Compared original and patched binaries: all segment contents and non-PT_LOAD headers are byte-identical; the same PT_LOAD headers are now in ascending virtual-address order.
+- Original first PT_LOAD was 0x6511000; sorted first PT_LOAD is 0x1ff000.
+- [ ] User to deploy and verify startup, subagents, and tmux process titles on Bentos.
 ** Usage
 - Build: nix build .#pi-subagents
 - Try with a compatible Pi: pi -e "$(nix build .#pi-subagents --no-link --print-out-paths)"
