@@ -19,6 +19,14 @@
 - modules/programs/ai.nix now wraps Pi with --extension pointing at the Nix-built package; this loads its extension, skills, and prompts without replacing settings.json.
 - Built the wrapper using the configured package set and verified --version returns 1.4.0.
 - End-to-end delegation requiring a model API was not tested.
+** Prompt widget compatibility investigation
+- Installed wrapper provides Pi 1.4.0 and loads the Nix-pinned pi-subagents 0.80.0 from modules/packages/pi-subagents.nix; modules/programs/ai.nix wires it into Pi.
+- The crashing prompt-url-widget.ts is a tracked project extension in ../pi-agent/pi/.pi/extensions, not managed by this flake.
+- pi-subagents 0.80.0 intentionally switched idle-parent wakeups to custom messages with triggerTurn. Pi emits before_agent_start with messageType = custom and message, without prompt. The widget incorrectly assumes event.prompt always exists.
+- Correct fix: guard the widget handler with event.messageType !== "user" before reading event.prompt. A Nix package upgrade cannot repair that project-local handler.
+- Checked upstream GitHub: latest release v0.83.0 (release commit 3a63e0a); main at d9c5ca2 only adds a changelog clarification after that release, and Unreleased is empty. Current parent-wake.ts still intentionally starts custom-message turns.
+- Optional maintenance: update modules/packages/pi-subagents.nix to v0.83.0, recompute source and npm dependency hashes, and run its Nix build/install checks. This brings prompt-cache, child completion, and other fixes, but does not replace the widget guard.
+- Investigation only: no package pins or extension code changed.
 ** Usage
 - Build: nix build .#pi-subagents
 - Try with a compatible Pi: pi -e "$(nix build .#pi-subagents --no-link --print-out-paths)"
