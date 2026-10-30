@@ -93,6 +93,8 @@ in
         tramp-rpc-server
         ripgrep
 
+        gopass
+        gnupg
         htop
         btop
         bat
