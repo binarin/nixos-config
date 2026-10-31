@@ -403,3 +403,9 @@ ip_allocation:
         _type: leaf
         address: 192.168.3.10
         mac: null
+  zeroclaw:
+    guest:
+      primary:
+        _type: leaf
+        address: 192.168.3.4
+        mac: null
