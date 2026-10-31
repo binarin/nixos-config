@@ -51,6 +51,12 @@
             "colors-dark.background" = "001800";
           };
         };
+        "focalor" = {
+          remoteShell = "ssh -t";
+          overrides = {
+            "colors-dark.background" = "002000";
+          };
+        };
       };
     in
 
