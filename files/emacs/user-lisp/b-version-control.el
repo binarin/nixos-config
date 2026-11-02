@@ -11,6 +11,9 @@
   :ensure t
   :commands (magit-file-relative-name magit-git-string magit-file-delete)
   :bind (("C-x g" . magit))
+  :custom
+  ;; Avoid refreshing from .git during with-editor's process completion wait.
+  (git-commit-cd-to-toplevel t)
   :config
   (advice-add 'magit-commit-arguments :filter-return
               #'b/magit-commit-add-no-status))

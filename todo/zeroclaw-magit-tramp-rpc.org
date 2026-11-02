@@ -1,0 +1,75 @@
+* Investigate Magit reporting “Rebasing nil onto nil” on zeroclaw
+** Scope
+Inspect the authorized running Emacs using b-emacsclient and compare read-only
+Git/filesystem queries over tramp-rpc and SSH. Do not alter remote Git state.
+** Progress
+- Read docs/EMACS.org; live package sources must be used for diagnosis.
+- Direct SSH confirms clean Git state (migrations, four commits ahead), with no
+  MERGE_HEAD, REBASE_HEAD, rebase-merge, or rebase-apply.
+- Outside refresh Emacs correctly sees those paths as absent. During refresh,
+  tramp-rpc Magit prefetch seeds file-exists cache with incorrect true values.
+- Live tramp-rpc-magit--state-file-entry runs external `test -e PATH` through
+  commands.run_parallel, using the repository's direnv environment.
+- Reproduced a missing MERGE_HEAD check returning exit_code 0 and stdout
+  “Test writing to stdout using Printer”.
+- Effective project PATH puts temporal-cli-1.5.1/bin before coreutils; that
+  package contains its own unrelated executable named `test`. SSH's plain
+  login PATH does not include it, and shell builtin test is also unaffected.
+- Exact offending binary on zeroclaw:
+  /nix/store/gpdlk2kzcpdycrcf43jwbn7j2pdyh0yh-temporal-cli-1.5.1/bin/test
+- Root cause is executable-name collision, not corrupt Git/rebase state.
+** Remediation candidates
+- tramp-rpc should use file metadata RPCs, or a shell builtin test, rather than
+  resolving a generic external `test` in project-controlled PATH.
+- Fix temporal-cli packaging to avoid installing its unrelated test binary.
+- No persistent runtime/configuration/source fix applied by the assistant.
+- User disabled temporal in the remote devenv and confirmed the false rebase
+  status disappeared.
+** Follow-up: post-commit work-tree error
+- User reports existing Magit buffer now shows “Unstaged changes (t)” followed
+  by “fatal: this operation must be run in a work tree”. Investigating live
+  buffer, process environment, and prefetch results without changing Git state.
+- Captured original buffer error. SSH confirms clean worktree at commit 761aa20.
+- A diagnostic magit-refresh-buffer cleared the error; its traced diff commands
+  succeeded with repository-root cwd and no GIT_* overrides. Root cause is NOT
+  established; do not infer the failed post-commit invocation from later success.
+- User confirms it is transient, only after commits, only on this machine.
+- Installed temporary, bounded (100-event) live instrumentation from
+  /tmp/zeroclaw-magit-postcommit-trace.el. Records post-process sentinel context,
+  prefetch directory, Git process cwd/arguments, GIT_* environment, and failed
+  diff/status batch entries to /tmp/zeroclaw-magit-postcommit-trace.out.
+- Initial read-only rev-parse smoke test passed and verified trace output.
+- User reproduced with empty commit fac1405. Captured trace preserved at
+  /tmp/zeroclaw-magit-postcommit-captured.out; broad instrumentation removed
+  using (zeroclaw-magit-trace-stop), so its logging overhead is gone.
+- Actual failing post-commit sentinel entered for command buffer
+  “magit: zwaansnavel”; update-index, status, and unstaged diff all ran with
+  cwd=/home/binarin/personal-workspace/zwaansnavel/.git/ and no GIT_* overrides.
+  Status buffer's persistent directory remains the worktree root afterward.
+- User reports another checkout on zeroclaw commits successfully. No project
+  or parent dir-locals files or active Git hooks found in zwaansnavel.
+- Live with-editor-return saves the commit buffer directory, kills that buffer
+  (switching back to Magit), then let-binds default-directory to the saved .git
+  directory while synchronously running `kill -s USR1 PID`. This can dispatch
+  Git's completion sentinel while Magit's directory is temporarily wrong.
+- git-commit-cd-to-toplevel is nil. magit-toplevel called from .git correctly
+  returns the root with both tramp-rpc direnv enabled and disabled.
+- Deterministic read-only reproduction in /tmp/zeroclaw-magit-directory-race.el:
+  launch delayed `git rev-parse HEAD` via magit-start-process from status;
+  wait for its sentinel with status buffer default-directory bound to .git.
+  This reproduces the identical “Unstaged changes (t)” / work-tree error.
+  Control waiting with directory bound to the root succeeds. Results saved in
+  /tmp/zeroclaw-magit-directory-race.out. No commits or file changes involved.
+- Strong diagnosis: with-editor-return's temporary binding in the restored
+  Magit buffer exposes a reentrant sentinel directory race; checkout-specific
+  timing can explain why it only occurs here. Actual failing trace lacks an
+  outer stack, so exact with-editor call-site attribution is source-based.
+- All temporary tracing/watchers removed. Controlled test left status clean.
+** Follow-up remediation options
+- Simple preference workaround: (setq git-commit-cd-to-toplevel t), so editing
+  commit messages uses the worktree root instead of .git. Applied at user's
+  request in files/emacs/user-lisp/b-version-control.el and the running Emacs
+  instance; live setq returned t. Lisp check-parens passed.
+- Proper with-editor fix: run the kill signal process inside a temporary buffer
+  whose default-directory is the saved commit directory, rather than let-bind
+  that directory in the restored Magit status buffer.

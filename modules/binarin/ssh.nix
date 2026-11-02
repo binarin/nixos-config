@@ -33,6 +33,12 @@
             "colors-dark.background" = "180000";
           };
         };
+        "db3.k.b" = {
+          remoteShell = "ssh -t";
+          overrides = {
+            "colors-dark.background" = "180000";
+          };
+        };
         "bk.k.b" = {
           remoteShell = "ssh -t";
           overrides = {
@@ -55,6 +61,12 @@
           remoteShell = "ssh -t";
           overrides = {
             "colors-dark.background" = "002000";
+          };
+        };
+        "zwaansnavel" = {
+          remoteShell = "ssh -t";
+          overrides = {
+            "colors-dark.background" = "001800";
           };
         };
       };
@@ -122,6 +134,10 @@
               ForwardAgent = true;
               ControlMaster = "auto";
               ControlPersist = "yes";
+            };
+
+            "Match originalhost zwaansnavel" = {
+              Hostname = "192.168.3.149";
             };
 
             "*" = {
