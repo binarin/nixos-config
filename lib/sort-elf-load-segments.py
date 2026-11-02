@@ -22,11 +22,18 @@ def sort_load_segments(path):
         table = elf.read(phentsize * phnum)
         if len(table) != phentsize * phnum:
             raise ValueError("truncated program header table")
-        entries = [table[i:i + phentsize] for i in range(0, len(table), phentsize)]
-        slots = [i for i, entry in enumerate(entries) if struct.unpack_from("<I", entry)[0] == 1]
+        entries = [table[i : i + phentsize] for i in range(0, len(table), phentsize)]
+        slots = [
+            i
+            for i, entry in enumerate(entries)
+            if struct.unpack_from("<I", entry)[0] == 1
+        ]
         if not slots:
             raise ValueError("no PT_LOAD headers")
-        loads = sorted((entries[i] for i in slots), key=lambda entry: struct.unpack_from("<Q", entry, 16)[0])
+        loads = sorted(
+            (entries[i] for i in slots),
+            key=lambda entry: struct.unpack_from("<Q", entry, 16)[0],
+        )
         for index, entry in zip(slots, loads):
             elf.seek(phoff + index * phentsize)
             elf.write(entry)
