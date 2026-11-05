@@ -69,6 +69,12 @@
             "colors-dark.background" = "001800";
           };
         };
+        "claude-nixos-config" = {
+          remoteShell = "ssh -t";
+          overrides = {
+            "colors-dark.background" = "001800";
+          };
+        };
       };
     in
 

@@ -36,6 +36,7 @@
         self.nixosModules.binarin-workstation
         self.nixosModules.binarin-podman
         self.nixosModules.tailscale
+        self.nixosModules.paseo
       ];
 
       config = {
@@ -51,6 +52,21 @@
           {
             programs.git.settings.credential.helper = "store";
           };
+
+        services.paseo = {
+          enable = true;
+          user = "binarin";
+          group = "binarin";
+          hostnames = [ "claude-nixos-config.lynx-lizard.ts.net" ];
+          environment.PASEO_WEB_UI_ENABLED = "true";
+          relay.enable = false;
+        };
+
+        services.tailscale.serve = {
+          enable = true;
+          configs.paseo.target = "localhost:6767";
+        };
+
       };
     };
 }

@@ -30,7 +30,7 @@
       (buffer-substring-no-properties (point) (mark))
     (current-word)))
 
-;;;#autoload
+;;;###autoload
 (defun b/strip-indentation (string)
   (let* ((lines (cdr (string-lines string)))
 	 (indentation (string-match (rx (not " ")) (car lines)))
