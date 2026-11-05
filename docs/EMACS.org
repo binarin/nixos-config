@@ -60,8 +60,13 @@ Then the output of the following command MUST have the expected git commit id:
 Checked out in ~/personal-workspace/emacs-tramp-rpc
 
 Right now it's my fork of upstream package with not all patches making
-it through code-review yet. So the same story qua ~HEAD~ / locking as
-for emacs niri awareness really.
+it through code-review yet. Unlike emacs niri awareness, its pin is owned
+by ~swan-lake-common~: ~emacs-tramp-rpc~ follows ~common/emacs-tramp-rpc~.
+
+To upgrade, first arrange the desired TRAMP RPC pin in common, then
+deliberately change common's revision-qualified URL in ~flake.nix~ to
+that common revision and run ~nix flake lock~. Never independently repin
+~emacs-tramp-rpc~ in this configuration.
 
 * Live debugging
 
