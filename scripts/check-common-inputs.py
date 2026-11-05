@@ -78,4 +78,11 @@ for output, expected in (("nixosConfigurations", NIXOS), ("systemConfigs", ["b-d
     actual = json.loads(command("nix", "eval", "--no-write-lock-file", "--json", f"{source}#{output}",
                                 "--apply", "builtins.attrNames"))
     assert actual == sorted(expected), (output, actual)
-print("PASS: eight full shared locks/follows, 24 retained pins/follows, systems, outputs, generation removal")
+for variant in ("emacs-git", "emacs-git-nox", "emacs-git-pgtk"):
+    drv = json.loads(command("nix", "eval", "--no-write-lock-file", "--json",
+                            f"{source}#configured-pkgs.x86_64-linux.nixpkgs.{variant}", "--apply",
+                            "p: { patches = map (x: x.name or (builtins.baseNameOf x)) p.patches; inherit (p) postPatch; }"))
+    assert "CVE-2026-108976.patch" in drv["patches"], variant
+    assert not {"CVE-2024-53920.patch", "backport-tramp-get-connection-local-criteria-30.patch"} & set(drv["patches"]), variant
+    assert "grep -Fq" in drv["postPatch"] and "trusted-content-p" in drv["postPatch"] and "tramp-get-connection-local-criteria" in drv["postPatch"], variant
+print("PASS: eight full shared locks/follows, 24 retained pins/follows, systems, outputs, generation removal; Emacs master security guards")

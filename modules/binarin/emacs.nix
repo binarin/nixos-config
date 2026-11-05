@@ -47,7 +47,25 @@ in
             };
         };
     in
-    {
+    (final.lib.genAttrs [ "emacs-git" "emacs-git-nox" "emacs-git-pgtk" ] (
+      name:
+      prev.${name}.overrideAttrs (old: {
+        # These Emacs 30 backports are already in the pinned Emacs master.
+        # Keep the security guard and TRAMP helper mandatory in the built source.
+        patches = builtins.filter (
+          patch:
+          !(builtins.elem (patch.name or (builtins.baseNameOf patch)) [
+            "CVE-2024-53920.patch"
+            "backport-tramp-get-connection-local-criteria-30.patch"
+          ])
+        ) old.patches;
+        postPatch = old.postPatch + ''
+          grep -Fq "(if (or (trusted-content-p) (function-get backend 'flymake-always-safe))" lisp/progmodes/flymake.el
+          grep -Fq '(defsubst tramp-get-connection-local-criteria (vec)' lisp/net/tramp.el
+        '';
+      })
+    ))
+    // {
       my-emacs = emacsMaker final.emacs-git-nox;
       my-emacs-nox = emacsMaker final.emacs-git-nox;
       my-emacs-pgtk = emacsMaker final.emacs-git-pgtk;

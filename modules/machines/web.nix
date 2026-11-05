@@ -175,6 +175,7 @@ in
 
       services.matrix-continuwuity = {
         enable = true;
+        package = pkgs.matrix-continuwuity_latest;
         settings = {
           global.server_name = "binarin.info";
           global.address = [ "127.0.0.1" ];
