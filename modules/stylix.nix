@@ -134,14 +134,6 @@ let
     };
 in
 {
-  flake-file.inputs = {
-    stylix.url = "github:nix-community/stylix/release-26.05";
-    stylix.inputs = {
-      nixpkgs.follows = "nixpkgs";
-      flake-parts.follows = "flake-parts";
-    };
-  };
-
   flake.nixosModules.stylix =
     {
       config,

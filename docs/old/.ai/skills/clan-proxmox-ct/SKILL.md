@@ -1,3 +1,8 @@
+Historical generation instructions superseded by ZL-0016: flake.nix is now
+hand-maintained; edit its inputs and run `nix flake lock` deliberately.
+Module discovery still requires new files to be known to Git. The generation
+commands/examples below record historical actions, not the current workflow.
+
 ---
 name: clan-proxmox-ct
 description: Use when creating a new NixOS Proxmox LXC container machine in a clan-based nix-config, when asked to add a new container/host/CT/VM to the clan inventory, or when converting/clanifying an existing non-clan nixosConfiguration (including migrating its explicit sops secrets to clan vars)

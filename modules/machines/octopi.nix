@@ -51,7 +51,6 @@
       imports = [
         self.nixosModules.baseline
         self.nixosModules.sops
-        # self.nixosModules.flake-files
         # self.nixosModules.inventory
         # self.nixosModules.inventory-legacy
         # self.nixosModules.nix

@@ -8,11 +8,6 @@ let
   selfLib = self.lib.self;
 in
 {
-  flake-file.inputs = {
-    sops-nix.url = "github:Mic92/sops-nix";
-    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-  };
-
   flake.nixosModules.sops =
     { config, ... }:
     {

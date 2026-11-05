@@ -3,10 +3,6 @@ let
   selfLib = self.lib.self;
 in
 {
-  flake-file.inputs = {
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
-  };
-
   flake.nixosModules.microsoft-surface =
     { pkgs, ... }:
     {

@@ -178,6 +178,32 @@
         "url": "https://git.clan.lol/clan/clan-core"
       }
     },
+    "common": {
+      "inputs": {
+        "disko": "disko",
+        "emacs-tramp-rpc": "emacs-tramp-rpc",
+        "flake-parts": "flake-parts",
+        "home-manager": "home-manager",
+        "import-tree": "import-tree",
+        "nixpkgs": "nixpkgs",
+        "nixpkgs-unstable": "nixpkgs-unstable",
+        "sops-nix": "sops-nix"
+      },
+      "locked": {
+        "lastModified": 1793450707,
+        "narHash": "sha256-eAcAQKSP3bfd6S9QGU6VhPtmND6dGrf8HiGji86tEeM=",
+        "ref": "refs/heads/main",
+        "rev": "8ab98a22587c201047388823e92d377eb7da899b",
+        "revCount": 9,
+        "type": "git",
+        "url": "https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common"
+      },
+      "original": {
+        "rev": "8ab98a22587c201047388823e92d377eb7da899b",
+        "type": "git",
+        "url": "https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common"
+      }
+    },
     "crane": {
       "flake": false,
       "locked": {
@@ -290,19 +316,21 @@
     "disko": {
       "inputs": {
         "nixpkgs": [
+          "common",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1781152676,
-        "narHash": "sha256-RxWs5ND31KzTG7wvMM+PMfUjyNpmIEr999lqNARaM5o=",
-        "owner": "nix-community",
+        "lastModified": 1792526520,
+        "narHash": "sha256-3hSJlv8mUVnZPMWK2+CM7a9O+nR6Z4mCh27NfLCmTPc=",
+        "owner": "binarin",
         "repo": "disko",
-        "rev": "ff8702b4de27f72b4c78573dfb89ec74e36abdf1",
+        "rev": "cedd626e11b635470fa6f9fdb8ad79b0075dd7f9",
         "type": "github"
       },
       "original": {
-        "owner": "nix-community",
+        "owner": "binarin",
+        "ref": "swan-lake-current",
         "repo": "disko",
         "type": "github"
       }
@@ -398,13 +426,14 @@
       "locked": {
         "lastModified": 1791350417,
         "narHash": "sha256-PsqmbRdppVWZpN+M0FFSMvjKrQHGVR8X/yTev09Mhw4=",
-        "owner": "ArthurHeymans",
+        "owner": "binarin",
         "repo": "emacs-tramp-rpc",
         "rev": "c9cb8bfc0bd7f4e2c49245902fefa49fbe6ac8b4",
         "type": "github"
       },
       "original": {
-        "owner": "ArthurHeymans",
+        "owner": "binarin",
+        "ref": "swan-lake-current",
         "repo": "emacs-tramp-rpc",
         "type": "github"
       }
@@ -567,37 +596,24 @@
         "type": "github"
       }
     },
-    "flake-file": {
-      "locked": {
-        "lastModified": 1789150028,
-        "narHash": "sha256-o/o3n8+HAzFOFH83SuGW/w5J6glHtV+r8v+gJbMeoXM=",
-        "owner": "vic",
-        "repo": "flake-file",
-        "rev": "eccac77d2c2567efb6f368330930f3d55af8668a",
-        "type": "github"
-      },
-      "original": {
-        "owner": "vic",
-        "repo": "flake-file",
-        "type": "github"
-      }
-    },
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": [
+          "common",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1788450739,
-        "narHash": "sha256-glZLQlzIn1fXH6PazR2iUmTo7kzzyYSshrWhLS9TqCU=",
-        "owner": "hercules-ci",
+        "lastModified": 1790898470,
+        "narHash": "sha256-zTwuwezD0w3hpga6a6P8emidzAZFyWqlNeRBlpWOOl8=",
+        "owner": "binarin",
         "repo": "flake-parts",
-        "rev": "31729ca8cbdb4fa927b34e5f4353e6a83f39e993",
+        "rev": "024633cd702b10285db5cb19b40ad48d2399ba60",
         "type": "github"
       },
       "original": {
-        "owner": "hercules-ci",
+        "owner": "binarin",
+        "ref": "swan-lake-current",
         "repo": "flake-parts",
         "type": "github"
       }
@@ -787,20 +803,21 @@
     "home-manager": {
       "inputs": {
         "nixpkgs": [
+          "common",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1781095169,
-        "narHash": "sha256-NYNBdaZEu5nD+Sowh55Kl1UWcAr63Np/7sbvtk98R/I=",
+        "lastModified": 1792818383,
+        "narHash": "sha256-199i7ubVSXTMl+0AAlL7cVCXSjcI+jWByMcimYjeMX0=",
         "owner": "binarin",
         "repo": "home-manager",
-        "rev": "4c11a945f40cdd2c74307048204b71305dffd562",
+        "rev": "24f2190587513b9c2f73db112a17844ae912d965",
         "type": "github"
       },
       "original": {
         "owner": "binarin",
-        "ref": "release-26.05",
+        "ref": "swan-lake-current/release-26.05",
         "repo": "home-manager",
         "type": "github"
       }
@@ -829,7 +846,7 @@
     "impermanence": {
       "inputs": {
         "home-manager": "home-manager_2",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs_2"
       },
       "locked": {
         "lastModified": 1769548169,
@@ -849,20 +866,21 @@
       "locked": {
         "lastModified": 1788467110,
         "narHash": "sha256-ljEMTXP/rH0tOvDzc9gzwww6KcHRPRnEHzd9lK48V7s=",
-        "owner": "vic",
+        "owner": "binarin",
         "repo": "import-tree",
         "rev": "eb1b52eaecc57f7c136d07ae8a93e724dfecac46",
         "type": "github"
       },
       "original": {
-        "owner": "vic",
+        "owner": "binarin",
+        "ref": "swan-lake-current",
         "repo": "import-tree",
         "type": "github"
       }
     },
     "lan-mouse": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs_3",
         "rust-overlay": "rust-overlay"
       },
       "locked": {
@@ -1139,7 +1157,7 @@
     },
     "nixos-hardware": {
       "inputs": {
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_4"
       },
       "locked": {
         "lastModified": 1789127271,
@@ -1230,16 +1248,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1768564909,
-        "narHash": "sha256-Kell/SpJYVkHWMvnhqJz/8DqQg2b6PguxVWOuadbHCc=",
-        "owner": "nixos",
+        "lastModified": 1793294725,
+        "narHash": "sha256-loLMnbbS4KhmG2ln9EY6f0YMNCA273Yx02oWYQ9IMeE=",
+        "owner": "binarin",
         "repo": "nixpkgs",
-        "rev": "e4bae1bd10c9c57b2cf517953ab70060a828ee6f",
+        "rev": "6f06d204d8f2d8761d9da78778745974a3216381",
         "type": "github"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
+        "owner": "binarin",
+        "ref": "swan-lake-current/nixos-26.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -1293,20 +1311,37 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1792773339,
-        "narHash": "sha256-rZLrzrC6i+jnTAlvPZHogKDulY7WWDEv9hJeHieO7Zw=",
-        "owner": "nixos",
+        "lastModified": 1793439035,
+        "narHash": "sha256-ocEjuJ1VuAJ3++oxUffll4ic1O3q57ocoD/9CSVxnTA=",
+        "owner": "binarin",
         "repo": "nixpkgs",
-        "rev": "3ec636362e1816bc2f0888fa0fa2c69f1bc9e504",
+        "rev": "2341ce0afcbce7aaa3e3bb10f5ab2d442d9ec246",
         "type": "github"
       },
       "original": {
-        "owner": "nixos",
+        "owner": "binarin",
+        "ref": "swan-lake-current/nixpkgs-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
     },
     "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1768564909,
+        "narHash": "sha256-Kell/SpJYVkHWMvnhqJz/8DqQg2b6PguxVWOuadbHCc=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "e4bae1bd10c9c57b2cf517953ab70060a828ee6f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1788405554,
         "narHash": "sha256-r2f1oUwixlgq9zOdYLqJLfS/lWBT60/IITjhTKI59JU=",
@@ -1322,7 +1357,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_3": {
+    "nixpkgs_4": {
       "locked": {
         "lastModified": 1767892417,
         "narHash": "sha256-8bW3q88CEg2u4hSP66Vf4lpbLonHz7hqDNBMcCY7E9U=",
@@ -1333,22 +1368,6 @@
       "original": {
         "type": "tarball",
         "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"
-      }
-    },
-    "nixpkgs_4": {
-      "locked": {
-        "lastModified": 1789344334,
-        "narHash": "sha256-vdhpDJ3Lr24lkZ+fDCjmBRRtw9/vcSzkqGJOJyF5h2U=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "c3eea5b2156db11c7eeeada3dc737711255b253e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-26.05",
-        "repo": "nixpkgs",
-        "type": "github"
       }
     },
     "nixpkgs_5": {
@@ -1596,18 +1615,33 @@
       "inputs": {
         "arion": "arion",
         "clan-core": "clan-core",
+        "common": "common",
         "deploy-rs": "deploy-rs",
         "direnv-instant": "direnv-instant",
-        "disko": "disko",
+        "disko": [
+          "common",
+          "disko"
+        ],
         "emacs-niri-awareness": "emacs-niri-awareness",
         "emacs-overlay": "emacs-overlay",
-        "emacs-tramp-rpc": "emacs-tramp-rpc",
+        "emacs-tramp-rpc": [
+          "common",
+          "emacs-tramp-rpc"
+        ],
         "flake-compat": "flake-compat_2",
-        "flake-file": "flake-file",
-        "flake-parts": "flake-parts",
-        "home-manager": "home-manager",
+        "flake-parts": [
+          "common",
+          "flake-parts"
+        ],
+        "home-manager": [
+          "common",
+          "home-manager"
+        ],
         "impermanence": "impermanence",
-        "import-tree": "import-tree",
+        "import-tree": [
+          "common",
+          "import-tree"
+        ],
         "lan-mouse": "lan-mouse",
         "nci": "nci",
         "niks3": "niks3",
@@ -1618,10 +1652,19 @@
         "nixos-hardware": "nixos-hardware",
         "nixos-raspberrypi": "nixos-raspberrypi",
         "nixos-wsl": "nixos-wsl",
-        "nixpkgs": "nixpkgs_4",
-        "nixpkgs-unstable": "nixpkgs-unstable",
+        "nixpkgs": [
+          "common",
+          "nixpkgs"
+        ],
+        "nixpkgs-unstable": [
+          "common",
+          "nixpkgs-unstable"
+        ],
         "pre-commit-hooks": "pre-commit-hooks",
-        "sops-nix": "sops-nix",
+        "sops-nix": [
+          "common",
+          "sops-nix"
+        ],
         "srvos": "srvos",
         "stylix": "stylix",
         "system-manager": "system-manager",
@@ -1743,19 +1786,21 @@
     "sops-nix": {
       "inputs": {
         "nixpkgs": [
+          "common",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1788914643,
-        "narHash": "sha256-4GuMPW90JSxXWDPUB9M+1m7fYbe3H0apOd86/zBQ2Kw=",
-        "owner": "Mic92",
+        "lastModified": 1793052255,
+        "narHash": "sha256-Y/JIHTnMlOabDfyaSBubWGLDIVGihLEUuoMhFvQKaDo=",
+        "owner": "binarin",
         "repo": "sops-nix",
-        "rev": "13616fff713a9f94055c66f15687ebdc17a335df",
+        "rev": "60182817ee048ac94b4c68ea76d5ef2e8aac730d",
         "type": "github"
       },
       "original": {
-        "owner": "Mic92",
+        "owner": "binarin",
+        "ref": "swan-lake-current",
         "repo": "sops-nix",
         "type": "github"
       }

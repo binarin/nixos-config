@@ -1,48 +1,9 @@
-{ inputs, lib, ... }:
+{ inputs, ... }:
 {
-  imports = [
-    inputs.flake-file.flakeModules.dendritic
-  ];
-
+  imports = [ inputs.flake-parts.flakeModules.modules ];
+  flake.modules = { };
   systems = [
     "x86_64-linux"
     "aarch64-linux"
   ];
-
-  flake-file.outputs = lib.mkForce ''
-    inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules)
-  '';
-
-  flake-file.inputs = {
-    flake-file.url = lib.mkForce "github:vic/flake-file";
-
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs";
-
-    import-tree.url = "github:vic/import-tree";
-
-    disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
-
-    pre-commit-hooks.url = "github:cachix/git-hooks.nix";
-
-    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
-    nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
-
-    arion.url = "github:hercules-ci/arion";
-    arion.inputs.nixpkgs.follows = "nixpkgs";
-    arion.inputs.flake-parts.follows = "flake-parts";
-
-    sops-nix.url = "github:Mic92/sops-nix";
-    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
-
-    nix-index-database.url = "github:nix-community/nix-index-database";
-    nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
-
-    deploy-rs.url = "github:serokell/deploy-rs";
-    deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
-  };
 }

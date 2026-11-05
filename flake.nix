@@ -1,9 +1,8 @@
-# DO-NOT-EDIT. This file was auto-generated using github:denful/flake-file.
-# Use `nix run .#write-flake` to regenerate it.
 {
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 
   inputs = {
+    common.url = "git+https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common?rev=8ab98a22587c201047388823e92d377eb7da899b";
     arion = {
       url = "github:hercules-ci/arion";
       inputs = {
@@ -33,10 +32,7 @@
         treefmt-nix.follows = "treefmt-nix";
       };
     };
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    disko.follows = "common/disko";
     emacs-niri-awareness = {
       url = "github:binarin/emacs-niri-awareness";
       flake = false;
@@ -48,22 +44,12 @@
         nixpkgs-stable.follows = "nixpkgs";
       };
     };
-    emacs-tramp-rpc = {
-      url = "github:ArthurHeymans/emacs-tramp-rpc";
-      flake = false;
-    };
+    emacs-tramp-rpc.follows = "common/emacs-tramp-rpc";
     flake-compat.url = "github:NixOS/flake-compat";
-    flake-file.url = "github:vic/flake-file";
-    flake-parts = {
-      url = "github:hercules-ci/flake-parts";
-      inputs.nixpkgs-lib.follows = "nixpkgs";
-    };
-    home-manager = {
-      url = "github:binarin/home-manager/release-26.05";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    flake-parts.follows = "common/flake-parts";
+    home-manager.follows = "common/home-manager";
     impermanence.url = "github:nix-community/impermanence";
-    import-tree.url = "github:vic/import-tree";
+    import-tree.follows = "common/import-tree";
     lan-mouse.url = "github:feschber/lan-mouse";
     nci = {
       url = "github:90-008/nix-cargo-integration";
@@ -104,13 +90,10 @@
       url = "github:nix-community/NixOS-WSL/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs";
+    nixpkgs.follows = "common/nixpkgs";
+    nixpkgs-unstable.follows = "common/nixpkgs-unstable";
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    sops-nix.follows = "common/sops-nix";
     srvos = {
       url = "github:nix-community/srvos";
       inputs.nixpkgs.follows = "nixpkgs";

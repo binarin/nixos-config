@@ -13,12 +13,11 @@ General
   flake-parts modules, exporting other types of modules, such as
   nixos/home-manager/system-manager modules.
 
-- This flakes uses ~flake-file~, so changing `flake.nix` directly is
-  not allowed. To change dependecies, the underlying .nix-files should
-  be modified, and `nix run .#write-flake` should be executed. (One
-  common caveat when adding new flake inputs - new flake-parts modules
-  can't be used until `flake.nix` regen; in that case 2-step process
-  is necessary: first add input/regen, then use the flake-module(s)).
+- `flake.nix` is hand-maintained. Edit input declarations there and run
+  `nix flake lock` deliberately. The eight shared dependencies follow
+  `common/<name>`; upgrade them only by changing common's revision-qualified
+  URL, never by independently pinning them here. Do not import common's modules.
+
 
 Emacs
 =====
