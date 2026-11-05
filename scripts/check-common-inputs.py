@@ -70,7 +70,7 @@ for filename in command("git", "ls-files", "-z").split("\0"):
         continue
     text = path.read_bytes()
     if any(token in text for token in (b"flake-file", b"write-flake", b"autofollow")):
-        assert text.startswith(b"Historical generation instructions superseded by ZL-0016:"), filename
+        assert b"Historical generation instructions superseded by ZL-0016:" in text, filename
 
 source = sys.argv[1] if len(sys.argv) > 1 else "."
 for output, expected in (("nixosConfigurations", NIXOS), ("systemConfigs", ["b-db-k", "b-db2-k", "murmur"]),

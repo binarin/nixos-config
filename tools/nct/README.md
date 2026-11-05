@@ -63,7 +63,7 @@ nix build ../../#checks.x86_64-linux.nct-test
 
 `modules/nct.nix` is a flake-parts module that:
 
-- declares `nci` + `nix-bindings-rust` as flake inputs (in hand-maintained `flake.nix`),
+- consumes `nci` + `nix-bindings-rust`, declared in hand-maintained `flake.nix`,
 - imports `inputs.nci.flakeModule` and
   `inputs.nix-bindings-rust.modules.flake.basic` (which provides
   `perSystem.nix-bindings-rust.nciBuildConfig`),

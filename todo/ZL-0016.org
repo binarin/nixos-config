@@ -1,0 +1,11 @@
+#+title: ZL-0016 common inputs migration
+
+- [X] Adopt all eight inputs from revision-pinned common; preserve unrelated pins.
+- [X] Remove generation declarations/provider/CI step; update affected guidance.
+- [X] Add regression check, including divergent follow and locked-record cases.
+- Baseline/candidate evaluations, required claude build and pending handoff:
+  consult the tracker evidence for current commands, results and disposition.
+
+Authority, acceptance and detailed evidence live in Swan Lake ticket ZL-0016
+and docs/ZL-0016-implementation-evidence.md on its bug-tracker branch.
+No deployment, activation, secrets changes or feature publication in this stage.

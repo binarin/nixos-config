@@ -109,7 +109,7 @@ CLOSED: [2025-07-27 Sun]
    - Keep networking/firewall/network/systemd overrides for the VM.
    - Keep xray service + sops template.
 
-** TODO Regenerate flake inputs if needed
+** TODO Update flake inputs if needed
    - Edit hand-maintained =flake.nix= for dependency changes, then run
      =nix flake lock= deliberately; shared pins follow common's revision.
 

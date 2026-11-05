@@ -18,7 +18,6 @@ General
   `common/<name>`; upgrade them only by changing common's revision-qualified
   URL, never by independently pinning them here. Do not import common's modules.
 
-
 Emacs
 =====
 
