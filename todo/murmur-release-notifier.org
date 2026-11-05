@@ -1,0 +1,32 @@
+* Murmur release-notifier process accumulation
+** Plan
+- [X] Inspect live processes, cgroups, user units, and existing repo fixes.
+- [X] Extend murmur's autostart override and user-unit masking.
+- [X] Validate configuration, apply targeted live fix, verify no checkers remain.
+** Findings
+- SSH murmur reports hostname LL14R5D44; desktop user is allebedev (UID 30033).
+- Existing mask-unwanted-user-services activation masks update-notifier.service,
+  but actual desktop unit is app-update\x2dnotifier@autostart.service.
+- That unit has been running since login and spawns check-new-release-gtk every
+  ten minutes. At inspection it held 21 checker processes plus shell wrappers;
+  memory was ~800 MiB (historical peak 4.9 GiB).
+- Independent update-notifier-release.path watches
+  /var/lib/ubuntu-release-upgrader/release-upgrade-available and starts
+  update-notifier-release.service, with one further checker running.
+- Notifier logs show failed dconf writes each ten-minute cycle. No need to
+  change dconf or Ubuntu package-update policy to disable these launchers.
+- Generic home.gui already hides/skips update-notifier autostart, but murmur's
+  home module does not import home.gui, so that override does not reach it.
+** Changes and validation
+- modules/machines/murmur.nix now hides/skips the desktop autostart entry and
+  masks the actual generated unit plus release.path/release.service. Activation
+  uses mask --now to stop existing units and their accumulated children.
+- Applied targeted persistent user masks over SSH (not a full system deployment),
+  stopped both launchers, reloaded user systemd, and cleared the checker's old
+  failed state. All three units verified masked/inactive; no update-notifier or
+  check-new-release-gtk processes remained.
+- nix-instantiate --parse, nixfmt --check, git diff --check passed.
+- Evaluated murmur Home Manager autostart options and generated desktop entry:
+  Hidden=true and X-systemd-skip=true. Evaluated activation script passed bash -n.
+- Declarative desktop override will be installed on next regular deployment;
+  persistent live user-unit masks already prevent both launch paths now.

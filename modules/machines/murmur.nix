@@ -321,6 +321,11 @@ in
 
       programs.zsh.dotDir = "${config.xdg.configHome}/zsh";
 
+      # Ubuntu's desktop notifier otherwise spawns check-new-release-gtk repeatedly.
+      xdg.autostart.override."update-notifier" = {
+        hidden = true;
+        x-systemd-skip = true;
+      };
       xdg.autostart.override."epp-client".hidden = true;
       xdg.autostart.override."org.gnome.DejaDup.Monitor".hidden = true;
       xdg.autostart.override."snap-userd-autostart".hidden = true;
@@ -334,9 +339,14 @@ in
       '';
 
       home.activation.mask-unwanted-user-services = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        $DRY_RUN_CMD /usr/bin/systemctl --user mask \
+        # Stop existing instances too; masking alone leaves the notifier and its
+        # checker children running. Cover both XDG autostart and the path trigger.
+        $DRY_RUN_CMD /usr/bin/systemctl --user mask --now \
           snap.snapd-desktop-integration.snapd-desktop-integration.service \
-          update-notifier.service
+          update-notifier.service \
+          'app-update\x2dnotifier@autostart.service' \
+          update-notifier-release.path \
+          update-notifier-release.service
       '';
 
       # ~/.gitconfig is read after ~/.config/git/config, so a leftover copy
