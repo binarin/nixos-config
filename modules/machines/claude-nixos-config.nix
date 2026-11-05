@@ -41,6 +41,8 @@
 
       config = {
         networking.hostName = "claude-nixos-config";
+        networking.useNetworkd = true;
+        nixos-config.qemu-guest.proxmox.network.inventoryNetwork = "guest";
         system.stateVersion = "25.11";
         nixos-config.export-metrics.enable = false;
         impermanence.enable = true;
