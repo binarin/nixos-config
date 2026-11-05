@@ -55,7 +55,7 @@ in
         # Keep the security guard and TRAMP helper mandatory in the built source.
         patches = builtins.filter (
           patch:
-          !(builtins.elem (patch.name or (builtins.baseNameOf patch)) [
+          !(builtins.any (name: lib.hasSuffix name (patch.name or (toString patch))) [
             "CVE-2024-53920.patch"
             "backport-tramp-get-connection-local-criteria-30.patch"
           ])
