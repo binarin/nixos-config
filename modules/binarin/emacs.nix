@@ -1,6 +1,7 @@
 {
   self,
   inputs,
+  lib,
   config,
   ...
 }:
@@ -47,7 +48,7 @@ in
             };
         };
     in
-    (final.lib.genAttrs [ "emacs-git" "emacs-git-nox" "emacs-git-pgtk" ] (
+    (lib.genAttrs [ "emacs-git" "emacs-git-nox" "emacs-git-pgtk" ] (
       name:
       prev.${name}.overrideAttrs (old: {
         # These Emacs 30 backports are already in the pinned Emacs master.
