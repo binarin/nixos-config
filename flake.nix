@@ -4,12 +4,10 @@
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 
   inputs = {
-    common.url = "git+https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common?ref=swan-lake-current";
     arion = {
       url = "github:hercules-ci/arion";
       inputs = {
-        flake-file.url = "github:vic/flake-file";
-    flake-parts.follows = "flake-parts";
+        flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
       };
     };
@@ -17,13 +15,13 @@
       url = "git+https://git.clan.lol/clan/clan-core";
       inputs = {
         disko.follows = "disko";
-        flake-file.url = "github:vic/flake-file";
-    flake-parts.follows = "flake-parts";
+        flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
         sops-nix.follows = "sops-nix";
         treefmt-nix.follows = "treefmt-nix";
       };
     };
+    common.url = "git+https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common?ref=swan-lake-current";
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -31,8 +29,7 @@
     direnv-instant = {
       url = "github:Mic92/direnv-instant";
       inputs = {
-        flake-file.url = "github:vic/flake-file";
-    flake-parts.follows = "flake-parts";
+        flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
         treefmt-nix.follows = "treefmt-nix";
       };
@@ -65,8 +62,7 @@
     nix-ai-tools = {
       url = "github:numtide/llm-agents.nix";
       inputs = {
-        flake-file.url = "github:vic/flake-file";
-    flake-parts.follows = "flake-parts";
+        flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
       };
     };
@@ -102,8 +98,7 @@
     stylix = {
       url = "github:nix-community/stylix/release-26.05";
       inputs = {
-        flake-file.url = "github:vic/flake-file";
-    flake-parts.follows = "flake-parts";
+        flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
       };
     };

@@ -64,8 +64,8 @@ it through code-review yet. Unlike emacs niri awareness, its pin is owned
 by ~swan-lake-common~: ~emacs-tramp-rpc~ follows ~common/emacs-tramp-rpc~.
 
 To upgrade, first arrange the desired TRAMP RPC pin in common, then
-deliberately change common's revision-qualified URL in ~flake.nix~ to
-that common revision and run ~nix flake lock~. Never independently repin
+advance common's ~swan-lake-current~ branch and deliberately run
+~nix flake update common~ here. Never independently repin
 ~emacs-tramp-rpc~ in this configuration.
 
 * Live debugging

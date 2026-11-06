@@ -59,18 +59,18 @@ in
     (lib.genAttrs [ "emacs-git" "emacs-git-nox" "emacs-git-pgtk" ] (
       name:
       prev.${name}.overrideAttrs (old: {
-        # These Emacs 30 backports are already in the pinned Emacs master.
-        # Keep the security guard and TRAMP helper mandatory in the built source.
-        patches = builtins.filter (
-          patch:
-          !(builtins.any (name: lib.hasSuffix name (patch.name or (toString patch))) [
-            "CVE-2024-53920.patch"
-            "backport-tramp-get-connection-local-criteria-30.patch"
-          ])
-        ) old.patches;
+        # The common overlay owns patch selection. Fail if upstream equivalents regress.
         postPatch = old.postPatch + ''
-          grep -Fq "(if (or (trusted-content-p) (function-get backend 'flymake-always-safe))" lisp/progmodes/flymake.el
+          grep -Fq 'Lisp_Object css = make_formatted_string' src/image.c
+          grep -Fq 'SBYTES (css), NULL);' src/image.c
+          sed -n '/DEFUN ("intern",/,/^}/p' src/lread.c | grep -Fq 'tem = oblookup (obarray,'
+          grep -Fq "(if (fboundp 'trusted-content-p) (trusted-content-p) t)" lisp/progmodes/flymake.el
+          grep -Fq "(function-get backend 'flymake-always-safe)" lisp/progmodes/flymake.el
+          grep -Fq '(rx bos (literal (tramp-build-prefix-format)))' lisp/net/tramp.el
+          grep -Fq 'Not a valid user name:' lisp/net/tramp.el
+          grep -Fq 'Not a valid host name:' lisp/net/tramp.el
           grep -Fq '(defsubst tramp-get-connection-local-criteria (vec)' lisp/net/tramp.el
+          grep -Fq '(tramp-allow-double-percent . t)' lisp/net/tramp-archive.el
         '';
       })
     ))
