@@ -15,13 +15,16 @@
              self.images_to_write.append(pil_frame)
 --- a/imageio/plugins/pillow_legacy.py
 +++ b/imageio/plugins/pillow_legacy.py
-@@ -449,4 +449,6 @@
+@@ -449,5 +449,7 @@
          def _append_data(self, im, meta):
-+            if im.dtype.kind == "u" and im.dtype.itemsize == 2:
+-            if str(im.dtype) == "uint16" and (im.ndim == 2 or im.shape[-1] == 1):
+-                im = image_as_uint(im, bitdepth=16)
++            if im.dtype.kind == "u" and im.dtype.itemsize == 2 and (
++                im.ndim == 2 or im.shape[-1] == 1
++            ):
 +                im = im.astype(np.uint16)
-             if str(im.dtype) == "uint16" and (im.ndim == 2 or im.shape[-1] == 1):
-                 im = image_as_uint(im, bitdepth=16)
              else:
+                 im = image_as_uint(im, bitdepth=8)
 @@ -815,5 +817,10 @@
              image_shape = (arr.shape[1], arr.shape[0])
              im = Image.frombytes(mode, image_shape, array_buffer)
