@@ -173,10 +173,12 @@ in
 
           impermanence.persist-directories = [
             ".local/state/emacs-clean"
+            ".local/state/emacs-swan-lake"
           ];
 
           impermanence.local-directories = [
             ".cache/emacs-clean"
+            ".cache/emacs-swan-lake"
           ];
         }
 
