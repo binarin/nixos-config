@@ -1,0 +1,69 @@
+#+title: Forgejo runner label mismatch (native vs native:host) — idle runners
+#+filetags: :forgejo:ci:debugging:
+
+* Problem
+
+All three runners on nix-builder-valak sat idle since okt 26 20:08 while
+nix-builder-raum's two runners soaked up every job. In the admin UI the
+difference was labels: raum runners showed =native=, valak runners
+=native:host=.
+
+* Root cause
+
+Two different writers disagree on what a runner's label is:
+
+1. The *daemon* strips the =:schema= suffix when declaring itself:
+   =forgejo-runner daemon --label native:host= declares agent label
+   =native= (verified in journal: "with labels: [native] ... declared
+   successfully"). The =:host= part is only used locally to select
+   execution mode.
+
+2. The *server-side register* (=forgejo-cli actions register --labels
+   native:host=) stores the raw string =native:host= in
+   =action_runner.agent_labels= (and clears =version=).
+
+3. Scheduling matches =runs-on:= against stored labels *exactly* — all
+   workflows use =runs-on: native=, which matches =["native"]= but not
+   =["native:host"]=.
+
+** The okt 26 sequence that split the hosts
+
+- 11:36 valak boots, daemons declare =[native]= → jobs flow to valak
+  (last: task 43760 at 19:45).
+- ~19:56 forgejo host restarts; on boot the =forgejo-register-*=
+  oneshots re-run (idempotent, same UUID) and *reset all runner rows*
+  to =["native:host"]= / version null.
+- 20:10 raum reboots → daemons restart and re-declare =[native]=.
+- valak's daemons had started *before* the reset and survived the
+  outage (poll loop retried; declare only happens at daemon startup),
+  so they stayed wedged on =native:host= → zero tasks matched until
+  manually restarted nov 6.
+
+So: every forgejo-server restart resets runners to the registered
+label; only runners whose daemon restarts afterwards get fixed by
+re-declare. Register-vs-declare mismatch race.
+
+* Fixes (nov 6)
+
+1. Immediate: restarted the three daemons on valak → re-declared
+   =[native]=, jobs flow again.
+2. Proper (~modules/clan/forgejo-runner.nix~):
+   - =mkRegister= now registers name-only labels
+     (=declareLabels = map (l: head (splitString ":" l)) r.labels=),
+     matching what the daemon declares and what =runs-on:= uses. A
+     forgejo restart can no longer wedge runners.
+   - daemon units now =wants=/=after= =tailscaled.service= (forgejo
+     URL resolves via tailscale MagicDNS; at boot the first Declare
+     attempt failed on DNS and only self-healed via Restart=on-failure).
+   Deployed to forgejo, nix-builder-valak, nix-builder-raum.
+
+* Loose ends
+
+- [ ] The three daemons share =$HOME/.cache/actcache/bolt.db= (HOME is
+  =/var/lib/forgejo-runner=); at startup two of them log "Could not
+  start the cache server, cache will be disabled" (bolt single-writer).
+  Consider per-runner cache dir (=cache.dir= in runner config or
+  distinct =XDG_CACHE_HOME=).
+- [ ] =runs-on: native= vs label =native:host= default in the module
+  stays as is: daemons keep =--label native:host= (schema needed for
+  host execution); workflows stay =native=.

@@ -146,9 +146,16 @@
                   in
                   lib.nameValuePair (daemonUnitOf r.ident) {
                     description = "Forgejo Actions runner ${r.displayName}";
-                    wants = [ "network-online.target" ];
+                    # forgejo.lynx-lizard.ts.net resolves via tailscale MagicDNS,
+                    # so wait for tailscaled or the first Declare fails on DNS
+                    # (and declare only happens at daemon startup).
+                    wants = [
+                      "network-online.target"
+                      "tailscaled.service"
+                    ];
                     after = [
                       "network-online.target"
+                      "tailscaled.service"
                       "podman.socket"
                     ];
                     wantedBy = [ "multi-user.target" ];
@@ -245,13 +252,21 @@
                   r:
                   let
                     secretPath = config.clan.core.vars.generators.${r.genName}.files.secret.path;
+                    # The daemon strips the `:schema` suffix from `--label`
+                    # when declaring itself (e.g. `native:host` -> agent label
+                    # `native`), and scheduling does exact matching against
+                    # `runs-on`. Register the same name-only labels, or every
+                    # forgejo-server restart resets runners to `native:host`
+                    # and they stop matching `runs-on: native` until their
+                    # daemon happens to restart and re-declare.
+                    declareLabels = map (l: lib.head (lib.splitString ":" l)) r.labels;
                     regScript = pkgs.writeShellScript "forgejo-register-${r.ident}" ''
                       set -euo pipefail
                       exec ${forgejoServerCli}/bin/forgejo-cli actions register \
                         --secret-file "$CREDENTIALS_DIRECTORY/token" \
                         --scope ${lib.escapeShellArg settings.scope} \
                         --name ${lib.escapeShellArg r.displayName} \
-                        --labels ${lib.escapeShellArg (lib.concatStringsSep "," r.labels)}
+                        --labels ${lib.escapeShellArg (lib.concatStringsSep "," declareLabels)}
                     '';
                   in
                   lib.nameValuePair (registerUnitOf r.ident) {
