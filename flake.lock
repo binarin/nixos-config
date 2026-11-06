@@ -600,21 +600,6 @@
         "type": "github"
       }
     },
-    "flake-file": {
-      "locked": {
-        "lastModified": 1789150028,
-        "narHash": "sha256-o/o3n8+HAzFOFH83SuGW/w5J6glHtV+r8v+gJbMeoXM=",
-        "owner": "vic",
-        "repo": "flake-file",
-        "rev": "eccac77d2c2567efb6f368330930f3d55af8668a",
-        "type": "github"
-      },
-      "original": {
-        "owner": "vic",
-        "repo": "flake-file",
-        "type": "github"
-      }
-    },
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": [
@@ -1651,7 +1636,6 @@
           "emacs-tramp-rpc"
         ],
         "flake-compat": "flake-compat_2",
-        "flake-file": "flake-file",
         "flake-parts": [
           "common",
           "flake-parts"

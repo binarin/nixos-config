@@ -153,7 +153,8 @@ to disable. (Behaviour is preserved: xray-front wanted both off.)
 
 ** DONE Regenerate flake inputs if needed
    - =nixos-base= adds no new flake inputs (verified during the xray-exit
-     conversion). =nix run .#write-flake= is a no-op; confirmed not needed.
+     conversion). =nix run .#write-flake= was a no-op; confirmed not needed.
+     Historical observation: ZL-0032 removed generation; edit =flake.nix= now.
 
 ** DONE Build and validate =xray-front=
    - =nix build '.#nixosConfigurations.xray-front.config.system.build.toplevel'=

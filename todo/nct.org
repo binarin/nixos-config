@@ -282,7 +282,10 @@ From =../nix/nix-bindings-rust/flake.nix= (=config.nix-bindings-rust=):
 So with nci + the =nix-bindings-rust= flake-parts module imported, our entire
 =nixBindingsBuild= block in =modules/nct.nix= collapses to ~3 lines.
 
-** Consumption pattern in *this* repo (dendritic + flake-file)
+** Historical consumption pattern (dendritic + flake-file)
+ZL-0032 supersedes all generator instructions and wiring examples in this
+historical record: inputs are now declared directly in =flake.nix=, while
+module imports/configuration stay in =modules/nct.nix=. Do not regenerate.
 This flake is =flake-parts=-based and modules auto-discovered via
 =import-tree ./modules=. Inputs are declared per-module through
 =flake-file.inputs.<name>= (see =modules/formatter.nix=, =modules/srvos.nix=,

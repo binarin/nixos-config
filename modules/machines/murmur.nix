@@ -26,11 +26,6 @@ let
   murmurPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays murmurOverlays;
 in
 {
-  flake-file.inputs.nixgl = {
-    url = "github:nix-community/nixgl";
-    inputs.nixpkgs.follows = "nixpkgs";
-  };
-
   flake.lib.murmurPkgs = murmurPkgs;
   flake.lib.murmurOverlays = murmurOverlays;
 

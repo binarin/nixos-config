@@ -108,7 +108,7 @@ Or: set MAC with known host-id bytes directly:
 git add --intent-to-add modules/machines/<name>.nix
 ```
 
-The machine module must be known to git for nix/flake-file to discover it. `--intent-to-add` is sufficient — content sync is not required.
+The machine module must be known to git for Nix/import-tree to discover it. `--intent-to-add` is sufficient — content sync is not required.
 
 ### 4. Generate host-id
 

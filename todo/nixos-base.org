@@ -109,9 +109,9 @@ CLOSED: [2025-07-27 Sun]
    - Keep networking/firewall/network/systemd overrides for the VM.
    - Keep xray service + sops template.
 
-** TODO Regenerate flake inputs if needed
-   - Run =nix run .#write-flake= if any =flake-file.inputs= changed (likely
-     none needed since =nixos-base= adds no new inputs).
+** TODO Check flake inputs if needed
+   - Since ZL-0032, edit inputs directly in =flake.nix=; no generation step.
+     Likely none needed since =nixos-base= adds no new inputs.
 
 ** TODO Build and validate =xray-exit=
    - =nix build .#nixosConfigurations.xray-exit.config.system.build.toplevel=

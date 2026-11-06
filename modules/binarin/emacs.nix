@@ -9,14 +9,6 @@ let
   selfLib = self.lib.self;
 in
 {
-  flake-file.inputs = {
-    emacs-overlay.follows = "common/emacs-overlay";
-    emacs-tramp-rpc.follows = "common/emacs-tramp-rpc";
-
-    emacs-niri-awareness.url = "github:binarin/emacs-niri-awareness";
-    emacs-niri-awareness.flake = false;
-  };
-
   flake.overlays.my-emacs =
     final: prev:
     let

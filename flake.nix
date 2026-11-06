@@ -1,5 +1,3 @@
-# DO-NOT-EDIT. This file was auto-generated using github:denful/flake-file.
-# Use `nix run .#write-flake` to regenerate it.
 {
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 
@@ -42,7 +40,6 @@
     emacs-overlay.follows = "common/emacs-overlay";
     emacs-tramp-rpc.follows = "common/emacs-tramp-rpc";
     flake-compat.url = "github:NixOS/flake-compat";
-    flake-file.url = "github:vic/flake-file";
     flake-parts.follows = "common/flake-parts";
     home-manager.follows = "common/home-manager";
     impermanence.url = "github:nix-community/impermanence";

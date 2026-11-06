@@ -1,8 +1,5 @@
 { inputs, ... }:
 {
-  flake-file.inputs.srvos.url = "github:nix-community/srvos";
-  flake-file.inputs.srvos.inputs.nixpkgs.follows = "nixpkgs";
-
   flake.nixosModules.srvos-bits = {
     key = "nixos-config.modules.nixos.srvos-bits";
     imports = [

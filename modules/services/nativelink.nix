@@ -10,8 +10,7 @@ in
 {
   # ghcr pivot: NO flake input. The pinned upstream image is referenced directly
   # (tag+digest in ./nativelink.json), so NativeLink adds nothing to nix eval.
-  # Any prior `flake-file.inputs.nativelink` is intentionally gone; regenerate
-  # flake.nix + relock to drop `nativelink` from flake.lock.
+  # The former nativelink input has been removed from flake.nix and flake.lock.
 
   flake.nixosModules.nativelink =
     { config, pkgs, lib, ... }:

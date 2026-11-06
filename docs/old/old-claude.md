@@ -30,6 +30,10 @@ made to an existing file).
 
 ## Dendritic
 
+Historical generator instructions and template below are superseded by ZL-0032:
+inputs now live directly in hand-maintained `flake.nix`; module discovery still
+uses import-tree. Do not run the former generator or copy its declarations.
+
 This repo follows dendritic pattern: where all classes of modules for
 the same aspect live in the same file (i.e. `modules/something.nix`
 instead of `modules/{home,nixos,shared}/something.nix`). Here

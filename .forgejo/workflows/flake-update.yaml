@@ -18,8 +18,6 @@ jobs:
           git-crypt-key: ${{ secrets.GIT_CRYPT_KEY }}
       - name: Update flake inputs
         run: nix flake update
-      - name: Run autofollow
-        run: nix run .#write-flake
       - name: Format code
         run: nix fmt
       - name: Set git username for commits

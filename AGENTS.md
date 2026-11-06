@@ -13,11 +13,11 @@ General
   flake-parts modules, exporting other types of modules, such as
   nixos/home-manager/system-manager modules.
 
-- `flake.nix` is generated: edit distributed `flake-file.inputs` declarations
-  and run `nix run .#write-flake`. Nine shared dependencies follow `common/<name>`.
+- `flake.nix` is hand-maintained: edit input declarations there directly.
+  Nine shared dependencies follow `common/<name>`.
   Common tracks `swan-lake-current`; deliberately run `nix flake update common`
   to advance its reproducible lock, never independently repin those dependencies.
-  Do not import common's modules. Generation removal is a separate ZL-0032 slice.
+  Do not import common's modules.
 
 Emacs
 =====
