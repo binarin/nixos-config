@@ -7,8 +7,11 @@ import pytest
 @pytest.mark.parametrize("plugin", ["pillow", "PNG-PIL"])
 @pytest.mark.parametrize("dtype", ["<u2", ">u2"])
 @pytest.mark.parametrize("strided", [False, True])
-def test_uint16_png_values(tmp_path, plugin, dtype, strided):
-    values = np.tile([0, 1, 255, 256, 32768, 65535], (6, 1)).astype(dtype)
+@pytest.mark.parametrize(
+    "samples", [[0, 1, 255, 256, 32768, 65535], [256, 257, 1000, 4096, 32768, 32769]]
+)
+def test_uint16_png_values(tmp_path, plugin, dtype, strided, samples):
+    values = np.tile(samples, (6, 1)).astype(dtype)
     if strided:
         values = values[::-2, ::-1]
     path = tmp_path / "uint16.png"
