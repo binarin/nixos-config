@@ -1,0 +1,28 @@
+--- a/imageio/plugins/pillow.py
++++ b/imageio/plugins/pillow.py
+@@ -444,5 +444,11 @@
+         for frame in ndimage:
+-            pil_frame = Image.fromarray(frame, mode=mode)
++            if mode == "I;16" and frame.dtype.kind == "u" and frame.dtype.itemsize == 2:
++                # Pillow 13 rejects I;16 in fromarray; supply little-endian bytes.
++                pil_frame = Image.frombytes(
++                    mode, (frame.shape[1], frame.shape[0]), frame.astype("<u2").tobytes()
++                )
++            else:
++                pil_frame = Image.fromarray(frame, mode=mode)
+             if "bits" in kwargs:
+                 pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
+             self.images_to_write.append(pil_frame)
+--- a/imageio/plugins/pillow_legacy.py
++++ b/imageio/plugins/pillow_legacy.py
+@@ -815,5 +815,10 @@
+             image_shape = (arr.shape[1], arr.shape[0])
+             im = Image.frombytes(mode, image_shape, array_buffer)
+         return im
++    elif mode == "I;16" and arr.dtype.kind == "u" and arr.dtype.itemsize == 2:
++        # Keep numeric values for either input byte order, including strided views.
++        return Image.frombytes(
++            mode, (arr.shape[1], arr.shape[0]), arr.astype("<u2").tobytes()
++        )
+     else:
+         return Image.fromarray(arr, mode)

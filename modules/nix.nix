@@ -57,6 +57,7 @@ let
     self.overlays.foot-no-strip-file-url
 
     self.overlays.immich-stack
+    self.overlays.imageio-pillow
 
     self.overlays.niri
   ];
