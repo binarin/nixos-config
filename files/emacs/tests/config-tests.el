@@ -2,6 +2,16 @@
 (require 'ert)
 (require 'cl-lib)
 (require 'recentf)
+(require 'eglot)
+
+(ert-deftest config-test-eglot-action-key-is-command ()
+  (require 'b-prog-modes)
+  (let ((binding (lookup-key eglot-mode-map (kbd "<f23>"))))
+    ;; use-package can create an interactive autoload for a nonexistent command.
+    (should (symbolp binding))
+    (when (autoloadp (symbol-function binding))
+      (autoload-do-load (symbol-function binding) binding))
+    (should (commandp binding))))
 
 (ert-deftest config-test-user-emacs-directory-clean ()
   (recentf-save-list)
