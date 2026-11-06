@@ -198,7 +198,7 @@
 (use-package eglot
   :ensure nil
   :bind (:map eglot-mode-map
-	      ("<f23>" . eglot-code-actions))
+	      ("<f23>" . refactor))
   :config
   (add-to-list 'eglot-server-programs
              '((rust-ts-mode rust-mode) .
