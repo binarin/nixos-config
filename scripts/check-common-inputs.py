@@ -141,7 +141,7 @@ for output in ("nixosConfigurations", "systemConfigs", "packages"):
 assert evaluate(url, "packages") == ["aarch64-linux", "x86_64-linux"]
 # All three configured Emacs variants must retain their exact derivation inputs;
 # mandatory source/security assertions are exercised while evaluating these.
-for variant in ("emacs-git", "emacs-pgtk", "emacs-nox"):
+for variant in ("emacs-git", "emacs-git-pgtk", "emacs-git-nox"):
     output = f"configured-pkgs.x86_64-linux.nixpkgs.{variant}.drvPath"
     assert command(
         "nix", "eval", "--no-write-lock-file", "--raw", f"{url}#{output}"
