@@ -181,6 +181,7 @@
     "common": {
       "inputs": {
         "disko": "disko",
+        "emacs-overlay": "emacs-overlay",
         "emacs-tramp-rpc": "emacs-tramp-rpc",
         "flake-parts": "flake-parts",
         "home-manager": "home-manager",
@@ -190,16 +191,16 @@
         "sops-nix": "sops-nix"
       },
       "locked": {
-        "lastModified": 1793450707,
-        "narHash": "sha256-eAcAQKSP3bfd6S9QGU6VhPtmND6dGrf8HiGji86tEeM=",
-        "ref": "refs/heads/main",
-        "rev": "8ab98a22587c201047388823e92d377eb7da899b",
-        "revCount": 9,
+        "lastModified": 1793953741,
+        "narHash": "sha256-3J3w1aNEOe2ygF/CLxtrNk2d1Pl8d0FrL6P+BVd4Gmk=",
+        "ref": "swan-lake-current",
+        "rev": "3a5edaff90fd342ec8b5f4cc11817f494c62fae8",
+        "revCount": 10,
         "type": "git",
         "url": "https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common"
       },
       "original": {
-        "rev": "8ab98a22587c201047388823e92d377eb7da899b",
+        "ref": "swan-lake-current",
         "type": "git",
         "url": "https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common"
       }
@@ -401,22 +402,25 @@
     "emacs-overlay": {
       "inputs": {
         "nixpkgs": [
+          "common",
           "nixpkgs"
         ],
         "nixpkgs-stable": [
+          "common",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1789399091,
-        "narHash": "sha256-PFo12iEVo0fcgkhCNsIzeG5XEtIos1nuAlTp5Z2P7rY=",
-        "owner": "nix-community",
+        "lastModified": 1793772322,
+        "narHash": "sha256-d+8KUtXg79GqnoIGnKADaJQ4T8ZKv8mC1o2V193jwEI=",
+        "owner": "binarin",
         "repo": "emacs-overlay",
-        "rev": "de20bdb1a7ea552e925d621291423d7f2cfa8fe0",
+        "rev": "693a02e24d99e44651298d1612d64d9cd24364b7",
         "type": "github"
       },
       "original": {
-        "owner": "nix-community",
+        "owner": "binarin",
+        "ref": "swan-lake-current",
         "repo": "emacs-overlay",
         "type": "github"
       }
@@ -593,6 +597,21 @@
       "original": {
         "owner": "edolstra",
         "repo": "flake-compat",
+        "type": "github"
+      }
+    },
+    "flake-file": {
+      "locked": {
+        "lastModified": 1789150028,
+        "narHash": "sha256-o/o3n8+HAzFOFH83SuGW/w5J6glHtV+r8v+gJbMeoXM=",
+        "owner": "vic",
+        "repo": "flake-file",
+        "rev": "eccac77d2c2567efb6f368330930f3d55af8668a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vic",
+        "repo": "flake-file",
         "type": "github"
       }
     },
@@ -1623,12 +1642,16 @@
           "disko"
         ],
         "emacs-niri-awareness": "emacs-niri-awareness",
-        "emacs-overlay": "emacs-overlay",
+        "emacs-overlay": [
+          "common",
+          "emacs-overlay"
+        ],
         "emacs-tramp-rpc": [
           "common",
           "emacs-tramp-rpc"
         ],
         "flake-compat": "flake-compat_2",
+        "flake-file": "flake-file",
         "flake-parts": [
           "common",
           "flake-parts"

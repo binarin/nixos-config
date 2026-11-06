@@ -5,6 +5,19 @@ let
   # inputs.nix-bindings-rust.modules.flake.basic).
 in
 {
+  flake-file.inputs = {
+    nci = {
+      url = "github:90-008/nix-cargo-integration";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    # For the nciBuildConfig + input-propagation-workaround flake-parts module.
+    # (The Cargo crates themselves still come via the git dep in Cargo.toml.)
+    nix-bindings-rust = {
+      url = "github:nixops4/nix-bindings-rust";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
   imports = [
     inputs.nci.flakeModule
     # Makes perSystem.nix-bindings-rust.{nciBuildConfig,nixPackage} available.

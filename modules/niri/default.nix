@@ -9,6 +9,11 @@ let
   niriCargo = builtins.fromTOML (selfLib.read' "packages/niri-dynamic-keybindings/Cargo.toml");
 in
 {
+  # flake-file.inputs.niri = {
+  #   url = "github:binarin/niri?rev=${niriCargo.dependencies.niri-ipc.rev}";
+  #   inputs.nixpkgs.follows = "nixpkgs-unstable";
+  # };
+
   flake.overlays.niri =
     final: prev:
     lib.optionalAttrs (prev ? bleeding) {

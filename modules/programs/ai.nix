@@ -1,5 +1,11 @@
 { self, inputs, ... }:
 {
+  flake-file.inputs.nix-ai-tools.url = "github:numtide/llm-agents.nix";
+  flake-file.inputs.nix-ai-tools.inputs = {
+    nixpkgs.follows = "nixpkgs";
+    flake-parts.follows = "flake-parts";
+  };
+
   flake.nixosModules.ai-tools =
     { ... }:
     {

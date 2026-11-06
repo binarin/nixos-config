@@ -1,12 +1,15 @@
+# DO-NOT-EDIT. This file was auto-generated using github:denful/flake-file.
+# Use `nix run .#write-flake` to regenerate it.
 {
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 
   inputs = {
-    common.url = "git+https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common?rev=8ab98a22587c201047388823e92d377eb7da899b";
+    common.url = "git+https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common?ref=swan-lake-current";
     arion = {
       url = "github:hercules-ci/arion";
       inputs = {
-        flake-parts.follows = "flake-parts";
+        flake-file.url = "github:vic/flake-file";
+    flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
       };
     };
@@ -14,7 +17,8 @@
       url = "git+https://git.clan.lol/clan/clan-core";
       inputs = {
         disko.follows = "disko";
-        flake-parts.follows = "flake-parts";
+        flake-file.url = "github:vic/flake-file";
+    flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
         sops-nix.follows = "sops-nix";
         treefmt-nix.follows = "treefmt-nix";
@@ -27,7 +31,8 @@
     direnv-instant = {
       url = "github:Mic92/direnv-instant";
       inputs = {
-        flake-parts.follows = "flake-parts";
+        flake-file.url = "github:vic/flake-file";
+    flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
         treefmt-nix.follows = "treefmt-nix";
       };
@@ -37,15 +42,10 @@
       url = "github:binarin/emacs-niri-awareness";
       flake = false;
     };
-    emacs-overlay = {
-      url = "github:nix-community/emacs-overlay";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        nixpkgs-stable.follows = "nixpkgs";
-      };
-    };
+    emacs-overlay.follows = "common/emacs-overlay";
     emacs-tramp-rpc.follows = "common/emacs-tramp-rpc";
     flake-compat.url = "github:NixOS/flake-compat";
+    flake-file.url = "github:vic/flake-file";
     flake-parts.follows = "common/flake-parts";
     home-manager.follows = "common/home-manager";
     impermanence.url = "github:nix-community/impermanence";
@@ -65,7 +65,8 @@
     nix-ai-tools = {
       url = "github:numtide/llm-agents.nix";
       inputs = {
-        flake-parts.follows = "flake-parts";
+        flake-file.url = "github:vic/flake-file";
+    flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
       };
     };
@@ -101,7 +102,8 @@
     stylix = {
       url = "github:nix-community/stylix/release-26.05";
       inputs = {
-        flake-parts.follows = "flake-parts";
+        flake-file.url = "github:vic/flake-file";
+    flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs";
       };
     };

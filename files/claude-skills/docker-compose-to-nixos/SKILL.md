@@ -12,7 +12,7 @@ This skill converts Docker Compose configurations to NixOS modules following the
 The dendritic pattern organizes modules by **aspect** (functionality) rather than **class** (nixos/home/shared):
 - File: `modules/services/service-name.nix` (NOT `modules/nixos/services/service-name.nix`)
 - Contains both nixosModules and homeModules in the same file
-- Flake inputs are defined in hand-maintained `flake.nix`; run `nix flake lock` deliberately after edits. Shared inputs follow `common/<name>`; upgrade common’s revision, not individual shared pins.
+- Flake inputs defined in module files, materialized with `nix run '.#write-flake'`
 - Every module MUST have a unique `key` attribute for deduplication
 
 ## Conversion Workflow

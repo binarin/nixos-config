@@ -10,6 +10,12 @@ let
   inventoryHostName = "niks3";
 in
 {
+  flake-file.inputs.niks3 = {
+    url = "github:Mic92/niks3";
+    inputs.nixpkgs.follows = "nixpkgs";
+    inputs.treefmt-nix.follows = "treefmt-nix";
+  };
+
   flake.deploy.nodes.niks3 = {
     hostname = flakeConfig.inventory.ipAllocation."${inventoryHostName}".home.primary.address;
     profiles.system = {

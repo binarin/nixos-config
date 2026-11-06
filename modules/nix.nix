@@ -78,6 +78,12 @@ let
 in
 {
   config = {
+    flake-file.inputs = {
+      flake-compat = {
+        url = "github:NixOS/flake-compat";
+      };
+    };
+
     flake.lib.importNixpkgs = importNixpkgs;
 
     flake.configured-pkgs = lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (system: rec {

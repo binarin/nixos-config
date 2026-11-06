@@ -4,6 +4,10 @@
   ...
 }:
 {
+  flake-file.inputs = {
+    home-manager.follows = "common/home-manager";
+  };
+
   imports = [
     inputs.home-manager.flakeModules.home-manager
   ];

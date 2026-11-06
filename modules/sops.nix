@@ -8,6 +8,10 @@ let
   selfLib = self.lib.self;
 in
 {
+  flake-file.inputs = {
+    sops-nix.follows = "common/sops-nix";
+  };
+
   flake.nixosModules.sops =
     { config, ... }:
     {
