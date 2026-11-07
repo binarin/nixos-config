@@ -67,9 +67,10 @@ in
       })
     ))
     // {
-      my-emacs = emacsMaker final.emacs-git-nox;
-      my-emacs-nox = emacsMaker final.emacs-git-nox;
-      my-emacs-pgtk = emacsMaker final.emacs-git-pgtk;
+      # Match common's own config: released Emacs from the shared unstable pin.
+      my-emacs = emacsMaker final.bleeding.emacs-nox;
+      my-emacs-nox = emacsMaker final.bleeding.emacs-nox;
+      my-emacs-pgtk = emacsMaker final.bleeding.emacs-pgtk;
       tramp-rpc-server = final.callPackage "${inputs.emacs-tramp-rpc}/default.nix" { };
     };
 
@@ -143,7 +144,7 @@ in
             enable = lib.mkForce false;
             package = lib.mkOverride 90 (
               pkgs.my-emacs.override {
-                emacsBasePackage = pkgs.emacs-git-nox.override {
+                emacsBasePackage = pkgs.bleeding.emacs-nox.override {
                   withNS = false;
                   withX = false;
                   withGTK3 = false;
@@ -164,10 +165,12 @@ in
 
           impermanence.persist-directories = [
             ".local/state/emacs-clean"
+            ".local/state/emacs-swan-lake"
           ];
 
           impermanence.local-directories = [
             ".cache/emacs-clean"
+            ".cache/emacs-swan-lake"
           ];
         }
 
@@ -185,7 +188,7 @@ in
 
           programs.emacs.package = lib.mkForce (
             pkgs.my-emacs.override {
-              emacsBasePackage = pkgs.emacs-git-pgtk;
+              emacsBasePackage = pkgs.bleeding.emacs-pgtk;
               extraPackages = with pkgs; [
                 direnv
                 sicstus-manual
