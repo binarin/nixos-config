@@ -191,18 +191,18 @@
         "sops-nix": "sops-nix"
       },
       "locked": {
-        "lastModified": 1794060663,
-        "narHash": "sha256-zfRildj7IVNdjqGWIAvtRMXt55wHVclF/tp8RBOiCHk=",
+        "lastModified": 1794074991,
+        "narHash": "sha256-/MjtCKlQ5A9McT3cmYLyweS/YbNc1jnO16X2Xu+aY+w=",
         "owner": "binarin",
         "repo": "swan-lake-common",
-        "rev": "f36929047199583134488e25f4e598f9ff1e5674",
+        "rev": "7f811bcbdd6e0d25339a41c76ae5a7b454072694",
         "type": "github"
       },
       "original": {
-        "type": "github",
         "owner": "binarin",
+        "ref": "swan-lake-current",
         "repo": "swan-lake-common",
-        "ref": "swan-lake-current"
+        "type": "github"
       }
     },
     "crane": {
