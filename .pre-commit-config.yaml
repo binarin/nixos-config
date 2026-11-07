@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: common-pin-policy
+        name: canonical promoted common pin
+        language: system
+        entry: nix run .#check-common-pin --
+        pass_filenames: false
+        always_run: true

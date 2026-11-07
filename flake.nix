@@ -19,7 +19,8 @@
         treefmt-nix.follows = "treefmt-nix";
       };
     };
-    common.url = "git+https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common?ref=swan-lake-current";
+    # Temporary paired pin; finalize to GitHub swan-lake-current after promotion.
+    common.url = "git+https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common?ref=zl-0036-common-workflow";
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -1,0 +1,15 @@
+name: Common pin
+on:
+  push:
+    branches: [master, zl-0036-common-workflow]
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  common-pin-policy:
+    name: common-pin-policy
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - run: nix run .#check-common-pin

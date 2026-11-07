@@ -148,6 +148,12 @@
 
     in
     {
+      packages.common-workflow = inputs.common.packages.${system}.common-workflow;
+      apps.check-common-pin = {
+        type = "app";
+        meta.description = "Require the canonical promoted common pin";
+        program = "${self'.packages.common-workflow}/bin/check-common-pin";
+      };
       packages.ncf = ncf;
       packages.monitoring = monitoring;
       packages.env-aware-nix-run = env-aware-nix-run;
@@ -252,6 +258,8 @@
           with pkgs;
           [
             self'.formatter
+            self'.packages.common-workflow
+            pre-commit
             rsync
             s3cmd
             just

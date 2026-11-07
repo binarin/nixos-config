@@ -191,16 +191,16 @@
         "sops-nix": "sops-nix"
       },
       "locked": {
-        "lastModified": 1793953741,
-        "narHash": "sha256-3J3w1aNEOe2ygF/CLxtrNk2d1Pl8d0FrL6P+BVd4Gmk=",
-        "ref": "swan-lake-current",
-        "rev": "3a5edaff90fd342ec8b5f4cc11817f494c62fae8",
-        "revCount": 10,
+        "lastModified": 1794060013,
+        "narHash": "sha256-VFgmdbi7AdNAAkQCr1dz4h53O6eyQV2oEkesGLsChKw=",
+        "ref": "zl-0036-common-workflow",
+        "rev": "d9f1bd95a4ae4c98549f7c539bdc6f52932b5aa3",
+        "revCount": 13,
         "type": "git",
         "url": "https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common"
       },
       "original": {
-        "ref": "swan-lake-current",
+        "ref": "zl-0036-common-workflow",
         "type": "git",
         "url": "https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common"
       }
