@@ -26,8 +26,10 @@ If you need to make emacs-related changes, read ./docs/EMACS.org
 Allowed modifications
 =====================
 
-~AGENTS.md~ and files in ./docs are off limits, only humans can change
-them.
+All files, including this `AGENTS.md` and files in `./docs`, may be changed
+when an authorised task needs it. Keep such edits minimal and in the same
+reviewable commit or MR as the work that requires them; the human reviews
+them like any other change.
 
 Planning and progress tracking
 ==============================
