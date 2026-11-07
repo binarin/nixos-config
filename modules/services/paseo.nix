@@ -6,16 +6,26 @@
 #     (repo convention), with a module key.
 #   - dropped the `services.paseo.allowedHosts` rename shim (no legacy users
 #     here).
+#   - the access password is mandatory. Clan machines use the
+#     `paseo-auth` clan var; plain machines fall back to the legacy sops
+#     setup (`paseo-auth.password` in the machine's default sops file).
 {
   flake.nixosModules.paseo =
     {
       config,
       lib,
+      options,
       pkgs,
+      specialArgs,
       ...
     }:
     let
       cfg = config.services.paseo;
+      isClan = specialArgs ? clan-core;
+      hasSops = options ? sops;
+      machineName =
+        if isClan then config.clan.core.settings.machine.name else config.networking.hostName;
+      clanEnvironmentVar = "vars/per-machine/${machineName}/paseo-auth/env";
     in
     {
       key = "nixos-config.modules.nixos.paseo";
@@ -219,6 +229,25 @@
                 services.paseo.relay.host must be set when relay.mode = "remote".
               '';
             }
+          ]
+          ++ lib.optionals isClan [
+            {
+              assertion = lib.hasAttr clanEnvironmentVar config.sops.secrets;
+              message = ''
+                services.paseo requires the generated `paseo-auth` clan var.
+                Run: clan vars generate ${machineName} --generator paseo-auth
+              '';
+            }
+          ]
+          ++ lib.optionals (!isClan) [
+            {
+              assertion = hasSops;
+              message = ''
+                services.paseo on a non-Clan machine requires the legacy sops
+                setup: add `paseo-auth.password` to the machine's default sops
+                file (secrets/${machineName}/secrets.yaml).
+              '';
+            }
           ];
 
           users.users.${cfg.user} = lib.mkIf (cfg.user == "paseo") {
@@ -304,12 +333,56 @@
               # Graceful shutdown (server handles SIGTERM with a 10s timeout)
               KillSignal = "SIGTERM";
               TimeoutStopSec = 15;
+            }
+            // lib.optionalAttrs (isClan || hasSops) {
+              # Paseo only accepts the password as a plain environment value and
+              # bcrypt-hashes it on startup. Clan vars and sops both provide an
+              # env-file form so systemd sees it before exec (a preStart hook
+              # would be too late for EnvironmentFile).
+              EnvironmentFile = [
+                (if isClan then
+                  config.clan.core.vars.generators.paseo-auth.files.env.path
+                else
+                  config.sops.templates."paseo-env".path)
+              ];
             };
           };
 
           environment.systemPackages = [ cfg.package ];
 
           networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];
+        }
+        // lib.optionalAttrs isClan {
+          clan.core.vars.generators.paseo-auth = {
+            files = {
+              # The readable copy is for operators (`clan vars get`, or reading
+              # the deployed secret) — the service itself only consumes `env`.
+              password = {
+                owner = cfg.user;
+                group = cfg.group;
+                mode = "0400";
+                restartUnits = [ "paseo.service" ];
+              };
+              env = {
+                restartUnits = [ "paseo.service" ];
+              };
+            };
+            runtimeInputs = [ pkgs.openssl ];
+            script = ''
+              password=$(openssl rand -base64 24 | tr -d '\n' | tr '+/' '-_')
+              printf '%s' "$password" > "$out/password"
+              printf 'PASEO_PASSWORD=%s\n' "$password" > "$out/env"
+            '';
+          };
+        }
+        // lib.optionalAttrs (!isClan && hasSops) {
+          sops.secrets."paseo-auth/password" = {
+            restartUnits = [ "paseo.service" ];
+          };
+          sops.templates."paseo-env" = {
+            content = "PASEO_PASSWORD=${config.sops.placeholder."paseo-auth/password"}";
+            restartUnits = [ "paseo.service" ];
+          };
         }
       );
     };

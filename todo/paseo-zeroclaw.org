@@ -35,11 +35,23 @@ temporarily keep the old =npmDepsHash=, build
 =nix build .#packages.x86_64-linux.paseo= and replace it with the
 "got:" hash from the fixed-output-derivation mismatch error.
 
-* Open questions
-- Web UI auth: the daemon serves the UI unauthenticated until a password
-  is set at runtime (=paseo daemon set-password= as binarin on zeroclaw,
-  state lives in PASEO_HOME). =services.paseo.settings.auth= would be the
-  declarative path if we want it in sops eventually.
+* Web UI auth via mandatory clan vars (2026-11-07)
+- =services.paseo= now declares a =paseo-auth= clan var generator whenever
+  it is enabled. Files: =password= (operator-readable copy) and =env=
+  (=PASEO_PASSWORD=...=, consumed by systemd =EnvironmentFile=).
+- The daemon reads =PASEO_PASSWORD= and bcrypt-hashes it at startup, so the
+  clan var holds plaintext and never needs a precomputed hash.
+- Enabling =services.paseo= on a machine without clan now fails the module
+  assertion, as does enabling it before the var has been generated.
+  Generate with: =clan vars generate <machine> --generator paseo-auth=
+  The generator makes a random 32-char URL-safe password; override a chosen
+  one with: =printf '%s' 'the-password' | clan vars set <machine> paseo-auth/password=
+- Generated and committed for =zeroclaw=.
+- Non-clan paseo installations use the legacy sops fallback: the module
+  declares =sops.secrets."paseo-auth/password"= from the machine's default
+  sops file (nested YAML key =paseo-auth.password=) and renders it into a
+  =paseo-env= template. =claude-nixos-config= uses this path; its secret was
+  added to =secrets/claude-nixos-config/secrets.yaml=.
 
 * binarin primary group (2026-10-16)
 Clan's =users= service only sets =isNormalUser= true, which defaults the
@@ -61,6 +73,6 @@ ownership ever bothers you.
 - =hostnames = [ "zeroclaw.lynx-lizard.ts.net" ]= lets the serve Host
   header past DNS-rebinding protection (verified locally: allowed Host ->
   200 HTML, other Host -> 403).
-- Password/auth for the web UI is managed via =paseo daemon set-password=
-  (runtime state in PASEO_HOME), not declaratively; =services.paseo.settings=
-  would be the declarative path if we ever need config.json managed.
+- Web UI auth is now declarative and mandatory: clan var =paseo-auth= on
+  clan machines, legacy sops =paseo-auth/password= elsewhere; see the
+  "Web UI auth via mandatory clan vars" section above.
