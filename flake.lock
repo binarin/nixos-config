@@ -193,16 +193,16 @@
       "locked": {
         "lastModified": 1794060663,
         "narHash": "sha256-zfRildj7IVNdjqGWIAvtRMXt55wHVclF/tp8RBOiCHk=",
-        "ref": "zl-0036-common-workflow",
+        "owner": "binarin",
+        "repo": "swan-lake-common",
         "rev": "f36929047199583134488e25f4e598f9ff1e5674",
-        "revCount": 15,
-        "type": "git",
-        "url": "https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common"
+        "type": "github"
       },
       "original": {
-        "ref": "zl-0036-common-workflow",
-        "type": "git",
-        "url": "https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common"
+        "type": "github",
+        "owner": "binarin",
+        "repo": "swan-lake-common",
+        "ref": "swan-lake-current"
       }
     },
     "crane": {

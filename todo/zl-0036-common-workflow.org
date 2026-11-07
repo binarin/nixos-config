@@ -4,8 +4,9 @@ Consume common's workflow package (no common modules), add independent pin CI
 and an opt-in pre-commit hook. Existing builds and scheduled updater stay intact.
 Operator runbook: swan-lake-common/docs/common-workflow.md.
 ** Implementation
-- Paired temporary Forgejo pin to zl-0036-common-workflow; must be finalized to
-  github:binarin/swan-lake-common/swan-lake-current after human promotion.
+- Paired Forgejo pin finalized after verified human merge/promotion to
+  github:binarin/swan-lake-common/swan-lake-current. Finalizer verified unchanged
+  common revision/NAR hash and dependency graph.
 - Tools and pre-commit in developer shell; nix run .#check-common-pin for policy.
 - Install convenience hook using pre-commit install (no --overwrite; preserve
   existing hook). Temporary pins require explicit SKIP=common-pin-policy.
@@ -13,4 +14,5 @@ Operator runbook: swan-lake-common/docs/common-workflow.md.
   status on master. Policy failure does not prevent existing build jobs running.
 ** Validation
 Implementation checks and delivery receipts are recorded in the shared tracker
-ZL-0036. Human merge/promotion and required-status verification remain outstanding.
+ZL-0036. Human common merge/promotion is verified. Consumer merge, renewed CI
+and administrator required-status verification remain outstanding.

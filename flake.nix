@@ -19,8 +19,8 @@
         treefmt-nix.follows = "treefmt-nix";
       };
     };
-    # Temporary paired pin; finalize to GitHub swan-lake-current after promotion.
-    common.url = "git+https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common?ref=zl-0036-common-workflow";
+    # Canonical promoted common input; deliberate upgrades use nix flake update common.
+    common.url = "github:binarin/swan-lake-common/swan-lake-current";
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
