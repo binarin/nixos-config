@@ -17,7 +17,6 @@ General
   Nine shared dependencies follow `common/<name>`.
   Common tracks `swan-lake-current`; deliberately run `nix flake update common`
   to advance its reproducible lock, never independently repin those dependencies.
-  Do not import common's modules.
 
 Emacs
 =====
