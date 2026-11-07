@@ -185,6 +185,21 @@ in
     {
       key = "nixos-config.modules.home.furfur-binarin";
 
+      imports = [ inputs.common.homeModules.remote-session-launchers ];
+
+      programs.remoteSessionLaunchers = {
+        enable = true;
+        uwsm.enable = true;
+        tags.dev.background = "001800";
+        items.zwaansnavel-herdr = {
+          name = "zwaansnavel (herdr)";
+          host = "zwaansnavel";
+          protocol = "ssh";
+          remote.herdr = { };
+          tag = "dev";
+        };
+      };
+
       home.sessionVariables.CHROME_PROXY = "socks5://localhost:3128";
 
       binarin-ssh.viaMurmur = true;
