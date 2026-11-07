@@ -6,7 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-BASE = "6994784dd1c09f9ceb5791f870dfcd8af9b8dae0"
+BASE = "7ee6f952265b27693402d98af45fe0c9485d6ecb"
 COMMON = "3a5edaff90fd342ec8b5f4cc11817f494c62fae8"
 SHARED = "nixpkgs nixpkgs-unstable flake-parts import-tree disko home-manager sops-nix emacs-tramp-rpc emacs-overlay".split()
 
@@ -139,10 +139,12 @@ def evaluate(flake, output):
 for output in ("nixosConfigurations", "systemConfigs", "packages"):
     assert evaluate(url, output) == evaluate(old_url, output), output
 assert evaluate(url, "packages") == ["aarch64-linux", "x86_64-linux"]
-# All three configured Emacs variants must retain their exact derivation inputs;
-# mandatory source/security assertions are exercised while evaluating these.
-for variant in ("emacs-git", "emacs-git-pgtk", "emacs-git-nox"):
-    output = f"configured-pkgs.x86_64-linux.nixpkgs.{variant}.drvPath"
+# Retain both the guarded git variants and the release bases now used by wrappers.
+for package_set, variant in (
+    *(("nixpkgs", name) for name in ("emacs-git", "emacs-git-pgtk", "emacs-git-nox")),
+    *(("nixpkgs-unstable", name) for name in ("emacs-nox", "emacs-pgtk")),
+):
+    output = f"configured-pkgs.x86_64-linux.{package_set}.{variant}.drvPath"
     assert command(
         "nix", "eval", "--no-write-lock-file", "--raw", f"{url}#{output}"
     ) == command(
