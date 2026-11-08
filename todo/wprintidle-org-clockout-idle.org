@@ -1,0 +1,37 @@
+#+title: wprintidle seat-idle detection for org-clock-out — fixed
+#+filetags: :emacs:done:
+
+* Problem
+
+`org-clock-auto-clockout` (10 min idle -> clock out) relied on
+advising `org-user-idle-seconds' with seat-level idle from
+wprintidle-c, but the integration never worked: the advice always
+returned nil and org silently fell back to Emacs-only idle.
+
+* Root cause (found 2026-11-08, live-debugged on furfur)
+
+- wprintidle-c-daemon = single-shot protocol: replies once to
+  QUERY_SECONDS and immediately closes the connection.
+- `b/wayland-idle-seconds' only parsed the response buffer when
+  `(process-live-p proc)' was non-nil.  By the time
+  `accept-process-output' returns, the EOF is already processed, so
+  the process is `closed' and the valid reply in the buffer was
+  discarded -> nil, deterministically (5/5 probes).
+- Confirmed against the live daemon: connect from emacs worked, buffer
+  contained e.g. "1\n", status was `closed'.
+
+* Fix
+
+- files/emacs/user-lisp/b-wprintidle.el: parse the buffer regardless
+  of process liveness; bounded (~0.5s) retry loop until some output
+  arrived.
+- Regression test `b-org-test-wayland-idle-seconds-fake-daemon' in
+  files/emacs/tests/config-tests.el spins up a fake single-shot unix
+  socket daemon and checks the reply gets through.  Verified it fails
+  on the old implementation.
+
+* Live deployment
+
+- Recompiled user-lisp/b-wprintidle.elc and reloaded in the running
+  emacs; `org-user-idle-seconds' now returns seat-level idle (0.0
+  while active).

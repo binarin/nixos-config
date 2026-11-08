@@ -188,3 +188,45 @@ last close must quit)."
   "Non-numeric / empty input returns nil."
   (should (equal nil (b/parse-wprintidle-response "")))
   (should (equal nil (b/parse-wprintidle-response "garbage\n"))))
+
+(ert-deftest b-org-test-wayland-idle-seconds-fake-daemon ()
+  "b/wayland-idle-seconds returns the daemon's reply.
+
+Mimics wprintidle-c-daemon behavior: accepts a connection, replies
+to QUERY_SECONDS with a single line, and immediately closes the
+connection.  Regression test: the reply used to be discarded when
+the connection was already closed by the time `accept-process-output'
+returned, so seat-level idle was never reported."
+  (skip-unless (featurep 'make-network-process '(:family local)))
+  (let* ((runtime-dir (make-temp-file "wprintidle-ert-" t))
+         (sock (expand-file-name "wprintidle-c.sock" runtime-dir))
+         (process-environment
+          (cons (concat "XDG_RUNTIME_DIR=" runtime-dir)
+                process-environment))
+         (queries nil)
+         (server
+          (make-network-process
+           :name "wprintidle-ert-server"
+           :server t
+           :family 'local
+           :service sock
+           :noquery t
+           :sentinel
+           (lambda (proc _event)
+             (when (and (process-live-p proc)
+                        (not (process-contact proc :server)))
+               (set-process-filter
+                proc
+                (lambda (p s)
+                  (push s queries)
+                  ;; Reply once and close the connection, like
+                  ;; wprintidle-c-daemon does.
+                  (process-send-string p "42\n")
+                  (delete-process p))))))))
+    (unwind-protect
+        (progn
+          (should (equal 42.0 (b/wayland-idle-seconds)))
+          (should (equal "QUERY_SECONDS\n" (string-join queries))))
+      (when (process-live-p server)
+        (delete-process server))
+      (delete-directory runtime-dir :recursive))))

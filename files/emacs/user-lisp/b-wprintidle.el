@@ -50,13 +50,20 @@ Never signals."
                        :noquery t
                        :sentinel (lambda (_p _e))))
                 (process-send-string proc "QUERY_SECONDS\n")
-                ;; Wait up to ~0.1s for the response line.
+                ;; Wait up to ~0.5s for the response line.  The
+                ;; daemon responds exactly once and then closes the
+                ;; connection, so parse the buffer regardless of
+                ;; process liveness - by the time output is read the
+                ;; process is usually already `closed'.
                 (with-local-quit
-                  (accept-process-output proc 0.1))
-                (when (process-live-p proc)
-                  (with-current-buffer buf
-                    (b/parse-wprintidle-response
-                     (buffer-string)))))
+                  (let ((deadline (+ (float-time) 0.5)))
+                    (while (and (zerop (buffer-size buf))
+                                (process-live-p proc)
+                                (< (float-time) deadline))
+                      (accept-process-output proc 0.1))))
+                (with-current-buffer buf
+                  (b/parse-wprintidle-response
+                   (buffer-string))))
             ;; Any error (connection refused, etc.) -> nil.
             (error nil))
         (when (and proc (process-live-p proc))
