@@ -66,6 +66,43 @@ so the script/wg-quick backend would have to be forced anyway.
 
 * Name resolution for the trappist service names
 
+** Current (2026-11-09): names moved to sops, served by a private dnsmasq
+
+The two current names were approved for plaintext (and are in history via
+d1e6c24d - that is fine), but the mechanism should support names that must
+not be public, so all trappist names now go through sops. The =hosts= option
+and =networking.hosts= are gone. Now:
+
+- sops keys =trappist_hosts= (hosts(5) lines) and =trappist_dns_domain= (zone);
+- =sops.templates."trappist.dns-delegate"= renders
+  =/run/systemd/dns-delegate.d/trappist.dns-delegate= (resolved >= 258) routing
+  =~<zone>= to =127.0.0.153= (option =dnsListenAddress=); restarts resolved on change;
+- =trappist-dns.service=: standalone dnsmasq (DynamicUser, CAP_NET_BIND_SERVICE,
+  =no-resolv=, =no-hosts=), hosts file via =LoadCredential= from the sops
+  secret; restarted on secret change.
+
+Not NM's dnsmasq backend, so resolved/tailscale stay as they are (see the
+rejected option below). Failure mode: if sops fails, /etc/hosts is untouched;
+only trappist names stop resolving. Unknown names in the zone get REFUSED
+(no =local=/zone/= on purpose - that would put the zone into the store).
+
+Verified: furfur toplevel builds, =dnsmasq --test= OK, the same config run
+unprivileged on a high port answers from addn-hosts. Switched and validated
+on furfur (2026-11-09): =resolvectl status= shows "Delegate trappist" -> 127.0.0.153,
+=~<zone>=, Default Route: no; dnsmasq reads 2 names from the credential; both
+names resolve via resolvectl and getent, HTTPS to both answers 302; unknown
+names in the zone -> REFUSED; tailnet (=*.ts.net=) and public names unaffected;
+/etc/hosts has no trappist entries; with trappist-dns stopped only trappist
+names fail.
+
+Values were added with =sops set= only (no decrypt round-trip). To add a
+name later: =sops set secrets/furfur/secrets.yaml '["trappist_hosts"]' '"..."'=
+with the full hosts(5) content (it replaces the value).
+
+The paragraphs below describe the previous plaintext setup.
+
+** Previous: plaintext =networking.hosts=
+
 The trappist network runs no resolver and routes nothing but the single peer
 address to us, so names have to be local. Two names were explicitly cleared for
 plaintext use in the repo:
@@ -85,6 +122,30 @@ peer. Revisit only if the trappist side starts serving DNS *and* widens our
 profile would replace the hosts entry. Everything else (private key, our
 address, peer key, endpoint, peer AllowedIPs) stays sops-only - do not add it
 here.
+
+** Considered and rejected: NM dnsmasq backend + =hostsdir= + dispatcher
+
+=networking.networkmanager.dns = "dnsmasq"= with a
+=/etc/NetworkManager/dnsmasq.d/*.conf= setting =hostsdir=/run/nm-hosts.d=, a
+tmpfiles dir, and a =dispatcherScripts= hook that drops a hosts file on
+trappist up/down. Mechanically sound (NM 1.56 reads =dnsmasq.d= snippets;
+dnsmasq 2.93 =hostsdir= is inotify-watched, so no reload is needed;
+=CONNECTION_ID= is exported to dispatchers, and nixpkgs itself points at
+=hostsdir= for dynamic host entries).
+
+Rejected on furfur: this box runs =networking.networkmanager.dns =
+"systemd-resolved"=, =/etc/resolv.conf= is the resolved stub, and tailscale owns
+MagicDNS through resolved (=100.100.100.100= on =tailscale0=, =CorpDNS= on).
+Switching NM to its own dnsmasq would replace that resolver stack and has to be
+re-wired for tailnet names - disproportionate for two static names that are
+already allowed in plaintext.
+
+If hidden names ever come back, prefer option "sops template owns /etc/hosts"
+(no resolver involvement). If this dnsmasq route is taken after all, mind: a
+minimal PATH in dispatcher scripts (use =${pkgs.coreutils}/bin/...=), and the fact
+that dispatchers only fire on transitions - a secret regenerated while the
+connection is already up would not refresh the hosts file, so it also needs an
+idempotent at-boot path (e.g. a unit ordered after NetworkManager).
 
 * TODO Follow-ups
 
