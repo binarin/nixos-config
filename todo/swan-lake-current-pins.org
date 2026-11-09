@@ -24,7 +24,9 @@ zwanenzang -> common link, then the common pin in nixos-config.
 2. In common: =nix flake update zwanenzang=, verify, commit, push master,
    fast-forward =swan-lake-current= to it.
 3. In nixos-config: =nix flake update common=, verify, commit, push.
-4. Leave swan-lake and all fork branches untouched.
+4. All fork branches stay untouched.
+5. Follow-up (same session, operator approved): bump the common pin in
+   swan-lake as well.
 
 * Progress
 ** Aborted first attempt (superseded)
@@ -56,8 +58,14 @@ zwanenzang -> common link, then the common pin in nixos-config.
   diff is exactly the common node plus common/zwanenzang (7421b3f).
   =nix eval .#nixosConfigurations.furfur.config.system.build.toplevel.drvPath=
   evaluates (/nix/store/lqq647r3fd47...-nixos-system-furfur-26.05.20261029.6f06d20.drv).
+- nixos-config commits c5a05067 "bump common" and 2ce77ef0 "todo: record
+  zwanenzang/common pin refresh" pushed to master.
+- swan-lake master 7d259de: =nix flake update common= -> common 34aff73 to
+  ccc54a7, plus common/zwanenzang 65597b7 -> 7421b3f. The gap also adds
+  common's llm-agents subtree (llm-agents 0538a75, bun2nix 07a5bfc,
+  systems d36eeed, treefmt-nix 0d6d739); no other nodes moved.
+  =nix flake check --no-build= passed and =nix build .#secretctl --no-link=
+  succeeded (CI commands).
 
 ** Pending
-- Commit/push nixos-config (flake.lock + this note).
-- swan-lake intentionally not updated (operator scoped the consumer bump to
-  nixos-config only).
+- Commit/push swan-lake (flake.lock) and nixos-config (this note).
