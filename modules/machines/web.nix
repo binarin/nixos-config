@@ -26,7 +26,7 @@ in
     imports = [
       self.nixosModules.web-configuration
     ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   clan.inventory.instances.acme = {
@@ -53,7 +53,7 @@ in
 
   # flake.nixosConfigurations.web = lib.mkForce (
   #   inputs.nixpkgs.lib.nixosSystem {
-  #     pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+  #     pkgs = self.lib.nixpkgs;
   #     specialArgs = {
   #       inventoryHostName = "web";
   #     };

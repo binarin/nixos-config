@@ -17,7 +17,7 @@ in
         networking.hostName = "furfur";
       }
     ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   flake.nixosModules.furfur-configuration =

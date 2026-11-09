@@ -1,0 +1,47 @@
+#+title: One nixpkgs evaluation, shared with common
+
+* Goal (2026-11-09)
+Stop evaluating/configure nixpkgs in nixos-config: reuse common's
+=configured-pkgs= and append only this repo's overlays.
+
+* What was done
+common (=b7684e8=):
+- generate =configured-pkgs= for =aarch64-linux= as well (nixos-config
+  publishes flake packages for both systems),
+- add =nixpkgs-unstable-cuda= (llm-runner's CUDA stack),
+- move =oraclejdk.accept_license= and the version-pinned
+  =permittedInsecurePackages= into the shared nixpkgs config, so reused sets
+  keep the same packages.
+
+nixos-config:
+- =modules/nix.nix=: =nixpkgsConfig=, =importNixpkgs=, =flake.configured-pkgs=
+  and =flake.lib.importNixpkgs= are gone. =flake.lib.pkgsFor system= is
+  common's set + =nixosOverlays= + the =bleeding= / =trezor-agent= /
+  =bleeding-cuda= aliases; =flake.lib.nixpkgs= is the x86_64-linux one.
+  =perSystem= uses it.
+- machines, =templates/clan-machine.nix=, =clan.pkgsForSystem= and deploy use
+  =self.lib.nixpkgs= / =self.lib.pkgsFor=. The =nixpkgs.pkgs= pinning and
+  =readOnlyPkgs= stay, so the shared-evaluation guarantees do not change.
+- bubuntu (=murmur=) got the same missing =local-checkout-links= fix bentos
+  needed: common's home module is in its =home-manager.sharedModules=.
+
+* Verification
+- Verified with the final lock (=github b7684e8=; the same was checked earlier
+  with a =git+file= override): derivation paths of the sampled configurations
+  (furfur, media, llm-runner, xray-exit, zeroclaw), both =systemConfigs= and
+  eight packages for x86_64-linux and aarch64-linux are identical to the
+  pre-change snapshots: the shared evaluation yields the same package sets as
+  the old local one.
+- All 26 =nixosConfigurations= evaluate; murmur evaluates again.
+- =nix flake check --no-build= passes for x86_64-linux.
+- =--all-systems= still fails on a pre-existing issue: =modules/devshell.nix=
+  uses =inputs.common.packages.${system}.common-workflow= and common has no
+  aarch64 packages. Not caused by this change.
+
+* Landed
+- common =b7684e8= is promoted to =swan-lake-current= and this repo's =common=
+  input is locked to it.
+
+* Pending
+- =scripts/check-common-inputs.py= (historical ZL-0016 regression) still
+  reads =configured-pkgs.x86_64-linux...=; it is not wired to CI.

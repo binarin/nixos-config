@@ -24,7 +24,7 @@ in
     imports = [
       self.nixosModules.mail-configuration
     ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   flake.nixosConfigurations.mail = lib.mkForce (

@@ -17,7 +17,7 @@ in
   clan = {
     meta.name = "binarin-nixos-config";
     meta.domain = "clan.binarin.info";
-    pkgsForSystem = system: self.configured-pkgs."${system}".nixpkgs;
+    pkgsForSystem = system: self.lib.pkgsFor system;
   };
 
   flake.nixosModules.clan-tailscale =

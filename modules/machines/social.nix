@@ -26,7 +26,7 @@ in
     imports = [
       self.nixosModules.social-configuration
     ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   clan.inventory.instances.acme = {

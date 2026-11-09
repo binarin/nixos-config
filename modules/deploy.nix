@@ -8,7 +8,7 @@ let
   self = inputs.self;
   system = "x86_64-linux";
 
-  deployPkgs = self.configured-pkgs."${system}".nixpkgs;
+  deployPkgs = self.lib.pkgsFor system;
 
 in
 {
@@ -38,7 +38,7 @@ in
       perSystem =
         { system, ... }:
         {
-          checks = self.configured-pkgs."${system}".nixpkgs.deploy-rs.lib.deployChecks self.deploy;
+          checks = self.lib.pkgsFor system.deploy-rs.lib.deployChecks self.deploy;
         };
     };
   };

@@ -7,19 +7,12 @@
 }:
 let
   flakeConfig = config;
-  nixpkgsConfig = {
-    allowUnfree = true;
-    oraclejdk.accept_license = true;
-    permittedInsecurePackages = [
-      "qtwebengine-5.15.19"
-      "python3.12-ecdsa-0.19.1"
-      "python3.13-ecdsa-0.19.1"
-      "olm-3.2.16"
-      "immich-2.7.5"
-    ];
-  };
 
-  defaultOverlays = [
+  # Repo-specific overlays, applied on top of the nixpkgs evaluation shared via
+  # common (its modules/nixpkgs.nix owns the nixpkgs config, the Emacs and
+  # zwanenzang overlays, and llm-agents on nixpkgs-unstable). Reusing that
+  # evaluation instead of importing nixpkgs again keeps one instance per system.
+  nixosOverlays = [
     inputs.deploy-rs.overlays.default
 
     inputs.emacs-overlay.overlays.default
@@ -61,70 +54,35 @@ let
     self.overlays.niri
   ];
 
-  # llm-agents is developed against nixpkgs-unstable (common pins
-  # `llm-agents.inputs.nixpkgs.follows = "nixpkgs-unstable"`). Its
-  # shared-nixpkgs overlay evaluates the packages against the consumer's set,
-  # so only apply it to the unstable sets; the stable set re-exports the result
-  # (see `llm-agents` below) instead of re-evaluating it against itself.
-  llmAgentsOverlay = inputs.common.inputs.llm-agents.overlays.shared-nixpkgs;
-
-  importNixpkgs =
-    {
-      input,
-      system,
-      extraOverlays ? [ ],
-      extraConfig ? { },
-    }:
-    import input {
-      inherit system;
-      config = nixpkgsConfig // extraConfig;
-      overlays = extraOverlays ++ defaultOverlays;
-    };
-
 in
 {
   config = {
-    flake.lib.importNixpkgs = importNixpkgs;
-
-    flake.configured-pkgs = lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (system: rec {
-      nixpkgs-unstable = importNixpkgs {
-        inherit system;
-        input = inputs.nixpkgs-unstable;
-        extraOverlays = [ llmAgentsOverlay ];
-      };
-
-      nixpkgs-unstable-cuda = importNixpkgs {
-        inherit system;
-        input = inputs.nixpkgs-unstable;
-        extraOverlays = [ llmAgentsOverlay ];
-        extraConfig.cudaSupport = true;
-      };
-
-      nixpkgs = importNixpkgs {
-        inherit system;
-        input = inputs.nixpkgs;
-        extraOverlays = [
-          (final: _prev: {
-            bleeding = nixpkgs-unstable;
-            trezor-agent = nixpkgs-unstable.trezor-agent;
-            bleeding-cuda = nixpkgs-unstable-cuda;
-            # llm-agents is developed against nixpkgs-unstable (common pins
-            # `llm-agents.inputs.nixpkgs.follows = "nixpkgs-unstable"`): its
-            # packages need unstable-only pieces such as the
-            # `installAgentSkills` setup hook and zig 0.17. Re-evaluating the
-            # overlay against this stable set leaves those packages unable to
-            # evaluate, so re-export the set that was built against unstable.
-            llm-agents = nixpkgs-unstable.llm-agents;
+    # Package sets: common evaluates nixpkgs, this repo only appends its
+    # overlays and the `bleeding` aliases. Per system because flake outputs are
+    # generated for x86_64-linux and aarch64-linux.
+    flake.lib.pkgsFor =
+      system:
+      let
+        common = inputs.common.configured-pkgs.${system};
+        unstable = common.nixpkgs-unstable.appendOverlays nixosOverlays;
+      in
+      common.nixpkgs.appendOverlays (
+        nixosOverlays
+        ++ [
+          (_final: _prev: {
+            bleeding = unstable;
+            trezor-agent = unstable.trezor-agent;
+            bleeding-cuda = common.nixpkgs-unstable-cuda.appendOverlays nixosOverlays;
           })
-        ];
-      };
+        ]
+      );
 
-    });
+    flake.lib.nixpkgs = self.lib.pkgsFor "x86_64-linux";
 
     perSystem =
       { system, ... }:
       {
-        _module.args.pkgs = self.configured-pkgs."${system}".nixpkgs;
+        _module.args.pkgs = self.lib.pkgsFor system;
       };
 
     # The `nix` module is backend-neutral. The access-token *secret backend* is

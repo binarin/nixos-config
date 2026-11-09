@@ -24,7 +24,7 @@ in
 
   clan.machines.xray-exit = {
     imports = [ self.nixosModules.xray-exit-configuration ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   flake.nixosConfigurations.xray-exit = lib.mkForce (

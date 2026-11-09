@@ -1,0 +1,37 @@
+#+title: b-db-k home.localCheckoutLinks + dropping b-db2-k
+
+* Symptom (2026-11-09)
+Evaluating =.#systemConfigs.b-db-k.drvPath= failed:
+
+#+begin_example
+error: The option `home-manager.users.allebedev.home.localCheckoutLinks' does not exist.
+Definition values: ... In .../modules/home-manager.nix, via option flake.homeModules.home-misc
+#+end_example
+
+* Why
+- =home-misc= (and =ai-tools=) set =home.localCheckoutLinks.*=, but the option
+  is declared by =inputs.common.homeModules.local-checkout-links=.
+- The regular NixOS home-manager wiring (=modules/home-manager.nix=) adds that
+  module to =home-manager.sharedModules=.
+- b-db-k runs via system-manager on a non-NixOS host and has its own
+  home-manager block in =modules/machines/b-dev-kvm.nix=, which only listed
+  =self.homeModules.home-misc=.
+
+* What was done
+- b-dev-kvm.nix: =home-manager.sharedModules= now lists
+  =inputs.common.homeModules.local-checkout-links= before =home-misc=, same as
+  the NixOS machines.
+- murmur.nix (bubuntu) had the same bug after the common bump and got the same
+  =sharedModules= entry.
+- Dropped the duplicate =b-db2-k= config: it was the exact same
+  =makeBDevKvmSystemConfig= closure, only the deploy hostname differed. Removed
+  =flake.systemConfigs.b-db2-k= and =flake.deploy.nodes.b-db2-k=. The
+  =db2.k.b= SSH host entry in =modules/binarin/ssh.nix= stays (the host still
+  exists, it just isn't deployed from this repo).
+
+* Verified
+- =nix eval .#systemConfigs.b-db-k.drvPath= and =...murmur.drvPath= →
+  =system-manager.drv=.
+- =.#systemConfigs= is now =[b-db-k, murmur]=; =.#deploy.nodes= no longer has
+  =b-db2-k=.
+- =nixfmt --check modules/machines/b-dev-kvm.nix= passes.

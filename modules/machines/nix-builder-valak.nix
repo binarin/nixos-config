@@ -27,7 +27,7 @@ in
     imports = [
       self.nixosModules.nix-builder-valak-configuration
     ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   clan.inventory.instances.forgejo-runner.roles.runner.machines.nix-builder-valak.settings = {

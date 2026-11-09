@@ -26,7 +26,7 @@ in
     imports = [
       self.nixosModules.docker-on-nixos-configuration
     ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   flake.nixosConfigurations.docker-on-nixos = lib.mkForce (

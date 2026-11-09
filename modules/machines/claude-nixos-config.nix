@@ -10,7 +10,7 @@
   };
 
   flake.nixosConfigurations.claude-nixos-config = inputs.nixpkgs.lib.nixosSystem {
-    pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    pkgs = self.lib.nixpkgs;
     # system = "x86_64-linux";
     specialArgs = {
       inventoryHostName = "claude-nixos-config";

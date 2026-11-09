@@ -15,7 +15,7 @@ let
       system-manager-src = inputs.system-manager;
     }).makeSystemConfig;
 
-  bDevKvmPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays [
+  bDevKvmPkgs = self.lib.nixpkgs.appendOverlays [
     inputs.system-manager.overlays.default
   ];
   bDevKvmSystemModules = [
@@ -77,7 +77,10 @@ let
 
       home-manager.useGlobalPkgs = true;
       home-manager.backupFileExtension = "backup";
-      home-manager.sharedModules = [ self.homeModules.home-misc ];
+      home-manager.sharedModules = [
+        inputs.common.homeModules.local-checkout-links
+        self.homeModules.home-misc
+      ];
       home-manager.extraSpecialArgs = {
         self'.packages = self.packages.x86_64-linux;
         inputs' = lib.mapAttrs (_: i: {
@@ -96,23 +99,12 @@ in
 {
   flake.systemConfigs.b-db-k = makeBDevKvmSystemConfig;
 
-  flake.systemConfigs.b-db2-k = makeBDevKvmSystemConfig;
-
   flake.deploy.nodes.b-db-k = {
     hostname = "db.k.b";
     sshUser = "allebedev";
     profiles.system = {
       user = "root";
       path = self.lib.deploy-system-manager self.systemConfigs.b-db-k;
-    };
-  };
-
-  flake.deploy.nodes.b-db2-k = {
-    hostname = "db2.k.b";
-    sshUser = "allebedev";
-    profiles.system = {
-      user = "root";
-      path = self.lib.deploy-system-manager self.systemConfigs.b-db2-k;
     };
   };
 

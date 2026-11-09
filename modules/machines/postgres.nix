@@ -82,7 +82,7 @@ in
     imports = [
       self.nixosModules.postgres-configuration
     ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   flake.nixosConfigurations.postgres = lib.mkForce (

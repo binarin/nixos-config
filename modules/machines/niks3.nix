@@ -32,7 +32,7 @@ in
     imports = [
       self.nixosModules.niks3-configuration
     ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   flake.nixosModules.niks3-configuration =

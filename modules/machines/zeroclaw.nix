@@ -24,7 +24,7 @@ in
 
   clan.machines.zeroclaw = {
     imports = [ self.nixosModules.zeroclaw-configuration ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   flake.nixosConfigurations.zeroclaw = lib.mkForce (

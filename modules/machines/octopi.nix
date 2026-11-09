@@ -14,7 +14,7 @@
   # };
 
   # flake.nixosConfigurations.octopi = inputs.nixos-raspberrypi.lib.nixosSystem {
-  #   pkgs = self.configured-pkgs.aarch64-linux.nixpkgs;
+  #   pkgs = self.lib.pkgsFor "aarch64-linux";
   #   specialArgs = {
   #     nixos-raspberrypi = inputs.nixos-raspberrypi;
   #     inventoryHostName = "octopi";

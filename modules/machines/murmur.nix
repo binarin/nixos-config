@@ -23,7 +23,7 @@ let
       '';
     })
   ];
-  murmurPkgs = self.configured-pkgs.x86_64-linux.nixpkgs.appendOverlays murmurOverlays;
+  murmurPkgs = self.lib.nixpkgs.appendOverlays murmurOverlays;
 in
 {
   flake.lib.murmurPkgs = murmurPkgs;
@@ -173,6 +173,7 @@ in
         home-manager.useGlobalPkgs = true;
         home-manager.backupFileExtension = "backup";
         home-manager.sharedModules = [
+          inputs.common.homeModules.local-checkout-links
           self.homeModules.home-misc
         ];
         home-manager.extraSpecialArgs = {

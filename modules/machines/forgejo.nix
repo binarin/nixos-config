@@ -25,7 +25,7 @@ in
     imports = [
       self.nixosModules.forgejo-configuration
     ];
-    nixpkgs.pkgs = self.configured-pkgs.x86_64-linux.nixpkgs;
+    nixpkgs.pkgs = self.lib.nixpkgs;
   };
 
   clan.inventory.instances.forgejo-runner = {
