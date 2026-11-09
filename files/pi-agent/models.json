@@ -1,60 +1,50 @@
 {
-    "providers": {
-        "aperture-a": {
-            "baseUrl": "http://aperture.lynx-lizard.ts.net",
-            "api": "anthropic-messages",
-            "apiKey": "none",
-            "models": [
-                {
-                    "id": "deepseek/deepseek-v4-flash"
-                },
-                {
-                    "id": "deepseek/deepseek-v4-pro",
-                    "contextWindow": 1048567,
-                },
-                {
-                    "id": "z-ai-coding-plan/glm-5.2",
-                    "contextWindow": 1048567,
-                },
-                {
-                    "id": "z-ai-coding-plan/glm-5.3",
-                    "contextWindow": 1048567,
-                    "thinking": { "type": "enabled" },
-                    "reasoning_effort": "low"
-                }
-            ]
+  "$schema": "https://pi.dev/schemas/models.schema.json",
+  "providers": {
+    "aperture-anthropic": {
+      "baseUrl": "https://aperture.lynx-lizard.ts.net",
+      "api": "anthropic-messages",
+      "apiKey": "not-required",
+      "models": [
+        {
+          "id": "glm-5.2",
+          "cost": {"input": 0.006, "output": 6.8, "cacheRead": 0.005, "cacheWrite": 0.006},
+          "contextWindow": 1048576,
+          "maxTokens": 131072
         },
-        "aperture-o": {
-            "baseUrl": "http://aperture.lynx-lizard.ts.net/v1",
-            "api": "openai-completions",
-            "apiKey": "none",
-            "models": [
-                {
-                    "id": "gemini/gemini-2.5-flash"
-                },
-                {
-                    "id": "gemini/gemini-2.5-pro"
-                },
-                {
-                    "id": "gemini/gemini-3.1-flash-lite"
-                },
-                {
-                    "id": "gemini/gemini-3.1-pro-preview"
-                },
-                {
-                    "id": "geminin/gemini-3.5-flash"
-                },
-                {
-                    "id": "llm-runner/qwen3.6-27b-mtp"
-                },
-                {
-                    "id": "deepseek-o/deepseek-v4-flash"
-                },
-                {
-                    "id": "deepseek-o/deepseek-v4-pro",
-                    "contextWindow": 1048567,
-                },
-            ]
+        {
+          "id": "glm-5.3",
+          "cost": {"input": 0.0699, "output": 1.4, "cacheRead": 0.0689, "cacheWrite": 0.0699},
+          "contextWindow": 1048576,
+          "maxTokens": 131072
         }
+      ]
+    },
+    "aperture-completions": {
+      "baseUrl": "https://aperture.lynx-lizard.ts.net/v1",
+      "api": "openai-completions",
+      "apiKey": "not-required",
+      "models": [
+        {
+          "id": "deepseek-v4-pro",
+          "cost": {"input": 0.689214, "output": 1.378428, "cacheRead": 0.0574345, "cacheWrite": 0.689214},
+          "contextWindow": 1048576,
+          "maxTokens": 384000
+        },
+        {
+          "id": "deepseek-v4-flash",
+          "cost": {"input": 0.091, "output": 0.182, "cacheRead": 0.0182, "cacheWrite": 0.091},
+          "contextWindow": 1048576,
+          "maxTokens": 943717
+        },
+        {
+          "id": "qwen3.6-27b-mtp",
+          "input": ["text", "image"],
+          "cost": {"input": 0.45, "output": 2.7, "cacheRead": 0.45, "cacheWrite": 0.45},
+          "contextWindow": 262144,
+          "maxTokens": 65536
+        }
+      ]
     }
+  }
 }
