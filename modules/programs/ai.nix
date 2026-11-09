@@ -40,14 +40,24 @@
           # claude-code-router
         ]);
 
-      home.file.".claude/skills/".source =
-        config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/claude-skills";
-
-      home.file.".pi/agent/models.json".source =
-        config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/pi-agent/models.json";
-
-      home.file.".pi/agent/keybindings.json".source =
-        config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/pi-agent/keybindings.json";
+      home.localCheckoutLinks.files = {
+        ".claude/skills" = {
+          checkout = "nixos-config";
+          source = "files/claude-skills";
+          fallback = self.lib.self.dir "claude-skills";
+          type = "directory";
+        };
+        ".pi/agent/models.json" = {
+          checkout = "nixos-config";
+          source = "files/pi-agent/models.json";
+          fallback = self.lib.self.file "pi-agent/models.json";
+        };
+        ".pi/agent/keybindings.json" = {
+          checkout = "nixos-config";
+          source = "files/pi-agent/keybindings.json";
+          fallback = self.lib.self.file "pi-agent/keybindings.json";
+        };
+      };
 
       home.sessionVariables = {
         # PI_CODING_AGENT_DIR = "${config.home.homeDirectory}/personal-workspace/my-pi/.pi/agent";

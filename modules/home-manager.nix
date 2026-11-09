@@ -22,6 +22,7 @@
 
       config = {
         home-manager.sharedModules = [
+          inputs.common.homeModules.local-checkout-links
           self.homeModules.home-misc
         ];
         home-manager.extraSpecialArgs = specialArgs // {
@@ -33,11 +34,12 @@
     };
 
   flake.homeModules.home-misc =
-    { lib, ... }:
+    { config, lib, ... }:
     {
       key = "nixos-config.modules.home.home-misc";
 
       config = {
+        home.localCheckoutLinks.checkouts.nixos-config = lib.mkDefault "${config.home.homeDirectory}/personal-workspace/swan-lake-umbrella/nixos-config";
         news.display = "silent";
         xdg.userDirs.setSessionVariables = false; # 26.05 default
         home.keyboard = lib.mkDefault null;

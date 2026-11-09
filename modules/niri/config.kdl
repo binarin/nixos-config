@@ -430,7 +430,7 @@ binds {
   Ctrl+Shift+Alt+Super+T { spawn "b-emacsclient" "--eval" "(b/full-frame-org-capture 't)"; }
   Ctrl+Shift+Alt+Super+Z { spawn "b-emacsclient" "--eval" "(b/full-frame-org-note-on-running-clock)"; }
 
-  // Ctrl+Shift+Alt+Super+P { spawn-sh "~/personal-workspace/nixos-config/scripts/org-capture-clipboard.sh"; }
+  // Ctrl+Shift+Alt+Super+P { spawn-sh "~/personal-workspace/swan-lake-umbrella/nixos-config/scripts/org-capture-clipboard.sh"; }
   // Ctrl+Shift+Alt+Super+E { spawn-sh "emacsclient --eval '(thanos/type)'"; }
   // Ctrl+Shift+Alt+Super+T { spawn-sh "emacsclient --eval '(binarin/new-vterm-frame)'"; }
 

@@ -27,7 +27,7 @@ systemd-nspawn \
   --bind-ro=/nix/var/nix/daemon-socket \
   --bind="$profile:/nix/var/nix/profiles" \
   --bind="$gcroots:/nix/var/nix/gcroots" \
-  --bind="/home/binarin/personal-workspace/nixos-config" \
+  --bind="/home/binarin/personal-workspace/swan-lake-umbrella/nixos-config" \
   --bind="/home/binarin/.claude" \
   --bind="/home/binarin/.claude.json" \
   $config/init

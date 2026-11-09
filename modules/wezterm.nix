@@ -29,7 +29,7 @@ in
           enableZshIntegration = true;
         };
 
-        # xdg.configFile."wezterm/wezterm.lua".source = lib.mkForce (config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/files/wezterm.lua");
+        # xdg.configFile."wezterm/wezterm.lua".source = lib.mkForce (config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/swan-lake-umbrella/nixos-config/files/wezterm.lua");
         xdg.configFile."wezterm/wezterm.lua".source = lib.mkForce (selfLib.file "wezterm.lua");
         xdg.configFile."wezterm/stylix-vars.lua".source = propagatedConfig;
 

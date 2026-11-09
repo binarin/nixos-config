@@ -18,7 +18,7 @@ in
 
       programs.nh = {
         enable = true;
-        flake = "${config.users.users.binarin.home}/personal-workspace/nixos-config";
+        flake = "${config.users.users.binarin.home}/personal-workspace/swan-lake-umbrella/nixos-config";
       };
 
       programs.direnv.enableZshIntegration = lib.mkForce false;

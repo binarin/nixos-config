@@ -110,21 +110,25 @@ in
           self.packages."${pkgs.stdenv.hostPlatform.system}".sshmenu
         ];
 
-        # xdg.configFile."niri/config.kdl".source =
-        #   config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/personal-workspace/nixos-config/modules/niri/config.kdl";
+        home.localCheckoutLinks.files =
+          lib.genAttrs'
+            [
+              "config.kdl"
+              "dynamic-outputs.kdl"
+            ]
+            (
+              niri_cfg:
+              lib.nameValuePair
+                "${lib.removePrefix "${config.home.homeDirectory}/" config.xdg.configHome}/niri/${niri_cfg}"
+                {
+                  checkout = "nixos-config";
+                  source = "modules/niri/${niri_cfg}";
+                  fallback = selfLib.file' "modules/niri/${niri_cfg}";
+                }
+            );
 
-        xdg.configFile."niri/config.kdl".source = selfLib.file' "modules/niri/config.kdl";
-        xdg.configFile."niri/dynamic-outputs.kdl".source = selfLib.file' "modules/niri/dynamic-outputs.kdl";
-
-        home.activation.niri-config-materialize = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-          run touch ~/.config/niri/dynamic-binds.kdl
-          if [[ -d $HOME/personal-workspace/nixos-config ]]; then
-            for niri_cfg in config.kdl dynamic-outputs.kdl; do
-              if [[ -L $HOME/.config/niri/$niri_cfg ]]; then
-                run ln -sf $HOME/personal-workspace/nixos-config/modules/niri/$niri_cfg $HOME/.config/niri/$niri_cfg
-              fi
-            done
-          fi
+        home.activation.niri-config-materialize = lib.hm.dag.entryAfter [ "reconcileLocalCheckoutLinks" ] ''
+          run touch ${config.xdg.configHome}/niri/dynamic-binds.kdl
         '';
 
         # KDE's kbuildsycoca needs an applications.menu to index .desktop files.
