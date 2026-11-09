@@ -66,6 +66,26 @@ zwanenzang -> common link, then the common pin in nixos-config.
   systems d36eeed, treefmt-nix 0d6d739); no other nodes moved.
   =nix flake check --no-build= passed and =nix build .#secretctl --no-link=
   succeeded (CI commands).
+- swan-lake commit 765d283 "bump common" pushed; nixos-config commit
+  0e48fa29 (this note) pushed.
+
+** Operator script
+- Added =swan-lake-common/scripts/relock-chain.py= (common master 0ffc6b2):
+  walks zwanenzang -> common -> swan-lake / nixos-config, fetch+ff each
+  master, relocks the upstream pin, verifies with =nix flake check
+  --no-build=, commits flake.lock, pushes master, promotes
+  =swan-lake-current= and waits for the GitHub mirror before relocking
+  consumers. It refuses dirty/ahead/detached checkouts, non-canonical
+  consumer declarations, mismatched locked revisions and non-fast-forward
+  promotions; it never force-pushes. =--dry-run= prints the plan, an
+  idempotent rerun is a no-op.
+- =swan-lake-common/scripts/test-relock-chain.py= covers it with four
+  throwaway git+file repos and local bare origins: bump propagation,
+  promotion, idempotent rerun, dirty-checkout abort.
+- Verified the real chain with =--dry-run= and a live no-op run (all pins
+  already current; no commits). common master now has the script while
+  =swan-lake-current= deliberately stays at the promoted pin ccc54a7, so
+  consumers are not re-pinned for a tooling-only change.
 
 ** Pending
-- Commit/push swan-lake (flake.lock) and nixos-config (this note).
+- None; swan-lake-current promotion of 0ffc6b2 is left to the operator.
