@@ -1,0 +1,98 @@
+#+TITLE: WireGuard link into the trappist network on furfur
+
+* Goal
+
+furfur needs a client link into the trappist WireGuard network so the internal
+Grafana and Wazuh instances there are reachable.
+
+The reference profile was handed over out of band. Its values (our private key,
+our tunnel address, MTU, peer public key, endpoint, peer AllowedIPs, keepalive)
+are *not* recorded in this document or anywhere else in the tree: they live
+only in =secrets/furfur/secrets.yaml= (sops-encrypted). Do not paste them into
+todos, commit messages or module defaults.
+
+* Implementation
+
+** Module: =modules/wireguard-trappist.nix= (=nixos-config.wireguard-trappist=)
+
+Enabled only on furfur for now (one line in =modules/machines/furfur.nix=).
+The module declares five sops secrets and feeds them to
+=networking.networkmanager.ensureProfiles=:
+
+| sops key                      | used as                       |
+|-------------------------------+-------------------------------|
+| =trappist_wg_private_key=     | =[wireguard] private-key=     |
+| =trappist_wg_address=         | =[ipv4] address1=             |
+| =trappist_wg_peer_public_key= | =[wireguard-peer.<key>]= name |
+| =trappist_wg_endpoint=        | peer =endpoint=               |
+| =trappist_wg_allowed_ips=     | peer =allowed-ips=            |
+
+The values reach the profile through =sops.templates."networkmanager-trappist-env-file"=
+plus the stock =NetworkManager-ensure-profiles.service=, which runs =envsubst=
+over the generated keyfile and then =nmcli connection reload=. Because =envsubst=
+does plain text substitution, it also fills in the *section header*
+(=[wireguard-peer.$TRAPPIST_WG_PEER_PUBLIC_KEY]=), which is what makes a
+fully-sops-backed WireGuard profile possible without a custom unit.
+
+MTU and keepalive are non-sensitive knobs and stay as module options
+(=mtu=, =persistentKeepalive=); interface name is =trappist=, NM autoconnect,
+IPv6 disabled on the link.
+
+** Why NetworkManager and not =networking.wireguard=
+
+The nixpkgs modules are there (=services/networking/wireguard.nix= +
+=wireguard-networkd.nix=, and =networking.wireguard.useNetworkd= can force the
+wg-quick backend on this pin), but their =ips= / =peers= / =endpoint= are static
+evaluation-time values: using them would put the trappist topology back into
+git. Hence the NM profile, whose every sensitive field is substituted at
+activation time.
+
+Also relevant: with =networking.useNetworkd = true= (srvos + clan) the networkd
+backend is selected by default on furfur, and that path currently dies with
+"=systemd.network.networks.*.dhcpConfig= has been removed" on this nixpkgs pin,
+so the script/wg-quick backend would have to be forced anyway.
+
+* Verification (2026-11-09)
+
+- manual throwaway interface with the real key: handshake OK, peer reachable,
+  expected ports open;
+- =nixos-rebuild switch --flake .#furfur= applied the profile;
+- =sudo wg show trappist=: handshake, endpoint and =allowed ips= as expected;
+- both trappist web services answer over the tunnel (302 to their login page);
+- both names resolve through =/etc/hosts= to the peer address (shared line, so
+  =getent= reports the first name as canonical - harmless for HTTPS access);
+- =/run/NetworkManager/system-connections/trappist.nmconnection= is rendered
+  with the secrets substituted.
+
+* Name resolution for the trappist service names
+
+The trappist network runs no resolver and routes nothing but the single peer
+address to us, so names have to be local. Two names were explicitly cleared for
+plaintext use in the repo:
+
+#+begin_src
+  # in modules/wireguard-trappist.nix (option `hosts`, default)
+  10.111.0.11 grafana.trappist.internal wazuh.trappist.internal
+#+end_src
+
+They are applied through =networking.hosts=, which is where they belong: the
+option is evaluation-time, the values are allowed to be public, and the static
+=environment.etc.hosts= path stays untouched. Probing showed there is no DNS to
+lean on instead: no listener on 10.111.0.11 =:53/853/5335/5353=, the endpoint's
+:53 is filtered, and the hub does not route anything except 10.111.0.11 to this
+peer. Revisit only if the trappist side starts serving DNS *and* widens our
+=AllowedIPs=; then =ipv4.dns= / =ipv4.dns-search= in the same sops-driven NM
+profile would replace the hosts entry. Everything else (private key, our
+address, peer key, endpoint, peer AllowedIPs) stays sops-only - do not add it
+here.
+
+* TODO Follow-ups
+
+- The plaintext key at =/persist/home/binarin/.config/forcode/trappist-private.key=
+  is no longer needed by NixOS (the key now lives in sops); it can be removed
+  once nothing else reads it. The matching public key is already registered on
+  the server side.
+- Rotating a secret in place does not restart
+  =NetworkManager-ensure-profiles.service= (its script embeds the template path,
+  not the secret content), so after a rotation run
+  =sudo systemctl restart NetworkManager-ensure-profiles= (or reboot).

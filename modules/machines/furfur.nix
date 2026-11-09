@@ -39,6 +39,7 @@ in
 
         self.nixosModules.systemd-boot
         self.nixosModules.tailscale
+        self.nixosModules.wireguard-trappist
         self.nixosModules.impure-nix-setup
 
         self.nixosModules.microsoft-surface
@@ -57,6 +58,7 @@ in
       hardware.i2c.enable = true;
 
       services.avahi.enable = true;
+      nixos-config.wireguard-trappist.enable = true;
       nixos-config.export-metrics.enable = true;
       home-manager.users.binarin = self.homeModules.furfur-binarin;
 
