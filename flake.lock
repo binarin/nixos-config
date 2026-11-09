@@ -181,6 +181,7 @@
     "common": {
       "inputs": {
         "disko": "disko",
+        "emacs-niri-awareness": "emacs-niri-awareness",
         "emacs-overlay": "emacs-overlay",
         "emacs-tramp-rpc": "emacs-tramp-rpc",
         "flake-parts": "flake-parts",
@@ -188,14 +189,15 @@
         "import-tree": "import-tree",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "sops-nix": "sops-nix"
+        "sops-nix": "sops-nix",
+        "zwanenzang": "zwanenzang"
       },
       "locked": {
-        "lastModified": 1794074991,
-        "narHash": "sha256-/MjtCKlQ5A9McT3cmYLyweS/YbNc1jnO16X2Xu+aY+w=",
+        "lastModified": 1794169576,
+        "narHash": "sha256-cbVXIZDqDOmHBBS+T53BCfJH6f6z0uBBNUUf8Tgp+eI=",
         "owner": "binarin",
         "repo": "swan-lake-common",
-        "rev": "7f811bcbdd6e0d25339a41c76ae5a7b454072694",
+        "rev": "34aff73a1b85cfbb2cb7f6acc879b28dc729cd09",
         "type": "github"
       },
       "original": {
@@ -1626,7 +1628,6 @@
           "common",
           "disko"
         ],
-        "emacs-niri-awareness": "emacs-niri-awareness",
         "emacs-overlay": [
           "common",
           "emacs-overlay"
@@ -2189,6 +2190,39 @@
         "owner": "devrintalen",
         "repo": "wprintidle-c",
         "type": "github"
+      }
+    },
+    "zwanenzang": {
+      "inputs": {
+        "flake-parts": [
+          "common",
+          "flake-parts"
+        ],
+        "import-tree": [
+          "common",
+          "import-tree"
+        ],
+        "nixpkgs": [
+          "common",
+          "nixpkgs"
+        ],
+        "nixpkgs-unstable": [
+          "common",
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794163834,
+        "narHash": "sha256-wPkCLK0d4DRtioRJol3UGeJ47agfTwgZDXJK1rWYUKE=",
+        "ref": "refs/heads/master",
+        "rev": "65597b7c15c5560379ba75451d70cf36a7ad79f3",
+        "revCount": 77,
+        "type": "git",
+        "url": "https://forgejo.lynx-lizard.ts.net/binarin/zwanenzang"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://forgejo.lynx-lizard.ts.net/binarin/zwanenzang"
       }
     }
   },

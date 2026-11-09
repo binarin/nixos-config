@@ -34,10 +34,6 @@
       };
     };
     disko.follows = "common/disko";
-    emacs-niri-awareness = {
-      url = "github:binarin/emacs-niri-awareness";
-      flake = false;
-    };
     emacs-overlay.follows = "common/emacs-overlay";
     emacs-tramp-rpc.follows = "common/emacs-tramp-rpc";
     flake-compat.url = "github:NixOS/flake-compat";
