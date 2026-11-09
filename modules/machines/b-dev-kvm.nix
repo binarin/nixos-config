@@ -187,7 +187,7 @@ in
       nixpkgs.overlays = [
         inputs.emacs-overlay.overlays.default
         self.overlays.my-emacs
-        inputs.nix-ai-tools.overlays.shared-nixpkgs
+        inputs.common.inputs.llm-agents.overlays.shared-nixpkgs
         self.overlays.pi-with-extensions
       ];
 

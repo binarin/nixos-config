@@ -111,19 +111,23 @@
     "bun2nix": {
       "inputs": {
         "flake-parts": [
-          "nix-ai-tools",
+          "common",
+          "llm-agents",
           "flake-parts"
         ],
         "nixpkgs": [
-          "nix-ai-tools",
+          "common",
+          "llm-agents",
           "nixpkgs"
         ],
         "systems": [
-          "nix-ai-tools",
+          "common",
+          "llm-agents",
           "systems"
         ],
         "treefmt-nix": [
-          "nix-ai-tools",
+          "common",
+          "llm-agents",
           "treefmt-nix"
         ]
       },
@@ -187,17 +191,18 @@
         "flake-parts": "flake-parts",
         "home-manager": "home-manager",
         "import-tree": "import-tree",
+        "llm-agents": "llm-agents",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "sops-nix": "sops-nix",
         "zwanenzang": "zwanenzang"
       },
       "locked": {
-        "lastModified": 1794226624,
-        "narHash": "sha256-kHqUDVU/MSnAVKnro12lwf5kveDIpwHXGqi3E2Ed030=",
+        "lastModified": 1794232243,
+        "narHash": "sha256-UFlSDVnYv8fZxhCKdP3kkFUiAxUA2V27siWNwtfIvxs=",
         "owner": "binarin",
         "repo": "swan-lake-common",
-        "rev": "bf1415e17ac8c45e3a5111331e449a8203ae45e9",
+        "rev": "6981f0ca530506dbff396c34a878ae34cd917372",
         "type": "github"
       },
       "original": {
@@ -903,6 +908,35 @@
         "type": "github"
       }
     },
+    "llm-agents": {
+      "inputs": {
+        "bun2nix": "bun2nix",
+        "flake-parts": [
+          "common",
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "common",
+          "nixpkgs-unstable"
+        ],
+        "systems": "systems_2",
+        "treefmt-nix": "treefmt-nix"
+      },
+      "locked": {
+        "lastModified": 1794229407,
+        "narHash": "sha256-4L7pYuOdzzV5VgDBwZGYA6L4qs+S7/QcVKeBS9fIPZA=",
+        "owner": "binarin",
+        "repo": "llm-agents.nix",
+        "rev": "0538a7598ce7eb1f80619bb93f613ed664d33510",
+        "type": "github"
+      },
+      "original": {
+        "owner": "binarin",
+        "ref": "swan-lake-current",
+        "repo": "llm-agents.nix",
+        "type": "github"
+      }
+    },
     "mk-naked-shell": {
       "flake": false,
       "locked": {
@@ -1007,32 +1041,6 @@
       "original": {
         "owner": "NixOS",
         "repo": "nix",
-        "type": "github"
-      }
-    },
-    "nix-ai-tools": {
-      "inputs": {
-        "bun2nix": "bun2nix",
-        "flake-parts": [
-          "flake-parts"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "systems": "systems_3",
-        "treefmt-nix": "treefmt-nix"
-      },
-      "locked": {
-        "lastModified": 1792658527,
-        "narHash": "sha256-h7osOr5BBm0QlPHbJ0+weyQnOdXbO1oMTAa1d9iSCQc=",
-        "owner": "numtide",
-        "repo": "llm-agents.nix",
-        "rev": "1584582de5ae46adfc985c21107bdd28a6f2c3b0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "llm-agents.nix",
         "type": "github"
       }
     },
@@ -1653,7 +1661,6 @@
         "lan-mouse": "lan-mouse",
         "nci": "nci",
         "niks3": "niks3",
-        "nix-ai-tools": "nix-ai-tools",
         "nix-bindings-rust": "nix-bindings-rust",
         "nix-index-database": "nix-index-database",
         "nixgl": "nixgl",
@@ -1910,11 +1917,11 @@
     },
     "systems_2": {
       "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "lastModified": 1791244623,
+        "narHash": "sha256-uuanbkFk8a313Zfrxdcz8Us/yQtaxNnKJtX8v0ZPpd8=",
         "owner": "nix-systems",
         "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "rev": "d36eeed142f88b5a636f2e3856a53c61654cf29b",
         "type": "github"
       },
       "original": {
@@ -1925,11 +1932,11 @@
     },
     "systems_3": {
       "locked": {
-        "lastModified": 1791244623,
-        "narHash": "sha256-uuanbkFk8a313Zfrxdcz8Us/yQtaxNnKJtX8v0ZPpd8=",
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
         "owner": "nix-systems",
         "repo": "default",
-        "rev": "d36eeed142f88b5a636f2e3856a53c61654cf29b",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
         "type": "github"
       },
       "original": {
@@ -2071,7 +2078,8 @@
     "treefmt-nix": {
       "inputs": {
         "nixpkgs": [
-          "nix-ai-tools",
+          "common",
+          "llm-agents",
           "nixpkgs"
         ]
       },
@@ -2160,7 +2168,7 @@
     },
     "utils": {
       "inputs": {
-        "systems": "systems_2"
+        "systems": "systems_3"
       },
       "locked": {
         "lastModified": 1731533236,

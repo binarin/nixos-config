@@ -1,0 +1,55 @@
+#+title: llm-agents must be evaluated against nixpkgs-unstable
+
+* Symptom (2026-11-09)
+=nix run .#configured-pkgs.x86_64-linux.nixpkgs.llm-agents.herdr-core= failed
+during evaluation:
+
+#+begin_example
+callPackageWith: Function called without required argument "installAgentSkills"
+  at .../packages/herdr-core/package.nix:8
+#+end_example
+
+* Why
+- common pins =llm-agents.inputs.nixpkgs.follows = "nixpkgs-unstable"=, so the
+  fork is developed and tested against nixpkgs-unstable.
+- =llm-agents.overlays.shared-nixpkgs= carries no package set of its own: it
+  evaluates =packages/*/package.nix= against the *consumer's* =final=.
+- nixos-config applied that overlay (via =defaultOverlays=) to the stable
+  =nixos-26.05= set. That set predates inputs the newer packages use: the
+  =installAgentSkills= setup hook (herdr-core, herdr, apm, qmd, ...) and
+  =zig_0_17= (=chock=). Hence a growing set of packages could not evaluate.
+- Shimming =installAgentSkills= into the stable set only patches one attr; the
+  overlay has to be evaluated against the package set it was written for.
+
+* Fix
+=modules/nix.nix=:
+- =llmAgentsOverlay= is applied to the =nixpkgs-unstable= and
+  =nixpkgs-unstable-cuda= instances (matching common's =follows=), and is no
+  longer part of =defaultOverlays=.
+- the stable =nixpkgs= instance re-exports
+  =llm-agents = nixpkgs-unstable.llm-agents=, so =pkgs.llm-agents= keeps
+  working everywhere without re-evaluating against 26.05.
+
+=modules/machines/furfur.nix=: the WIP =llm-agents.herdr-desktop= attr does not
+exist in the fork; the desktop app is =llm-agents.herdr-app=.
+
+* Verified
+- All 225 =pkgs.llm-agents= attrs evaluate on the stable path for
+  x86_64-linux (herdr-core and chock included), and =herdr-core= evaluates for
+  aarch64-linux too.
+- =nix build --dry-run .#...llm-agents.herdr-core= instantiates (15
+  derivations); the heavy rust+zig build itself was not run.
+- =nixosConfigurations.furfur= and =nixosConfigurations.zeroclaw= toplevels
+  evaluate.
+
+* Follow-up
+- common's own =modules/nixpkgs.nix= had the same bug; fixed in
+  =swan-lake-common= commit =6981f0c= ("llm-agents: evaluate the overlay
+  against nixpkgs-unstable"), promoted to =swan-lake-current=. The overlay now
+  only goes on =configured-pkgs.x86_64-linux.nixpkgs-unstable=, and the stable
+  set re-exports =llm-agents = ...nixpkgs-unstable.llm-agents= (same =drvPath=
+  as =bleeding.llm-agents=). All 225 attrs evaluate and =checks.x86_64-linux=
+  build there.
+- nixos-config's =common= input is bumped to =6981f0c= in this commit (the
+  bump is a no-op for nixos-config's own package sets, which define
+  =pkgs.llm-agents= themselves).

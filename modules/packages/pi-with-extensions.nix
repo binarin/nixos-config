@@ -47,7 +47,7 @@ in
     pi-with-extensions = final.callPackage packageFn {
       # Remain usable without the shared-nixpkgs or pi-subagents overlays,
       # while respecting a caller's overrides when those attributes exist.
-      pi = final.llm-agents.pi or (inputs.nix-ai-tools.overlays.shared-nixpkgs final prev).llm-agents.pi;
+      pi = final.llm-agents.pi or (inputs.common.inputs.llm-agents.overlays.shared-nixpkgs final prev).llm-agents.pi;
       pi-subagents = final.pi-subagents or (self.overlays.pi-subagents final prev).pi-subagents;
     };
   };

@@ -5,7 +5,7 @@
     {
       key = "nixos-config.modules.nixos.ai-tools";
       # nixpkgs.overlays = [
-      #   inputs.nix-ai-tools.overlays.shared-nixpkgs
+      #   inputs.common.inputs.llm-agents.overlays.shared-nixpkgs
       # ];
     };
 

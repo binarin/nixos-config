@@ -181,7 +181,7 @@ in
     };
 
   flake.homeModules.furfur-binarin =
-    { ... }:
+    { pkgs, ... }:
     {
       key = "nixos-config.modules.home.furfur-binarin";
 
@@ -199,6 +199,8 @@ in
           tag = "dev";
         };
       };
+
+      home.packages = with pkgs; [ llm-agents.herdr-app ];
 
       home.sessionVariables.CHROME_PROXY = "socks5://localhost:3128";
 

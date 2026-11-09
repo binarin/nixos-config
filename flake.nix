@@ -53,13 +53,6 @@
         treefmt-nix.follows = "treefmt-nix";
       };
     };
-    nix-ai-tools = {
-      url = "github:numtide/llm-agents.nix";
-      inputs = {
-        flake-parts.follows = "flake-parts";
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
     nix-bindings-rust = {
       url = "github:nixops4/nix-bindings-rust";
       inputs.nixpkgs.follows = "nixpkgs";

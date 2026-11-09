@@ -23,7 +23,6 @@ let
     inputs.deploy-rs.overlays.default
 
     inputs.emacs-overlay.overlays.default
-    inputs.nix-ai-tools.overlays.shared-nixpkgs
 
     # gcx 0.4.3 — newer than nixpkgs
     (final: prev: {
@@ -62,6 +61,13 @@ let
     self.overlays.niri
   ];
 
+  # llm-agents is developed against nixpkgs-unstable (common pins
+  # `llm-agents.inputs.nixpkgs.follows = "nixpkgs-unstable"`). Its
+  # shared-nixpkgs overlay evaluates the packages against the consumer's set,
+  # so only apply it to the unstable sets; the stable set re-exports the result
+  # (see `llm-agents` below) instead of re-evaluating it against itself.
+  llmAgentsOverlay = inputs.common.inputs.llm-agents.overlays.shared-nixpkgs;
+
   importNixpkgs =
     {
       input,
@@ -84,11 +90,13 @@ in
       nixpkgs-unstable = importNixpkgs {
         inherit system;
         input = inputs.nixpkgs-unstable;
+        extraOverlays = [ llmAgentsOverlay ];
       };
 
       nixpkgs-unstable-cuda = importNixpkgs {
         inherit system;
         input = inputs.nixpkgs-unstable;
+        extraOverlays = [ llmAgentsOverlay ];
         extraConfig.cudaSupport = true;
       };
 
@@ -100,6 +108,13 @@ in
             bleeding = nixpkgs-unstable;
             trezor-agent = nixpkgs-unstable.trezor-agent;
             bleeding-cuda = nixpkgs-unstable-cuda;
+            # llm-agents is developed against nixpkgs-unstable (common pins
+            # `llm-agents.inputs.nixpkgs.follows = "nixpkgs-unstable"`): its
+            # packages need unstable-only pieces such as the
+            # `installAgentSkills` setup hook and zig 0.17. Re-evaluating the
+            # overlay against this stable set leaves those packages unable to
+            # evaluate, so re-export the set that was built against unstable.
+            llm-agents = nixpkgs-unstable.llm-agents;
           })
         ];
       };
