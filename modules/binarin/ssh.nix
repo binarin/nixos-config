@@ -142,10 +142,6 @@
               ControlPersist = "yes";
             };
 
-            "Match originalhost zwaansnavel" = {
-              Hostname = "192.168.3.149";
-            };
-
             "*" = {
               # "*" is automatically sorted at the end
               ForwardAgent = false;
