@@ -88,4 +88,4 @@ zwanenzang -> common link, then the common pin in nixos-config.
   consumers are not re-pinned for a tooling-only change.
 
 ** Pending
-- None; swan-lake-current promotion of 0ffc6b2 is left to the operator.
+- None; swan-lake-current promotion of 375d3f3 is left to the operator.
