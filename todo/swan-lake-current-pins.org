@@ -70,7 +70,7 @@ zwanenzang -> common link, then the common pin in nixos-config.
   0e48fa29 (this note) pushed.
 
 ** Operator script
-- Added =swan-lake-common/scripts/relock-chain.py= (common master 0ffc6b2):
+- Added =swan-lake-common/scripts/relock-chain.py= (common master 375d3f3):
   walks zwanenzang -> common -> swan-lake / nixos-config, fetch+ff each
   master, relocks the upstream pin, verifies with =nix flake check
   --no-build=, commits flake.lock, pushes master, promotes
