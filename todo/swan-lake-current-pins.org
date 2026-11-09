@@ -1,0 +1,63 @@
+#+title: Refresh swan-lake-current pins through the whole chain
+
+* Goal (2026-11-09)
+Advance the =swan-lake-current= fork pins used by zwanenzang (consumed via
+common) and propagate the resulting revisions through
+zwanenzang -> common -> swan-lake / nixos-config. Pins may be bumped directly.
+
+* Chain
+- Fork branches (GitHub =binarin=) consumed as =github:binarin/<repo>/swan-lake-current[/<branch>]=:
+  nixpkgs, flake-parts, import-tree, disko, home-manager, sops-nix,
+  emacs-overlay, llm-agents.nix, emacs-tramp-rpc.
+- zwanenzang flake.lock pins flake-parts / nixpkgs / nixpkgs-unstable /
+  import-tree.
+- common flake.lock pins those plus disko / home-manager / sops-nix /
+  emacs-overlay / llm-agents / emacs-tramp-rpc / zwanenzang, then promotes
+  =swan-lake-current=.
+- swan-lake and nixos-config pin =common/swan-lake-current=.
+
+* Plan (revised)
+Operator clarified after the first attempt: do not advance the fork
+=swan-lake-current= branches (nixpkgs in particular). Only move the
+zwanenzang -> common link, then the common pin in nixos-config.
+1. Pull each master in the umbrella clones before pinning.
+2. In common: =nix flake update zwanenzang=, verify, commit, push master,
+   fast-forward =swan-lake-current= to it.
+3. In nixos-config: =nix flake update common=, verify, commit, push.
+4. Leave swan-lake and all fork branches untouched.
+
+* Progress
+** Aborted first attempt (superseded)
+- Started fast-forwarding every fork =swan-lake-current= branch to its
+  upstream head; pushed binarin/nixpkgs
+  (=swan-lake-current/nixos-26.05= 6f06d20 -> c56a87d,
+  =swan-lake-current/nixpkgs-unstable= 2341ce0 -> 3f6248e).
+- Operator rejected the extra scope. Both nixpkgs branch refs were
+  force-pushed back to 6f06d20 / 2341ce0; all other fork
+  =swan-lake-current= branches were verified unchanged
+  (flake-parts 024633c, disko cedd626, sops-nix 6018281,
+  emacs-overlay 693a02e, llm-agents.nix 0538a75,
+  emacs-tramp-rpc c9cb8bf, home-manager release-26.05 24f2190,
+  import-tree eb1b52e).
+- Local upstream checkouts (nix/nixpkgs nixos-26.05 + master,
+  nix/flake-parts main) were fast-forwarded by =pull=; local only, no pins
+  changed.
+
+** Done
+- zwanenzang master pulled to 7421b3f (behind 3, fast-forward).
+- common master b7684e8: =nix flake update zwanenzang= ->
+  7421b3f (revCount 92), only the zwanenzang lock node changed.
+  =nix flake check --no-build= passed; the zwanenzang CLI built from
+  common's configured nixpkgs (/nix/store/5flvwv15cbxk...-zwanenzang-0.1.0).
+- common commit ccc54a7 "zwanenzang: bump pin" pushed to master and
+  fast-forwarded to =swan-lake-current= (GitHub mirror confirmed at
+  ccc54a7).
+- nixos-config master 837fc0b2: =nix flake update common= -> common ccc54a7;
+  diff is exactly the common node plus common/zwanenzang (7421b3f).
+  =nix eval .#nixosConfigurations.furfur.config.system.build.toplevel.drvPath=
+  evaluates (/nix/store/lqq647r3fd47...-nixos-system-furfur-26.05.20261029.6f06d20.drv).
+
+** Pending
+- Commit/push nixos-config (flake.lock + this note).
+- swan-lake intentionally not updated (operator scoped the consumer bump to
+  nixos-config only).
