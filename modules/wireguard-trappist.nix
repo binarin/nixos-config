@@ -46,25 +46,22 @@
           description = "Interval (in seconds) between keepalive packets.";
         };
 
-        hosts = lib.mkOption {
-          type = lib.types.attrsOf (lib.types.listOf lib.types.str);
-          default = {
-            "10.111.0.11" = [
-              "grafana.trappist.internal"
-              "wazuh.trappist.internal"
-            ];
-          };
+        dnsListenAddress = lib.mkOption {
+          type = lib.types.str;
+          default = "127.0.0.153";
           description = ''
-            `/etc/hosts` entries for trappist services. The trappist network runs
-            no resolver and pushes none to its clients, so names are resolved
-            statically. These two names are explicitly allowed in plaintext;
-            everything else about the network stays in sops.
+            Loopback address the trappist-only dnsmasq listens on (port 53).
+            systemd-resolved delegates the trappist zone here.
           '';
         };
       };
 
       config = lib.mkIf cfg.enable {
-        sops.secrets = lib.genAttrs (builtins.attrValues secretVars) (_: { });
+        sops.secrets = lib.genAttrs (builtins.attrValues secretVars) (_: { }) // {
+          # see "Name resolution" below
+          trappist_hosts.restartUnits = [ "trappist-dns.service" ];
+          trappist_dns_domain = { };
+        };
 
         sops.templates."networkmanager-trappist-env-file".content = lib.concatMapStrings (
           var: "${var}=${config.sops.placeholder.${secretVars.${var}}}\n"
@@ -99,7 +96,65 @@
           };
         };
 
-        networking.hosts = cfg.hosts;
+        # Name resolution for trappist services. Both the zone and the
+        # host -> IP mapping live in sops; nothing about them is in git.
+        #
+        #   resolved --(dns-delegate, zone from sops)--> trappist-dns (dnsmasq)
+        #                                                  `- addn-hosts from sops
+        #
+        # /etc/hosts stays fully NixOS-managed. If sops fails to decrypt, the
+        # delegate file is never rendered and trappist-dns fails to load its
+        # credential, so only the trappist names stop resolving.
+        sops.templates."trappist.dns-delegate" = {
+          path = "/run/systemd/dns-delegate.d/trappist.dns-delegate";
+          mode = "0444";
+          content = ''
+            [Delegate]
+            DNS=${cfg.dnsListenAddress}
+            Domains=~${config.sops.placeholder.trappist_dns_domain}
+          '';
+          restartUnits = [ "systemd-resolved.service" ];
+        };
+
+        systemd.services.trappist-dns =
+          let
+            conf = pkgs.writeText "trappist-dnsmasq.conf" ''
+              listen-address=${cfg.dnsListenAddress}
+              bind-interfaces
+              port=53
+              no-resolv
+              no-hosts
+              no-negcache
+              pid-file=
+              addn-hosts=/run/credentials/trappist-dns.service/hosts
+            '';
+          in
+          {
+            description = "dnsmasq serving trappist host names to systemd-resolved";
+            wantedBy = [ "multi-user.target" ];
+            before = [ "nss-lookup.target" ];
+            wants = [ "nss-lookup.target" ];
+            serviceConfig = {
+              ExecStart = "${pkgs.dnsmasq}/bin/dnsmasq --keep-in-foreground --conf-file=${conf}";
+              LoadCredential = [ "hosts:${config.sops.secrets.trappist_hosts.path}" ];
+              DynamicUser = true;
+              AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
+              CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
+              RestrictAddressFamilies = [
+                "AF_INET"
+                "AF_INET6"
+                "AF_UNIX"
+                "AF_NETLINK"
+              ];
+              Restart = "on-failure";
+              RestartSec = 5;
+              ProtectSystem = "strict";
+              ProtectHome = true;
+              PrivateTmp = true;
+              PrivateDevices = true;
+              NoNewPrivileges = true;
+            };
+          };
 
         environment.systemPackages = [ pkgs.wireguard-tools ];
       };
