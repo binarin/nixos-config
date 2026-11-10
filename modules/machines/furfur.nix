@@ -217,6 +217,13 @@ in
         bk = "BK";
         fc = "FC";
       };
+      # mods/, themes/ and layouts/ are shared by the module; settings.json
+      # links to this checkout, so UI changes land in git.
+      programs.herdr-app.settings = {
+        checkout = "nixos-config";
+        source = "files/herdr-app/settings.json";
+        fallback = self.lib.self.file "herdr-app/settings.json";
+      };
 
       home.sessionVariables.CHROME_PROXY = "socks5://localhost:3128";
 
