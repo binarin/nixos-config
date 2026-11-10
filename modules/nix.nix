@@ -33,7 +33,6 @@ let
     self.overlays.jerk-gpa
     self.overlays.ksso
     self.overlays.klaude
-    self.overlays.pi-with-extensions
 
     self.overlays.sicstus-manual
     self.overlays.shitty-shit-launcher
@@ -57,6 +56,8 @@ let
 in
 {
   config = {
+    flake.configured-pkgs = inputs.common.configured-pkgs;
+
     # Package sets: common evaluates nixpkgs, this repo only appends its
     # overlays and the `bleeding` aliases. Per system because flake outputs are
     # generated for x86_64-linux and aarch64-linux.

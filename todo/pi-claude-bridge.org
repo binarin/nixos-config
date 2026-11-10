@@ -1,0 +1,51 @@
+* Pi Claude bridge in the shared extension set
+** Plan
+- [X] Package pinned pi-claude-bridge 0.11.0 and its runtime dependencies in common.
+- [X] Move the existing Pi extension set (including subagents and ELF repair) to common.
+- [X] Wire bridge to the Nix-packaged Claude Code executable, preserving user overrides.
+- [X] Build common and consumer outputs using the local common override; leave canonical input pins unchanged.
+- [X] Complete architecture/standalone-overlay evaluation and final diff checks.
+- [X] After common promotion, update the canonical consumer lock and verify without overrides.
+- [X] Replace consumer Pi package/overlay forwarding with a single configured-pkgs alias.
+- [X] Verify simplified wiring, including Bentos and the configured-pkgs build paths.
+** Findings
+- Gallery package is npm:pi-claude-bridge, upstream elidickinson/pi-claude-bridge.
+- Release 0.11.0 corresponds to debda8d669d978f0deba5249e32d7f6a2a489d86.
+- Runtime dependencies: Claude Agent SDK, MCP SDK and cc-session-io. Pi host packages must remain unbundled peers.
+- Bridge uses Claude Code authentication, not Pi's Anthropic login. No API-backed tests or deployment planned.
+- Common's documented local workflow is with-common; common promotion and consumer repinning require a separate human-controlled workflow.
+- SDK offline contract tests invoke query() directly, bypassing bridge configuration. Replaced SDK platform binaries with symlinks to the Nix-packaged Claude Code executable; all 454 upstream unit tests pass, including local fake-server SDK tests (no model API requests).
+- Install checks import runtime dependencies and verify resource paths/version, absent host peers, and the configured Claude executable.
+** Verification
+- Common pi-with-extensions and pi-claude-bridge builds passed on x86_64-linux.
+- with-common -- nix build .#pi-with-extensions .#pi-claude-bridge .#pi-subagents --no-link passed; outputs match common's.
+- With an isolated temporary HOME and agent directory, Pi reports version 1.5.0 and lists 14 claude-bridge models with no extension errors.
+- Generated wrapper contains exactly one subagents flag and one bridge flag; subagents remains pinned at 0.80.0.
+- Common and consumer (with-common) nix flake check --no-build both passed.
+- Evaluated aarch64-linux stable and x86_64-linux unstable wrapper derivations, plus the common wrapper overlay applied standalone to stable nixpkgs. ARM was not built or executed.
+- Nix formatting and git diff --check passed in both repositories; the relocated ELF helper is byte-identical to the original.
+- Common changes committed as 5dff4afe0ce50a8044bfd901b9ba45bfc27f7792 (pi: share extension set and add Claude bridge); common working tree is clean. No push or promotion performed by the agent.
+- After the user reported promotion, nix flake update common (also with --refresh) left the consumer lock unchanged. Forgejo and GitHub both still advertised swan-lake-current at 235354d4dee955aa36918eff81a49531a2259569; GitHub remained there through four retries over one minute.
+- User resolved a Forgejo-side problem; live Forgejo and GitHub swan-lake-current now both advertise 5dff4af.
+- nix flake update common --refresh updated only the common node to 5dff4afe0ce50a8044bfd901b9ba45bfc27f7792; the canonical input declaration is unchanged.
+- Without overrides, nix build .#pi-with-extensions .#pi-claude-bridge .#pi-subagents --no-link and nix flake check --no-build both passed. Outputs match the earlier local-common builds.
+** Consumer simplification
+- User requested only the configured-pkgs alias for convenient builds, not individual Pi package or overlay re-exports.
+- modules/nix.nix now exposes inputs.common.configured-pkgs directly; removed redundant Pi overlay applications there and in the Bentos Home Manager module, whose package set already derives from common.
+- Deleted the three consumer Pi package forwarding modules. Common's package implementations and overlays remain unchanged.
+- All three Pi packages build through .#configured-pkgs.x86_64-linux.nixpkgs.* and retain their previously verified output paths.
+- Bentos b-db-k Home Manager and lib.nixpkgs select the same wrapper output without reapplying its overlay. The aarch64-linux configured wrapper derivation evaluates.
+- nix flake check --no-build and git diff --check (including staged deletions) pass. No deployment performed.
+** Recognizable extension label
+- [X] Give the common bridge package a root entry point and adjust its resource manifest.
+- [X] Rebuild, check model discovery and verify the actual startup label.
+- Pi's compact startup list strips index.ts/index.js and uses the enclosing directory for local extensions. Upstream's src/index.ts therefore appears as src; a root index.ts will show the Nix package directory, like subagents.
+- Kept the original src layout intact: bridge code resolves its package.json relative to src. Install adds root index.ts re-exporting the upstream default and rewrites only the installed manifest's pi.extensions; install checks assert both.
+- Common package/wrapper builds and all 454 upstream offline tests passed, as did common nix flake check --no-build.
+- Captured real Pi startup in a temporary PTY with isolated HOME/agent directory: [Extensions] now shows 6vflkiyhcx8zvy3izsc0p9gyaqwd7wsj-pi-claude-bridge-0.11.0 alongside subagents, not src. Model discovery also passes without extension errors.
+- Packaging change committed and promoted in common as 610b16c; verified on Forgejo and GitHub. Consumer common pin was subsequently refreshed to 18688d0 in the preceding commit.
+** Usage
+- Build: nix build .#configured-pkgs.x86_64-linux.nixpkgs.pi-with-extensions.
+- Build extension resources by replacing pi-with-extensions with pi-claude-bridge or pi-subagents in that attribute path.
+- Authenticate with claude auth login, then select a claude-bridge/... model in Pi's /model menu.
+- Existing mutable Pi settings are untouched. The user's provider.pathToClaudeCodeExecutable in ~/.pi/agent/claude-bridge.json still overrides the Nix default.

@@ -180,7 +180,6 @@ in
         inputs.emacs-overlay.overlays.default
         self.overlays.my-emacs
         inputs.common.inputs.llm-agents.overlays.shared-nixpkgs
-        self.overlays.pi-with-extensions
       ];
 
       xdg.enable = false;
