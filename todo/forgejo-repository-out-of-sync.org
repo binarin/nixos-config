@@ -1,0 +1,68 @@
+#+title: Forgejo repository database / Git ref mismatch
+
+* Confirmed diagnosis (2026-11-10)
+- Forgejo host =192.168.2.3= runs Forgejo 16.0.4; service is active.
+- Upstream =routers/web/repo/view.go:checkOutdatedBranch= emits the reported
+  warning when the database branch commit differs from the actual Git branch.
+- Repository =binarin/swan-lake-common= (database repository ID 32):
+  - =master=: database and Git both =5dff4afe0ce50a8044bfd901b9ba45bfc27f7792=.
+  - =swan-lake-current=: database =5dff4afe0ce50a8044bfd901b9ba45bfc27f7792=,
+    actual Git ref =235354d4dee955aa36918eff81a49531a2259569=.
+  - Thus the promotion is recorded in the database but not reflected in Git.
+    This also explains consumers/GitHub continuing to advertise the old revision.
+- Database branch timestamp and successful post-receive HTTP request coincide
+  at 11:09:46 CET. No corresponding hook failure found in the inspected logs.
+- =binarin/nixos-config= master matches its database entry at
+  =1ed192123aca0ddb97dbbd6ed290ff502c4b1782=.
+- =forgejo-cli doctor check --run synchronize-repo-heads= passed for all 31
+  repositories; this checks HEAD/default-branch consistency, not this mismatch.
+
+* DONE Root cause and repair
+- User authorized SSH investigation and repair.
+- Reflog shows the correct 11:09:46 =push= to =5dff4af= immediately followed
+  by =update by push= resetting the branch to =235354d=.
+- Push remotes are created by Forgejo 16.0.4 using =git remote add --mirror=,
+  which sets =fetch = +refs/*:refs/*=. Git push updates tracking refs using
+  that mapping. A mirror push started before a concurrent promotion can
+  therefore reset actual source branches to its stale snapshot after finishing.
+- Deterministic local Git reproduction confirmed rollback with =--mirror=,
+  and preservation with =--mirror=push= (no fetch refspec).
+- Confirmed upstream bug: https://codeberg.org/forgejo/forgejo/issues/14273
+- Forgejo 17.0.1 already creates remotes using =--mirror=push= and removes
+  leftover fetch refspecs before pushing. Its source explicitly links the issue.
+  No local package patch or duplicate Nix cleanup is needed.
+- Evaluation with a temporary =--override-input common path:../swan-lake-common=
+  selects Forgejo 17.0.1. Normal evaluation currently fails because the old
+  common lock lacks =overlays.pi-with-extensions= required by existing user edits.
+  Neither flake.lock nor unrelated edits were changed; no major upgrade deployed.
+- Old nixos-config hook files reference a removed Forgejo 15 store path, but
+  recent hook requests succeed and newly created swan-lake-common has no such
+  files. Do not assume these legacy files cause this warning on Forgejo 16.
+- Initial inspection made no server changes apart from fetching SQLite;
+  all database queries were read-only.
+
+* DONE Live repair and verification (2026-11-10, ~11:27 CET)
+- Briefly stopped Forgejo to avoid in-flight mirror races; restarted successfully.
+- Backed up modified repository configs (root-only) under
+  =/var/backups/forgejo-push-mirror-20261110-112742=.
+- Removed exact =+refs/*:refs/*= fetch mappings from managed push remotes in
+  =command-line-rust=, =neet-code-150=, =emacs-niri-awareness=, and
+  =swan-lake-common=. The =nixos-config= push remote already had no fetch mapping.
+  These config repairs persist across service restarts/deployments.
+- Verified old promotion commit is an ancestor of the intended new commit.
+- Pushed =5dff4afe0ce50a8044bfd901b9ba45bfc27f7792:refs/heads/swan-lake-current=
+  normally over Forgejo SSH; no force push or direct database/ref manipulation.
+- Verified database, Forgejo SSH advertisement, and GitHub HTTPS advertisement
+  all agree on =5dff4afe0ce50a8044bfd901b9ba45bfc27f7792= for the promotion branch.
+- Push mirror =last_error= is empty; Forgejo is active with no post-repair errors.
+- Audited 44 active database branches across all five push-mirrored repositories
+  against on-disk Git refs: zero mismatches.
+- Local deterministic Git test passed: unsafe =--mirror= rolls a concurrent
+  promotion back; =--mirror=push= preserves it.
+
+* Follow-up
+- Current remotes are repaired. Forgejo 16 can still create unsafe configurations
+  for newly added push mirrors; upgrade to the already-selected Forgejo 17 on a
+  future deployment (or remove a new push mirror's fetch mapping before use).
+- The intended common promotion is now actually available for consumers; a
+  deliberate =nix flake update common= can proceed in the ongoing pi work.
