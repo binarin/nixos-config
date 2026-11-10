@@ -183,11 +183,14 @@ in
     };
 
   flake.homeModules.furfur-binarin =
-    { pkgs, ... }:
+    { ... }:
     {
       key = "nixos-config.modules.home.furfur-binarin";
 
-      imports = [ inputs.common.homeModules.remote-session-launchers ];
+      imports = [
+        inputs.common.homeModules.remote-session-launchers
+        inputs.common.homeModules.herdr-app
+      ];
 
       programs.remoteSessionLaunchers = {
         enable = true;
@@ -209,7 +212,11 @@ in
         };
       };
 
-      home.packages = with pkgs; [ llm-agents.herdr-app ];
+      programs.herdr-app.instances = {
+        sl = "Swan Lake";
+        bk = "BK";
+        fc = "FC";
+      };
 
       home.sessionVariables.CHROME_PROXY = "socks5://localhost:3128";
 

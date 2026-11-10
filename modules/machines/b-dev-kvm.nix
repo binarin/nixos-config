@@ -277,6 +277,7 @@ in
       home.packages =
         (with pkgs.llm-agents; [
           claude-code
+          herdr-core
           pkgs.pi-with-extensions
         ])
         ++ (with pkgs.bleeding; [ devenv ])

@@ -1,0 +1,18 @@
+* Furfur Herdr app instances
+** Plan
+- [X] Update the common lock to include the new herdr-app Home Manager module.
+- [X] Replace furfur's plain app package with instances sl/Swan Lake, bk/BK, fc/FC.
+- [X] Add herdr-core to the b-db-k and murmur Home Manager package lists.
+- [X] Verify instance configuration, persistence, wrappers, desktop entries and herdr-core package selection; no deployment.
+** Findings
+- Common commit 11cc018 adds homeModules.herdr-app and programs.herdr-app.instances.
+- The module generates herdr-<name> wrappers, matching desktop entries and isolated ~/.config/herdrs/<name> homes, with impermanence persistence when available.
+- Existing remote Herdr launchers on furfur are separate and remain unchanged.
+- Updated common to promoted 11cc018cdf9c7cc5f8fe69e4c1993eddb9b46411 with nix flake update common --refresh. No other dependency was independently repinned.
+- b-dev-kvm-configuration is used by b-db-k only. b-db2-k was previously dropped; the agent's claim that it would also receive herdr-core was incorrect. No b-db2-k configuration or deployment node was added.
+** Verification
+- Furfur evaluates exactly bk/BK, fc/FC and sl/Swan Lake; all three .config/herdrs/<name> directories are persisted.
+- Built all three instance packages; checked their home/app-ID wrapper settings, desktop names, commands, StartupWMClass and icons.
+- b-db-k and murmur Home Manager both select herdr-core 0.1.19; the shared package builds and herdr-core --version reports hc 0.1.19.
+- nix flake check --no-build, Nix formatting and git diff --check passed. The lock diff changes only common.
+- No deployment performed; machine configuration uses the existing common module without further common source changes.

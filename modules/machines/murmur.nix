@@ -277,6 +277,7 @@ in
         ])
         ++ (with pkgs.llm-agents; [
           claude-code
+          herdr-core
           pkgs.pi-with-extensions
         ]);
 
