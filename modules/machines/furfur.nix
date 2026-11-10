@@ -200,6 +200,13 @@ in
           remote.herdr = { };
           tag = "dev";
         };
+        items.focalor-herdr = {
+          name = "focalor (herdr)";
+          host = "focalor";
+          protocol = "ssh";
+          remote.herdr = { };
+          tag = "dev";
+        };
       };
 
       home.packages = with pkgs; [ llm-agents.herdr-app ];

@@ -50,9 +50,13 @@
         fileSystems."/local".neededForBoot = true;
         services.getty.autologinUser = "binarin";
         home-manager.users.binarin =
-          { ... }:
+          { pkgs, ... }:
           {
             programs.git.settings.credential.helper = "store";
+            home.packages = with pkgs; [
+              llm-agents.herdr-core
+              llm-agents.herdr
+            ];
           };
 
         services.paseo = {
