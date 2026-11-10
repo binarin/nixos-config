@@ -1,0 +1,3 @@
+# Written by the app and by `herdr-app check` into each mod folder.
+jsconfig.json
+*.d.ts

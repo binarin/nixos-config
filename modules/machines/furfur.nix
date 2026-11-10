@@ -183,7 +183,7 @@ in
     };
 
   flake.homeModules.furfur-binarin =
-    { ... }:
+    { config, lib, ... }:
     {
       key = "nixos-config.modules.home.furfur-binarin";
 
@@ -224,6 +224,29 @@ in
         source = "files/herdr-app/settings.json";
         fallback = self.lib.self.file "herdr-app/settings.json";
       };
+      # keys.json likewise: one checkout file for every instance (Ctrl-o opens
+      # the tmux-prefix mod).
+      home.localCheckoutLinks.files =
+        lib.genAttrs' (lib.attrNames config.programs.herdr-app.instances) (
+          name:
+          lib.nameValuePair ".config/herdrs/${name}/keys.json" {
+            checkout = "nixos-config";
+            source = "files/herdr-app/keys.json";
+            fallback = self.lib.self.file "herdr-app/keys.json";
+          }
+        )
+        # Own mods, into the shared mods/ every instance links to. Directory
+        # links are real folders with linked files, so the app can still write
+        # its jsconfig.json/.d.ts there. A file added to a mod needs a switch.
+        // lib.genAttrs' [ "tmux-prefix" "last-tab" ] (
+          mod:
+          lib.nameValuePair "${config.programs.herdr-app.sharedDirectory}/mods/${mod}" {
+            checkout = "nixos-config";
+            source = "files/herdr-app/mods/${mod}";
+            fallback = self.lib.self.file "herdr-app/mods/${mod}";
+            type = "directory";
+          }
+        );
 
       home.sessionVariables.CHROME_PROXY = "socks5://localhost:3128";
 

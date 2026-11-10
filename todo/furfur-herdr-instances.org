@@ -16,3 +16,34 @@
 - b-db-k and murmur Home Manager both select herdr-core 0.1.19; the shared package builds and herdr-core --version reports hc 0.1.19.
 - nix flake check --no-build, Nix formatting and git diff --check passed. The lock diff changes only common.
 - No deployment performed; machine configuration uses the existing common module without further common source changes.
+* Keys: Ctrl-o prefix and declarative keys.json (2026-11-10)
+** Plan
+- [X] Ctrl-o tmux-style bindings as two-key sequences in keys.json ("ctrl-o c", ...; "ctrl-o ctrl-o" sends ^O).
+- [X] Move keys.json into files/herdr-app/keys.json; link every instance's keys.json via home.localCheckoutLinks (furfur.nix), like settings.json.
+- [X] furfur toplevel builds. Not switched yet.
+- [X] Ctrl-o o (tmux last-window): needs a mod, the app has no last-tab command (0.1.14, 71 commands).
+- [X] Decided: upstream tmux-prefix mod plus our own last-tab mod; native "ctrl-o x" sequences removed.
+- [X] files/herdr-app/mods/{tmux-prefix,last-tab}, linked as directory checkout links into ~/.config/herdrs/shared/mods.
+  herdr-app check passes for both; furfur toplevel builds.
+- [ ] Switch furfur and try it in the app (keys pressed by a person).
+** tmux-prefix + last-tab (2026-11-10)
+- tmux-prefix vendored from herdrdev/herdr-layout-examples@ed4eda7a (Apache-2.0), with changes noted in its header.
+- Matches modules/binarin/tmux.nix rather than the request's wording: C-o C-o = last tab (bind-key C-o last-window), C-o o = literal ^O (bind-key o send-prefix).
+  Added pain-control keys (| \ - _ splits, C-h/j/k/l), & , $ ( ) : s b. No resize (H/J/K/L): Herdr has no pane-resize command (#117).
+- keys.json: global+terminal "ctrl-o": "mod.open:tmux-prefix"; "mod:tmux-prefix" "ctrl-o": "tmux-prefix.last-tab" (a second C-o reaches the open popup as a command).
+- last-tab: a kept 2x2 frameless window overlay (key last-tab-tracker). It records focused().tab on render and every 500 ms into shared "last-tab.history" (most recent first, 30 ids).
+  tmux-prefix opens it when globalThis.__herdrLastTabBeat is older than 2 s, so history starts at the first Ctrl-o after install. Kept windows reopen on start; a layout switch closes them until that layout shows again.
+- herdr-app check writes jsconfig.json/gpui-kit.d.ts into the checked folder: files/herdr-app/mods/.gitignore ignores them.
+** Findings
+- Native sequences: the first key waits 1 s, then goes to the terminal (upstream #72; the key_timeout PR was closed in favour of mods).
+- Upstream's prefix example: herdrdev/herdr-layout-examples/tmux-prefix (popup hint, no timeout, 500 ms repeat for hjkl/JK, sends literal prefix via hc). Has no last-window.
+- Last tab: shihyuho/herdr-recall (MIT) has recall.previous-tab across spaces, inside a large fuzzy switcher.
+  ohneda/herdr-last-pane does last *pane* (per space) with a floating layout block and a 300 ms focused() poll.
+- No layout edit needed: recall's tracker is a kept window overlay (openOverlay kind "window", keep: true, frame "none", 2x2 px; sizes <= 1 are read as window fractions and cover everything). Herdr reopens kept windows on start.
+** Declarative config watch (upstream herdrdev/herdr-app)
+- #711 (open): let a home fall back to a parent home for settings/keys/layouts/themes/mods. Would replace our per-instance links.
+- #65 (closed): symlinked config files reload via a ~10 s safety poll, not the file watcher. Edits to checkout-linked keys.json/settings.json take up to ~10 s.
+- #51 (open PR): nix flake packaging. #136 (open): Settings claims a Nix-installed Herdr updates with git.
+- #376 (open): managed policy file in /etc/herdr-app (allow/block mods and layouts).
+- #671 (open): app prepends herdr-core's directory to PATH, so on NixOS sudo breaks if that directory is /run/current-system/sw/bin. Not us: we get herdr-core's own store bin dir (only hc, herdr-core).
+- #427 (closed): mod icons load when the mod folder is a link, so linking mods from the checkout should work. The app writes jsconfig.json/.d.ts into mod folders, so a read-only store mod dir may be a problem; prefer checkout links.
