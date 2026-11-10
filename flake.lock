@@ -146,22 +146,6 @@
         "type": "github"
       }
     },
-    "citelao-dotfiles": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1791819138,
-        "narHash": "sha256-n3bDBA9NxWsVorIkwn0gJWwYySFpaAGJLHLoU+1fDF0=",
-        "owner": "citelao",
-        "repo": "dotfiles",
-        "rev": "d804f322eac538576230ddeeeafc780542bd98f3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "citelao",
-        "repo": "dotfiles",
-        "type": "github"
-      }
-    },
     "clan-core": {
       "inputs": {
         "data-mesher": "data-mesher",
@@ -200,7 +184,6 @@
     },
     "common": {
       "inputs": {
-        "citelao-dotfiles": "citelao-dotfiles",
         "disko": "disko",
         "emacs-niri-awareness": "emacs-niri-awareness",
         "emacs-overlay": "emacs-overlay",
@@ -215,11 +198,11 @@
         "zwanenzang": "zwanenzang"
       },
       "locked": {
-        "lastModified": 1794323857,
-        "narHash": "sha256-XBRnD8sLGjV98U3WKeLc17vpLs20IbpOGssC3ouTzQQ=",
+        "lastModified": 1794326149,
+        "narHash": "sha256-JdJQZFnJNYsq/D2RdYWk3flTf8pkk8SPPwTXiyQ3dW0=",
         "owner": "binarin",
         "repo": "swan-lake-common",
-        "rev": "c31927beaaff960b61661d38c6744fb5951f4a7c",
+        "rev": "7473ca6d93b6be7634c644044a194075cf0934d8",
         "type": "github"
       },
       "original": {
