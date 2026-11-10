@@ -146,6 +146,22 @@
         "type": "github"
       }
     },
+    "citelao-dotfiles": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791819138,
+        "narHash": "sha256-n3bDBA9NxWsVorIkwn0gJWwYySFpaAGJLHLoU+1fDF0=",
+        "owner": "citelao",
+        "repo": "dotfiles",
+        "rev": "d804f322eac538576230ddeeeafc780542bd98f3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "citelao",
+        "repo": "dotfiles",
+        "type": "github"
+      }
+    },
     "clan-core": {
       "inputs": {
         "data-mesher": "data-mesher",
@@ -184,6 +200,7 @@
     },
     "common": {
       "inputs": {
+        "citelao-dotfiles": "citelao-dotfiles",
         "disko": "disko",
         "emacs-niri-awareness": "emacs-niri-awareness",
         "emacs-overlay": "emacs-overlay",
@@ -198,11 +215,11 @@
         "zwanenzang": "zwanenzang"
       },
       "locked": {
-        "lastModified": 1794311155,
-        "narHash": "sha256-Ubm0QL7/H62rgpVgKqr72tfwPKlsy7NJLuS9/fPNYI4=",
+        "lastModified": 1794323857,
+        "narHash": "sha256-XBRnD8sLGjV98U3WKeLc17vpLs20IbpOGssC3ouTzQQ=",
         "owner": "binarin",
         "repo": "swan-lake-common",
-        "rev": "9630cd7d486b48111d1d77670d15c5f2d5231c64",
+        "rev": "c31927beaaff960b61661d38c6744fb5951f4a7c",
         "type": "github"
       },
       "original": {
@@ -2220,11 +2237,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794310929,
-        "narHash": "sha256-diZh+P6xgfAQRuh5DC77s6PekXG9JAS5zylTZumjWIc=",
+        "lastModified": 1794323390,
+        "narHash": "sha256-zZoqNGy0GQAknqErN52IIdFKIVQAfnURaHrMOw73aDA=",
         "ref": "refs/heads/master",
-        "rev": "f50e8c9bfd307ce95dbb7aa5cebc0452f640774a",
-        "revCount": 100,
+        "rev": "b8e23ed6166af5b77d2e4528ddd5e8e484d01f2e",
+        "revCount": 114,
         "type": "git",
         "url": "https://forgejo.lynx-lizard.ts.net/binarin/zwanenzang"
       },
