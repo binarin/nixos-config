@@ -188,29 +188,8 @@ in
       key = "nixos-config.modules.home.furfur-binarin";
 
       imports = [
-        inputs.common.homeModules.remote-session-launchers
         inputs.common.homeModules.herdr-app
       ];
-
-      programs.remoteSessionLaunchers = {
-        enable = true;
-        uwsm.enable = true;
-        tags.dev.background = "001800";
-        items.zwaansnavel-herdr = {
-          name = "zwaansnavel (herdr)";
-          host = "zwaansnavel";
-          protocol = "ssh";
-          remote.herdr = { };
-          tag = "dev";
-        };
-        items.focalor-herdr = {
-          name = "focalor (herdr)";
-          host = "focalor";
-          protocol = "ssh";
-          remote.herdr = { };
-          tag = "dev";
-        };
-      };
 
       programs.herdr-app.instances = {
         sl = "Swan Lake";

@@ -46,4 +46,22 @@
 - #51 (open PR): nix flake packaging. #136 (open): Settings claims a Nix-installed Herdr updates with git.
 - #376 (open): managed policy file in /etc/herdr-app (allow/block mods and layouts).
 - #671 (open): app prepends herdr-core's directory to PATH, so on NixOS sudo breaks if that directory is /run/current-system/sw/bin. Not us: we get herdr-core's own store bin dir (only hc, herdr-core).
-- #427 (closed): mod icons load when the mod folder is a link, so linking mods from the checkout should work. The app writes jsconfig.json/.d.ts into mod folders, so a read-only store mod dir may be a problem; prefer checkout links.
+- #427 (closed): mod icons load when the mod folder is a link, but this fix is NOT in the pinned 0.1.14 release (see below). The app writes jsconfig.json/.d.ts into mod folders, so a read-only store mod dir may be a problem; prefer checkout links.
+* Linked asset error flood (2026-11-11)
+** Findings
+- Confirmed in furfur's user journal: herdr-sl logs "a path led outside of the filesystem" repeatedly on repaint.
+- 0.1.14's AppAssets uses cap-std rooted at HERDR_APP_HOME and refuses the mods/ symlink to ../shared/mods (including its Home Manager store indirection). JavaScript loads separately; this error is the SVG/icon asset loader, not herdr-core or remote filesystem access.
+- Upstream e81b60b78a2e545e6f94be46e5d3bed59614d05f (#427) adds opt-in following_links() for the app's assets while continuing to reject lexical .. traversal. The local reference checkout contains it; v0.1.14 does not.
+** Plan
+- [X] Backport upstream #427 in common's herdr-app module default package, gated to 0.1.14; preserve custom packages and the shared directory setup.
+- [X] Module check passes, including zero-fuzz patch applicability against pinned 0.1.14. Patch-id matches upstream exactly. Nix formatting passes; furfur evaluates the patched package with a temporary local common override (no lock-file changes).
+- [ ] Patched app build running: /tmp/herdr-linked-assets-build.pliNSH.log (exit status will be in the adjacent .exit file).
+- [ ] Promote common and update the consumer pin before deployment. Do not restart running apps/cores during investigation.
+* Desktop launcher disappears (2026-11-11)
+- The journal shows focalor (herdr), not Herdr (FC), exiting with status 127 at 09:07:59 and 09:15:20 CET.
+- ~/.local/share/applications/remote-session-focalor-herdr.desktop opens foot and runs ssh -t focalor herdr. The old herdr TUI was deliberately removed from focalor/zwaansnavel earlier; only herdr-core is installed there.
+- Confirmed with noninteractive SSH: focalor reports "zsh:1: command not found: herdr", exit 127; herdr-core is present.
+- Local Herdr (FC), Herdr (BK), Herdr (Swan Lake) entries use herdr-fc/herdr-bk/herdr-sl and are installed.
+- [X] User requested removal: deleted both obsolete remote entries and their now-unused remote-session-launchers import/config from modules/machines/furfur.nix. No remote TUI reinstalled.
+- [X] Verified evaluated home.file has no obsolete launcher paths; home.packages still contains herdr-bk/herdr-fc/herdr-sl and all three instances remain configured. Nix formatting and git diff --check pass.
+- [ ] Apply the updated furfur configuration; no deployment performed.
