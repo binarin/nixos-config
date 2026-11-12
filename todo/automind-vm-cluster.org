@@ -1,0 +1,25 @@
+#+TITLE: VictoriaMetrics cluster for Automind on monitor
+
+* Goal
+Automind's client speaks the VM cluster API (=/insert/<account>/prometheus/...=,
+=/select/<account>/prometheus/...=) with one tenant per workspace. Single-node VM
+on :8428 can't serve that, so run vmstorage + vminsert + vmselect on monitor,
+fully separate from the existing single-node instance.
+
+* Design
+- =modules/victoriametrics-cluster.nix=: =nixosModules.victoriametrics-cluster=.
+  - nixpkgs has neither a cluster package nor modules; the package is
+    =pkgs.victoriametrics.overrideAttrs= with the =v<version>-cluster= tag and
+    =subPackages= limited to vminsert/vmselect/vmstorage. The version follows
+    nixpkgs, so the src hash must be bumped when nixpkgs bumps victoriametrics.
+  - vmstorage: 127.0.0.1:8482 (http), 8400 (vminsert), 8401 (vmselect),
+    data in /var/lib/vmstorage, retention 7d.
+  - vminsert :8480, vmselect :8481, opened only on tailscale0.
+- Grafana datasource "Automind" -> =http://127.0.0.1:8481/select/multitenant/prometheus=,
+  tenants distinguished by the =vm_account_id= label.
+
+* Status
+- [X] Module written, monitor toplevel builds.
+- [ ] Deploy to monitor.
+- [ ] Point Automind at monitor's tailnet name on :8480/:8481.
+- [ ] Optionally restrict to the Automind node via Tailscale ACL.

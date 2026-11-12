@@ -57,6 +57,7 @@ in
         self.nixosModules.baseline
         self.nixosModules.lxc
         self.nixosModules.clan-smtp
+        self.nixosModules.victoriametrics-cluster
       ];
 
       config = {
@@ -87,6 +88,13 @@ in
           8428
           3000
         ];
+
+        # Multi-tenant store for Automind, separate from the single-node instance above.
+        nixos-config.victoriametrics-cluster = {
+          enable = true;
+          retentionPeriod = "7d";
+          openFirewallOn = [ config.services.tailscale.interfaceName ];
+        };
 
         clan.core.vars.generators.grafana = {
           prompts.admin-username.description = "grafana admin username";
@@ -167,6 +175,13 @@ in
                   access = "proxy";
                   url = "http://127.0.0.1:8428";
                   isDefault = true;
+                }
+                {
+                  # All tenants at once; filter with vm_account_id="<workspace>".
+                  name = "Automind";
+                  type = "victoriametrics-metrics-datasource";
+                  access = "proxy";
+                  url = "http://127.0.0.1:8481/select/multitenant/prometheus";
                 }
                 {
                   name = "hledger";
