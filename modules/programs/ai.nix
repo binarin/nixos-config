@@ -24,17 +24,14 @@
       imports = [
         self.homeModules.impermanence
         self.homeModules.claude-completion
+        self.homeModules.pi-coding-agent
       ];
 
       home.packages =
         with pkgs.llm-agents;
         [
           claude-code
-          pkgs.pi-with-extensions
           codex
-        ]
-        ++ [
-          # pkgs.bleeding.llm-agents.pi
         ]
         ++ (lib.optionals osConfig.services.graphical-desktop.enable [
           # claude-code-router

@@ -157,6 +157,7 @@ in
         self.homeModules.standalone-home-manager-zsh
         self.homeModules.interactive-cli
         self.homeModules.git
+        self.homeModules.pi-coding-agent
       ];
 
       programs.ssh.enable = lib.mkForce false;
@@ -278,7 +279,6 @@ in
         (with pkgs.llm-agents; [
           claude-code
           herdr-core
-          pkgs.pi-with-extensions
         ])
         ++ (with pkgs.bleeding; [ devenv ])
         ++ (with pkgs; [

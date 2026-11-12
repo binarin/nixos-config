@@ -1,0 +1,18 @@
+* Pi installation through a shared Home Manager module
+** Scope
+- Start with b-dev-kvm (systemConfigs.b-db-k), then migrate the remaining Pi installations after user approval.
+- Use only common's pkgs.pi-with-extensions, without local wrappers or duplicate extension packages.
+** Progress
+- [X] Add homeModules.pi-coding-agent to install pkgs.pi-with-extensions.
+- [X] Import it from b-dev-kvm-configuration and remove the inline Pi package entry.
+- [X] Evaluate b-db-k's Home Manager configuration and check the flake.
+- [X] Import the shared module from ai-tools and murmur; remove their inline Pi package entries.
+- [X] Move zeroclaw's system-wide Pi installation into binarin's Home Manager imports.
+- [X] Verify all affected configurations, unchanged Pi settings, and the absence of duplicate Pi installations.
+** Verification
+- b-db-k's allebedev Home Manager package list contains exactly one Pi package: pi-with-extensions-1.5.0, matching common's shared wrapper output.
+- Evaluated every NixOS configuration plus systemConfigs.b-db-k and systemConfigs.murmur: Pi is installed once per intended user, always from the same common wrapper output, and never in environment.systemPackages.
+- Affected NixOS configurations are claude-nixos-config, devcontainer, furfur, pi-box, and zeroclaw; their binarin user receives Pi through the shared module. b-db-k and murmur install it for allebedev.
+- Existing Pi models/keybindings links and ai-tools persistence settings are unchanged.
+- nix flake check --no-build and git diff --check passed after the complete migration.
+- Dependency pins are unchanged; no deployment performed.

@@ -99,7 +99,6 @@ in
         btop
         bat
         bleeding.devenv
-        pi-with-extensions
         llm-agents.codex
       ];
 
@@ -157,6 +156,7 @@ in
         imports = [
           self.homeModules.binarin-tmux
           self.homeModules.binarin-direnv
+          self.homeModules.pi-coding-agent
         ];
         programs.bash.enable = true;
         home.packages = with pkgs; [

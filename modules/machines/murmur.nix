@@ -239,6 +239,7 @@ in
         self.homeModules.binarin-ssh
         self.homeModules.standalone-home-manager-zsh
         self.homeModules.desktop-essentials
+        self.homeModules.pi-coding-agent
       ];
 
       services.ssh-agent.enable = true;
@@ -278,7 +279,6 @@ in
         ++ (with pkgs.llm-agents; [
           claude-code
           herdr-core
-          pkgs.pi-with-extensions
         ]);
 
       xdg.dataFile."applications/niri.desktop".text = ''
