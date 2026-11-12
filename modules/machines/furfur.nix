@@ -203,29 +203,36 @@ in
         source = "files/herdr-app/settings.json";
         fallback = self.lib.self.file "herdr-app/settings.json";
       };
-      # keys.json likewise: one checkout file for every instance (Ctrl-o opens
-      # the tmux-prefix mod).
-      home.localCheckoutLinks.files =
-        lib.genAttrs' (lib.attrNames config.programs.herdr-app.instances) (
-          name:
-          lib.nameValuePair ".config/herdrs/${name}/keys.json" {
-            checkout = "nixos-config";
-            source = "files/herdr-app/keys.json";
-            fallback = self.lib.self.file "herdr-app/keys.json";
-          }
-        )
-        # Own mods, into the shared mods/ every instance links to. Directory
-        # links are real folders with linked files, so the app can still write
-        # its jsconfig.json/.d.ts there. A file added to a mod needs a switch.
-        // lib.genAttrs' [ "tmux-prefix" "last-tab" ] (
-          mod:
-          lib.nameValuePair "${config.programs.herdr-app.sharedDirectory}/mods/${mod}" {
-            checkout = "nixos-config";
-            source = "files/herdr-app/mods/${mod}";
-            fallback = self.lib.self.file "herdr-app/mods/${mod}";
-            type = "directory";
-          }
-        );
+      # The swan-lake UI (common's herdr-app `ui`: host tags, prefix keymaps,
+      # keys.json, ...), linked from the swan-lake-common checkout so edits
+      # apply live.
+      home.localCheckoutLinks.checkouts.swan-lake-common = lib.mkDefault "${config.home.homeDirectory}/personal-workspace/swan-lake-umbrella/swan-lake-common";
+      programs.herdr-app.ui = {
+        enable = true;
+        checkout = "swan-lake-common";
+        hostTags = {
+          local = {
+            alias = "local";
+            color = "ansi2";
+          };
+          claude-nixos-config = {
+            alias = "cnc";
+            color = "ansi5";
+          };
+          zwaansnavel = {
+            alias = "zn";
+            color = "ansi3";
+          };
+          db3 = {
+            alias = "db3";
+            color = "ansi4";
+          };
+          focalor = {
+            alias = "foc";
+            color = "ansi6";
+          };
+        };
+      };
 
       home.sessionVariables.CHROME_PROXY = "socks5://localhost:3128";
 
