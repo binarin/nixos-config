@@ -24,6 +24,7 @@
       imports = [
         self.homeModules.impermanence
         self.homeModules.claude-completion
+        self.homeModules.claude-skills
         self.homeModules.pi-coding-agent
       ];
 
@@ -38,12 +39,6 @@
         ]);
 
       home.localCheckoutLinks.files = {
-        ".claude/skills" = {
-          checkout = "nixos-config";
-          source = "files/claude-skills";
-          fallback = self.lib.self.dir "claude-skills";
-          type = "directory";
-        };
         ".pi/agent/models.json" = {
           checkout = "nixos-config";
           source = "files/pi-agent/models.json";

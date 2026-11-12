@@ -239,6 +239,7 @@ in
         self.homeModules.binarin-ssh
         self.homeModules.standalone-home-manager-zsh
         self.homeModules.desktop-essentials
+        self.homeModules.claude-skills
         self.homeModules.pi-coding-agent
       ];
 

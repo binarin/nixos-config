@@ -157,6 +157,7 @@ in
         self.homeModules.standalone-home-manager-zsh
         self.homeModules.interactive-cli
         self.homeModules.git
+        self.homeModules.claude-skills
         self.homeModules.pi-coding-agent
       ];
 
