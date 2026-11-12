@@ -177,13 +177,6 @@ in
 
       services.ssh-agent.enable = lib.mkForce false;
 
-      nixpkgs.config.allowUnfree = true;
-      nixpkgs.overlays = [
-        inputs.emacs-overlay.overlays.default
-        self.overlays.my-emacs
-        inputs.common.inputs.llm-agents.overlays.shared-nixpkgs
-      ];
-
       xdg.enable = false;
       programs.zsh.dotDir = config.home.homeDirectory;
 

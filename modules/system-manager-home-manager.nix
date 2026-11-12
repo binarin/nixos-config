@@ -85,6 +85,23 @@
       };
 
       config = lib.mkIf (cfg.users != { }) {
+        # Home Manager's own NixOS module feeds per-user assertions and warnings
+        # into the system ones; this wrapper has to do the same, otherwise a
+        # broken home profile only shows up when someone reads its config.
+        assertions = lib.flatten (
+          lib.mapAttrsToList (
+            user: usercfg:
+            map (a: {
+              inherit (a) assertion;
+              message = "${user} profile: ${a.message}";
+            }) usercfg.assertions
+          ) cfg.users
+        );
+
+        warnings = lib.flatten (
+          lib.mapAttrsToList (user: usercfg: map (w: "${user} profile: ${w}") usercfg.warnings) cfg.users
+        );
+
         systemd.services = lib.mapAttrs' (
           _: usercfg:
           let
