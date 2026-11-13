@@ -1,30 +1,35 @@
-{ self, ... }:
+{ self, inputs, ... }:
 {
-  # Skill sources live in files/claude-skills and reach Claude Code through the
-  # checkout link declared by claude-skills. pi and codex read their own
-  # directories, so they get store links to the same directory instead.
   flake.homeModules.agent-skills =
     { ... }:
     {
       key = "nixos-config.modules.home.agent-skills";
 
-      home.file = {
-        ".codex/skills/claudy-comment-detector".source = ../../files/claude-skills/claudy-comment-detector;
-        ".pi/agent/skills/claudy-comment-detector".source =
-          ../../files/claude-skills/claudy-comment-detector;
+      imports = [ inputs.common.homeModules.agent-skills ];
+    };
+
+  flake.homeModules.codex =
+    { pkgs, ... }:
+    {
+      key = "nixos-config.modules.home.codex";
+      imports = [ self.homeModules.agent-skills ];
+
+      programs.codex = {
+        enable = true;
+        package = pkgs.llm-agents.codex;
       };
     };
 
-  flake.homeModules.claude-skills =
-    { ... }:
+  flake.homeModules.claude-code =
+    { pkgs, ... }:
     {
-      key = "nixos-config.modules.home.claude-skills";
+      key = "nixos-config.modules.home.claude-code";
 
-      home.localCheckoutLinks.files.".claude/skills" = {
-        checkout = "nixos-config";
-        source = "files/claude-skills";
-        fallback = self.lib.self.dir "claude-skills";
-        type = "directory";
+      imports = [ self.homeModules.agent-skills ];
+
+      programs.claude-code = {
+        enable = true;
+        package = pkgs.llm-agents.claude-code;
       };
     };
 }

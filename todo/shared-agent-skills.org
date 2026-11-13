@@ -1,0 +1,26 @@
+* Shared agent skills in nixos-config
+** Plan
+- [X] Replace local skill links with common's agent-skills module.
+- [X] Move Claude/Codex installation into dedicated Home Manager modules and migrate their existing users.
+- [X] Verify skills and agent packages across affected configurations.
+- [X] Record the one-time Claude checkout-link retirement needed before activation.
+** Findings
+- Every Pi user imports homeModules.agent-skills through pi-coding-agent.
+- Claude users previously imported homeModules.claude-skills, which managed individual skill-file links through local-checkout-links.
+- Common defines grilling, hc-handoff, and claudy-comment-detector, but Claude/Codex require their Home Manager program modules enabled to install skills.
+- User requested package installation in the same Home Manager modules, not package = null. Dedicated claude-code/codex modules now select pkgs.llm-agents packages; machines import only the agents already installed there.
+- Zeroclaw's Codex moves from system packages into binarin's Home Manager, matching Pi.
+- local-checkout-links deliberately refuses direct handback to home.file while its ledger owns overlapping paths. Existing Claude skill leaves need a retirement activation before the final configuration can activate.
+- No dependency updates or machine activation performed.
+** Verification
+- Evaluated Home Manager activation derivations for claude-nixos-config, devcontainer, furfur, pi-box, zeroclaw, b-db-k, and murmur.
+- All seven homes receive common's three Pi skills. Claude/Codex skills are managed by their respective enabled Home Manager modules.
+- Each home still installs exactly one Pi and exactly the Claude/Codex agents it had before, using pkgs.llm-agents packages. No duplicate or system-wide agent packages remain.
+- nix flake check --no-build and git diff --check pass. The flake check covers the current x86_64-linux system; aarch64-linux was not checked.
+- Evaluated a retirement-stage furfur activation with programs.claude-code.enable forced false and confirmed neither home.file nor local-checkout-links claims the Claude skill paths.
+** Activation prerequisite: retire legacy Claude skill links
+- Do not directly activate the final configuration on a home whose local-checkout-links ledger still owns .claude/skills leaves: its safety check rejects overlapping ownership before activation changes anything.
+- For the six Claude homes (all affected homes except zeroclaw), first temporarily set enable = false in the shared homeModules.claude-code module and activate that intermediate configuration once on each home. This retires only the old checkout-owned skill links; unmanaged skills are left alone. Claude's managed CLI package is also absent during this intermediate generation.
+- Then restore enable = true and activate the final configuration. Home Manager can now install the shared Claude skills and CLI normally.
+- Homes without existing checkout-owned Claude skill links can activate the final configuration directly.
+- After final activation, run /reload in Pi and use /skill:hc-handoff.

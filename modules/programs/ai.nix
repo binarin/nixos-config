@@ -24,19 +24,10 @@
       imports = [
         self.homeModules.impermanence
         self.homeModules.claude-completion
-        self.homeModules.claude-skills
+        self.homeModules.claude-code
+        self.homeModules.codex
         self.homeModules.pi-coding-agent
       ];
-
-      home.packages =
-        with pkgs.llm-agents;
-        [
-          claude-code
-          codex
-        ]
-        ++ (lib.optionals osConfig.services.graphical-desktop.enable [
-          # claude-code-router
-        ]);
 
       home.localCheckoutLinks.files = {
         ".pi/agent/models.json" = {

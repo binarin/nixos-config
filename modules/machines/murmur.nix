@@ -239,7 +239,7 @@ in
         self.homeModules.binarin-ssh
         self.homeModules.standalone-home-manager-zsh
         self.homeModules.desktop-essentials
-        self.homeModules.claude-skills
+        self.homeModules.claude-code
         self.homeModules.pi-coding-agent
       ];
 
@@ -277,10 +277,7 @@ in
           bleeding.devenv
           mysql84
         ])
-        ++ (with pkgs.llm-agents; [
-          claude-code
-          herdr-core
-        ]);
+        ++ (with pkgs.llm-agents; [ herdr-core ]);
 
       xdg.dataFile."applications/niri.desktop".text = ''
         [Desktop Entry]

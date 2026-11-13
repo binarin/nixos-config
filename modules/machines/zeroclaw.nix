@@ -99,7 +99,6 @@ in
         btop
         bat
         bleeding.devenv
-        llm-agents.codex
       ];
 
       system.build.cloudImage = import "${pkgs.path}/nixos/lib/make-disk-image.nix" {
@@ -157,6 +156,7 @@ in
           self.homeModules.binarin-tmux
           self.homeModules.binarin-direnv
           self.homeModules.pi-coding-agent
+          self.homeModules.codex
         ];
         programs.bash.enable = true;
         home.packages = with pkgs; [

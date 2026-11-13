@@ -157,7 +157,7 @@ in
         self.homeModules.standalone-home-manager-zsh
         self.homeModules.interactive-cli
         self.homeModules.git
-        self.homeModules.claude-skills
+        self.homeModules.claude-code
         self.homeModules.pi-coding-agent
       ];
 
@@ -270,10 +270,7 @@ in
       home.homeDirectory = "/home/allebedev";
 
       home.packages =
-        (with pkgs.llm-agents; [
-          claude-code
-          herdr-core
-        ])
+        (with pkgs.llm-agents; [ herdr-core ])
         ++ (with pkgs.bleeding; [ devenv ])
         ++ (with pkgs; [
           asciinema
