@@ -13,6 +13,8 @@
       specialArgs,
       self',
       inputs',
+      lib,
+      pkgs,
       ...
     }:
     {
@@ -29,7 +31,7 @@
           inherit self' inputs';
         };
         home-manager.useGlobalPkgs = true;
-        home-manager.backupFileExtension = "backup";
+        home-manager.backupCommand = lib.getExe pkgs.trash-cli;
       };
     };
 

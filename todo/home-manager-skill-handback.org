@@ -1,0 +1,40 @@
+#+title: Home Manager skill ownership handback failure
+
+* Diagnosis
+- 2026-11-13: furfur's home-manager-binarin.service failed at 19:16:08/09 in checkLocalCheckoutLinks.
+- Error: old ownership overlaps home.file; activate empty declarations before handback.
+- Commit 666b5dfb replaced the recursive .claude/skills checkout declaration with common agent-skills home.file declarations. Ledger still owns claudy-comment-detector/SKILL.md and grilling/SKILL.md.
+- SSH claude-nixos-config confirms identical failures at 19:15:56/57. At 19:15:59 deployment rollback started the previous generation successfully; service is active, but the intended deployment did not take effect.
+- The shared implementation lives in ../swan-lake-common/modules/local-checkout-links. It deliberately requires a two-generation handback; deployment did not perform that migration.
+
+* Plan
+- [X] Support safe one-step handback in the shared reconciler: relinquish overlapping stale ownership without touching paths now managed by home.file; retain active-declaration collision checks.
+- [X] Add exact, ancestor/descendant, interrupted-operation and dry-run regressions, plus real HM activation coverage.
+- [X] Validate both machines' configuration and recover furfur activation without deleting user content.
+- [X] Record deployment/promotion requirements; do not independently repin common's shared dependencies.
+- [X] Promote the shared fix through swan-lake-common's normal swan-lake-current process, then run nix flake update common here.
+- [ ] Redeploy claude-nixos-config with the promoted common fix; it remains on its successful rollback generation.
+
+* Validation progress
+- Shared runtime and module Nix checks pass; all 29 runtime tests ran, including pinned trash-cli regressions.
+- Python unit tests pass (without REAL_TRASH, three real-trash tests are skipped).
+- nixfmt --check passes for the changed activation test.
+- Sandboxed activation machine test cannot run on furfur: daemon lacks uid-range. The documented root-driver route PASSED, exercising an unprivileged user in a disposable systemd-nspawn container, direct handback, pending-operation recovery, dry-run, repeat activation, normal cleanup and trashing conflicting content while preserving an existing .backup.
+- Initial extended integration test exposed HM's existing limitation: backupCommand/backupFileExtension do not handle non-HM symlinks with differing content. Identical symlinks (the incident on both machines) work; differing ones still require trashing the old link or an intermediate removal activation. This is documented in the shared README rather than bypassing HM's collision checks.
+- modules/home-manager.nix now selects pinned trash-cli through home-manager.backupCommand, replacing fixed .backup names for all machines using this NixOS wrapper. Both furfur and claude-nixos-config evaluate to the expected HOME_MANAGER_BACKUP_COMMAND.
+- Initial recovery left locks unchanged. The operator subsequently authorized commit/push and common pin refresh; see publication below.
+
+* Publication (operator authorized)
+- Common fix committed as =74cd6ad=.
+- Ran =nix flake update= in common: only zwanenzang changed, =efff46e= -> =ca77255=; fork pins/branches were not advanced.
+- Common pin-refresh commit =244f349= pushed to master and fast-forward promoted to swan-lake-current. GitHub mirror confirmed the exact revision.
+- Ran =nix flake update common= here: common now locks =244f349=, with only its zwanenzang node also moving. No shared dependency was independently repinned.
+- Both repositories pass =nix flake check --no-build --no-write-lock-file=; common's targeted runtime/module checks pass with the refreshed lock.
+- Both furfur and claude-nixos-config system toplevel derivations evaluate successfully against the final lock.
+- Remote redeployment is still pending; publication does not switch machine generations.
+
+* Recovery
+- Backed up furfur's ledger privately to =~/.local/state/home-manager/local-checkout-links/ledger.before-skill-handback.json= under its reconciliation lock.
+- Applied only the tested ownership release for the two stale .claude/skills leaves; did not move/delete their files or discard unrelated ownership.
+- =sudo systemctl restart home-manager-binarin.service= succeeded at 19:25:04; furfur has no failed system units.
+- SSH recheck: claude-nixos-config's HM remains active on the rollback generation. No remote state or system generation was changed. An unrelated serial-getty@ttyS0.service failure remains outside this task.
