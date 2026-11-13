@@ -11,7 +11,10 @@ Design, decisions and acceptance criteria live in tracker ticket SL-0001.
 - [X] Effective before/after snapshot of every nixosConfiguration and
   systemConfig compared (keys by identity, principals, CA file, Forgejo CA).
 - [ ] Paired common/nixos-config MRs; temporary common pin.
-- [ ] Signing CLI (common =tools/ssh-ca=), then replace =scripts/sign-ssh-key.sh=.
+- [X] Signing CLI in common (=tools/ssh-ca=); =nix run .#ssh-ca -- session|sign ...=
+  runs it with this flake's manifest (=.#ssh-trust-manifest=).
+- [ ] Replace =scripts/sign-ssh-key.sh= (still signs =binarin,root= by default).
+- [ ] Hardware smoke tests (YubiKey resident key, =--yubikey-serial=, Trezor agent).
 
 * Effective changes from the extraction
 - Termius keys retired everywhere.
