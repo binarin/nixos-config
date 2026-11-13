@@ -1,0 +1,21 @@
+* Herdr spaces-list unread menus and instance titles
+** Plan
+- [X] Locate live UI sources: ../swan-lake-common/modules/herdr-app/_ui/mods; linked into ~/.config/herdrs/shared/mods.
+- [X] Add unread/read actions to space and overview-tab context menus, preserving existing actions and keyboard navigation; also available in the compact rail.
+- [X] Reuse host-agents.unread semantics: idle/done agents only, focused marks survive until left and revisited.
+- [X] Check changed mods and exercise popup rendering against the running FC instance (user requested FC for experiments). Screenshot /tmp/herdr-fc-space-unread.png shows Mark unread with rename/worktree/close; no live unread marks changed. Temporary preview mod, overlays and auto-docked block removed.
+** Instance window titles
+- [X] Patch packaged Herdr 0.1.14 to honor HERDR_APP_TITLE for main/setup windows (fallback Herdr for unset/blank values).
+- [X] Set title from programs.herdr-app.instances display name; test wrappers and patch against pinned release. checks.x86_64-linux.herdr-app-instances passes, including Swan Lake/BK titles.
+- [ ] Build package; do not restart the user's running instances without permission.
+  Build running: /tmp/herdr-instance-title-build.WzLZ06.log; adjacent .exit file records completion. Derivation: /nix/store/wq7f2ffhzk3mqxlqinq30839hmqjwan4-herdr-app-0.1.14.drv.
+  Evaluated furfur package with --override-input common path:../swan-lake-common --no-write-lock-file; no lock changes or deployment.
+- Source inspection: window title is hard-coded to Herdr, no mod/settings API for changing it; requires a package rebuild and restart, unlike unread menus.
+** Publish and repin
+- [X] Commit/push common changes: 7a6cc81 (herdr-app: add spaces unread menus and instance window titles).
+- [ ] Run ../swan-lake-common/scripts/relock-chain.py with checks to promote common and repin downstream repos.
+** Discovery
+- host-spaces currently opens shipped menu; host-agents owns unread state and clears it on revisit or renewed work.
+- Changes belong in swan-lake-common's mutable UI checkout, not shipped files in ~/.config/herdr-app.
+- Checkout-linked local module imports are rejected by Herdr's sandbox; kept menu helpers in host-spaces/main.js. Installed-path check passes and live status is error-free.
+- Temporary isolated test mod passed behavior assertions: space/tab scope, remote IDs, busy-agent exclusion, focused revisit state, existing timestamp preservation, mixed read/unread actions and original commands.
