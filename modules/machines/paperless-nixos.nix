@@ -9,7 +9,6 @@ let
   flakeConfig = config;
   inventoryHostName = "paperless-nixos";
   paperlessTags = builtins.fromJSON (builtins.readFile ../services/paperless.json);
-  publicKeys = import "${self}/inventory/public-keys.nix";
 in
 {
   flake.deploy.nodes.paperless-nixos = {
@@ -116,9 +115,12 @@ in
           # Home inside chroot, relative to chroot root
           home = "/mnt/paperless/sftp-chroot/consume";
           shell = pkgs.bashInteractive;
-          openssh.authorizedKeys.keys = [
-            publicKeys.ssh_keys.brother-scanner.public_key
-          ];
+        };
+
+        swanLake.sshTrust.accounts.paperless = {
+          trustedLoginKeys = false;
+          includeDefaultPrincipal = false;
+          directKeys = [ "brother-scanner" ];
         };
 
         # Brother scanner is really old

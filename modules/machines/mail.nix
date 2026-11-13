@@ -83,6 +83,8 @@ in
           group = "protonmail-bridge";
         };
         users.groups.protonmail-bridge = { };
+        # Service account despite isNormalUser; no SSH login.
+        swanLake.sshTrust.accounts.protonmail-bridge.enable = false;
 
         nixos-config.export-metrics.enable = true;
       };

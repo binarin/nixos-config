@@ -85,8 +85,7 @@ in
         boot.initrd.systemd.enable = true;
         boot.initrd.systemd.network.enable = true;
 
-        users.users.root.openssh.authorizedPrincipals = [ "qdevice" ];
-        users.users.root.openssh.authorizedKeys.keys = config.lib.publicKeys.secureWithTag "presence";
+        swanLake.sshTrust.accounts.root.extraPrincipals = [ "qdevice" ];
 
         networking.useDHCP = false;
 

@@ -1,0 +1,32 @@
+#+title: SSH trust policy extraction (tracker: SL-0001)
+Design, decisions and acceptance criteria live in tracker ticket SL-0001.
+
+* Status
+- [X] Registry, trust roles and NixOS/system-manager policy in common
+  (=modules/ssh-trust=, =lib.sshTrust=, =modules.{nixos,systemManager}.ssh-trust=).
+- [X] nixos-config consumes common: =inventory/public-keys.nix= and
+  =modules/public-keys.nix= removed; machine/account grants in
+  =swanLake.sshTrust.accounts=; Ansible YAML projected from common plus
+  =inventory/ansible-ssh-grants.nix=.
+- [X] Effective before/after snapshot of every nixosConfiguration and
+  systemConfig compared (keys by identity, principals, CA file, Forgejo CA).
+- [ ] Paired common/nixos-config MRs; temporary common pin.
+- [ ] Signing CLI (common =tools/ssh-ca=), then replace =scripts/sign-ssh-key.sh=.
+
+* Effective changes from the extraction
+- Termius keys retired everywhere.
+- =hsm-tz= (was trezor-root-pve) becomes a user CA; =hsm-tz-ca= (was
+  trezor-trusted-user-ca) becomes a direct-login key where Clan's
+  all-secure selection did not already install it.
+- Every covered account accepts =MACHINE--ACCOUNT= in addition to its
+  preserved shared principals.
+- ISO =nixos= installer account now gets the trusted HSM login keys
+  (normal login account coverage).
+
+* Kept as before, worth a separate decision
+- Clan root still carries the three PKCS#11 Proxmox keys on every Clan
+  machine (old "every secure key" selection), now as an explicit list in
+  =modules/nixos-base=.
+- Opted out of coverage: =protonmail-bridge= (mail), =ssm-user=
+  (xray-front), =annex= (media; forced-command key/principal only),
+  =nix-remote-builder= and =paperless= (explicit restricted grants).

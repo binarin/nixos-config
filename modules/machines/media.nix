@@ -556,13 +556,30 @@ in
           group = "annex";
           home = "/media/annex";
           createHome = true;
-          openssh.authorizedKeys.keys = [
-            ''command="GIT_ANNEX_SHELL_DIRECTORY=/media/annex/annex.git GIT_ANNEX_SHELL_APPENDONLY=true ${lib.getExe' pkgs.git-annex "git-annex-shell"} -c \"$SSH_ORIGINAL_COMMAND\"",restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos''
-          ];
-          openssh.authorizedPrincipals = [
-            ''command="GIT_ANNEX_SHELL_DIRECTORY=/media/annex/annex.git GIT_ANNEX_SHELL_APPENDONLY=true ${lib.getExe' pkgs.git-annex "git-annex-shell"} -c \"$SSH_ORIGINAL_COMMAND\"",restrict binarin''
-          ];
         };
+
+        # A service account despite isNormalUser: only the forced git-annex
+        # command, never the universal login keys or the default principal.
+        swanLake.sshTrust.accounts.annex =
+          let
+            options = ''command="GIT_ANNEX_SHELL_DIRECTORY=/media/annex/annex.git GIT_ANNEX_SHELL_APPENDONLY=true ${lib.getExe' pkgs.git-annex "git-annex-shell"} -c \"$SSH_ORIGINAL_COMMAND\"",restrict'';
+          in
+          {
+            trustedLoginKeys = false;
+            includeDefaultPrincipal = false;
+            directKeys = [
+              {
+                key = "binarin-at-nixos";
+                inherit options;
+              }
+            ];
+            extraPrincipals = [
+              {
+                name = "binarin";
+                inherit options;
+              }
+            ];
+          };
 
         users.groups.usenet = { };
 

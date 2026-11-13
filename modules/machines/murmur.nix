@@ -39,26 +39,22 @@ in
       (
         { pkgs, lib, ... }:
         {
-          services.openssh.managedUsers = [
-            "root"
+          swanLake.sshTrust.machineName = "murmur";
+          swanLake.sshTrust.accounts.allebedev.extraPrincipals = [
             "allebedev"
             "binarin"
+            "root"
           ];
+          swanLake.sshTrust.accounts.binarin.extraPrincipals = [ "binarin" ];
           users.users.allebedev = {
             isNormalUser = true;
             group = "allebedev";
             shell = lib.mkForce pkgs.zsh;
             ignoreShellProgramCheck = true;
-            openssh.authorizedPrincipals = [
-              "allebedev"
-              "binarin"
-              "root"
-            ];
           };
           users.users.binarin = {
             isNormalUser = true;
             group = "binarin";
-            openssh.authorizedPrincipals = [ "binarin" ];
           };
           users.groups.allebedev = { };
           users.groups.binarin = { };

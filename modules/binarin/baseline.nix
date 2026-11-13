@@ -1,5 +1,6 @@
 {
   self,
+  inputs,
   config,
   lib,
   ...
@@ -19,7 +20,7 @@ in
         self.nixosModules.impermanence
         self.nixosModules.sops
         self.nixosModules.nix
-        self.modules.generic.public-keys
+        inputs.common.modules.nixos.ssh-trust
       ];
 
       # Define sops secret for user-binarin-age
@@ -61,15 +62,13 @@ in
             "pcap"
             "nix-access-tokens"
           ];
-          openssh = {
-            authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser "binarin";
-            authorizedPrincipals = [
-              "root"
-              "binarin"
-            ];
-          };
         };
       };
+
+      swanLake.sshTrust.accounts.binarin.extraPrincipals = [
+        "root"
+        "binarin"
+      ];
 
       users.groups = {
         binarin = {

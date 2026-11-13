@@ -16,35 +16,25 @@ def run_ansible_inventory(dry_run: bool = False) -> None:
     """Generate ansible inventory files from nix configuration.
 
     Generates two files:
-    - ansible/ssh-public-keys.yaml: SSH public keys from inventory/public-keys.nix
+    - ansible/ssh-public-keys.yaml: SSH public keys from common's ssh-trust registry
     - ansible/ip-allocation.yaml: IP allocations from network configuration
     """
     repo_root = Path.cwd()
 
     # Validate we're in the repo root
-    if not (repo_root / "inventory" / "public-keys.nix").exists():
+    if not (repo_root / "inventory" / "ansible-ssh-grants.nix").exists():
         console.print(
-            "[red]Error: Must be run from the repository root (inventory/public-keys.nix not found)[/red]"
+            "[red]Error: Must be run from the repository root (inventory/ansible-ssh-grants.nix not found)[/red]"
         )
         raise SystemExit(1)
 
-    # Build ssh-public-keys.yaml
-    # Use flake's nixpkgs input instead of <nixpkgs> to avoid relying on NIX_PATH
-    # which is not available in CI environments
+    # Build ssh-public-keys.yaml: a projection of common's ssh-trust registry
+    # plus the Ansible-only grants (modules/ansible-ssh-keys.nix)
     console.print("[blue]Generating ansible/ssh-public-keys.yaml...[/blue]")
-    expr1 = f'let fl = builtins.getFlake (toString {repo_root}); pkgs = fl.inputs.nixpkgs.legacyPackages.${{builtins.currentSystem}}; in (pkgs.formats.yaml {{}}).generate "public-keys.yaml" (import ./inventory/public-keys.nix)'
-    cmd1 = [
-        "nix",
-        "build",
-        "--impure",
-        "--print-out-paths",
-        "--no-link",
-        "--expr",
-        expr1,
-    ]
+    attr = ".#ansible-ssh-public-keys"
+    cmd1 = ["nix", "build", "--print-out-paths", "--no-link", attr]
     if dry_run:
-        console.print(f"[dim]Would run: {shutil.which('nix')} build --impure ...[/dim]")
-        console.print(f"[dim]  Expression: {expr1}[/dim]")
+        console.print(f"[dim]Would run: {shutil.which('nix')} build {attr}[/dim]")
     else:
         result = subprocess.run(
             cmd1, capture_output=True, text=True, check=True, cwd=repo_root

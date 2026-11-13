@@ -139,6 +139,10 @@ in
       # (the machine *is* xray-front), so force it.
       networking.hostName = lib.mkForce "xray-front";
 
+      # amazon-ssm-agent's session account is a normal user, but not one we
+      # log in to over SSH.
+      swanLake.sshTrust.accounts.ssm-user.enable = false;
+
       # Same clan-openssh/sshd (tags.all) pre-`clan vars generate` issue as xray-exit:
       # the file-backed knownHosts value would be forced before generation. mkForce empties it.
       programs.ssh.knownHosts = lib.mkForce { };

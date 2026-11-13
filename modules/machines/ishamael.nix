@@ -130,9 +130,9 @@
 
         services.openssh.enable = true;
 
-        users.users."binarin".openssh.authorizedKeys.keys = [
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMCVAKqmUdCkJ1gbi2ZA6vLnmf880U/9v5bfxhChapWB binarin@nixos"
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEh4s6QbLJMwYzLpC1r0OZVl6gthLSe2k/fgM66DHGGz termux-tab-s9-2025-12-20"
+        swanLake.sshTrust.accounts.binarin.directKeys = [
+          "binarin-at-nixos"
+          "termux-tab-s9-2025-12-20"
         ];
 
         services.sunshine = {

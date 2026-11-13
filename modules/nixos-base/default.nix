@@ -1,5 +1,6 @@
 {
   self,
+  inputs,
   config,
   lib,
   ...
@@ -27,28 +28,22 @@ in
     };
   };
 
-  # Provisions SSH authorized keys for `root` on every machine via clan's
-  # built-in `sshd` distributed-service module (its server role only ever
-  # writes `users.users.root.openssh.authorizedKeys.keys` — never a normal
-  # user; `binarin` is granted access in the nixos-base module below). Keys
-  # come from the secure (hardware-backed) entries in inventory/public-keys.nix.
+  # Clan's `sshd` distributed-service module provisions root's authorized
+  # keys on every Clan machine. The trusted hardware keys come from common's
+  # ssh-trust policy (self.nixosModules.sshd); Clan only carries the legacy
+  # grant of the PKCS#11 Proxmox keys, which the old "every secure key"
+  # selection installed for root everywhere. Kept as-is so the extraction does
+  # not change access; whether these keys should stay fleet-wide is a
+  # separate policy decision.
   clan.inventory.instances.binarin-admin = {
     module.name = "sshd";
     roles.server.tags.all = { };
     roles.server.settings = {
-      authorizedKeys =
-        with lib;
-        pipe (import "${self}/inventory/public-keys.nix").ssh_keys [
-          (filterAttrs (
-            _:
-            {
-              secure ? null,
-              ...
-            }:
-            secure == true
-          ))
-          (mapAttrs (_: { public_key, ... }: public_key))
-        ];
+      authorizedKeys = lib.genAttrs [
+        "pkcs11-bael-root"
+        "pkcs11-raum-root"
+        "pkcs11-valak-root"
+      ] inputs.common.lib.sshTrust.keyLine;
     };
   };
 
@@ -114,26 +109,15 @@ in
         group = "binarin";
       };
 
-      # Clan's `sshd` service grants *root* only, and modules/sshd.nix
-      # likewise covers root only. Without this, binarin exists on every
-      # nixos-base machine yet has neither an authorized_keys.d entry nor an
-      # authorized_principals.d entry, so sshd rejects it with "Certificate
-      # does not contain an authorized principal".
-      #
-      # `authorizedKeys.keys` must NOT be mkDefault here: clan's `users`
-      # service assigns `openssh.authorizedKeys` at normal priority (with an
-      # empty `keys` default), which would outrank a mkDefault and leave the
-      # list empty. At equal priority the two list definitions concatenate.
-      # `authorizedPrincipals` is untouched by clan, so mkDefault is fine there
-      # and lets the fuller binarin-baseline definition win if a machine ever
-      # imports both.
-      users.users.binarin.openssh = {
-        authorizedKeys.keys = config.lib.publicKeys.ssh.secureForUser "binarin";
-        authorizedPrincipals = lib.mkDefault [
-          "root"
-          "binarin"
-        ];
-      };
+      # Clan's `users` service assigns `openssh.authorizedKeys` at normal
+      # priority, so the ssh-trust policy also defines binarin's keys at
+      # normal priority (the definitions concatenate). The shared `root` and
+      # `binarin` principals are kept for existing certificates; mkDefault
+      # lets the fuller binarin-baseline definition win.
+      swanLake.sshTrust.accounts.binarin.extraPrincipals = lib.mkDefault [
+        "root"
+        "binarin"
+      ];
 
       imports = [
         # Bootable nixpkgs shrink profiles:
@@ -152,14 +136,11 @@ in
         self.nixosModules.clan-hosts
         self.nixosModules.clan-tailscale
 
-        # openssh + root authorized keys + CA principals.
+        # openssh + ssh-trust key/CA/principal policy.
         self.nixosModules.sshd
 
         # hostId, /etc/hosts, ipAllocation options.
         self.nixosModules.inventory
-
-        # config.lib.publicKeys helper used by sshd.
-        self.nixosModules.public-keys
       ];
 
     };

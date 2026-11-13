@@ -34,11 +34,23 @@
           build-dir = /nix/build
         '';
 
-        users.users.nix-remote-builder.openssh.authorizedPrincipals = lib.forEach [
-          "nix-remote-builder"
-          "binarin"
-          "root"
-        ] (k: ''restrict,command="nix-daemon --stdio" ${k}'');
+        # Builder access stays restricted: no universal login keys and no
+        # unrestricted default principal.
+        swanLake.sshTrust.accounts.nix-remote-builder = {
+          trustedLoginKeys = false;
+          includeDefaultPrincipal = false;
+          extraPrincipals =
+            lib.forEach
+              [
+                "nix-remote-builder"
+                "binarin"
+                "root"
+              ]
+              (name: {
+                inherit name;
+                options = ''restrict,command="nix-daemon --stdio"'';
+              });
+        };
         roles.nix-remote-builder.schedulerPublicKeys = [ ];
       };
     };

@@ -101,12 +101,12 @@ in
 
         users.users.nixos.password = "nixos";
         users.users.nixos.initialHashedPassword = lib.mkForce null;
-        users.users.nixos.openssh.authorizedPrincipals = [
+        swanLake.sshTrust.accounts.nixos.extraPrincipals = [
           "root"
           "binarin"
         ];
 
-        users.users.root.openssh.authorizedPrincipals = [
+        swanLake.sshTrust.accounts.root.extraPrincipals = [
           "root"
           "binarin"
         ];

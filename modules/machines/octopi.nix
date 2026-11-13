@@ -78,7 +78,7 @@
         ];
       };
 
-      users.users.root.openssh.authorizedPrincipals = [
+      swanLake.sshTrust.accounts.root.extraPrincipals = [
         "root"
         "binarin"
       ];
