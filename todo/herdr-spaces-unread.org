@@ -13,7 +13,9 @@
 - Source inspection: window title is hard-coded to Herdr, no mod/settings API for changing it; requires a package rebuild and restart, unlike unread menus.
 ** Publish and repin
 - [X] Commit/push common changes: 7a6cc81 (herdr-app: add spaces unread menus and instance window titles).
-- [ ] Run ../swan-lake-common/scripts/relock-chain.py with checks to promote common and repin downstream repos.
+- [X] Run ../swan-lake-common/scripts/relock-chain.py with checks to promote common and repin downstream repos.
+  Common 7a6cc81 promoted to swan-lake-current and verified on GitHub mirror; swan-lake repin 1dc2009 and nixos-config repin 7edef45d pushed. Both downstream nix flake check --no-build runs passed. No deployment or restart.
+  First invocation timed out during nixos-config evaluation; restored only its script-generated lock diff and reran successfully with a longer command timeout.
 ** Discovery
 - host-spaces currently opens shipped menu; host-agents owns unread state and clears it on revisit or renewed work.
 - Changes belong in swan-lake-common's mutable UI checkout, not shipped files in ~/.config/herdr-app.
