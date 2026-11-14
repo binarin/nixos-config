@@ -1,6 +1,5 @@
 {
   self,
-  inputs,
   config,
   lib,
   ...
@@ -28,23 +27,13 @@ in
     };
   };
 
-  # Clan's `sshd` distributed-service module provisions root's authorized
-  # keys on every Clan machine. The trusted hardware keys come from common's
-  # ssh-trust policy (self.nixosModules.sshd); Clan only carries the legacy
-  # grant of the PKCS#11 Proxmox keys, which the old "every secure key"
-  # selection installed for root everywhere. Kept as-is so the extraction does
-  # not change access; whether these keys should stay fleet-wide is a
-  # separate policy decision.
+  # Clan's `sshd` distributed-service module runs sshd on every Clan machine.
+  # Root's keys come from common's ssh-trust policy (self.nixosModules.sshd),
+  # so Clan itself installs none.
   clan.inventory.instances.binarin-admin = {
     module.name = "sshd";
     roles.server.tags.all = { };
-    roles.server.settings = {
-      authorizedKeys = lib.genAttrs [
-        "pkcs11-bael-root"
-        "pkcs11-raum-root"
-        "pkcs11-valak-root"
-      ] inputs.common.lib.sshTrust.keyLine;
-    };
+    roles.server.settings.authorizedKeys = { };
   };
 
   # ---------------------------------------------------------------------------

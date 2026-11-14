@@ -13,7 +13,6 @@ Design, decisions and acceptance criteria live in tracker ticket SL-0001.
 - [ ] Paired common/nixos-config MRs; temporary common pin.
 - [X] Signing CLI in common (=tools/ssh-ca=); =nix run .#ssh-ca -- session|sign ...=
   runs it with this flake's manifest (=.#ssh-trust-manifest=).
-- [ ] Replace =scripts/sign-ssh-key.sh= (still signs =binarin,root= by default).
 - [ ] Hardware smoke tests (YubiKey resident key, =--yubikey-serial=, Trezor agent).
 
 * Effective changes from the extraction
@@ -26,10 +25,14 @@ Design, decisions and acceptance criteria live in tracker ticket SL-0001.
 - ISO =nixos= installer account now gets the trusted HSM login keys
   (normal login account coverage).
 
-* Kept as before, worth a separate decision
-- Clan root still carries the three PKCS#11 Proxmox keys on every Clan
-  machine (old "every secure key" selection), now as an explicit list in
-  =modules/nixos-base=.
-- Opted out of coverage: =protonmail-bridge= (mail), =ssm-user=
-  (xray-front), =annex= (media; forced-command key/principal only),
-  =nix-remote-builder= and =paperless= (explicit restricted grants).
+- PKCS#11 Proxmox keys no longer on root of every Clan machine (that came
+  from the old "every secure key" selection by accident); they stay on the
+  Proxmox hosts through the Ansible grants.
+
+* Coverage opt-outs
+- =protonmail-bridge= (mail), =ssm-user= (xray-front), =annex= (media;
+  forced-command key/principal only), =nix-remote-builder= and =paperless=
+  (explicit restricted grants).
+
+* Deliberately unchanged during the migration
+- =scripts/sign-ssh-key.sh= (still signs =binarin,root= by default).
