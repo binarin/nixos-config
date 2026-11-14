@@ -20,7 +20,7 @@
       };
     };
     # Canonical promoted common input; deliberate upgrades use nix flake update common.
-    common.url = "git+https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common?ref=sl-0001-ssh-trust";
+    common.url = "github:binarin/swan-lake-common/swan-lake-current";
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
