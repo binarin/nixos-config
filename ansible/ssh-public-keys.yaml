@@ -27,6 +27,12 @@ ssh_keys:
     tags:
     - presence
     - user-ca
+  hsm-yk-sk-nfc:
+    description: Resident FIDO2 key on Security Key NFC by Yubico (physical backup)
+    public_key: sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIJYQxFVMl+r7g9vjDEG+ffCSAec1sRWadWSIa2aupEiOAAAABHNzaDo=
+    tags:
+    - presence
+    - user-ca
   hsm-yk-usb-a-5-nfc-fixed:
     description: Resident FIDO2 key on YubiKey 5 NFC (USB-A, fixed)
     public_key: sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIEriEHU1OODgpI5oWyeH0zjyUA8N5MsgUiiYIVNXMdQrAAAABHNzaDo=
@@ -40,7 +46,7 @@ ssh_keys:
     - presence
     - user-ca
   hsm-yk-usb-c-5-nfc:
-    description: Resident FIDO2 key on YubiKey 5 NFC (USB-C, keychain)
+    description: Resident FIDO2 key on YubiKey 5C NFC (USB-C, keychain)
     public_key: sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIDaRvW2TCKgLVQuHAv5FyNqQuFidJ+5WhIaV9j6nGU3HAAAABHNzaDo=
     tags:
     - presence
