@@ -199,11 +199,11 @@
         "zwanenzang": "zwanenzang"
       },
       "locked": {
-        "lastModified": 1794669940,
-        "narHash": "sha256-6FQgwRf/UnwDKiQ8d9XbOtGaRbBgK8l61qTKbiFASSo=",
+        "lastModified": 1794680029,
+        "narHash": "sha256-6f89Cbj/JDfSrEUAb10qE5M4ddNWRMPCXxxRxATXf/U=",
         "owner": "binarin",
         "repo": "swan-lake-common",
-        "rev": "7a4b88d18fd040a1e125818322fd57a28afaa199",
+        "rev": "b24a2980d5fbfbac84185a689ce4578b16a0df72",
         "type": "github"
       },
       "original": {
