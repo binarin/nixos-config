@@ -199,11 +199,11 @@
         "zwanenzang": "zwanenzang"
       },
       "locked": {
-        "lastModified": 1794666393,
-        "narHash": "sha256-SjDvVRX06vv64ttU3hCdwZaH07gbgj2V404WLJeYavI=",
+        "lastModified": 1794666767,
+        "narHash": "sha256-obkgl0fKIgkMwPeMclbHKPnG8YEuqgeQvHSa/DZJBmk=",
         "owner": "binarin",
         "repo": "swan-lake-common",
-        "rev": "c6b3927e61aa6a6d15beef548163737370eead40",
+        "rev": "f004d536ae12339c6f1ec6beb5d11c5ebd76c86c",
         "type": "github"
       },
       "original": {
@@ -2238,11 +2238,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794663453,
-        "narHash": "sha256-QNGWxha0jBYAHfmocXiZDeLDnVeZvxBdSLerEIxYJgQ=",
+        "lastModified": 1794666715,
+        "narHash": "sha256-A41fRd1BJ8Wp7a8UwpKobbec8atMOFucstLmasab7Wo=",
         "ref": "refs/heads/master",
-        "rev": "096cf87e068b09bc62813a8d1b317db4d1b648ff",
-        "revCount": 165,
+        "rev": "e292e51857a2b78d9ad857dba35d3dbdefe7f045",
+        "revCount": 169,
         "type": "git",
         "url": "https://forgejo.lynx-lizard.ts.net/binarin/zwanenzang"
       },
