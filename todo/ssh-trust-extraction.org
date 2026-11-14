@@ -17,9 +17,12 @@ Design, decisions and acceptance criteria live in tracker ticket SL-0001.
 
 * Effective changes from the extraction
 - Termius keys retired everywhere.
-- =hsm-tz= (was trezor-root-pve) becomes a user CA; =hsm-tz-ca= (was
-  trezor-trusted-user-ca) becomes a direct-login key where Clan's
-  all-secure selection did not already install it.
+- Trezor =root@pve= key (was trezor-root-pve) removed: no longer needed.
+- =hsm-tz-ca= (was trezor-trusted-user-ca, trezor-agent identity
+  =trusted-user-ca=) becomes a direct-login key where Clan's all-secure
+  selection did not already install it.
+- =hsm-yk-sk-nfc= (backup Security Key NFC) added as a trusted HSM key.
+- =termius-phone= registered without trust roles; no grants yet.
 - Every covered account accepts =MACHINE--ACCOUNT= in addition to its
   preserved shared principals.
 - ISO =nixos= installer account now gets the trusted HSM login keys
