@@ -199,18 +199,18 @@
         "zwanenzang": "zwanenzang"
       },
       "locked": {
-        "lastModified": 1794600398,
-        "narHash": "sha256-Rmss8Ln75PuYpXMYDgBUWH9BxZsIWN0pr0H49ZyLjyk=",
-        "owner": "binarin",
-        "repo": "swan-lake-common",
-        "rev": "8e371ff2cb057e4c8854f422d0d5654c56e9b003",
-        "type": "github"
+        "lastModified": 1794664300,
+        "narHash": "sha256-c4VjlkLfw2EOBgnQ/2+e2lN3OJiZcoGERKHMk+IHqGE=",
+        "ref": "sl-0001-ssh-trust",
+        "rev": "82a4a3671c8e982dff88949f8be38665ef49debf",
+        "revCount": 72,
+        "type": "git",
+        "url": "https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common"
       },
       "original": {
-        "owner": "binarin",
-        "ref": "swan-lake-current",
-        "repo": "swan-lake-common",
-        "type": "github"
+        "ref": "sl-0001-ssh-trust",
+        "type": "git",
+        "url": "https://forgejo.lynx-lizard.ts.net/binarin/swan-lake-common"
       }
     },
     "crane": {
