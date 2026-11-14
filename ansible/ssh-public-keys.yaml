@@ -80,3 +80,13 @@ ssh_keys:
       - root
     public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBOQGa6V7J3mlk5WFuIUUfjc61ESaCAkmAvzv3vC1qg4A6IJIm083t8MMQFdstFEr6qFrzZZvwyIbWYdN5gUtJ2o=
     tags: []
+  termius-phone:
+    description: Termius biometric key on the phone
+    public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGwIi8r9zz3FC6i8tCjW5dVNXgWvYjkPoW9y3qvxYyUlQmVZ99O2wq/wVxpbJuSiJm280bHIA60awbWbjPx6bUA=
+    tags:
+    - presence
+  termius-tablet:
+    description: Termius biometric key on the Galaxy Tab (formerly termius-tab-s9)
+    public_key: ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPMpogmbCYL1eZcImgz+QDH5xW5BoTDUP4/daxglmaBul2tp9SFnMT7f73Z9rVF5XSsavVm4j8mLNV6t3I2xCKI=
+    tags:
+    - presence
