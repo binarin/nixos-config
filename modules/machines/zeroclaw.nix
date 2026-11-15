@@ -128,7 +128,10 @@ in
 
       services.tailscale.enable = true;
 
-      swanLake.sshTrust.accounts.binarin.directKeys = [ "herdr-mobile-tablet" ];
+      swanLake.sshTrust.accounts.binarin.directKeys = [
+        "herdr-mobile-tablet"
+        "herdr-mobile-pixel"
+      ];
 
       # Headless paseo daemon, running as binarin so agents share his
       # environment (PATH below comes from services.paseo.inheritUserEnvironment).

@@ -49,7 +49,10 @@
         fileSystems."/persist".neededForBoot = true;
         fileSystems."/local".neededForBoot = true;
         services.getty.autologinUser = "binarin";
-        swanLake.sshTrust.accounts.binarin.directKeys = [ "herdr-mobile-tablet" ];
+        swanLake.sshTrust.accounts.binarin.directKeys = [
+          "herdr-mobile-tablet"
+          "herdr-mobile-pixel"
+        ];
         home-manager.users.binarin =
           { pkgs, ... }:
           {
