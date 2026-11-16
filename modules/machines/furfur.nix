@@ -146,6 +146,15 @@ in
 
       time.hardwareClockInLocalTime = true;
 
+      # Kept at a quarter of RAM: zram pages are not charged to the cgroup that
+      # swapped them out, so they come on top of app.slice's 80% cap.
+      zramSwap = {
+        enable = true;
+        algorithm = "zstd";
+        memoryPercent = 25;
+      };
+      boot.kernel.sysctl."vm.swappiness" = 180;
+
       services.displayManager = {
         defaultSession = lib.mkForce "niri-uwsm";
       };
@@ -238,13 +247,13 @@ in
 
       binarin-ssh.viaMurmur = true;
 
-      # Cap the user app.slice (parent of app-shitty_shit.slice) at 80% soft /
-      # 95% hard of physical memory, and forbid it any swap.
+      # Cap the user app.slice (parent of app-shitty_shit.slice and
+      # app-herdr.slice) at 70% soft / 80% hard of physical memory, leaving
+      # room for niri (session.slice) and zram. It may swap to zram.
       xdg.configFile."systemd/user/app.slice.d/limits.conf".text = ''
         [Slice]
-        MemoryHigh=80%
-        MemoryMax=95%
-        MemorySwapMax=0
+        MemoryHigh=70%
+        MemoryMax=80%
       '';
 
       programs.waybar.battery = {

@@ -103,9 +103,12 @@ in
         self.homeModules.swayidle
         self.homeModules.niri-dynamic-keybindings
         self.homeModules.wprintidle
+        self.homeModules.herdr-slice
       ];
 
       config = {
+        programs.herdr-slice.enable = lib.mkDefault true;
+
         home.packages = [
           self.packages."${pkgs.stdenv.hostPlatform.system}".sshmenu
         ];
