@@ -57,6 +57,7 @@ in
       users.users.binarin.extraGroups = [ "i2c" ];
       hardware.i2c.enable = true;
 
+      services.meshcentral.enable = true;
       services.avahi.enable = true;
       nixos-config.wireguard-trappist.enable = true;
       nixos-config.export-metrics.enable = true;
