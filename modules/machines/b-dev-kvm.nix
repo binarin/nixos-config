@@ -177,6 +177,11 @@ in
 
       services.ssh-agent.enable = lib.mkForce false;
 
+      # Stable symlink maintained by the envExtra snippet below; exported via
+      # environment.d so systemd user services (e.g. herdr-core `hc run`)
+      # see the forwarded agent too.
+      systemd.user.sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-agent-stable.sock";
+
       xdg.enable = false;
       programs.zsh.dotDir = config.home.homeDirectory;
 

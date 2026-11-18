@@ -212,6 +212,12 @@ in
             }
           '';
         })
+        (lib.mkIf config.services.ssh-agent.enable {
+          # Shell startup exports SSH_AUTH_SOCK, but programs spawned by the
+          # systemd user manager (e.g. herdr-core `hc run`) only see
+          # environment.d.
+          systemd.user.sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/${config.services.ssh-agent.socket}";
+        })
         (lib.mkIf config.programs.starship.enable {
           home.sessionVariables = {
             STARSHIP_CACHE = lib.mkDefault "${config.xdg.cacheHome}/starship";
