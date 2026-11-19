@@ -13,7 +13,12 @@
     };
 
   flake.homeModules.gnupg =
-    { osConfig, pkgs, ... }:
+    {
+      lib,
+      osConfig,
+      pkgs,
+      ...
+    }:
     {
       key = "nixos-config.modules.home.gnupg";
 
@@ -38,6 +43,20 @@
         '';
         pinentry.package =
           if osConfig.services.graphical-desktop.enable then pkgs.pinentry-qt else pkgs.pinentry-curses;
+      };
+
+      programs.gpg = {
+        enable = true;
+        # Don't manage gpg.conf: the module's mkDefault hardening set is not wanted.
+        settings = lib.mkForce { };
+        # disable-ccid: go through pcscd, so ykman/age-plugin-yubikey can
+        # still see the reader. scdaemon still holds the card exclusively
+        # (no pcsc-shared): `gpgconf --kill scdaemon` before using ykman.
+        # disable-application piv: keep gpg to the OpenPGP application.
+        scdaemonSettings = {
+          disable-ccid = true;
+          disable-application = "piv";
+        };
       };
     };
 }
