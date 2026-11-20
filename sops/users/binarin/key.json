@@ -4,6 +4,10 @@
     "type": "pgp"
   },
   {
+    "publickey": "07AFB340FA530CE31E4F8927E833415BC6100FF5",
+    "type": "pgp"
+  },
+  {
     "publickey": "age1yubikey1q02k6e7g66y4kqetrdt4fqku4py68mf92ul7a5pmuhr54846h0np5pepuvn",
     "type": "age"
   },

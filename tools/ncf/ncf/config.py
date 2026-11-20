@@ -7,6 +7,7 @@ from typing import Optional
 # Admin keys - these are the keys that can decrypt all secrets
 ADMIN_KEYS = {
     "admin_binarin_gpg": "7668F12EF30BE2A802E1E13E6D4365C3B5E703F5",
+    "admin_binarin_trezor_gpg": "07AFB340FA530CE31E4F8927E833415BC6100FF5",
     "admin_binarin": "age1ec9gz6f685mn8pdrz48qm4vq7qzpzcz48vgkcty9aa665evra9lq2uz3s2",
     "admin_demandred_binarin": "age1dvu92xmh3w23ghey4l0epcs27m89f3nswzs5twgnel36xxu42f4sfsv023",
 }

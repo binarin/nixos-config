@@ -9,6 +9,9 @@ from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from . import config
 from . import external
 
+# PGP admin keys that every generated creation rule includes.
+ADMIN_PGP_KEYS = ["admin_binarin_gpg", "admin_binarin_trezor_gpg"]
+
 
 class SopsYaml:
     """Manipulate .sops.yaml file while preserving formatting and anchors."""
@@ -191,7 +194,7 @@ class SopsYaml:
         age_refs = [admin_key, server_anchor]
         if self.add_creation_rule(
             secrets_regex,
-            pgp_keys=["admin_binarin_gpg"],
+            pgp_keys=ADMIN_PGP_KEYS,
             age_keys=age_refs,
         ):
             rules_added = True
@@ -200,7 +203,7 @@ class SopsYaml:
         tailscale_regex = f"secrets/{machine}/tailscale-auth"
         if self.add_creation_rule(
             tailscale_regex,
-            pgp_keys=["admin_binarin_gpg"],
+            pgp_keys=ADMIN_PGP_KEYS,
             age_keys=age_refs,
         ):
             rules_added = True
@@ -212,7 +215,7 @@ class SopsYaml:
             user_age_refs.append(user_anchor)
         if self.add_creation_rule(
             user_regex,
-            pgp_keys=["admin_binarin_gpg"],
+            pgp_keys=ADMIN_PGP_KEYS,
             age_keys=user_age_refs,
         ):
             rules_added = True
@@ -252,6 +255,6 @@ class SopsYaml:
 
         return self.add_creation_rule(
             path_regex,
-            pgp_keys=["admin_binarin_gpg"],
+            pgp_keys=ADMIN_PGP_KEYS,
             age_keys=[admin_key, server_anchor],
         )
