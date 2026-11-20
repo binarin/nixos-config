@@ -23,7 +23,6 @@ home-servers() {
     item "bael-root" mosh-bael-root "$@"
     item "hass" mosh-ts "$@"
     item "barbatos-root" mosh-ts "$@"
-    item "ishamael" et-ts "$@"
     item "media" et-ts "$@"
 }
 

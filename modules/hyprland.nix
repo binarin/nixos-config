@@ -55,8 +55,6 @@ in
       out-u4025qw = "Dell Inc. DELL U4025QW J7Q6FP3";
       out-lg-dualup-left = "LG Electronics LG SDQHD 311NTQDAC572";
       out-lg-dualup-right = "LG Electronics LG SDQHD 311NTSUAC574";
-      out-ishamael-edp = "Sharp Corporation 0x1516 Unknown";
-      out-c49rg90 = "Samsung Electric Company C49RG9x H1AK500000";
       my-shellevents = pkgs.writeScript "my-shellevents" ''
         #!${lib.getExe pkgs.bash}
         ${lib.getExe pkgs.socat} -u UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock EXEC:"${lib.getExe shellevents} ${selfLib.file "hyprland-shellevents.sh"}",nofork
@@ -342,45 +340,6 @@ in
               "$mod, mouse:273, resizewindow"
             ];
           };
-        };
-
-        systemd.user.services.kanshi.Service.ExecCondition = ''
-          ${pkgs.systemd}/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
-        '';
-
-        services.kanshi = {
-          enable = true;
-          systemdTarget = "graphical-session.target";
-          settings = [
-            {
-              profile = {
-                name = "ishamael-uw";
-                outputs = [
-                  {
-                    criteria = out-c49rg90;
-                    mode = "5120x1440";
-                    status = "enable";
-                  }
-                  {
-                    criteria = out-ishamael-edp;
-                    status = "disable";
-                  }
-                ];
-              };
-            }
-            {
-              profile = {
-                name = "ishamael-internal";
-                outputs = [
-                  {
-                    criteria = out-ishamael-edp;
-                    status = "enable";
-                    mode = "3840x2400";
-                  }
-                ];
-              };
-            }
-          ];
         };
 
         # systemd.user.services.hyprpolkitagent = {

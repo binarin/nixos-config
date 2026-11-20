@@ -110,12 +110,6 @@ ip_allocation:
         _type: leaf
         address: 192.168.2.23
         mac: null
-  ishamael:
-    home:
-      primary:
-        _type: leaf
-        address: 192.168.2.6
-        mac: null
   lanfear:
     home:
       primary:
