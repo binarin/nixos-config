@@ -157,6 +157,16 @@ in
           }
           import letsencrypt
         '';
+        # The ts.net name on the LAN too: hosts' local cache proxies
+        # (use-nix-cache.nix) connect to this address with SNI and Host set to
+        # the ts.net name.
+        services.caddy.virtualHosts."niks3-storage.lynx-lizard.ts.net".extraConfig = ''
+          reverse_proxy http://127.0.0.1:3902
+          tls {
+                    get_certificate tailscale
+          }
+        '';
+        services.tailscale.permitCertUid = config.services.caddy.user;
         services.caddy.virtualHosts."http://niks3-storage.home.binarin.info".extraConfig = ''
           reverse_proxy http://127.0.0.1:3902 {
                     header_up Host niks3-storage.lynx-lizard.ts.net
