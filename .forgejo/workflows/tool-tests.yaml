@@ -16,6 +16,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      # Later nix calls from PATH build against the MR heads in swl.toml (not
+      # env-aware-nix-*'s own nix); without swl.toml nix runs unchanged.
+      - run: nix run .#swl -- ci env
       - name: run ncf tests
         run: nix run .#env-aware-nix-develop -- .#devShells.x86_64-linux.default --command pytest tools/ncf -v
 
@@ -26,6 +29,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      # Later nix calls from PATH build against the MR heads in swl.toml (not
+      # env-aware-nix-*'s own nix); without swl.toml nix runs unchanged.
+      - run: nix run .#swl -- ci env
       - name: run monitoring tests
         run: nix run .#env-aware-nix-develop -- .#devShells.x86_64-linux.default --command pytest monitoring/tests -v
 
@@ -36,6 +42,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      # Later nix calls from PATH build against the MR heads in swl.toml (not
+      # env-aware-nix-*'s own nix); without swl.toml nix runs unchanged.
+      - run: nix run .#swl -- ci env
       - name: clippy (native nci check)
         run: nix build .#checks.x86_64-linux.nct-clippy --print-build-logs
       - name: cargo test
