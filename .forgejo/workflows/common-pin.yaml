@@ -1,10 +1,12 @@
 name: Common pin
 on:
   push:
-    branches: [master, zl-0036-common-workflow]
+    branches: [master]
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
+  # Runs `swl check`: on an MR, flake.lock unchanged and swl.toml valid; on
+  # master, no swl.toml and the common pin policy.
   common-pin-policy:
     name: common-pin-policy
     runs-on: native
@@ -12,4 +14,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - run: nix run .#check-common-pin
+          # swl check needs the merge base with the MR's base branch.
+          fetch-depth: 0
+      - run: nix run .#swl -- check
