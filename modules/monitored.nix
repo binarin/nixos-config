@@ -10,6 +10,22 @@
           type = lib.types.bool;
           # no default, force the user to choose
         };
+        textfileDirectory = lib.mkOption {
+          description = ''
+            Directory read by node exporter's textfile collector. A producer writes
+            its own `<name>.prom` there atomically (temp file in the same directory,
+            then rename), running with `textfileGroup` as a supplementary group.
+          '';
+          type = lib.types.str;
+          default = "/var/lib/prometheus-node-exporter-text-files";
+          readOnly = true;
+        };
+        textfileGroup = lib.mkOption {
+          description = "Group allowed to write into `textfileDirectory`.";
+          type = lib.types.str;
+          default = "node-exporter-textfile";
+          readOnly = true;
+        };
       };
       config =
         let
@@ -28,7 +44,8 @@
             # while holding the driver mutex, wedging scrapes in uninterruptible sleep
             # until they hit --web.max-requests. Only furfur and qdevice are real
             # hardware, and both keep the collector.
-            ++ lib.optional config.boot.isContainer "--no-collector.hwmon";
+            ++ lib.optional config.boot.isContainer "--no-collector.hwmon"
+            ++ [ "--collector.textfile.directory=${cfg.textfileDirectory}" ];
             # enabledCollectors = [
             #   "logind"
             #   "systemd"
@@ -36,6 +53,17 @@
             # disabledCollectors = [ "textfile" ];
             # openFirewall = true;
             # firewallFilter = "-i br0 -p tcp -m tcp --dport 9100";
+          };
+
+          users.groups = lib.mkIf cfg.enable { ${cfg.textfileGroup} = { }; };
+
+          # setgid, so every producer's file is readable under the same group.
+          systemd.tmpfiles.settings.node-exporter-textfile = lib.mkIf cfg.enable {
+            ${cfg.textfileDirectory}.d = {
+              mode = "2775";
+              user = "root";
+              group = cfg.textfileGroup;
+            };
           };
 
           services.vmagent = {
