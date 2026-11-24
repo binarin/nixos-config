@@ -263,6 +263,7 @@
           [
             self'.formatter
             self'.packages.common-workflow
+            inputs'.common.packages.swl
             pre-commit
             rsync
             s3cmd
