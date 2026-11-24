@@ -35,10 +35,11 @@ ip_allocation:
         _type: leaf
         address: 192.168.3.3
         mac: null
-    home:
+  comet-x-1:
+    guest:
       primary:
         _type: leaf
-        address: 192.168.2.21
+        address: 192.168.3.5
         mac: null
   demandred:
     home:
@@ -396,4 +397,10 @@ ip_allocation:
       primary:
         _type: leaf
         address: 192.168.3.10
+        mac: null
+  zeroclaw:
+    guest:
+      primary:
+        _type: leaf
+        address: 192.168.3.4
         mac: null

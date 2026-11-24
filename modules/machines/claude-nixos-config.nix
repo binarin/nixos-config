@@ -43,6 +43,8 @@
         networking.hostName = "claude-nixos-config";
         networking.useNetworkd = true;
         nixos-config.qemu-guest.proxmox.network.inventoryNetwork = "guest";
+        # garage's home-net address is not reachable from the guest network.
+        nixos-config.personal-nix-cache.useHomeNet = false;
         system.stateVersion = "25.11";
         nixos-config.export-metrics.enable = false;
         impermanence.enable = true;
