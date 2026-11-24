@@ -3,6 +3,8 @@
   # VM test of use-nix-cache's local proxy: the ts.net fallback, the probe endpoints
   # and the probe's textfile metric. `primary` stands in for garage, `tsnet` for the
   # ts.net name; dnsmasq on 100.100.100.100 stands in for tailscaled's MagicDNS.
+  # Not a flake check (CI runners lack kvm); run it with
+  # `nix build -L .#legacyPackages.x86_64-linux.tests.use-nix-cache`.
   perSystem =
     { pkgs, lib, ... }:
     let
@@ -23,7 +25,7 @@
       };
     in
     {
-      checks = lib.optionalAttrs (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
+      legacyPackages.tests = lib.optionalAttrs (pkgs.stdenv.hostPlatform.system == "x86_64-linux") {
         use-nix-cache = pkgs.testers.runNixOSTest {
           name = "use-nix-cache";
 
@@ -38,8 +40,8 @@
                   locations."= /bad-gateway.narinfo".return = "502";
                 };
               };
-              # Like garage's caddy before SL-0062: no TLS site for the ts.net name,
-              # so the handshake with that SNI is refused.
+              # No TLS site for the ts.net name, so a handshake with that SNI is
+              # refused.
               specialisation.wrong-sni.configuration = {
                 services.nginx.virtualHosts = lib.mkForce {
                   "niks3-storage.home.binarin.info" = cacheVhost "primary";
@@ -75,6 +77,11 @@
               ];
               nixos-config.export-metrics.enable = true;
               services.vmagent.enable = lib.mkForce false;
+
+              # A host off the home net: ts.net is its only upstream.
+              specialisation.tsnet-only.configuration = {
+                nixos-config.personal-nix-cache.useHomeNet = false;
+              };
 
               networking.hosts.${nodes.primary.networking.primaryIPAddress} = [
                 "niks3-storage.home.binarin.info"
@@ -157,7 +164,7 @@
             with subtest("a 502 sent by the primary is retried at ts.net"):
                 expect("/bad-gateway.narinfo", "200", "tsnet", "from tsnet")
 
-            with subtest("primary refuses the ts.net SNI (SL-0062)"):
+            with subtest("primary refuses the ts.net SNI"):
                 primary.succeed("/run/booted-system/specialisation/wrong-sni/bin/switch-to-configuration test")
                 expect("/present.narinfo", "200", "tsnet", "from tsnet")
                 expect("/.upstream-nix-cache-info", "200", "tsnet", "StoreDir: /nix/store")
@@ -191,6 +198,24 @@
                 expect("/present.narinfo", "502", "none")
                 for upstream in (primary, tsnet):
                     upstream.succeed("iptables -D INPUT -p tcp --dport 443 -j DROP")
+                expect("/present.narinfo", "200", "primary", "from primary")
+
+            with subtest("useHomeNet = false: ts.net is the primary, no retry"):
+                client.succeed("/run/booted-system/specialisation/tsnet-only/bin/switch-to-configuration test")
+                expect("/present.narinfo", "200", "primary", "from tsnet")
+                expect("/.upstream-nix-cache-info", "200", "primary", "StoreDir: /nix/store")
+                expect("/.upstream-nix-cache-info/tsnet", "200", "tsnet", "StoreDir: /nix/store")
+                # The home-net primary would answer 502; it is never asked here.
+                expect("/bad-gateway.narinfo", "200", "primary", "from tsnet")
+                expect("/absent.narinfo", "404", "primary")
+                expect_probe(1, 1)
+                tsnet.succeed("systemctl stop nginx.service")
+                expect("/present.narinfo", "502", "none")
+                expect("/.upstream-nix-cache-info", "502", "none")
+                expect_probe(0, 0)
+                tsnet.succeed("systemctl start nginx.service")
+                tsnet.wait_for_open_port(443)
+                client.succeed("/run/booted-system/bin/switch-to-configuration test")
                 expect("/present.narinfo", "200", "primary", "from primary")
 
             with subtest("nginx starts without the ts.net resolver"):
