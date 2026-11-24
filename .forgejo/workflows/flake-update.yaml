@@ -1,7 +1,5 @@
 ---
 on:
-  schedule:
-    - cron: "13 10 * * Mon"
   workflow_dispatch: {}
 concurrency:
   group: flake-update
