@@ -2,9 +2,15 @@
 {
 
   flake.nixosModules.use-nix-cache =
-    { config, lib, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       cfg = config.nixos-config.personal-nix-cache;
+      metricsCfg = config.nixos-config.export-metrics;
 
       tsnetHost = "niks3-storage.lynx-lizard.ts.net";
       homeNetUrl = "https://niks3-storage.home.binarin.info";
@@ -62,6 +68,54 @@
         rewrite ^ /nix-cache-info break;
       '';
 
+      probeEndpoint = "http://niks3-storage.nix-cache:48080/.upstream-nix-cache-info";
+
+      nixCacheUpstreamProbe = pkgs.writeShellApplication {
+        name = "nix-cache-upstream-probe";
+        runtimeInputs = [
+          pkgs.coreutils
+          pkgs.curl
+          pkgs.gnugrep
+        ];
+        text = ''
+          textfile=${metricsCfg.textfileDirectory}/nix-cache-upstream.prom
+          body=$(mktemp)
+          tmp=""
+          trap 'rm -f "$body" "$tmp"' EXIT
+
+          # probe URL EXPECTED_UPSTREAM: prints 1 when URL answers 200 with a
+          # nix-cache-info body and ${upstreamHeader}: EXPECTED_UPSTREAM, else 0.
+          probe() {
+            local url=$1 expected=$2 status=000 upstream="" ok=0
+            read -r status upstream < <(
+              curl --silent --show-error --max-time 30 --output "$body" \
+                --write-out '%{http_code} %header{${lib.toLower upstreamHeader}}\n' "$url" || true
+            ) || true
+            if [[ $status == 200 && $upstream == "$expected" ]] && grep -q '^StoreDir: ' "$body"; then
+              ok=1
+            fi
+            echo "$url: HTTP $status, ${upstreamHeader}: ''${upstream:-(none)}, ok=$ok" >&2
+            echo "$ok"
+          }
+
+          primary_ok=$(probe ${probeEndpoint} primary)
+          tsnet_ok=$(probe ${probeEndpoint}/tsnet tsnet)
+
+          tmp=$(mktemp "$textfile.XXXXXX")
+          cat >"$tmp" <<EOF
+          # HELP nix_cache_upstream_ok Whether the nix cache upstream answered /nix-cache-info through the local proxy.
+          # TYPE nix_cache_upstream_ok gauge
+          nix_cache_upstream_ok{upstream="primary"} $primary_ok
+          nix_cache_upstream_ok{upstream="tsnet"} $tsnet_ok
+          # HELP nix_cache_upstream_probe_timestamp_seconds When the nix cache upstream probe last ran.
+          # TYPE nix_cache_upstream_probe_timestamp_seconds gauge
+          nix_cache_upstream_probe_timestamp_seconds $(date +%s)
+          EOF
+          chmod 0644 "$tmp"
+          mv "$tmp" "$textfile"
+          tmp=""
+        '';
+      };
     in
     {
       key = "nixos-config.modules.nixos.use-nix-cache";
@@ -119,6 +173,41 @@
           // lib.optionalAttrs cfg.useHomeNet {
             "@tsnet".extraConfig = tsnetProxyConfig "tsnet";
           };
+        };
+
+        systemd.services.nix-cache-upstream-probe = lib.mkIf metricsCfg.enable {
+          description = "Probe the nix cache upstreams for node exporter";
+          serviceConfig = {
+            Type = "oneshot";
+            ExecStart = lib.getExe nixCacheUpstreamProbe;
+            DynamicUser = true;
+            SupplementaryGroups = [ metricsCfg.textfileGroup ];
+            ReadWritePaths = [ metricsCfg.textfileDirectory ];
+            UMask = "0022";
+            CapabilityBoundingSet = "";
+            NoNewPrivileges = true;
+            PrivateDevices = true;
+            ProtectHome = true;
+            ProtectKernelTunables = true;
+            ProtectKernelModules = true;
+            ProtectControlGroups = true;
+            RestrictAddressFamilies = [
+              "AF_INET"
+              "AF_INET6"
+              "AF_UNIX"
+            ];
+            IPAddressDeny = "any";
+            IPAddressAllow = "localhost";
+            SystemCallArchitectures = "native";
+            SystemCallFilter = [ "@system-service" ];
+          };
+        };
+
+        # Wall-clock schedule, so a resumed laptop or desktop probes right away
+        # instead of exposing a timestamp from before the suspend.
+        systemd.timers.nix-cache-upstream-probe = lib.mkIf metricsCfg.enable {
+          wantedBy = [ "timers.target" ];
+          timerConfig.OnCalendar = "*:0/5";
         };
       };
     };
