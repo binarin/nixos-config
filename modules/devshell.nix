@@ -1,5 +1,9 @@
 { self, inputs, ... }:
 {
+  # apps.swl from the locked common: `nix run .#swl -- check` and
+  # `nix run .#swl -- ci env` in CI.
+  imports = [ inputs.common.flakeModules.swl ];
+
   perSystem =
     {
       self',
