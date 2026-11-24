@@ -51,6 +51,88 @@ in
       pkgs,
       ...
     }:
+    let
+      victoriaMetricsUid = "P4169E866C3094E38";
+
+      # A Grafana-managed rule on VictoriaMetrics, one alert instance per series:
+      # A queries, B takes each series' last value, C compares it with `threshold`.
+      # Unset notification settings route it through the default policy.
+      vmAlertRule =
+        {
+          uid,
+          title,
+          expr,
+          threshold,
+          for,
+          summary,
+          description,
+        }:
+        let
+          lastTenMinutes = {
+            from = 600;
+            to = 0;
+          };
+          expression = {
+            type = "__expr__";
+            uid = "__expr__";
+          };
+        in
+        {
+          inherit uid title for;
+          condition = "C";
+          data = [
+            {
+              refId = "A";
+              datasourceUid = victoriaMetricsUid;
+              relativeTimeRange = lastTenMinutes;
+              model = {
+                refId = "A";
+                datasource = {
+                  type = "victoriametrics-metrics-datasource";
+                  uid = victoriaMetricsUid;
+                };
+                inherit expr;
+                editorMode = "code";
+                range = true;
+                instant = false;
+                intervalMs = 60000;
+                maxDataPoints = 43200;
+              };
+            }
+            {
+              refId = "B";
+              datasourceUid = "__expr__";
+              relativeTimeRange = lastTenMinutes;
+              model = {
+                refId = "B";
+                datasource = expression;
+                type = "reduce";
+                expression = "A";
+                reducer = "last";
+              };
+            }
+            {
+              refId = "C";
+              datasourceUid = "__expr__";
+              relativeTimeRange = lastTenMinutes;
+              model = {
+                refId = "C";
+                datasource = expression;
+                type = "threshold";
+                expression = "B";
+                conditions = [ { evaluator = threshold; } ];
+              };
+            }
+          ];
+          # A host whose series are gone (powered off, deleted) resolves rather
+          # than alerting; the stale-probe rule covers a host that still reports.
+          noDataState = "OK";
+          execErrState = "Error";
+          labels.severity = "warning";
+          annotations = { inherit summary description; };
+          isPaused = false;
+        };
+    in
     {
       key = "nixos-config.modules.nixos.monitor-configuration";
       imports = [
@@ -169,6 +251,10 @@ in
               datasources = [
                 {
                   name = "VictoriaMetrics";
+                  # The uid Grafana gave it when it was first provisioned, pinned so the
+                  # provisioned alert rules can name it (the dashboards and
+                  # monitoring/ use it too).
+                  uid = victoriaMetricsUid;
                   type = "victoriametrics-metrics-datasource";
                   access = "proxy";
                   url = "http://127.0.0.1:8428";
@@ -226,6 +312,61 @@ in
                           chatid = "100771403";
                         };
                       }
+                    ];
+                  }
+                ];
+              };
+              rules.settings = {
+                apiVersion = 1;
+                groups = [
+                  {
+                    orgId = 1;
+                    name = "nix-cache";
+                    folder = "infra";
+                    interval = "1m";
+                    rules = [
+                      (vmAlertRule {
+                        uid = "nix-cache-primary-down";
+                        title = "nix cache primary upstream down";
+                        # 1 while the probe gets the primary upstream's /nix-cache-info.
+                        expr = ''max by (bhost) (nix_cache_upstream_ok{upstream="primary"})'';
+                        threshold = {
+                          type = "lt";
+                          params = [ 1 ];
+                        };
+                        for = "30m";
+                        summary = "{{ $labels.bhost }}: nix cache primary upstream down for 30m";
+                        description = ''
+                          The local nix cache proxy on {{ $labels.bhost }} gets no answer from its
+                          primary upstream (garage on the home net, or ts.net when useHomeNet is
+                          false); store path requests fall back to ts.net or fail with 502.
+                          On the host: curl -i http://niks3-storage.nix-cache:48080/.upstream-nix-cache-info
+                          and journalctl -u nginx -u nix-cache-upstream-probe (TLS errors, timeouts).
+                          On garage: caddy and garage running and reachable from the host, and the
+                          Tailscale cert of niks3-storage.lynx-lizard.ts.net that caddy gets from
+                          tailscaled (journalctl -u caddy -u tailscaled).
+                        '';
+                      })
+                      (vmAlertRule {
+                        uid = "nix-cache-probe-stale";
+                        title = "nix cache upstream probe stale";
+                        # Seconds since the probe last wrote its textfile; it runs every 5m.
+                        expr = "time() - max by (bhost) (nix_cache_upstream_probe_timestamp_seconds)";
+                        threshold = {
+                          type = "gt";
+                          params = [ 1500 ];
+                        };
+                        for = "5m";
+                        summary = "{{ $labels.bhost }}: nix cache upstream probe has not run for 30m";
+                        description = ''
+                          The nix cache upstream probe on {{ $labels.bhost }} last wrote its metric
+                          {{ printf "%.0f" $values.B.Value }}s ago, so the nix cache primary alert
+                          is blind there. On the host: systemctl status nix-cache-upstream-probe.timer
+                          nix-cache-upstream-probe.service, and whether
+                          /var/lib/prometheus-node-exporter-text-files/nix-cache-upstream.prom
+                          is replaced every 5 minutes.
+                        '';
+                      })
                     ];
                   }
                 ];
