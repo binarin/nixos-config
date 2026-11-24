@@ -2,6 +2,7 @@
 result
 result-*
 .direnv
+/.envrc.local
 /ansible/home-network.yaml
 /.idea/
 /.claude/settings.local.json
