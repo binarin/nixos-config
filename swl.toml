@@ -1,6 +1,0 @@
-# Pending shared-repo MRs for this branch, written by `swl publish`.
-# `swl finalize` removes the entries that have landed; master has no swl.toml.
-
-[inputs.common]
-repo = "swan-lake-common"
-mr = 28
