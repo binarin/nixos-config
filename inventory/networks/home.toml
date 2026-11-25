@@ -52,8 +52,8 @@ searchdomain = "localdomain"
 "192.168.2.43" = "remarkable"
 "192.168.2.44" = "raum"
 "192.168.2.45" = "raum-kvm"
-# "192.168.2.46" = # unallocated
-# "192.168.2.47" = # unallocated
+"192.168.2.46" = { hostname = "dantalion", mac = "00:E0:4C:68:17:C4" }
+"192.168.2.47" = { hostname = "dantalion-kvm", mac = "A4:BB:6D:81:0A:46" }
 # "192.168.2.48" = # unallocated
 "192.168.2.49" = "brother-mfc"
 "192.168.2.50" = "tinypilot"

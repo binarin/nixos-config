@@ -41,6 +41,18 @@ ip_allocation:
         _type: leaf
         address: 192.168.3.5
         mac: null
+  dantalion:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.46
+        mac: 00:E0:4C:68:17:C4
+  dantalion-kvm:
+    home:
+      primary:
+        _type: leaf
+        address: 192.168.2.47
+        mac: A4:BB:6D:81:0A:46
   demandred:
     home:
       eth:
