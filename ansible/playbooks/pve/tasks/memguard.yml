@@ -13,8 +13,8 @@
     mode: "0755"
 
 - name: Install pve-memguard config
-  ansible.builtin.template:
-    src: pve-memguard.json.j2
+  ansible.builtin.copy:
+    content: "{{ pve_memguard_overrides | combine({'dry_run': pve_memguard_dry_run | bool}) | to_nice_json }}\n"
     dest: /etc/pve-memguard/config.json
     mode: "0644"
     validate: /usr/bin/python3 -I /usr/local/sbin/pve-memguard --check-config %s
@@ -27,16 +27,12 @@
     mode: "0644"
   register: pve_memguard_unit
 
-- name: Enable and start pve-memguard
+- name: Enable pve-memguard, restart it when its daemon, config or unit changed
   ansible.builtin.systemd:
     name: pve-memguard.service
     enabled: true
-    state: started
+    state: "{{ 'restarted' if (pve_memguard_script.changed or pve_memguard_config.changed or pve_memguard_unit.changed) else 'started' }}"
     daemon_reload: true
-
-- name: Restart pve-memguard when its daemon, config or unit changed
-  when: pve_memguard_script.changed or pve_memguard_config.changed or pve_memguard_unit.changed
-  ansible.builtin.systemd:
-    name: pve-memguard.service
-    state: restarted
-    daemon_reload: true
+  # In check mode on the first deploy the unit is not installed, so systemd
+  # cannot find it.
+  ignore_errors: "{{ ansible_check_mode }}"

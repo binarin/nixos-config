@@ -1,47 +1,9 @@
 ---
-# pve-memguard (SL-0081), raum only. Defaults match the daemon's own defaults
-# in files/pve_memguard.py.
-
-# Log what would be killed, kill nothing, start nothing. Switch to false only
-# after a week of dry-run without false positives.
+# Log what would be killed and kill nothing. Switch to false only after a
+# week of dry-run without false positives.
 pve_memguard_dry_run: true
 
-# PSI trigger on /proc/pressure/memory: at least stall_us of "full" stall
-# within window_us (the kernel allows windows of 0.5-10 s).
-pve_memguard_psi_trigger_kind: full
-pve_memguard_psi_trigger_stall_us: 1000000
-pve_memguard_psi_trigger_window_us: 10000000
-
-# Pressure only counts as host-wide while MemAvailable + ARC above c_min +
-# SwapFree is below this.
-pve_memguard_headroom_threshold_bytes: 3221225472  # 3 GiB
-
-# After a kill: wait this long before reacting to the next pressure event.
-pve_memguard_settle_seconds: 15
-# A killed guest whose cgroup is still there this long after the kill counts
-# as exiting: it is not picked again and its memory counts as headroom.
-pve_memguard_exit_grace_seconds: 120
-
-# Start a killed guest this long after the kill, then retry this often while
-# memory "some" avg10 is above the limit or headroom is below the minimum.
-pve_memguard_restart_delay_seconds: 600
-pve_memguard_restart_retry_seconds: 300
-pve_memguard_restart_max_some_avg10: 5.0
-pve_memguard_restart_min_headroom_bytes: 6442450944  # 6 GiB
-
-# The kill_cap-th kill of one guest within the window holds it stopped.
-pve_memguard_kill_cap: 3
-pve_memguard_kill_cap_window_seconds: 3600
-
-# Least important first. "default" marks the tier that also takes every
-# running guest not listed here.
-pve_memguard_kill_order:
-  - ["ct:123"]
-  - ["ct:111"]
-  - ["ct:116"]
-  - ["ct:103", "ct:107", "ct:121", "ct:127", "ct:129", "vm:104", "default"]
-  - ["ct:124"]
-  - ["vm:109"]
-  - ["ct:112"]
-  - ["ct:115"]
-  - ["ct:101"]
+# Config keys to override, for example `headroom_threshold_bytes: 4294967296`.
+# The defaults, and what each key means, are DEFAULT_CONFIG in
+# files/pve_memguard.py. An unknown key or a wrong type fails the deploy.
+pve_memguard_overrides: {}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """pve-memguard: kill whole PVE guests in rank order under host-wide memory pressure.
 
-SL-0081, design from SL-45 research section L3. Run as `python3 -I`.
+Run as `python3 -I`.
 
 - A PSI trigger on /proc/pressure/memory wakes the daemon.
 - The kill only happens when host-wide headroom (MemAvailable + ARC above
@@ -16,19 +16,22 @@ SL-0081, design from SL-45 research section L3. Run as `python3 -I`.
   `kill_cap_window_seconds` the guest is held stopped and exported as an alert
   metric. The kill history is persisted, so a daemon restart does not reset
   the cap.
-- In dry-run mode it logs what it would kill and changes nothing.
+- In dry-run mode it logs what it would kill and kills nothing. Restarts that
+  are already pending still happen.
+- State and metrics files are written by a separate thread, so a filesystem
+  that blocks under memory pressure never delays a kill.
 """
 from __future__ import annotations
 
 import collections
 import ctypes
-import dataclasses
 import json
 import os
 import select
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 GIB = 1 << 30
@@ -37,18 +40,24 @@ GIB = 1 << 30
 # is not listed anywhere.
 DEFAULT_TIER_MARKER = "default"
 
+# The only place defaults live; the config file overrides single keys.
 DEFAULT_CONFIG = {
     "dry_run": True,
-    "psi_trigger_kind": "full",
-    "psi_trigger_stall_us": 1_000_000,
-    "psi_trigger_window_us": 10_000_000,
+    # At least 1 s of "full" stall within 10 s.
+    "psi_trigger": "full 1000000 10000000",
     "headroom_threshold_bytes": 3 * GIB,
+    # After a kill: wait this long before reacting to the next pressure event.
     "settle_seconds": 15,
+    # A killed guest whose cgroup is still there this long after the kill
+    # counts as exiting: its memory counts as headroom.
     "exit_grace_seconds": 120,
+    # Start a killed guest this long after the kill, then retry this often
+    # while memory "some" avg10 is above the limit or headroom below the minimum.
     "restart_delay_seconds": 600,
     "restart_retry_seconds": 300,
     "restart_max_some_avg10": 5.0,
     "restart_min_headroom_bytes": 6 * GIB,
+    # The kill_cap-th kill of one guest within the window holds it stopped.
     "kill_cap": 3,
     "kill_cap_window_seconds": 3600,
     # Least important first: the first running guest in this order is
@@ -64,8 +73,6 @@ DEFAULT_CONFIG = {
         ["ct:115"],
         ["ct:101"],
     ],
-    "state_file": "/var/lib/pve-memguard/state.json",
-    "textfile_dir": "/var/lib/node_exporter",
 }
 
 PRESSURE_DECISIONS = (
@@ -77,15 +84,17 @@ PRESSURE_DECISIONS = (
     "no_victim",      # nothing left to kill
 )
 
-METRICS_BASENAME = "pve_memguard.prom"
-STATE_VERSION = 1
+STATE_FILE = "/var/lib/pve-memguard/state.json"
+METRICS_FILE = "/var/lib/node_exporter/pve_memguard.prom"
 MAX_POLL_SECONDS = 60
+ERROR_PAUSE_SECONDS = 5
+# mlockall(MCL_FUTURE) locks every thread stack in full; the writer thread
+# needs very little.
+WRITER_STACK_BYTES = 256 << 10
 
 
-@dataclasses.dataclass(frozen=True, order=True)
-class Guest:
-    kind: str  # "ct" or "vm"
-    vmid: int
+class Guest(collections.namedtuple("Guest", "kind vmid")):
+    """A CT ("ct") or VM ("vm") by its vmid."""
 
     @classmethod
     def parse(cls, ref):
@@ -102,33 +111,24 @@ class Guest:
         return "%s %d" % (self.kind.upper(), self.vmid)
 
 
-@dataclasses.dataclass(frozen=True)
 class Config:
-    dry_run: bool
-    psi_trigger_kind: str
-    psi_trigger_stall_us: int
-    psi_trigger_window_us: int
-    headroom_threshold_bytes: int
-    settle_seconds: int
-    exit_grace_seconds: int
-    restart_delay_seconds: int
-    restart_retry_seconds: int
-    restart_max_some_avg10: float
-    restart_min_headroom_bytes: int
-    kill_cap: int
-    kill_cap_window_seconds: int
-    kill_order: tuple  # tuple of tuples of Guest, least important first
-    default_tier: int  # index into kill_order for guests not listed
-    state_file: str
-    textfile_dir: str
+    """DEFAULT_CONFIG with the keys of `overrides` replaced.
 
-    @property
-    def psi_trigger(self):
-        return "%s %d %d" % (
-            self.psi_trigger_kind,
-            self.psi_trigger_stall_us,
-            self.psi_trigger_window_us,
-        )
+    An unknown key or a value of the wrong type is a ValueError.
+    """
+
+    def __init__(self, overrides):
+        if not isinstance(overrides, dict):
+            raise ValueError("config must be a JSON object")
+        for key, value in overrides.items():
+            if key not in DEFAULT_CONFIG:
+                raise ValueError("unknown config key %r" % key)
+            expected = type(DEFAULT_CONFIG[key])
+            if type(value) is not expected and not (expected is float and type(value) is int):
+                raise ValueError("%s must be of type %s" % (key, expected.__name__))
+        vars(self).update(DEFAULT_CONFIG, **overrides)
+        self.restart_max_some_avg10 = float(self.restart_max_some_avg10)
+        self.kill_order, self.default_tier = _parse_kill_order(self.kill_order)
 
     def tier_of(self, guest):
         for index, tier in enumerate(self.kill_order):
@@ -137,84 +137,26 @@ class Config:
         return self.default_tier
 
 
-_INT_KEYS = (
-    "psi_trigger_stall_us",
-    "psi_trigger_window_us",
-    "headroom_threshold_bytes",
-    "settle_seconds",
-    "exit_grace_seconds",
-    "restart_delay_seconds",
-    "restart_retry_seconds",
-    "restart_min_headroom_bytes",
-    "kill_cap",
-    "kill_cap_window_seconds",
-)
-
-
 def _parse_kill_order(tiers):
-    if not isinstance(tiers, list) or not tiers:
-        raise ValueError("kill_order must be a non-empty list of tiers")
+    """Tuple of tuples of Guest, and the index of the default tier."""
     parsed = []
     default_tier = None
-    seen = set()
     for index, tier in enumerate(tiers):
-        if not isinstance(tier, list) or not tier:
-            raise ValueError("kill_order tier %d must be a non-empty list" % index)
-        guests = []
-        for ref in tier:
-            if not isinstance(ref, str):
-                raise ValueError("kill_order tier %d: %r is not a string" % (index, ref))
-            if ref == DEFAULT_TIER_MARKER:
-                if default_tier is not None:
-                    raise ValueError("kill_order: %r appears twice" % DEFAULT_TIER_MARKER)
-                default_tier = index
-                continue
-            guest = Guest.parse(ref)
-            if guest in seen:
-                raise ValueError("kill_order: %s appears twice" % guest)
-            seen.add(guest)
-            guests.append(guest)
-        parsed.append(tuple(guests))
+        if not isinstance(tier, list) or not all(isinstance(ref, str) for ref in tier):
+            raise ValueError("kill_order tier %d must be a list of strings" % index)
+        if DEFAULT_TIER_MARKER in tier:
+            if default_tier is not None:
+                raise ValueError("kill_order: %r appears twice" % DEFAULT_TIER_MARKER)
+            default_tier = index
+        parsed.append(tuple(Guest.parse(ref) for ref in tier if ref != DEFAULT_TIER_MARKER))
     if default_tier is None:
         raise ValueError("kill_order: no tier contains %r" % DEFAULT_TIER_MARKER)
     return tuple(parsed), default_tier
 
 
-def load_config(data):
-    """Config from a dict (the JSON config file); missing keys take defaults."""
-    if not isinstance(data, dict):
-        raise ValueError("config must be a JSON object")
-    unknown = sorted(set(data) - set(DEFAULT_CONFIG))
-    if unknown:
-        raise ValueError("unknown config keys: %s" % ", ".join(unknown))
-    merged = dict(DEFAULT_CONFIG, **data)
-    if not isinstance(merged["dry_run"], bool):
-        raise ValueError("dry_run must be true or false")
-    for key in _INT_KEYS:
-        value = merged[key]
-        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
-            raise ValueError("%s must be a positive integer" % key)
-    avg10 = merged["restart_max_some_avg10"]
-    if isinstance(avg10, bool) or not isinstance(avg10, (int, float)) or not 0 <= avg10 <= 100:
-        raise ValueError("restart_max_some_avg10 must be a number from 0 to 100")
-    if merged["psi_trigger_kind"] not in ("some", "full"):
-        raise ValueError("psi_trigger_kind must be some or full")
-    # Kernel limits for PSI triggers (Documentation/accounting/psi.rst).
-    if not 500_000 <= merged["psi_trigger_window_us"] <= 10_000_000:
-        raise ValueError("psi_trigger_window_us must be from 500000 to 10000000")
-    if merged["psi_trigger_stall_us"] > merged["psi_trigger_window_us"]:
-        raise ValueError("psi_trigger_stall_us must not exceed psi_trigger_window_us")
-    for key in ("state_file", "textfile_dir"):
-        if not isinstance(merged[key], str) or not merged[key].startswith("/"):
-            raise ValueError("%s must be an absolute path" % key)
-    kill_order, default_tier = _parse_kill_order(merged.pop("kill_order"))
-    merged["restart_max_some_avg10"] = float(avg10)
-    return Config(kill_order=kill_order, default_tier=default_tier, **merged)
-
-
 def load_config_file(path):
     with open(path, encoding="utf-8") as fh:
-        return load_config(json.load(fh))
+        return Config(json.load(fh))
 
 
 # --- host-wide headroom --------------------------------------------------
@@ -249,14 +191,12 @@ def parse_psi(text):
     result = {}
     for line in text.splitlines():
         fields = line.split()
-        if not fields:
-            continue
-        values = {}
-        for field in fields[1:]:
-            name, sep, value = field.partition("=")
-            if sep:
-                values[name] = float(value)
-        result[fields[0]] = values
+        if fields:
+            result[fields[0]] = {
+                name: float(value)
+                for name, sep, value in (field.partition("=") for field in fields[1:])
+                if sep
+            }
     return result
 
 
@@ -289,18 +229,12 @@ def select_victim(running, config, excluded=frozenset()):
 
 # --- kill history, restarts and the kill cap -------------------------------
 
-@dataclasses.dataclass
-class PendingRestart:
-    due: float
-    attempts: int = 0
-
-
 class Ledger:
     """Kill history, pending restarts and held guests; persisted as JSON."""
 
     def __init__(self):
         self.kills = {}    # Guest -> [kill timestamps], oldest first
-        self.pending = {}  # Guest -> PendingRestart
+        self.pending = {}  # Guest -> when its restart is due
         self.held = set()  # Guests that hit the kill cap and stay stopped
 
     def record_kill(self, guest, now, config):
@@ -313,50 +247,28 @@ class Ledger:
             self.held.add(guest)
             self.pending.pop(guest, None)
             return True
-        self.pending[guest] = PendingRestart(due=now + config.restart_delay_seconds)
+        self.pending[guest] = now + config.restart_delay_seconds
         return False
 
     def last_kill(self, guest):
         times = self.kills.get(guest)
         return times[-1] if times else None
 
-    def kills_within(self, guest, now, seconds):
-        return sum(1 for t in self.kills.get(guest, []) if now - t < seconds)
+    def killed_within(self, guest, now, seconds):
+        last = self.last_kill(guest)
+        return last is not None and now - last < seconds
 
     def due_restarts(self, now):
-        return sorted(g for g, p in self.pending.items() if p.due <= now)
+        return [g for g, due in self.pending.items() if due <= now]
 
     def next_due(self):
-        return min((p.due for p in self.pending.values()), default=None)
-
-    def reschedule(self, guest, due, attempted):
-        pending = self.pending[guest]
-        pending.due = due
-        if attempted:
-            pending.attempts += 1
-
-    def prune(self, now, window):
-        """Drop kill timestamps older than the cap window; True if any went."""
-        changed = False
-        for guest in list(self.kills):
-            recent = [t for t in self.kills[guest] if now - t < window]
-            if recent != self.kills[guest]:
-                changed = True
-                if recent:
-                    self.kills[guest] = recent
-                else:
-                    del self.kills[guest]
-        return changed
+        return min(self.pending.values(), default=None)
 
     def to_json(self):
         return json.dumps(
             {
-                "version": STATE_VERSION,
-                "kills": {str(g): t for g, t in sorted(self.kills.items())},
-                "pending_restarts": {
-                    str(g): {"due": p.due, "attempts": p.attempts}
-                    for g, p in sorted(self.pending.items())
-                },
+                "kills": {str(g): t for g, t in self.kills.items()},
+                "pending_restarts": {str(g): due for g, due in self.pending.items()},
                 "held": [str(g) for g in sorted(self.held)],
             },
             indent=2,
@@ -366,17 +278,63 @@ class Ledger:
     @classmethod
     def from_json(cls, text):
         data = json.loads(text)
-        if data.get("version") != STATE_VERSION:
-            raise ValueError("unknown state version %r" % data.get("version"))
         ledger = cls()
-        for ref, times in data.get("kills", {}).items():
+        for ref, times in data["kills"].items():
             ledger.kills[Guest.parse(ref)] = sorted(float(t) for t in times)
-        for ref, pending in data.get("pending_restarts", {}).items():
-            ledger.pending[Guest.parse(ref)] = PendingRestart(
-                due=float(pending["due"]), attempts=int(pending.get("attempts", 0))
-            )
-        ledger.held = {Guest.parse(ref) for ref in data.get("held", [])}
+        for ref, due in data["pending_restarts"].items():
+            ledger.pending[Guest.parse(ref)] = float(due)
+        ledger.held = {Guest.parse(ref) for ref in data["held"]}
         return ledger
+
+
+# --- writing files off the kill path -----------------------------------------
+
+class SnapshotWriter:
+    """Writes the latest state and metrics snapshots from its own thread.
+
+    `submit` only swaps a string in under a lock that is never held during
+    I/O, so the main loop never waits for a write. Older snapshots that were
+    not written yet are dropped.
+    """
+
+    def __init__(self, host, log):
+        self.targets = {"state": host.write_state, "metrics": host.write_metrics}
+        self.log = log
+        self._cond = threading.Condition()
+        self._pending = {}  # target name -> text
+        self._errors = {}   # target name -> last error message
+
+    def submit(self, target, text):
+        with self._cond:
+            self._pending[target] = text
+            self._cond.notify()
+
+    def flush(self):
+        """Write what is pending now, state first; does not wait for more."""
+        with self._cond:
+            pending, self._pending = self._pending, {}
+        for target, write in self.targets.items():
+            if target not in pending:
+                continue
+            try:
+                write(pending[target])
+            except Exception as exc:  # keep the writer thread alive
+                message = str(exc)
+                if self._errors.get(target) != message:
+                    self.log.event("writing %s failed: %s" % (target, message))
+                self._errors[target] = message
+            else:
+                self._errors.pop(target, None)
+
+    def run(self):
+        while True:
+            with self._cond:
+                self._cond.wait_for(lambda: self._pending)
+            self.flush()
+
+    def start(self):
+        threading.stack_size(WRITER_STACK_BYTES)
+        threading.Thread(target=self.run, name="pve-memguard-writer", daemon=True).start()
 
 
 # --- the daemon's decisions ----------------------------------------------
@@ -385,29 +343,21 @@ def _gib(value):
     return "%.1f GiB" % (value / GIB)
 
 
-def _escape_label(value):
-    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
-
-
 def _guest_labels(guest):
     return 'type="%s",vmid="%d"' % (guest.kind, guest.vmid)
 
 
 class Memguard:
-    """Decisions of the daemon; all host access goes through `host` and `log`."""
+    """Decisions of the daemon; all host access goes through `host`, `log` and `writer`."""
 
-    def __init__(self, config, host, ledger, log):
+    def __init__(self, config, host, ledger, log, writer):
         self.config = config
         self.host = host
         self.ledger = ledger
         self.log = log
+        self.writer = writer
         self.pressure_events = collections.Counter()
-        self.kills = collections.Counter()
-        self.would_kills = collections.Counter()
-        self.starts = collections.Counter()
-        self.last_trigger = None
         self.last_headroom = None
-        self._metrics_error = None
 
     def read_headroom(self):
         headroom = headroom_bytes(
@@ -417,18 +367,10 @@ class Memguard:
         self.last_headroom = headroom
         return headroom
 
-    def exiting_guests(self, running, now):
-        """Running guests killed less than exit_grace_seconds ago."""
-        return {
-            guest
-            for guest in running
-            if self.ledger.kills_within(guest, now, self.config.exit_grace_seconds)
-        }
-
     def handle_pressure_event(self, now):
         """React to one PSI trigger event; returns True if the daemon should settle."""
         cfg = self.config
-        self.last_trigger = now
+        ledger = self.ledger
         headroom = self.read_headroom()
         full_avg10 = parse_psi(self.host.read_psi()).get("full", {}).get("avg10", 0.0)
         situation = "memory pressure (full avg10=%.2f), headroom %s, threshold %s" % (
@@ -439,9 +381,12 @@ class Memguard:
             return False
 
         running = self.host.running_guests()
-        exiting = self.exiting_guests(running, now)
-        # Memory of guests that are still exiting comes back without another
-        # kill; count it so a slow exit does not cascade into more kills.
+        # A guest that still runs within the restart delay after its kill is
+        # stuck exiting (or was started by hand): killing it again does not
+        # help, so it is never picked again. Its memory counts as coming back
+        # only within the exit grace.
+        recent = {g for g in running if ledger.killed_within(g, now, cfg.restart_delay_seconds)}
+        exiting = {g for g in recent if ledger.killed_within(g, now, cfg.exit_grace_seconds)}
         exiting_bytes = sum(running[guest] for guest in exiting)
         if exiting and headroom + exiting_bytes >= cfg.headroom_threshold_bytes:
             self.pressure_events["awaiting_exit"] += 1
@@ -449,7 +394,7 @@ class Memguard:
                 situation, ", ".join(g.label for g in sorted(exiting)), _gib(exiting_bytes)))
             return True
 
-        victim = select_victim(running, cfg, exiting)
+        victim = select_victim(running, cfg, recent | ledger.held)
         if victim is None:
             self.pressure_events["no_victim"] += 1
             self.log.event("%s: no guest left to kill" % situation)
@@ -457,7 +402,6 @@ class Memguard:
         what = "%s (%s in use)" % (victim.label, _gib(running[victim]))
         if cfg.dry_run:
             self.pressure_events["would_kill"] += 1
-            self.would_kills[victim] += 1
             self.log.event("dry-run: %s: would kill %s" % (situation, what))
             return True
         try:
@@ -467,9 +411,7 @@ class Memguard:
             self.log.event("%s: killing %s failed: %s" % (situation, what, exc))
             return True
         self.pressure_events["kill"] += 1
-        self.kills[victim] += 1
-        held = self.ledger.record_kill(victim, now, cfg)
-        if held:
+        if ledger.record_kill(victim, now, cfg):
             self.log.event(
                 "%s: killed %s; %d kills within %ds, holding it stopped" % (
                     situation, what, cfg.kill_cap, cfg.kill_cap_window_seconds))
@@ -492,7 +434,11 @@ class Memguard:
         return None
 
     def handle_tick(self, now):
-        """Release held guests that run again; start guests whose restart is due."""
+        """Release held guests that run again; start at most one due guest.
+
+        Due guests start most important first. After one start the others
+        wait for the next retry, so the gate sees what the started guest uses.
+        """
         cfg = self.config
         ledger = self.ledger
         running = self.host.running_guests()
@@ -504,35 +450,32 @@ class Memguard:
                 ledger.held.discard(guest)
                 self.log.event("%s is running again, no longer held stopped" % guest.label)
                 changed = True
-        for guest in ledger.due_restarts(now):
-            retry_at = now + cfg.restart_retry_seconds
+        started = None
+        retry_at = now + cfg.restart_retry_seconds
+        for guest in sorted(ledger.due_restarts(now), key=lambda g: (-cfg.tier_of(g), g)):
             changed = True
             if guest in running:
                 del ledger.pending[guest]
                 self.log.event("%s is running again after its kill" % guest.label)
                 continue
-            if cfg.dry_run:
-                ledger.reschedule(guest, retry_at, attempted=False)
-                self.log.info("dry-run: would start %s" % guest.label)
+            ledger.pending[guest] = retry_at
+            if started is not None:
+                self.log.info("not starting %s yet: %s started first; retry in %ds" % (
+                    guest.label, started.label, cfg.restart_retry_seconds))
                 continue
             blocker = self.restart_blocker()
             if blocker:
-                ledger.reschedule(guest, retry_at, attempted=False)
                 self.log.info("not starting %s yet: %s; retry in %ds" % (
                     guest.label, blocker, cfg.restart_retry_seconds))
                 continue
-            ledger.reschedule(guest, retry_at, attempted=True)
             try:
                 self.host.start(guest)
             except (OSError, subprocess.SubprocessError) as exc:
                 self.log.event("starting %s failed: %s; retry in %ds" % (
                     guest.label, exc, cfg.restart_retry_seconds))
                 continue
-            self.starts[guest] += 1
-            self.log.event("starting %s (attempt %d)" % (
-                guest.label, ledger.pending[guest].attempts))
-        if ledger.prune(now, cfg.kill_cap_window_seconds):
-            changed = True
+            started = guest
+            self.log.event("starting %s" % guest.label)
         if changed:
             self.save_state()
 
@@ -543,7 +486,7 @@ class Memguard:
         return min(MAX_POLL_SECONDS, max(1.0, due - now))
 
     def save_state(self):
-        self.host.write_state(self.ledger.to_json())
+        self.writer.submit("state", self.ledger.to_json())
 
     def render_metrics(self, now):
         lines = []
@@ -554,17 +497,11 @@ class Memguard:
             for labels, value in samples:
                 lines.append("%s%s %s" % (name, "{%s}" % labels if labels else "", value))
 
-        def per_guest(counter):
-            return [(_guest_labels(g), n) for g, n in sorted(counter.items())]
-
         metric("pve_memguard_dry_run", "gauge",
                "1 while pve-memguard only logs what it would kill.",
                [("", int(self.config.dry_run))])
         metric("pve_memguard_heartbeat_timestamp_seconds", "gauge",
                "Last time the pve-memguard main loop ran.", [("", "%.0f" % now)])
-        if self.last_trigger is not None:
-            metric("pve_memguard_last_trigger_timestamp_seconds", "gauge",
-                   "Last memory PSI trigger event.", [("", "%.0f" % self.last_trigger)])
         if self.last_headroom is not None:
             metric("pve_memguard_headroom_bytes", "gauge",
                    "Host-wide headroom (MemAvailable + ARC above c_min + SwapFree) "
@@ -572,15 +509,7 @@ class Memguard:
                    [("", self.last_headroom)])
         metric("pve_memguard_pressure_events_total", "counter",
                "Memory PSI trigger events by the decision taken.",
-               [('decision="%s"' % _escape_label(d), self.pressure_events[d])
-                for d in PRESSURE_DECISIONS])
-        metric("pve_memguard_kills_total", "counter",
-               "Guests killed through cgroup.kill.", per_guest(self.kills))
-        metric("pve_memguard_would_kills_total", "counter",
-               "Guests that would have been killed in dry-run mode.",
-               per_guest(self.would_kills))
-        metric("pve_memguard_starts_total", "counter",
-               "Guest starts launched after a kill.", per_guest(self.starts))
+               [('decision="%s"' % d, self.pressure_events[d]) for d in PRESSURE_DECISIONS])
         metric("pve_memguard_restart_pending", "gauge",
                "1 for each killed guest waiting to be started again.",
                [(_guest_labels(g), 1) for g in sorted(self.ledger.pending)])
@@ -589,16 +518,35 @@ class Memguard:
                [(_guest_labels(g), 1) for g in sorted(self.ledger.held)])
         return "\n".join(lines) + "\n"
 
-    def write_metrics(self, now):
-        try:
-            self.host.write_metrics(self.render_metrics(now))
-        except OSError as exc:
-            message = str(exc)
-            if message != self._metrics_error:
-                self.log.event("writing metrics failed: %s" % message)
-            self._metrics_error = message
-        else:
-            self._metrics_error = None
+    def publish_metrics(self, now):
+        self.writer.submit("metrics", self.render_metrics(now))
+
+
+def loop_once(guard, trigger, open_trigger, clock=time.time, sleep=time.sleep):
+    """One pass of the main loop; returns the trigger for the next pass.
+
+    On any error the trigger is closed and None returned, so the next pass
+    opens a new one (a trigger fd cannot be armed twice).
+    """
+    try:
+        if trigger is None:
+            trigger = open_trigger()
+        if trigger.wait(guard.poll_timeout(clock())):
+            if guard.handle_pressure_event(clock()):
+                guard.publish_metrics(clock())
+                sleep(guard.config.settle_seconds)
+        guard.handle_tick(clock())
+        guard.publish_metrics(clock())
+        return trigger
+    except Exception as exc:  # keep guarding
+        guard.log.event("error, re-arming: %r" % (exc,))
+        if trigger is not None:
+            try:
+                trigger.close()
+            except OSError:
+                pass
+        sleep(ERROR_PAUSE_SECONDS)
+        return None
 
 
 # --- host access -----------------------------------------------------------
@@ -632,10 +580,12 @@ class SysHost:
     GUEST_CGROUPS = (("ct", "lxc", ""), ("vm", "qemu.slice", ".scope"))
     START_COMMANDS = {"ct": "pct", "vm": "qm"}
 
-    def __init__(self, config, proc_root="/proc", cgroup_root="/sys/fs/cgroup"):
-        self.config = config
+    def __init__(self, proc_root="/proc", cgroup_root="/sys/fs/cgroup",
+                 state_file=STATE_FILE, metrics_file=METRICS_FILE):
         self.proc_root = proc_root
         self.cgroup_root = cgroup_root
+        self.state_file = state_file
+        self.metrics_file = metrics_file
 
     def read_meminfo(self):
         return _read(os.path.join(self.proc_root, "meminfo"))
@@ -702,16 +652,16 @@ class SysHost:
 
     def read_state(self):
         try:
-            return _read(self.config.state_file)
+            return _read(self.state_file)
         except FileNotFoundError:
             return None
 
     def write_state(self, text):
-        os.makedirs(os.path.dirname(self.config.state_file), exist_ok=True)
-        atomic_write(self.config.state_file, text, mode=0o600)
+        os.makedirs(os.path.dirname(self.state_file), exist_ok=True)
+        atomic_write(self.state_file, text, mode=0o600)
 
     def write_metrics(self, text):
-        atomic_write(os.path.join(self.config.textfile_dir, METRICS_BASENAME), text)
+        atomic_write(self.metrics_file, text)
 
 
 class Log:
@@ -775,47 +725,27 @@ def load_ledger(host, log):
         return Ledger()
     try:
         return Ledger.from_json(text)
-    except (ValueError, KeyError, TypeError) as exc:
-        log.event("state file unreadable, starting with empty kill history: %s" % exc)
+    except (ValueError, KeyError, TypeError, AttributeError) as exc:
+        log.event("state file unreadable, starting with empty kill history: %r" % (exc,))
         return Ledger()
 
 
 def run(config):
     log = Log()
-    host = SysHost(config)
+    host = SysHost()
     try:
         mlockall()
     except OSError as exc:
         log.event("running without locked memory: %s" % exc)
-    guard = Memguard(config, host, load_ledger(host, log), log)
-    log.event(
-        "started: dry_run=%s, trigger %r, headroom threshold %s, kill order %s" % (
-            config.dry_run, config.psi_trigger, _gib(config.headroom_threshold_bytes),
-            " | ".join(
-                " ".join([str(g) for g in tier]
-                         + ([DEFAULT_TIER_MARKER] if i == config.default_tier else []))
-                for i, tier in enumerate(config.kill_order))))
-    guard.write_metrics(time.time())
+    writer = SnapshotWriter(host, log)
+    writer.start()
+    guard = Memguard(config, host, load_ledger(host, log), log, writer)
+    log.event("started: dry_run=%s, trigger %r, headroom threshold %s" % (
+        config.dry_run, config.psi_trigger, _gib(config.headroom_threshold_bytes)))
+    guard.publish_metrics(time.time())
     trigger = None
     while True:
-        try:
-            if trigger is None:
-                trigger = PsiTrigger(config.psi_trigger)
-            if trigger.wait(guard.poll_timeout(time.time())):
-                if guard.handle_pressure_event(time.time()):
-                    guard.write_metrics(time.time())
-                    time.sleep(config.settle_seconds)
-            guard.handle_tick(time.time())
-            guard.write_metrics(time.time())
-        except Exception as exc:  # keep guarding; re-arm the trigger
-            log.event("error, re-arming: %r" % (exc,))
-            if trigger is not None:
-                try:
-                    trigger.close()
-                except OSError:
-                    pass
-                trigger = None
-            time.sleep(5)
+        trigger = loop_once(guard, trigger, lambda: PsiTrigger(config.psi_trigger))
 
 
 USAGE = "usage: pve-memguard [--check-config] CONFIG.json"
@@ -834,10 +764,8 @@ def main(argv=None):
     except (OSError, ValueError) as exc:
         print("pve-memguard: bad config %s: %s" % (argv[0], exc), file=sys.stderr)
         return 1
-    if check_only:
-        print("pve-memguard: config %s is valid (dry_run=%s)" % (argv[0], config.dry_run))
-        return 0
-    run(config)
+    if not check_only:
+        run(config)
     return 0
 
 
