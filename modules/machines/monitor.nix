@@ -369,6 +369,72 @@ in
                       })
                     ];
                   }
+                  {
+                    orgId = 1;
+                    name = "pve-memguard";
+                    folder = "infra";
+                    interval = "1m";
+                    rules = [
+                      (vmAlertRule {
+                        uid = "pve-memguard-guest-held-stopped";
+                        title = "pve-memguard holds a guest stopped";
+                        # 1 per guest killed kill_cap times within the window.
+                        expr = "max by (bhost, type, vmid) (pve_memguard_guest_held_stopped)";
+                        threshold = {
+                          type = "gt";
+                          params = [ 0 ];
+                        };
+                        for = "0s";
+                        summary = "{{ $labels.bhost }}: pve-memguard holds {{ $labels.type }} {{ $labels.vmid }} stopped";
+                        description = ''
+                          pve-memguard on {{ $labels.bhost }} killed {{ $labels.type }} {{ $labels.vmid }}
+                          3 times within an hour under host-wide memory pressure and no longer
+                          starts it. Find out what eats the memory, then start it by hand
+                          (pct start / qm start); the hold clears once it runs again.
+                          On the host: journalctl -u pve-memguard, dmesg | grep pve-memguard,
+                          cat /var/lib/pve-memguard/state.json.
+                        '';
+                      })
+                      (vmAlertRule {
+                        uid = "pve-memguard-acted";
+                        title = "pve-memguard acted on host-wide memory pressure";
+                        # Pressure events with a kill decision in the last hour (would_kill in dry-run).
+                        expr = ''sum by (bhost, decision) (increase(pve_memguard_pressure_events_total{decision=~"kill|would_kill|kill_failed|no_victim"}[1h]))'';
+                        threshold = {
+                          type = "gt";
+                          params = [ 0 ];
+                        };
+                        for = "0s";
+                        summary = "{{ $labels.bhost }}: pve-memguard decided {{ $labels.decision }} in the last hour";
+                        description = ''
+                          pve-memguard on {{ $labels.bhost }} saw host-wide memory pressure with low
+                          headroom and decided {{ $labels.decision }}. would_kill means dry-run: check
+                          whether it was a false positive before turning dry-run off. no_victim means
+                          nothing was left to kill. On the host: journalctl -u pve-memguard,
+                          dmesg | grep pve-memguard, cat /proc/pressure/memory.
+                        '';
+                      })
+                      (vmAlertRule {
+                        uid = "pve-memguard-heartbeat-stale";
+                        title = "pve-memguard heartbeat stale";
+                        # Seconds since the daemon's loop last wrote its textfile; it does every 60s.
+                        expr = "time() - max by (bhost) (pve_memguard_heartbeat_timestamp_seconds)";
+                        threshold = {
+                          type = "gt";
+                          params = [ 300 ];
+                        };
+                        for = "5m";
+                        summary = "{{ $labels.bhost }}: pve-memguard has not run for 10m";
+                        description = ''
+                          pve-memguard on {{ $labels.bhost }} last wrote its metrics
+                          {{ printf "%.0f" $values.B.Value }}s ago, so nothing guards the host
+                          against memory pressure. On the host: systemctl status pve-memguard,
+                          journalctl -u pve-memguard, and whether
+                          /var/lib/node_exporter/pve_memguard.prom is replaced every minute.
+                        '';
+                      })
+                    ];
+                  }
                 ];
               };
               policies.settings = {
