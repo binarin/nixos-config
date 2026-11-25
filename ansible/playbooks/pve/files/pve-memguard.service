@@ -1,0 +1,18 @@
+[Unit]
+Description=pve-memguard: kill whole guests in rank order under host-wide memory pressure
+After=local-fs.target
+# Keep restarting forever: a guard that gave up is worse than a noisy one.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -I /usr/local/sbin/pve-memguard /etc/pve-memguard/config.json
+OOMScoreAdjust=-1000
+MemoryMin=64M
+StateDirectory=pve-memguard
+StateDirectoryMode=0700
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,42 @@
+---
+- name: Install pve-memguard daemon
+  ansible.builtin.copy:
+    src: pve_memguard.py
+    dest: /usr/local/sbin/pve-memguard
+    mode: "0755"
+  register: pve_memguard_script
+
+- name: Create /etc/pve-memguard
+  ansible.builtin.file:
+    path: /etc/pve-memguard
+    state: directory
+    mode: "0755"
+
+- name: Install pve-memguard config
+  ansible.builtin.template:
+    src: pve-memguard.json.j2
+    dest: /etc/pve-memguard/config.json
+    mode: "0644"
+    validate: /usr/bin/python3 -I /usr/local/sbin/pve-memguard --check-config %s
+  register: pve_memguard_config
+
+- name: Install pve-memguard systemd service
+  ansible.builtin.copy:
+    src: pve-memguard.service
+    dest: /etc/systemd/system/pve-memguard.service
+    mode: "0644"
+  register: pve_memguard_unit
+
+- name: Enable and start pve-memguard
+  ansible.builtin.systemd:
+    name: pve-memguard.service
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Restart pve-memguard when its daemon, config or unit changed
+  when: pve_memguard_script.changed or pve_memguard_config.changed or pve_memguard_unit.changed
+  ansible.builtin.systemd:
+    name: pve-memguard.service
+    state: restarted
+    daemon_reload: true

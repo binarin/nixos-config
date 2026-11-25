@@ -1,0 +1,95 @@
+#+title: SL-0081 pve-memguard: kill whole guests on raum under host-wide memory pressure
+#+filetags: :pve:raum:memory:
+
+* Inputs
+- Ticket brief SL-81 (authoritative); research SL-45 section L3 (sketch,
+  untested). The brief wins where they differ: headroom includes free
+  swap, full kill order, VMs too, 3 kills/hour cap, no panic/reboot.
+- SL-82 (system.slice MemoryMin, OOMScoreAdjust drop-ins) is a sibling,
+  not part of this ticket.
+
+* Status
+- [X] daemon + unit tests (=ansible/playbooks/pve/files/pve_memguard.py=,
+  =test_pve_memguard.py=; =cd ansible/playbooks/pve/files && python3 -m unittest=)
+- [X] systemd unit, config template, ansible tasks, raum-only play
+  (=main.yml= play =hosts: raum=, tag =memguard=)
+- [X] alert rules on monitor (Grafana-managed, group =pve-memguard= next to
+  =nix-cache= in =modules/machines/monitor.nix=); needs a monitor deploy
+- [ ] deploy to raum in dry-run (binarin)
+- [ ] controlled test in the nested PVE test ticket
+- [ ] dry-run week on raum without false positives, then
+  =pve_memguard_dry_run: false=
+
+* Design choices
+- Files: =/usr/local/sbin/pve-memguard= (run as =python3 -I=), config
+  =/etc/pve-memguard/config.json= (template from =vars/memguard.yml=,
+  validated with =--check-config= before it is installed), state
+  =/var/lib/pve-memguard/state.json=, metrics
+  =/var/lib/node_exporter/pve_memguard.prom=.
+- Trigger: PSI =full 1000000 10000000= on =/proc/pressure/memory=. The
+  kernel overwrites the last byte of the write with NUL, so the trigger is
+  written with a trailing NUL (without it the window would silently become
+  1 s).
+- Headroom gate: =MemAvailable + max(0, ARC size - c_min) + SwapFree=;
+  pressure only counts below 3 GiB. Checked on this dev box: pressure from
+  a 150M-limited scope reaches the global PSI file and fires the trigger,
+  and the gate classifies it by headroom.
+- Victim: the first tier of the kill order with a running guest (cgroup
+  =lxc/<id>= or =qemu.slice/<id>.scope= exists); within a tier the largest
+  =memory.current=. Unlisted guests join the tier marked =default=.
+- One kill per pressure event, then 15 s settle. A guest killed less than
+  =exit_grace_seconds= (120 s) ago whose cgroup is still there counts as
+  exiting: it is not picked again, and its =memory.current= counts as
+  headroom, so a slow exit does not cascade into more kills. After the
+  grace a stuck guest is killed again (and that counts towards the cap).
+- Restart mechanism: state in the daemon, persisted as JSON after every
+  change (kill timestamps per guest, pending restarts with due time and
+  attempts, held guests). When a restart is due and the host is calm
+  (memory =some avg10= <= 5.0 and headroom >= 6 GiB), the daemon launches
+  =systemd-run --unit=pve-memguard-start-<ct|vm>-<id> --collect --no-block
+  pct|qm start <id>=. The transient unit keeps the Perl start out of the
+  daemon's cgroup and survives a daemon restart. The pending restart is
+  checked again after 5 min: if the guest runs, it is done; otherwise
+  retry. Chosen over transient timer units (sketch) because the gate and
+  the cap then live in one tested place and survive daemon restarts.
+- Cap: the 3rd kill of a guest within 3600 s holds it stopped (no restart,
+  =pve_memguard_guest_held_stopped= = 1, kmsg). The hold clears once the
+  guest runs again at least =restart_delay_seconds= after its last kill
+  (i.e. someone started it by hand).
+- Dry-run (default): logs "dry-run: ... would kill CT n" to the journal and
+  =/dev/kmsg=, counts =would_kills=, records no kills, starts nothing
+  (also not restarts left pending by an earlier enforcing run).
+- Nothing left to kill: log to kmsg, count =no_victim=, no panic.
+- Metrics: =pve_memguard_dry_run=,
+  =pve_memguard_heartbeat_timestamp_seconds=,
+  =pve_memguard_last_trigger_timestamp_seconds=,
+  =pve_memguard_headroom_bytes=,
+  =pve_memguard_pressure_events_total{decision}= (headroom_ok,
+  awaiting_exit, kill, would_kill, kill_failed, no_victim),
+  =pve_memguard_kills_total{type,vmid}=,
+  =pve_memguard_would_kills_total{type,vmid}=,
+  =pve_memguard_starts_total{type,vmid}=,
+  =pve_memguard_restart_pending{type,vmid}=,
+  =pve_memguard_guest_held_stopped{type,vmid}=. Counters are per daemon
+  run; kill history for the cap is in the state file.
+- Alerts (monitor): held stopped; acted (kill / would_kill / kill_failed /
+  no_victim within the last hour); heartbeat older than 300 s for 5 min.
+
+* Validation (agent, 2026-11-25)
+- 76 unit tests pass; =py_compile= clean.
+- =ansible-playbook --syntax-check playbooks/pve/main.yml= passes with
+  stub copies of the external roles (=ext-roles=/=ext-collections= are not
+  installed in this checkout); =--tags memguard --list-hosts= lists raum only.
+- The template renders (locally, =connection: local=) to exactly the
+  daemon's defaults and passes =--check-config=; with
+  =-e pve_memguard_dry_run=false= it renders =false=.
+- Unprivileged dry-run smoke run on the dev box: trigger armed, events
+  fired by a memory-limited scope, metrics written.
+- =nix eval= of monitor's alert rules shows the new group.
+
+* Open
+- Thresholds are first guesses (3 GiB headroom, full 1 s/10 s, restart
+  gate some avg10 <= 5 and 6 GiB headroom); tune from the dry-run week.
+- Not run on a PVE host yet: cgroup.kill on real CT/VM cgroups, =pct
+  start= through systemd-run, mlockall as root. Covered by the nested PVE
+  test ticket.
