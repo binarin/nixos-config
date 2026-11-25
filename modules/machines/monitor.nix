@@ -388,7 +388,7 @@ in
                         summary = "{{ $labels.bhost }}: pve-memguard holds {{ $labels.type }} {{ $labels.vmid }} stopped";
                         description = ''
                           pve-memguard on {{ $labels.bhost }} killed {{ $labels.type }} {{ $labels.vmid }}
-                          3 times within an hour under host-wide memory pressure and no longer
+                          under host-wide memory pressure until it hit the kill cap, and no longer
                           starts it. Find out what eats the memory, then start it by hand
                           (pct start / qm start); the hold clears once it runs again.
                           On the host: journalctl -u pve-memguard, dmesg | grep pve-memguard,
