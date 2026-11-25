@@ -1,0 +1,71 @@
+#+title: Forgejo runner action-cache race: "shallow file has changed since we read it"
+#+filetags: :forgejo:ci:debugging:
+
+* Symptom
+
+CI jobs fail in 0s during workflow preparation, before the first step runs:
+
+#+begin_example
+workflow prepared
+  ☁️  git fetch 'https://data.forgejo.org/actions/checkout' # ref=v4
+⚙️ [runner]: could not fetch remote 'origin': fatal: shallow file has changed since we read it: exit status 128
+🏁  Job failed
+#+end_example
+
+Starts flapping after the 2026-11-25 deploy on the builder hosts.
+
+* Root cause (upstream)
+
+- Runner =13.2.0= (nixpkgs rev =6f06d20=, the pin since at least
+  Nov 14) fetches action repositories with =git fetch --depth=1= into a
+  shared bare repo under =host.workdir_parent= (PR #1722, "efficient
+  actions repo fetching"). 13.1.0 fetched full history and had no
+  =shallow= file.
+- The bare repos are named =sha256(URL)/...= and guarded by
+  =act/common/git.cloneLock=, a =common.MutexMap= — an *in-process*
+  mutex only.
+- Since the runners were switched to a real per-instance user
+  (cdba7f50), all daemons on a host share =HOME=/var/lib/<instance>=
+  and therefore the default =host.workdir_parent=$HOME/.cache/act=.
+  Three daemons on nix-builder-valak do concurrent shallow fetches in
+  the same bare repo; the second git sees the =shallow= file change
+  under it and dies with the error above.
+- Upstream issue: https://code.forgejo.org/forgejo/runner/issues/1663
+  (open). The WIP fix PR #1755 (flock around the cache) was closed
+  unmerged on 2026-11-10, so no released fix. Also note =cache.dir=
+  defaults to a shared =$HOME/.cache/actcache= whose =bolt.db= is
+  opened with a 5s timeout: only the first daemon gets a working
+  artifact cache, the others log "Could not start the cache server".
+
+* Why only after the deploy
+
+Not yet verified on the hosts. Most likely today's =nixos-rebuild= was
+the first restart after the nixpkgs pin moved to the 13.2.0 build (the
+old todo/~forgejo-runner-display-name.org~ still recorded 13.1.0), or
+the first time several jobs landed concurrently on one host. Check
+=journalctl -u forgejo-runner-*~ boot/version history if it matters.
+
+* Fix (applied)
+
+~modules/clan/forgejo-runner.nix~ now sets per-daemon paths in the
+generated config:
+
+#+begin_src nix
+host.workdir_parent = "/var/lib/${instanceName}/${r.displayName}/act";
+cache.dir = "/var/lib/${instanceName}/${r.displayName}/actcache";
+#+end_src
+
+Both live under the daemon's =StateDirectory=, so each process has a
+private action cache (and a private bolt DB). Costs a few hundred KiB
+of shallow action clones per daemon on top of the already per-daemon
+worktrees.
+
+* Loose ends
+
+- Deploy to nix-builder-valak and nix-builder-raum, then delete the
+  stale shared caches (=/var/lib/forgejo-runner/.cache/act= and
+  =actcache=) — refreshing them alone would not fix the race.
+- Revert to the shared cache if upstream lands a cross-process lock
+  (watch issue #1663 / PR #1755).
+- Verify on the host that all three valak daemons now keep their
+  action cache under their own StateDirectory.

@@ -129,7 +129,20 @@
                         file = "/var/lib/${instanceName}/${r.displayName}/.runner";
                         capacity = 1;
                       };
-                      cache.enabled = true;
+                      cache = {
+                        enabled = true;
+                        # Each daemon gets its own bbolt database; a shared
+                        # one only opens in the first daemon, the rest sit
+                        # out bolt's 5s lock timeout with caching disabled.
+                        dir = "/var/lib/${instanceName}/${r.displayName}/actcache";
+                      };
+                      # Action-cache git clones must be private to the process:
+                      # runner 13.2 fetches actions with `git fetch --depth=1`
+                      # and its cache lock (act/common/git.cloneLock) is an
+                      # in-memory mutex, so daemons sharing $HOME/.cache/act
+                      # corrupt each other's shallow files. See
+                      # todo/forgejo-runner-action-cache-race.org.
+                      host.workdir_parent = "/var/lib/${instanceName}/${r.displayName}/act";
                     };
                     startScript = pkgs.writeShellScript "forgejo-runner-${r.ident}-start" ''
                       set -euo pipefail
