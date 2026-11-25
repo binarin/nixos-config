@@ -199,6 +199,7 @@ in
 
       imports = [
         inputs.common.homeModules.herdr-app
+        inputs.common.homeModules.swl
       ];
 
       programs.herdr-app.instances = {

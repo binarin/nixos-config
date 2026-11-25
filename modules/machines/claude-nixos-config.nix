@@ -58,6 +58,7 @@
         home-manager.users.binarin =
           { pkgs, ... }:
           {
+            imports = [ inputs.common.homeModules.swl ];
             programs.git.settings.credential.helper = "store";
             home.packages = with pkgs; [
               llm-agents.herdr-core
