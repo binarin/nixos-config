@@ -34,6 +34,10 @@
           build-dir = /nix/build
         '';
 
+        # srvos frees up to 128 GiB free on /nix, more than these builders
+        # have, so every hourly run evicts CI paths. Target 40 GiB instead.
+        nix.gc.options = lib.mkForce ''--max-freed "$((40 * 1024**3 - 1024 * $(df -P -k /nix/store | tail -n 1 | ${pkgs.gawk}/bin/awk '{ print $4 }')))"'';
+
         # Builder access stays restricted: no universal login keys and no
         # unrestricted default principal.
         swanLake.sshTrust.accounts.nix-remote-builder = {
