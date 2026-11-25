@@ -15,8 +15,10 @@ General
 
 - `flake.nix` is hand-maintained: edit input declarations there directly.
   Nine shared dependencies follow `common/<name>`.
-  Common tracks `swan-lake-current`; deliberately run `nix flake update common`
-  to advance its reproducible lock, never independently repin those dependencies.
+  Changes to this repo and its shared inputs are made in `swl` workspaces:
+  rules in the swan-lake tracker's AGENTS.md, details in swan-lake-common's
+  tools/swl/README.md. Never re-pin `common`, or the inputs that follow it,
+  by hand.
 
 Emacs
 =====
