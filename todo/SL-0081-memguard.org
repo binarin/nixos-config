@@ -11,8 +11,10 @@
 * Status
 - [X] daemon + unit tests (=ansible/playbooks/pve/files/pve_memguard.py=,
   =test_pve_memguard.py=; =cd ansible/playbooks/pve/files && python3 -m unittest=)
-- [X] systemd unit, config template, ansible tasks, raum-only play
+- [X] systemd unit, config file, ansible tasks, raum-only play
   (=main.yml= play =hosts: raum=, tag =memguard=)
+- [X] review follow-up (stuck victim, writer thread, restart order,
+  config sprawl, cuts, check mode, restarts in dry-run, loop_once)
 - [X] alert rules on monitor (Grafana-managed, group =pve-memguard= next to
   =nix-cache= in =modules/machines/monitor.nix=); needs a monitor deploy
 - [ ] deploy to raum in dry-run (binarin)
@@ -22,11 +24,18 @@
 
 * Design choices
 - Files: =/usr/local/sbin/pve-memguard= (run as =python3 -I=), config
-  =/etc/pve-memguard/config.json= (template from =vars/memguard.yml=,
-  validated with =--check-config= before it is installed), state
+  =/etc/pve-memguard/config.json=, state
   =/var/lib/pve-memguard/state.json=, metrics
-  =/var/lib/node_exporter/pve_memguard.prom=.
-- Trigger: PSI =full 1000000 10000000= on =/proc/pressure/memory=. The
+  =/var/lib/node_exporter/pve_memguard.prom= (paths are constants).
+- Config: the defaults live only in =DEFAULT_CONFIG= in the daemon. Ansible
+  writes =dry_run= (=pve_memguard_dry_run=) plus every key of
+  =pve_memguard_overrides= (default ={}=) in =vars/memguard.yml=, so
+  thresholds can be tuned during the dry-run week without a code change.
+  The file is validated with =--check-config= before it is installed: an
+  unknown key or a value of the wrong type fails the deploy (no range
+  checks; a bad =psi_trigger= shows up as re-arm errors in kmsg and a stale
+  heartbeat).
+- Trigger: PSI =full 1000000 10000000= (config key =psi_trigger=) on =/proc/pressure/memory=. The
   kernel overwrites the last byte of the write with NUL, so the trigger is
   written with a trailing NUL (without it the window would silently become
   1 s).
@@ -37,14 +46,17 @@
 - Victim: the first tier of the kill order with a running guest (cgroup
   =lxc/<id>= or =qemu.slice/<id>.scope= exists); within a tier the largest
   =memory.current=. Unlisted guests join the tier marked =default=.
-- One kill per pressure event, then 15 s settle. A guest killed less than
-  =exit_grace_seconds= (120 s) ago whose cgroup is still there counts as
-  exiting: it is not picked again, and its =memory.current= counts as
-  headroom, so a slow exit does not cascade into more kills. After the
-  grace a stuck guest is killed again (and that counts towards the cap).
+- One kill per pressure event, then 15 s settle. A guest whose cgroup is
+  still there less than =restart_delay_seconds= (600 s) after its kill is
+  never picked again: it is stuck exiting or was started by hand, and a
+  second =cgroup.kill= would not help (review finding: re-killing a stuck
+  guest blocked escalation). Its =memory.current= counts as headroom only
+  within =exit_grace_seconds= (120 s), so a slow exit does not cascade into
+  more kills, but a stuck one does not stop escalation. Held guests are
+  never picked.
 - Restart mechanism: state in the daemon, persisted as JSON after every
-  change (kill timestamps per guest, pending restarts with due time and
-  attempts, held guests). When a restart is due and the host is calm
+  change (kill timestamps per guest, pending restart due times, held
+  guests). When a restart is due and the host is calm
   (memory =some avg10= <= 5.0 and headroom >= 6 GiB), the daemon launches
   =systemd-run --unit=pve-memguard-start-<ct|vm>-<id> --collect --no-block
   pct|qm start <id>=. The transient unit keeps the Perl start out of the
@@ -52,30 +64,61 @@
   checked again after 5 min: if the guest runs, it is done; otherwise
   retry. Chosen over transient timer units (sketch) because the gate and
   the cap then live in one tested place and survive daemon restarts.
+  Due guests start most important first, at most one start per tick; the
+  other due guests wait one =restart_retry_seconds= (5 min), so the gate
+  sees what the started guest uses before the next start.
 - Cap: the 3rd kill of a guest within 3600 s holds it stopped (no restart,
   =pve_memguard_guest_held_stopped= = 1, kmsg). The hold clears once the
   guest runs again at least =restart_delay_seconds= after its last kill
   (i.e. someone started it by hand).
 - Dry-run (default): logs "dry-run: ... would kill CT n" to the journal and
-  =/dev/kmsg=, counts =would_kills=, records no kills, starts nothing
-  (also not restarts left pending by an earlier enforcing run).
+  =/dev/kmsg=, counts =would_kill= events, records no kills. Restarts left
+  pending by an earlier enforcing run still happen (the safe direction).
 - Nothing left to kill: log to kmsg, count =no_victim=, no panic.
 - Metrics: =pve_memguard_dry_run=,
   =pve_memguard_heartbeat_timestamp_seconds=,
-  =pve_memguard_last_trigger_timestamp_seconds=,
   =pve_memguard_headroom_bytes=,
   =pve_memguard_pressure_events_total{decision}= (headroom_ok,
   awaiting_exit, kill, would_kill, kill_failed, no_victim),
-  =pve_memguard_kills_total{type,vmid}=,
-  =pve_memguard_would_kills_total{type,vmid}=,
-  =pve_memguard_starts_total{type,vmid}=,
   =pve_memguard_restart_pending{type,vmid}=,
   =pve_memguard_guest_held_stopped{type,vmid}=. Counters are per daemon
-  run; kill history for the cap is in the state file.
+  run; kill history for the cap is in the state file. Which guest was
+  killed or started is in the journal and kmsg.
+- Writes: state and metrics files go through =SnapshotWriter=, a thread
+  (256 KiB stack, since =MCL_FUTURE= locks whole thread stacks) that
+  writes only the latest snapshot of each. The main loop only swaps a
+  string in under a lock that is never held during I/O, so a ZFS write
+  blocked under memory pressure cannot delay a kill. A writer stuck for
+  good shows up as a stale heartbeat. A failed state write is logged once
+  and not retried; the next state change writes the full state again.
 - Alerts (monitor): held stopped; acted (kill / would_kill / kill_failed /
   no_victim within the last hour); heartbeat older than 300 s for 5 min.
 
-* Validation (agent, 2026-11-25)
+* Review follow-up (agent, 2026-11-25)
+- Findings 1-9 of the review addressed; see the design choices above.
+  Main loop pass pulled into =loop_once= (error path closes the trigger,
+  pauses 5 s, next pass re-arms); tested with fake triggers.
+- Cuts: =_escape_label=, per-guest kills/would_kills/starts counters,
+  =last_trigger= metric, =STATE_VERSION=, restart attempt counts,
+  =Ledger.prune= (each guest's kill list is already trimmed to the cap
+  window on every kill), duplicate-guest and range checks in the config,
+  the config template and the duplicated defaults in =vars/memguard.yml=.
+  The three PSI trigger keys became one =psi_trigger= string.
+- Ansible: config written by =copy: content:= from
+  =pve_memguard_overrides | combine({dry_run: ...})=; the enable and the
+  restart task merged into one, with =ignore_errors: "{{ ansible_check_mode }}"=
+  (verified locally: in check mode on a missing unit the systemd module
+  fails with "Could not find the requested service", now ignored; the
+  copy module does not run =validate= in check mode).
+- Alert text says "hit the kill cap" instead of "3 times within an hour".
+- Validation: 80 unit tests pass, =py_compile= and pyflakes clean;
+  =--syntax-check= with stub roles passes; local render of the config with
+  no overrides, =dry_run=false= and two overrides passes =--check-config=,
+  an unknown key fails the copy; unprivileged smoke run starts the writer
+  thread, arms the trigger and logs a headroom_ok event; =nix eval= of the
+  monitor alert group shows the new text.
+
+* Validation (agent, 2026-11-25, first version)
 - 76 unit tests pass; =py_compile= clean.
 - =ansible-playbook --syntax-check playbooks/pve/main.yml= passes with
   stub copies of the external roles (=ext-roles=/=ext-collections= are not
