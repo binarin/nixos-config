@@ -1,0 +1,14 @@
+---
+# Kills whole guests in raum's rank order under host-wide memory pressure.
+# The kill order lists raum's guests, so it applies to raum only.
+#
+# A playbook of its own so it can be run alone: with `--tags memguard` on
+# main.yml, the always-tagged argument checks of the monitoring roles still
+# run, without facts, and fail.
+- hosts: raum
+  tags:
+    - memguard
+  vars_files:
+    - vars/memguard.yml
+  tasks:
+    - import_tasks: tasks/memguard.yml

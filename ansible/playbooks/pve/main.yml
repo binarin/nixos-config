@@ -51,15 +51,7 @@
   tasks:
     - import_tasks: tasks/lxc-volume-textfile.yml
 
-# Kills whole guests in raum's rank order under host-wide memory pressure.
-# The kill order lists raum's guests, so it applies to raum only.
-- hosts: raum
-  tags:
-    - memguard
-  vars_files:
-    - vars/memguard.yml
-  tasks:
-    - import_tasks: tasks/memguard.yml
+- import_playbook: memguard.yml
 
 - hosts: pve
   vars_files:
