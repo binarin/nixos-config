@@ -28,7 +28,11 @@
   imported from =main.yml= after =memguard.yml=
 - [ ] deploy to raum (binarin, see the commands below)
 - [ ] hand steps on raum: =include= for every CT, hookscript for VMs 104 and 109
-- [ ] =pve-oom-priority check= on raum shows =problems: 0=
+- [X] second review follow-up (2026-11-26): narrower fallback, guarded
+  rollback, start-host test before any CT restart, hook output to syslog,
+  positive-CT processes below target are notes in =check=
+- [ ] =pve-oom-priority check= on raum shows =problems: 0= (processes
+  below target in positive CTs are listed as allowed, not counted)
 
 * Design choices
 ** SL-80 guest oom_score_adj
@@ -69,12 +73,15 @@
   =CAP_SYS_RESOURCE= from the effective set for the write (capget/capset
   via ctypes, =_LINUX_CAPABILITY_VERSION_3=; kept in the permitted set and
   restored; =CAP_DAC_OVERRIDE=, needed for CT-owned =/proc= files, stays).
-  If the kernel then refuses because the process already has a higher
-  minimum (only possible from an earlier floored write), the value is
-  written with a floor, which lowers that minimum to the value.
+  An error from capget/capset (dropping or restoring) propagates: no
+  write is better than a positive floor. Only an EACCES from the write
+  itself (the process already has a higher minimum, e.g. inherited from a
+  parent; this tool never floors a value >= 0) leads to a two-step write:
+  0 with a floor (minimum = 0), then the value without one.
 - Trade-off: processes in a positive-tier CT that set a lower value
   themselves (an engine's 0, systemd's =user@= +100) go below the CT's
-  value. =apply= raises them again when it runs; =check= reports them.
+  value. =apply= raises them again when it runs; =check= lists them as
+  "below target (allowed, no floor)" without counting them as problems.
 - CTs: =lxc.proc.*= keys are not allowed in a pct config, =lxc.include= is.
   =sync= writes =/etc/lxc/oom-priority/<id>.conf= for every CT config in
   =/etc/pve/lxc=, listed or not, because a missing include file blocks the
@@ -93,9 +100,10 @@
     PVE does not set =lxc.hook.version=, so version 0 also passes
     =NAME lxc start-host= as arguments; =LXC_NAME= is set too
     (=start.c:980=). The wrapper (sh, installed by Ansible) runs
-    =pve-oom-priority lxc-start-host "$@" || true= and then =exit 0=; the
-    subcommand writes N to =LXC_PID= without a floor and also returns 0
-    on any error.
+    =pve-oom-priority lxc-start-host "$@" 2>&1 | logger -t
+    pve-oom-priority-lxc-hook || true= and then =exit 0=: lxc logs hook
+    output at DEBUG only, so errors go to syslog. The subcommand writes N
+    to =LXC_PID= without a floor and also returns 0 on any error.
 - =include <vmid>...= (hand step) adds =lxc.include: /etc/lxc/oom-priority/<id>.conf=
   at the end of the main section, i.e. before the first line starting with
   =[= (snapshot or =[pve:pending]=): a line below a section header belongs
@@ -113,7 +121,8 @@
   aborts the start); on =post-start= the tool writes the value to the kvm
   PID (=/var/run/qemu-server/<id>.pid=, accepted only if
   =/proc/<pid>/cgroup= is the VM's =qemu.slice/<id>.scope=). The tool
-  also returns 0 on any error and logs it to stderr (in the task log).
+  also returns 0 on any error; its output goes to syslog
+  (=logger -t pve-oom-priority-hook=).
   Only one hookscript per guest: binarin sets it
   by hand after checking none is set. CTs do not use a hookscript (CT 116
   already has =pve-impermanence-hook.pl=).
@@ -131,7 +140,8 @@
 - =check= (read-only, exit 1 on any problem): include file content
   (positive: the start-host hook line; negative: the proc key; 0:
   neither), include line in each CT's main section, every running guest's
-  processes >= target, the CT init (the process whose =NSpid= has exactly
+  processes >= target (in positive CTs only a note, see the trade-off),
+  the CT init (the process whose =NSpid= has exactly
   two PIDs, the second 1; nested container inits have more) and the kvm
   PID settled per the =apply= rule, VM =hookscript:= equals
   =local:snippets/oom-priority-hook.sh=, the snippet file is executable
@@ -182,10 +192,22 @@
   itself would be installed or updated, because the new version is not
   on the host yet. In a check run of =main.yml= in which =memguard.yml=
   would change =config.json=, they report against the old kill order.
+- =apply='s =changed_when= is unchanged: two runs in a row are idempotent,
+  but a run reports changed when a positive CT started containers (at 0)
+  since the previous run, and for the 0-rule case above. That is a real
+  write each time, so it is not hidden.
 - A =kill_order= change through =memguard.yml= alone does not update the
   include files or live values: run =memory.yml= after it.
 
 * Validation (agent, 2026-11-26, review follow-up)
+- Second review follow-up: 144 tests pass. The fallback test now expects
+  minimum 0 after a write below an older, higher minimum (floored 0, then
+  the value without a floor); an EPERM from dropping the capability
+  raises and writes nothing; an error on restore propagates. =check=
+  lists a positive CT's process below target as allowed (=problems: 0=)
+  and still counts one below a negative target. The lxc wrapper's output
+  reaches logger (checked with a stub logger). pyflakes and both
+  syntax checks pass.
 - Unit tests: 141 pass (61 for pve-oom-priority). The fake host emulates
   the kernel's minimum (a write with the capability sets it, one without
   fails below it): positive targets are written without a floor and an
@@ -224,18 +246,19 @@
 
 * Open / risks
 - =pct exec= / =pct enter=: lxc-attach applies =lxc.proc.*= from the CT's
-  config (=lxc/src/lxc/attach.c:1719-1722=), so once a CT with a negative
-  value has restarted with the include, attached processes get its value
-  and floor. Before that restart, and in CTs with value 0 or a positive
-  value (the start-host hook does not run on attach), they keep the
-  caller's value: =check= reports it if below the target, =apply= fixes
-  it.
+  generated config (=lxc/src/lxc/attach.c:1719-1722=). PVE regenerates
+  =/var/lib/lxc/<id>/config= at CT start and on any =pct set= of a
+  running CT (=API2/LXC/Config.pm:272=), so after either, attached
+  processes in a CT with a negative value get its value and floor. Before
+  that, and in CTs with value 0 or a positive value (the start-host hook
+  does not run on attach), they keep the caller's value: =check= reports
+  it (as a note in positive CTs), =apply= fixes it.
 - Processes in positive-tier CTs that lower themselves (engines' 0,
   =user@= +100) stay below the CT value until the next =apply=. Possible
   follow-up: a periodic =apply= (systemd timer). Not done.
-- The start-host hook path is not exercised on a PVE host yet: run
-  =pct stop 123 && pct start 123=, then =pve-oom-priority check= and a
-  test container in CT 123 (and 111, 116) after the include step.
+- The start-host hook path is not exercised on a PVE host yet, nor that
+  the kernel sets no minimum without effective =CAP_SYS_RESOURCE=: see
+  "First check of the start-host hook" below.
 - A snapshot rollback restores the snapshot's raw lxc keys and drops the
   include line if the snapshot predates it; =check= reports it, re-run
   =include=.
@@ -308,11 +331,26 @@ The include takes effect on each CT's next start, the hookscript on each
 VM's next start; =apply= in the deploy already set the live values of the
 running guests, so nothing needs a restart.
 
-First check of the start-host hook, on a positive CT with a container
-engine (123: podman); afterwards start a container in it the way its
-service does (e.g. a forgejo runner job) and check it starts:
+First check of the start-host hook. Before restarting any CT, run the
+wrapper the way lxc does on a throwaway process and show that it left no
+floor (a write of 0 without =CAP_SYS_RESOURCE= must work):
 #+begin_src sh
-pct stop 123 && pct start 123
+sleep 300 & s=$!
+h=/usr/local/libexec/pve-oom-priority-lxc-hook
+LXC_NAME=123 LXC_PID=$s $h 123 lxc start-host; echo rc=$?
+cat /proc/$s/oom_score_adj   # expect 1000
+setpriv --inh-caps=-sys_resource --bounding-set=-sys_resource \
+  sh -c "echo 0 > /proc/$s/oom_score_adj"
+cat /proc/$s/oom_score_adj   # expect 0
+kill $s
+journalctl -t pve-oom-priority-lxc-hook -n 5
+#+end_src
+Only if that shows 1000 and then 0: restart a positive CT with a
+container engine (123: podman) cleanly (=pct reboot=, never =pct stop=,
+which kills running jobs), check it, then start a container in it the
+way its service does (e.g. a forgejo runner job):
+#+begin_src sh
+pct reboot 123
 pve-oom-priority check
 #+end_src
 
@@ -320,15 +358,27 @@ Roll back:
 - First remove =- import_playbook: memory.yml= from =main.yml= (and stop
   running =memory.yml=), so a deploy in between does not put things back.
 - Guests, in this order:
-  1. =qm set 104 --delete hookscript= (and 109).
+  1. Delete the hookscript where it is ours:
+     #+begin_src sh
+     h=local:snippets/oom-priority-hook.sh
+     for v in 104 109; do
+       qm config $v | grep -qx "hookscript: $h" &&
+         qm set $v --delete hookscript
+     done
+     #+end_src
   2. Delete the =lxc.include: /etc/lxc/oom-priority/<id>.conf= line from
      each =/etc/pve/lxc/<id>.conf= by hand.
-  3. A running CT keeps the include in its generated config until it
-     restarts; without the file lxc cannot load that config (no
-     =pct enter=, =pct exec=, =pct stop=). This must print nothing;
-     restart every CT it lists (=pct reboot <id>=), then run it again:
+  3. A running CT keeps the include in its generated config
+     (=/var/lib/lxc/<id>/config=) until PVE regenerates it, at the next
+     start or any =pct set= on the running CT; without the file lxc
+     cannot load that config (no =pct enter=, =pct exec=, =pct stop=).
+     Stopped CTs do not matter: =pct start= regenerates it first. This
+     must print nothing; =pct reboot= every CT it lists, then run it
+     again:
      #+begin_src sh
-     grep -l oom-priority /var/lib/lxc/*/config
+     pct list | awk '$2=="running"{print $1}' | while read id; do
+       grep -l oom-priority /var/lib/lxc/$id/config
+     done
      #+end_src
   4. Only then remove the files:
      #+begin_src sh
