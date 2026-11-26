@@ -4,7 +4,9 @@ pve_zfs_arc_max_bytes: 8589934592
 
 # OOMScoreAdjust per host unit. Below every guest (the most important
 # guest gets -750, see files/pve_oom_priority.py), above -1000.
+# Not ssh.service: sshd sets its listener to -1000 itself and gives every
+# session the unit's value back, so -900 would put all sessions (and what
+# is started from them) below every guest.
 pve_host_oom_score_adjust:
-  ssh.service: -900
   pve-cluster.service: -900
   corosync.service: -900

@@ -25,8 +25,25 @@
     dest: /var/lib/vz/snippets/oom-priority-hook.sh
     mode: "0755"
 
+- name: Create /usr/local/libexec
+  ansible.builtin.file:
+    path: /usr/local/libexec
+    state: directory
+    mode: "0755"
+
+# Named by the include files of CTs with a positive value; a missing wrapper
+# blocks their start, so it is installed before sync writes them.
+- name: Install the lxc start-host hook wrapper
+  ansible.builtin.copy:
+    src: pve-oom-priority-lxc-hook.sh
+    dest: /usr/local/libexec/pve-oom-priority-lxc-hook
+    mode: "0755"
+
 # In check mode the tool runs with --check and changes nothing. It cannot run
-# when check mode has not installed its new version yet.
+# when check mode has not installed its new version yet. It reads the kill
+# order from the installed /etc/pve-memguard/config.json: in a check run in
+# which memguard.yml would change that file, sync and apply report against
+# the old order.
 - name: Write the oom_score_adj include file of every CT
   when: not (ansible_check_mode and pve_oom_priority_tool.changed)
   check_mode: false
