@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3 -I
 """pve-oom-priority: per-guest oom_score_adj from pve-memguard's kill order.
 
 Run as `python3 -I`.
@@ -13,15 +13,32 @@ default tier and n_below the number of tiers after it.
 - A tier i before d gets round(1000 * (d - i) / d): the first tier is +1000.
 - The default tier, and every guest that is not listed, gets 0.
 - A tier j after d gets round(-750 * (j - d) / n_below): the last is -750.
--750 stays above the -900 of the host services (ssh, pve-cluster, corosync)
+-750 stays above the -900 of the host services (pve-cluster, corosync)
 and never reaches -1000 (unkillable), so the most important guest stays
 killable as a last resort. round() is Python's (ties to even).
 
+Floors. A write to /proc/<pid>/oom_score_adj by a process with effective
+CAP_SYS_RESOURCE (host root) also sets the process's oom_score_adj_min, which
+its children inherit; below it, a process without that capability (anything
+in an unprivileged CT) gets EACCES. Container engines write the OCI spec's
+oom_score_adj (0 by default) and fail on EACCES (runc, crun), so a positive
+floor would break Docker and podman inside a CT. A negative value is written
+with a floor, a value >= 0 without one (CAP_SYS_RESOURCE is cleared from the
+effective set for the write): write_oom_score_adj(pid, value, floor) with
+floor = value < 0, used by every command. Without a floor, processes in a CT
+with a positive value can set themselves lower again (an engine's 0, user@'s
++100); `apply` raises them when it runs.
+
 How the value reaches a guest:
-- CT: /etc/lxc/oom-priority/<id>.conf holds `lxc.proc.oom_score_adj = N`
-  (`sync`), pulled in by `lxc.include:` in /etc/pve/lxc/<id>.conf (`include`,
-  a hand step). lxc writes it as host root before the CT init runs, so it is
-  also the floor (oom_score_adj_min) of every process in the CT.
+- CT: `sync` writes /etc/lxc/oom-priority/<id>.conf, pulled in by
+  `lxc.include:` in /etc/pve/lxc/<id>.conf (`include`, a hand step):
+  - value < 0: `lxc.proc.oom_score_adj = N`. lxc writes it as host root
+    before the CT init runs, so it is also the floor of the whole CT.
+  - value 0: only the comment header.
+  - value > 0: `lxc.hook.start-host = <LXC_HOOK>`. lxc runs that wrapper
+    in the host namespaces before it wakes the CT init, with the init's PID
+    in LXC_PID; it calls `lxc-start-host`, which writes N without a floor.
+    The wrapper always exits 0, so it never blocks a start.
 - VM: the hookscript snippet calls `hook <vmid> post-start`, which writes the
   value to the kvm process.
 - Running guests: `apply` writes the value to their processes now.
@@ -34,12 +51,16 @@ Commands:
   apply [--check]       set the value on the processes of running guests
   check                 verify all of the above; exit 1 on a problem
   hook VMID PHASE       qm hookscript entry; always exits 0
+  lxc-start-host [NAME lxc start-host]
+                        lxc.hook.start-host entry; always exits 0
 With --check nothing is changed and the output says what would be. sync,
 include and apply end with a line "changed: N" (with --check: would change).
 """
 from __future__ import annotations
 
 import argparse
+import contextlib
+import ctypes
 import difflib
 import errno
 import fcntl
@@ -63,11 +84,55 @@ LXC_CONFIG_LOCK = "/run/lock/lxc/pve-config-%d.lock"
 LOCK_TIMEOUT_SECONDS = 10
 HOOKSCRIPT = "local:snippets/oom-priority-hook.sh"
 HOOKSCRIPT_FILE = "/var/lib/vz/snippets/oom-priority-hook.sh"
+# lxc.hook.start-host wrapper for CTs with a positive value.
+LXC_HOOK = "/usr/local/libexec/pve-oom-priority-lxc-hook"
 
 MOST_UNIMPORTANT_VALUE = 1000
 MOST_IMPORTANT_VALUE = -750
 
 CONF_NAME = re.compile(r"^([0-9]+)\.conf$")
+# A raw lxc key in a pct config, `key: value` or `key = value`
+# (PVE::LXC::Config::parse_pct_config).
+LXC_KEY_LINE = re.compile(r"^(lxc\.[a-z0-9_\-\.]+)(:|\s*=)\s*(.*?)\s*$")
+
+CAP_SYS_RESOURCE = 24
+LINUX_CAPABILITY_VERSION_3 = 0x20080522
+
+
+class _CapHeader(ctypes.Structure):
+    _fields_ = [("version", ctypes.c_uint32), ("pid", ctypes.c_int)]
+
+
+class _CapData(ctypes.Structure):
+    _fields_ = [("effective", ctypes.c_uint32), ("permitted", ctypes.c_uint32),
+                ("inheritable", ctypes.c_uint32)]
+
+
+@contextlib.contextmanager
+def without_sys_resource():
+    """CAP_SYS_RESOURCE cleared from this thread's effective set, then restored.
+
+    It stays in the permitted set, so it can be restored; CAP_DAC_OVERRIDE,
+    needed to write /proc files of CT processes, is untouched.
+    """
+    libc = ctypes.CDLL(None, use_errno=True)
+    header = _CapHeader(LINUX_CAPABILITY_VERSION_3, 0)
+    data = (_CapData * 2)()
+
+    def call(function, what):
+        if function(ctypes.byref(header), data) != 0:
+            code = ctypes.get_errno()
+            raise OSError(code, "%s: %s" % (what, os.strerror(code)))
+
+    call(libc.capget, "capget")
+    saved = data[0].effective
+    data[0].effective = saved & ~(1 << CAP_SYS_RESOURCE)
+    call(libc.capset, "capset")
+    try:
+        yield
+    finally:
+        data[0].effective = saved
+        call(libc.capset, "capset (restore)")
 
 
 def load_memguard(path=MEMGUARD_PATH):
@@ -113,10 +178,14 @@ class Priorities:
 
 
 def settled(current, target):
-    """The value a process keeps after a restart under the target floor.
+    """True if `apply` leaves a process at `current` alone.
 
     A process left at 0 or below the target gets the target; one that raised
     itself above the target (Docker, chromium at 300) keeps its value.
+    Limitation: 0 is taken as "never set", because /proc does not show
+    oom_score_adj_min. A process that sets itself to 0 on purpose in a CT
+    with a negative value (allowed, 0 is above the floor) is set back to the
+    target by every `apply`, which then always reports a change.
     """
     return current == target or (current > target and current != 0)
 
@@ -130,11 +199,19 @@ def include_line(vmid):
 
 
 def include_file_text(vmid, tier, value):
-    return (
+    """The include file for a CT (see the module docstring)."""
+    text = (
         "# Written by pve-oom-priority sync from pve-memguard's kill_order;\n"
-        "# do not edit. CT %d: tier %d.\n"
-        "lxc.proc.oom_score_adj = %d\n" % (vmid, tier, value)
+        "# do not edit. CT %d: tier %d, oom_score_adj %d.\n" % (vmid, tier, value)
     )
+    if value < 0:
+        return text + "lxc.proc.oom_score_adj = %d\n" % value
+    if value > 0:
+        return text + (
+            "# Positive: set without a floor by the hook, so container engines\n"
+            "# in the CT can still write 0.\n"
+            "lxc.hook.start-host = %s\n" % LXC_HOOK)
+    return text
 
 
 def main_section_end(lines):
@@ -148,8 +225,8 @@ def main_section_end(lines):
 def has_include(lines, vmid):
     """True if the main section has the lxc.include line for this CT."""
     for line in lines[:main_section_end(lines)]:
-        key, sep, value = line.partition(":")
-        if sep and key.strip() == "lxc.include" and value.strip() == include_path(vmid):
+        match = LXC_KEY_LINE.match(line.rstrip("\n"))
+        if match and match.group(1) == "lxc.include" and match.group(3) == include_path(vmid):
             return True
     return False
 
@@ -179,10 +256,14 @@ def config_value(text, key):
 
 
 class Host:
-    """Files of the PVE host under `root` (tests use a temp dir)."""
+    """Files of the PVE host under `root` (tests use a temp dir).
 
-    def __init__(self, root="/"):
+    `without_floor` is the context manager that drops CAP_SYS_RESOURCE.
+    """
+
+    def __init__(self, root="/", without_floor=without_sys_resource):
         self.root = root
+        self.without_floor = without_floor
 
     def path(self, path):
         return os.path.join(self.root, path.lstrip("/"))
@@ -284,11 +365,16 @@ class Host:
         return pid
 
     def is_namespace_init(self, pid):
-        """True if the process is PID 1 of its PID namespace (the CT init)."""
+        """True if the process is PID 1 of a PID namespace one below the host's.
+
+        That is the CT init; init processes of containers nested in the CT
+        have more than two PIDs in NSpid.
+        """
         status = self.read_or_none("%s/%d/status" % (PROC, pid))
         for line in (status or "").splitlines():
             if line.startswith("NSpid:"):
-                return line.split()[-1] == "1"
+                fields = line.split()
+                return len(fields) == 3 and fields[2] == "1"
         return False
 
     def oom_score_adj(self, pid):
@@ -296,11 +382,29 @@ class Host:
         text = self.read_or_none("%s/%d/oom_score_adj" % (PROC, pid))
         return None if text is None else int(text)
 
-    def set_oom_score_adj(self, pid, value):
-        """False if the process is gone."""
+    def write_oom_score_adj(self, pid, value, floor):
+        """Set the process's oom_score_adj; False if the process is gone.
+
+        With `floor` the value also becomes its oom_score_adj_min. Without,
+        the kernel refuses a value below the process's current minimum
+        (EACCES); then the value is written with a floor, which lowers that
+        minimum to the value, the closest the kernel allows.
+        """
+        if floor:
+            return self._write_oom_score_adj(pid, value)
         try:
-            with open(self.path("%s/%d/oom_score_adj" % (PROC, pid)), "w", encoding="ascii") as fh:
-                fh.write("%d\n" % value)
+            with self.without_floor():
+                return self._write_oom_score_adj(pid, value)
+        except PermissionError:
+            return self._write_oom_score_adj(pid, value)
+
+    def _write_oom_score_adj(self, pid, value):
+        try:
+            fd = os.open(self.path("%s/%d/oom_score_adj" % (PROC, pid)), os.O_WRONLY | os.O_TRUNC)
+            try:
+                os.write(fd, b"%d\n" % value)
+            finally:
+                os.close(fd)
         except OSError as exc:
             if exc.errno in (errno.ENOENT, errno.ESRCH):
                 return False
@@ -358,8 +462,11 @@ def cmd_sync(memguard, host, check, out):
 def cmd_include(host, vmids, check, out, err):
     problems = []
     for vmid in vmids:
-        if not host.exists("%s/%d.conf" % (PVE_LXC_DIR, vmid)):
+        text = host.read_or_none("%s/%d.conf" % (PVE_LXC_DIR, vmid))
+        if text is None:
             problems.append("CT %d: no %s/%d.conf" % (vmid, PVE_LXC_DIR, vmid))
+        elif config_value(text, "lock"):
+            problems.append("CT %d is locked (lock: %s)" % (vmid, config_value(text, "lock")))
         elif not host.exists(include_path(vmid)):
             problems.append("CT %d: %s does not exist; run `pve-oom-priority sync` first"
                             % (vmid, include_path(vmid)))
@@ -369,11 +476,17 @@ def cmd_include(host, vmids, check, out, err):
         print("nothing changed", file=err)
         return 1
     changed = 0
+    code = 0
     for vmid in vmids:
         path = "%s/%d.conf" % (PVE_LXC_DIR, vmid)
         lock = None if check else host.lock_ct_config(vmid)
         try:
             text = host.read(path)
+            if config_value(text, "lock"):
+                print("skipped: CT %d was locked meanwhile (lock: %s)"
+                      % (vmid, config_value(text, "lock")), file=err)
+                code = 1
+                continue
             new = with_include(text, vmid)
             if new == text:
                 print("CT %d: already includes %s" % (vmid, include_path(vmid)), file=out)
@@ -387,7 +500,7 @@ def cmd_include(host, vmids, check, out, err):
             if lock is not None:
                 os.close(lock)
     print("changed: %d" % changed, file=out)
-    return 0
+    return code
 
 
 def running_guests(memguard, host):
@@ -422,7 +535,7 @@ def cmd_apply(memguard, host, check, out):
                 if current != target:
                     kept += 1
                 continue
-            if check or host.set_oom_score_adj(pid, target):
+            if check or host.write_oom_score_adj(pid, target, floor=target < 0):
                 written += 1
         print("%s %d: %s %d of %d processes, %d kept a higher value" % (
             guest, target, "would set" if check else "set", written, len(pids), kept), file=out)
@@ -433,10 +546,13 @@ def cmd_apply(memguard, host, check, out):
 
 def ct_config_problems(host, priorities, guest):
     problems = []
+    value = priorities.value_of(guest)
     if host.read_or_none(include_path(guest.vmid)) != include_file_text(
-            guest.vmid, priorities.tier_of(guest), priorities.value_of(guest)):
-        problems.append("%s missing or outdated, run `pve-oom-priority sync`"
-                        % include_path(guest.vmid))
+            guest.vmid, priorities.tier_of(guest), value):
+        expected = ("lxc.hook.start-host" if value > 0
+                    else "lxc.proc.oom_score_adj" if value < 0 else "no setting")
+        problems.append("%s missing or outdated (expected %s), run `pve-oom-priority sync`"
+                        % (include_path(guest.vmid), expected))
     text = host.read_or_none("%s/%d.conf" % (PVE_LXC_DIR, guest.vmid)) or ""
     if not has_include(text.splitlines(), guest.vmid):
         problems.append("no `%s` in the main section, run `pve-oom-priority include %d`"
@@ -463,8 +579,23 @@ def process_problems(host, target, pids, main):
         if pid == main and not settled(current, target):
             problems.append("main PID %d has %d" % (pid, current))
         elif current < target:
-            problems.append("PID %d has %d" % (pid, current))
+            problems.append("PID %d has %d, run `pve-oom-priority apply`" % (pid, current))
     return problems
+
+
+def lxc_hook_problems(host):
+    """The start-host wrapper must be executable if an include file names it."""
+    directory = host.path(INCLUDE_DIR)
+    try:
+        names = sorted(os.listdir(directory))
+    except FileNotFoundError:
+        return []
+    users = [name for name in names if CONF_NAME.match(name)
+             and LXC_HOOK in (host.read_or_none("%s/%s" % (INCLUDE_DIR, name)) or "")]
+    if users and not os.access(host.path(LXC_HOOK), os.X_OK):
+        return ["%s missing or not executable, used by %s/{%s}"
+                % (LXC_HOOK, INCLUDE_DIR, ",".join(users))]
+    return []
 
 
 def cmd_check(memguard, host, out):
@@ -475,6 +606,7 @@ def cmd_check(memguard, host, out):
     host_problems = []
     if host.vm_ids() and not os.access(host.path(HOOKSCRIPT_FILE), os.X_OK):
         host_problems.append("%s missing or not executable" % HOOKSCRIPT_FILE)
+    host_problems += lxc_hook_problems(host)
     for guest in host_guests(memguard, host):
         target = priorities.value_of(guest)
         if guest.kind == "ct":
@@ -513,9 +645,28 @@ def cmd_hook(memguard_path, host, vmid, phase, err):
         if pid is None:
             print("pve-oom-priority: VM %d: no kvm process found" % vmid, file=err)
         elif host.oom_score_adj(pid) != target:
-            host.set_oom_score_adj(pid, target)
+            host.write_oom_score_adj(pid, target, floor=target < 0)
     except Exception as exc:  # noqa: BLE001 - see the docstring
         print("pve-oom-priority: VM %s %s: %s" % (vmid, phase, exc), file=err)
+    return 0
+
+
+def cmd_lxc_start_host(memguard_path, host, args, environ, err):
+    """lxc.hook.start-host entry; always 0, so it never blocks a CT start.
+
+    lxc runs it in the host namespaces after the CT init is created and
+    before it is woken, with the init's host PID in LXC_PID and the CT name
+    (the vmid) in LXC_NAME; hook version 0 also passes NAME lxc start-host.
+    """
+    try:
+        vmid = int(environ.get("LXC_NAME") or (args[0] if args else ""))
+        pid = int(environ.get("LXC_PID", ""))
+        memguard = load_memguard(memguard_path)
+        target = load_priorities(memguard, host).value_of(memguard.Guest("ct", vmid))
+        if not host.write_oom_score_adj(pid, target, floor=target < 0):
+            print("pve-oom-priority: CT %d: init PID %d is gone" % (vmid, pid), file=err)
+    except Exception as exc:  # noqa: BLE001 - see the docstring
+        print("pve-oom-priority: lxc-start-host %r: %s" % (args, exc), file=err)
     return 0
 
 
@@ -534,20 +685,24 @@ def parse_args(argv):
     hook = commands.add_parser("hook", help="qm hookscript entry")
     hook.add_argument("vmid")
     hook.add_argument("phase")
+    commands.add_parser("lxc-start-host", help="lxc.hook.start-host entry")
     return parser.parse_args(argv)
 
 
-def main(argv=None, root="/", memguard_path=MEMGUARD_PATH, out=None, err=None):
+def main(argv=None, host=None, memguard_path=MEMGUARD_PATH, out=None, err=None, environ=None):
     out = sys.stdout if out is None else out
     err = sys.stderr if err is None else err
     argv = list(sys.argv[1:] if argv is None else argv)
-    host = Host(root)
+    host = Host() if host is None else host
+    # The hook entries never fail, not on their arguments either.
     if argv[:1] == ["hook"]:
-        # Never fail on arguments either.
         if len(argv) != 3:
             print("pve-oom-priority: hook needs VMID PHASE, got %r" % argv[1:], file=err)
             return 0
         return cmd_hook(memguard_path, host, argv[1], argv[2], err)
+    if argv[:1] == ["lxc-start-host"]:
+        return cmd_lxc_start_host(memguard_path, host, argv[1:],
+                                  os.environ if environ is None else environ, err)
     args = parse_args(argv)
     try:
         memguard = load_memguard(memguard_path)

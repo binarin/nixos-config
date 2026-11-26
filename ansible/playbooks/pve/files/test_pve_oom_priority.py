@@ -1,12 +1,18 @@
+import contextlib
+import errno
 import io
 import json
 import os
+import shutil
+import subprocess
+import sys
 import tempfile
 import unittest
 
 import pve_oom_priority as p
 
-MEMGUARD_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pve_memguard.py")
+HERE = os.path.dirname(os.path.abspath(__file__))
+MEMGUARD_PATH = os.path.join(HERE, "pve_memguard.py")
 m = p.load_memguard(MEMGUARD_PATH)
 
 CT = lambda vmid: m.Guest("ct", vmid)  # noqa: E731
@@ -25,13 +31,51 @@ snaptime: 1700000000
 """
 
 
+class FakeHost(p.Host):
+    """Host that emulates the kernel's oom_score_adj_min (fs/proc/base.c).
+
+    A write with CAP_SYS_RESOURCE (the default for host root) also sets the
+    minimum; one without it fails with EACCES below the minimum.
+    """
+
+    def __init__(self, root):
+        super().__init__(root, without_floor=self.cap_dropped)
+        self.cap_sys_resource = True
+        self.minimum = {}
+        # (pid, value, with floor) of every write.
+        self.writes = []
+
+    @contextlib.contextmanager
+    def cap_dropped(self):
+        self.cap_sys_resource = False
+        try:
+            yield
+        finally:
+            self.cap_sys_resource = True
+
+    def _write_oom_score_adj(self, pid, value):
+        if value < self.minimum.get(pid, 0) and not self.cap_sys_resource:
+            raise PermissionError(errno.EACCES, "Permission denied")
+        written = super()._write_oom_score_adj(pid, value)
+        if written:
+            if self.cap_sys_resource:
+                self.minimum[pid] = value
+            self.writes.append((pid, value, self.cap_sys_resource))
+        return written
+
+    def ct_process_writes(self, pid, value):
+        """A write from inside an unprivileged CT (never CAP_SYS_RESOURCE)."""
+        with self.cap_dropped():
+            self._write_oom_score_adj(pid, value)
+
+
 class FakeRoot:
     """A temp dir laid out like the PVE host's /etc, /proc and cgroup tree."""
 
     def __init__(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = self.tmp.name
-        self.host = p.Host(self.root)
+        self.host = FakeHost(self.root)
 
     def cleanup(self):
         self.tmp.cleanup()
@@ -57,8 +101,9 @@ class FakeRoot:
             conf += "hookscript: %s\n" % hookscript
         self.write("%s/%d.conf" % (p.PVE_QEMU_DIR, vmid), conf)
 
-    def process(self, pid, value, nspid=None, cgroup="0::/"):
+    def process(self, pid, value, nspid=None, cgroup="0::/", minimum=None):
         nspid = [pid] if nspid is None else nspid
+        self.host.minimum[pid] = min(value, 0) if minimum is None else minimum
         self.write("%s/%d/oom_score_adj" % (p.PROC, pid), "%d\n" % value)
         self.write("%s/%d/status" % (p.PROC, pid),
                    "Name:\tx\nNSpid:\t%s\n" % "\t".join(map(str, nspid)))
@@ -82,9 +127,14 @@ class FakeRoot:
     def value(self, pid):
         return self.host.oom_score_adj(pid)
 
-    def run(self, *argv):
+    def lxc_hook(self):
+        self.write(p.LXC_HOOK, "#!/bin/sh\n")
+        os.chmod(self.host.path(p.LXC_HOOK), 0o755)
+
+    def run(self, *argv, environ=None, memguard_path=MEMGUARD_PATH):
         out, err = io.StringIO(), io.StringIO()
-        code = p.main(list(argv), root=self.root, memguard_path=MEMGUARD_PATH, out=out, err=err)
+        code = p.main(list(argv), host=self.host, memguard_path=memguard_path, out=out, err=err,
+                      environ={} if environ is None else environ)
         return code, out.getvalue(), err.getvalue()
 
 
@@ -172,10 +222,22 @@ class TestSync(FakeRootTestCase):
         code, out, _err = self.fake.run("sync")
         self.assertEqual(code, 0)
         self.assertEqual(out.splitlines()[-1], "changed: 3")
-        self.assertIn("lxc.proc.oom_score_adj = -750\n", self.fake.read(p.include_path(101)))
-        self.assertIn("lxc.proc.oom_score_adj = 1000\n", self.fake.read(p.include_path(123)))
-        self.assertIn("lxc.proc.oom_score_adj = 0\n", self.fake.read(p.include_path(555)))
+        self.assertEqual(self.fake.read(p.include_path(101)), (
+            "# Written by pve-oom-priority sync from pve-memguard's kill_order;\n"
+            "# do not edit. CT 101: tier 8, oom_score_adj -750.\n"
+            "lxc.proc.oom_score_adj = -750\n"))
+        self.assertEqual(self.fake.read(p.include_path(555)), (
+            "# Written by pve-oom-priority sync from pve-memguard's kill_order;\n"
+            "# do not edit. CT 555: tier 3, oom_score_adj 0.\n"))
         self.assertEqual(self.fake.run("sync")[1], "changed: 0\n")
+
+    def test_positive_value_uses_the_start_host_hook(self):
+        self.fake.run("sync")
+        text = self.fake.read(p.include_path(123))
+        self.assertIn("oom_score_adj 1000.\n", text)
+        self.assertTrue(text.endswith(
+            "lxc.hook.start-host = /usr/local/libexec/pve-oom-priority-lxc-hook\n"))
+        self.assertNotIn("lxc.proc", text)
 
     def test_check_mode_writes_nothing(self):
         code, out, _err = self.fake.run("sync", "--check")
@@ -189,7 +251,7 @@ class TestSync(FakeRootTestCase):
         self.fake.memguard_config({"kill_order": [["ct:101"], ["default"]]})
         code, out, _err = self.fake.run("sync")
         self.assertEqual(out.splitlines()[-1], "changed: 3")
-        self.assertIn("= 1000\n", self.fake.read(p.include_path(101)))
+        self.assertIn("lxc.hook.start-host", self.fake.read(p.include_path(101)))
 
     def test_keeps_files_of_removed_cts(self):
         self.fake.run("sync")
@@ -228,6 +290,18 @@ class TestInclude(FakeRootTestCase):
         lines = self.fake.read(self.conf).splitlines()
         self.assertTrue(p.has_include(lines, 123))
         self.assertEqual(lines.count("lxc.include: /etc/lxc/oom-priority/123.conf"), 2)
+
+    def test_equals_form_counts(self):
+        text = "arch: amd64\nlxc.include = /etc/lxc/oom-priority/1.conf\n"
+        self.assertEqual(p.with_include(text, 1), text)
+        self.assertFalse(p.has_include(["lxc.include = /etc/lxc/oom-priority/12.conf"], 1))
+
+    def test_refuses_locked_ct(self):
+        self.fake.ct(123, "lock: backup\n" + CT_CONF)
+        code, _out, err = self.fake.run("include", "123")
+        self.assertEqual(code, 1)
+        self.assertIn("refused: CT 123 is locked (lock: backup)", err)
+        self.assertEqual(self.fake.read(self.conf), "lock: backup\n" + CT_CONF)
 
     def test_no_sections_no_trailing_newline(self):
         self.assertEqual(p.with_include("arch: amd64", 1),
@@ -309,8 +383,24 @@ class TestApply(FakeRootTestCase):
         self.assertEqual(code, 0)
         self.assertEqual(self.fake.value(1001), 1000)
 
+    def test_floor_only_for_negative_values(self):
+        self.fake.run("apply")
+        floors = {pid: floor for pid, _value, floor in self.fake.host.writes}
+        self.assertEqual(floors, {1000: False, 1001: False, 1002: False,
+                                  2000: True, 2002: True, 3000: True})
+        # An engine in the positive CT can still write the spec's 0 ...
+        self.fake.host.ct_process_writes(1001, 0)
+        self.assertEqual(self.fake.value(1001), 0)
+        # ... and the next apply raises it again.
+        self.assertIn("ct:123 1000: set 1 of 4", self.fake.run("apply")[1])
+        self.assertEqual(self.fake.value(1001), 1000)
+        # The negative CT keeps its floor.
+        with self.assertRaises(PermissionError):
+            self.fake.host.ct_process_writes(2001, -900)
+        self.fake.host.ct_process_writes(2001, 0)
+
     def test_vanishing_on_write(self):
-        self.fake.host.set_oom_score_adj = lambda pid, value: False
+        self.fake.host.write_oom_score_adj = lambda pid, value, floor: False
         out = io.StringIO()
         self.assertEqual(p.cmd_apply(m, self.fake.host, False, out), 0)
         self.assertEqual(out.getvalue().splitlines()[-1], "changed: 0")
@@ -321,18 +411,76 @@ class TestApply(FakeRootTestCase):
         self.assertEqual(self.fake.value(3000), 0)
 
 
-class TestSetOomScoreAdj(FakeRootTestCase):
+class TestWriteOomScoreAdj(FakeRootTestCase):
     def test_gone(self):
-        self.assertFalse(self.fake.host.set_oom_score_adj(4242, 5))
+        self.assertFalse(self.fake.host.write_oom_score_adj(4242, 5, floor=True))
+        self.assertFalse(self.fake.host.write_oom_score_adj(4242, 5, floor=False))
+
+    def test_without_floor(self):
+        self.fake.process(10, 0)
+        self.assertTrue(self.fake.host.write_oom_score_adj(10, 500, floor=False))
+        self.assertEqual((self.fake.value(10), self.fake.host.minimum[10]), (500, 0))
+        self.assertTrue(self.fake.host.cap_sys_resource)
+
+    def test_with_floor(self):
+        self.fake.process(10, 0)
+        self.fake.host.write_oom_score_adj(10, -500, floor=True)
+        self.assertEqual((self.fake.value(10), self.fake.host.minimum[10]), (-500, -500))
+
+    def test_below_an_old_floor_lowers_it(self):
+        self.fake.process(10, 1000, minimum=1000)
+        self.assertTrue(self.fake.host.write_oom_score_adj(10, 333, floor=False))
+        self.assertEqual((self.fake.value(10), self.fake.host.minimum[10]), (333, 333))
 
     def test_esrch_is_gone(self):
         def esrch(*_args, **_kwargs):
             raise ProcessLookupError(p.errno.ESRCH, "No such process")
-        p.open = esrch  # shadows the builtin inside the module
+        saved, p.os.open = p.os.open, esrch
         try:
-            self.assertFalse(self.fake.host.set_oom_score_adj(1, 5))
+            self.assertFalse(p.Host(self.fake.root).write_oom_score_adj(1, 5, floor=True))
         finally:
-            del p.open
+            p.os.open = saved
+
+
+class TestWithoutSysResource(unittest.TestCase):
+    """The real capget/capset calls."""
+
+    @staticmethod
+    def cap_eff():
+        with open("/proc/self/status", encoding="ascii") as fh:
+            return next(int(line.split()[1], 16) for line in fh if line.startswith("CapEff:"))
+
+    def test_restores(self):
+        before = self.cap_eff()
+        with p.without_sys_resource():
+            self.assertEqual(self.cap_eff() & (1 << p.CAP_SYS_RESOURCE), 0)
+        self.assertEqual(self.cap_eff(), before)
+
+    def test_clears_only_cap_sys_resource(self):
+        """In a user namespace, where the process has every capability."""
+        unshare = shutil.which("unshare")
+        if unshare is None:
+            self.skipTest("no unshare")
+        script = (
+            "import importlib.util, sys\n"
+            "spec = importlib.util.spec_from_file_location('t', sys.argv[1])\n"
+            "t = importlib.util.module_from_spec(spec); spec.loader.exec_module(t)\n"
+            "c = t.TestWithoutSysResource.cap_eff\n"
+            "before = c()\n"
+            "with t.p.without_sys_resource():\n"
+            "    inside = c()\n"
+            "print(before, inside, c())\n")
+        result = subprocess.run(
+            [unshare, "--user", "--map-root-user", sys.executable, "-c", script, __file__],
+            capture_output=True, text=True, cwd=HERE)
+        if result.returncode != 0 and "unshare" in result.stderr:
+            self.skipTest("user namespaces not available: %s" % result.stderr.strip())
+        self.assertEqual(result.returncode, 0, result.stderr)
+        before, inside, after = map(int, result.stdout.split())
+        self.assertTrue(before & (1 << p.CAP_SYS_RESOURCE))
+        self.assertTrue(before & (1 << 1))  # CAP_DAC_OVERRIDE
+        self.assertEqual(inside, before & ~(1 << p.CAP_SYS_RESOURCE))
+        self.assertEqual(after, before)
 
 
 class TestCheck(FakeRootTestCase):
@@ -343,6 +491,7 @@ class TestCheck(FakeRootTestCase):
         self.fake.vm(109, hookscript=p.HOOKSCRIPT)
         self.fake.write(p.HOOKSCRIPT_FILE, "#!/bin/sh\n")
         os.chmod(self.fake.host.path(p.HOOKSCRIPT_FILE), 0o755)
+        self.fake.lxc_hook()
         self.fake.running_ct(123, 1000, 0, [(1001, 0), (1002, 300)])
         self.fake.running_vm(109, 3000, 0)
         self.fake.run("sync")
@@ -360,7 +509,38 @@ class TestCheck(FakeRootTestCase):
         self.fake.write(p.include_path(555), "lxc.proc.oom_score_adj = 5\n")
         code, out, _err = self.fake.run("check")
         self.assertEqual(code, 1)
-        self.assertIn("/etc/lxc/oom-priority/555.conf missing or outdated", out)
+        self.assertIn("/etc/lxc/oom-priority/555.conf missing or outdated (expected no setting)", out)
+
+    def test_positive_ct_with_proc_key(self):
+        self.fake.write(p.include_path(123), "lxc.proc.oom_score_adj = 1000\n")
+        code, out, _err = self.fake.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("123.conf missing or outdated (expected lxc.hook.start-host)", out)
+
+    def test_lxc_hook_missing(self):
+        os.unlink(self.fake.host.path(p.LXC_HOOK))
+        code, out, _err = self.fake.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn(p.LXC_HOOK + " missing or not executable, used by "
+                      "/etc/lxc/oom-priority/{123.conf}", out)
+
+    def test_lxc_hook_not_needed_without_positive_cts(self):
+        os.unlink(self.fake.host.path(p.LXC_HOOK))
+        self.fake.memguard_config({"kill_order": [["default"], ["ct:101"]]})
+        self.fake.run("sync")
+        self.fake.run("apply")
+        out = self.fake.run("check")[1]
+        self.assertNotIn(p.LXC_HOOK, out)
+        self.assertEqual(out.splitlines()[-1], "problems: 0")
+
+    def test_nested_init_is_not_the_ct_init(self):
+        cg = "%s/lxc/123/ns/docker/cgroup.procs" % p.CGROUP_ROOT
+        self.fake.process(990, 1000, nspid=[990, 50, 1])
+        self.fake.write(cg, "990\n")
+        self.fake.process(1000, 0, nspid=[1000, 1])
+        code, out, _err = self.fake.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("main PID 1000 has 0", out)
 
     def test_missing_include_line(self):
         self.fake.ct(555)
@@ -427,11 +607,62 @@ class TestHook(FakeRootTestCase):
         self.assertEqual(self.fake.run("hook")[0], 0)
 
     def test_missing_memguard_exits_zero(self):
-        out, err = io.StringIO(), io.StringIO()
-        code = p.main(["hook", "109", "post-start"], root=self.fake.root,
-                      memguard_path=self.fake.host.path("/nonexistent"), out=out, err=err)
+        code, _out, err = self.fake.run("hook", "109", "post-start",
+                                        memguard_path=self.fake.host.path("/nonexistent"))
         self.assertEqual(code, 0)
-        self.assertIn("pve-oom-priority: VM 109 post-start", err.getvalue())
+        self.assertIn("pve-oom-priority: VM 109 post-start", err)
+
+    def test_floor_for_negative_value(self):
+        self.fake.run("hook", "109", "post-start")
+        self.assertEqual(self.fake.host.writes, [(3000, -300, True)])
+
+
+class TestLxcStartHost(FakeRootTestCase):
+    def setUp(self):
+        super().setUp()
+        self.fake.process(1000, 0, nspid=[1000, 1])
+
+    def test_positive_value_without_floor(self):
+        env = {"LXC_NAME": "123", "LXC_PID": "1000"}
+        self.assertEqual(self.fake.run("lxc-start-host", "123", "lxc", "start-host", environ=env),
+                         (0, "", ""))
+        self.assertEqual(self.fake.host.writes, [(1000, 1000, False)])
+        self.fake.host.ct_process_writes(1000, 0)  # an engine writes 0
+
+    def test_name_from_the_arguments(self):
+        self.fake.run("lxc-start-host", "116", "lxc", "start-host", environ={"LXC_PID": "1000"})
+        self.assertEqual(self.fake.value(1000), 333)
+
+    def test_negative_value_with_floor(self):
+        # Only for a stale include file: sync writes the proc key for these.
+        self.fake.run("lxc-start-host", environ={"LXC_NAME": "101", "LXC_PID": "1000"})
+        self.assertEqual(self.fake.host.writes, [(1000, -750, True)])
+
+    def test_always_exits_zero(self):
+        for argv, env in ((["lxc-start-host"], {"LXC_NAME": "123"}),
+                          (["lxc-start-host"], {"LXC_PID": "1000"}),
+                          (["lxc-start-host", "x"], {"LXC_PID": "1000"}),
+                          (["lxc-start-host"], {"LXC_NAME": "123", "LXC_PID": "4242"})):
+            code, _out, err = self.fake.run(*argv, environ=env)
+            self.assertEqual(code, 0)
+            self.assertIn("pve-oom-priority", err)
+        code, _out, err = self.fake.run("lxc-start-host", environ={"LXC_NAME": "123", "LXC_PID": "1000"},
+                                        memguard_path=self.fake.host.path("/nonexistent"))
+        self.assertEqual(code, 0)
+        self.assertEqual(self.fake.value(1000), 0)
+
+
+class TestWrappers(unittest.TestCase):
+    """The shell wrappers exit 0 even when the tool cannot run."""
+
+    def test_exit_zero(self):
+        for name, args in (("oom-priority-hook.sh", ["109", "pre-start"]),
+                           ("pve-oom-priority-lxc-hook.sh", ["123", "lxc", "start-host"])):
+            with tempfile.TemporaryDirectory() as empty:
+                env = {"PATH": empty}  # so even python3 from PATH is not found
+                result = subprocess.run(["/bin/sh", os.path.join(HERE, name)] + args,
+                                        env=env, capture_output=True)
+            self.assertEqual(result.returncode, 0, name)
 
 
 if __name__ == "__main__":
