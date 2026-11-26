@@ -1,7 +1,7 @@
 #!/usr/bin/python3 -I
 """pve-oom-priority: per-guest oom_score_adj from pve-memguard's kill order.
 
-Run as `python3 -I`.
+The shebang runs it as `python3 -I`, and so do the hook wrappers.
 
 The kill order is not repeated here: the tool imports the deployed daemon
 (/usr/local/sbin/pve-memguard) and builds the effective config with the
@@ -385,17 +385,25 @@ class Host:
     def write_oom_score_adj(self, pid, value, floor):
         """Set the process's oom_score_adj; False if the process is gone.
 
-        With `floor` the value also becomes its oom_score_adj_min. Without,
-        the kernel refuses a value below the process's current minimum
-        (EACCES); then the value is written with a floor, which lowers that
-        minimum to the value, the closest the kernel allows.
+        With `floor` the value also becomes its oom_score_adj_min. Without
+        (only for values >= 0), an error from dropping or restoring the
+        capability propagates: better no write than a positive floor. If the
+        kernel refuses the value itself (EACCES: the process already has a
+        higher minimum, which this tool never sets for a value >= 0), the
+        minimum is reset to 0 by a write of 0 with a floor, and the value is
+        then written without one.
         """
         if floor:
             return self._write_oom_score_adj(pid, value)
-        try:
-            with self.without_floor():
+        with self.without_floor():
+            try:
                 return self._write_oom_score_adj(pid, value)
-        except PermissionError:
+            except PermissionError as exc:
+                if exc.errno != errno.EACCES:
+                    raise
+        if not self._write_oom_score_adj(pid, 0):
+            return False
+        with self.without_floor():
             return self._write_oom_score_adj(pid, value)
 
     def _write_oom_score_adj(self, pid, value):
@@ -569,7 +577,13 @@ def vm_config_problems(host, guest):
 
 
 def process_problems(host, target, pids, main):
-    problems = []
+    """(problems, notes) for the processes of a running guest.
+
+    With a positive target there is no floor, so other processes below it
+    (an engine's 0, user@'s +100) are allowed: notes, not problems. `apply`
+    still raises them.
+    """
+    problems, notes = [], []
     if main is None:
         problems.append("CT init not found")
     for pid in pids:
@@ -578,9 +592,11 @@ def process_problems(host, target, pids, main):
             continue
         if pid == main and not settled(current, target):
             problems.append("main PID %d has %d" % (pid, current))
+        elif current < target and target > 0:
+            notes.append("PID %d has %d: below target (allowed, no floor)" % (pid, current))
         elif current < target:
             problems.append("PID %d has %d, run `pve-oom-priority apply`" % (pid, current))
-    return problems
+    return problems, notes
 
 
 def lxc_hook_problems(host):
@@ -615,16 +631,18 @@ def cmd_check(memguard, host, out):
             config = vm_config_problems(host, guest)
         if guest in running:
             pids, main = running[guest]
-            processes = process_problems(host, target, pids, main)
-            summary = "ok (%d)" % len(pids) if not processes else "BAD"
+            processes, notes = process_problems(host, target, pids, main)
+            summary = "BAD" if processes else "ok (%d)" % len(pids)
+            if notes and not processes:
+                summary += ", %d below target" % len(notes)
         else:
-            processes = []
+            processes, notes = [], []
             summary = "-"
         print("%-8s %6d %-8s %-6s %s" % (
             guest, target, "running" if guest in running else "stopped",
             "BAD" if config else "ok", summary), file=out)
-        for problem in config + processes:
-            print("  %s" % problem, file=out)
+        for line in config + processes + notes:
+            print("  %s" % line, file=out)
         all_problems += len(config) + len(processes)
     for problem in host_problems:
         print(problem, file=out)

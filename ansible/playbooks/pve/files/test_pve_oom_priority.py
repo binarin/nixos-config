@@ -427,10 +427,35 @@ class TestWriteOomScoreAdj(FakeRootTestCase):
         self.fake.host.write_oom_score_adj(10, -500, floor=True)
         self.assertEqual((self.fake.value(10), self.fake.host.minimum[10]), (-500, -500))
 
-    def test_below_an_old_floor_lowers_it(self):
+    def test_below_an_old_floor_resets_it_to_zero(self):
         self.fake.process(10, 1000, minimum=1000)
         self.assertTrue(self.fake.host.write_oom_score_adj(10, 333, floor=False))
-        self.assertEqual((self.fake.value(10), self.fake.host.minimum[10]), (333, 333))
+        self.assertEqual((self.fake.value(10), self.fake.host.minimum[10]), (333, 0))
+        self.assertEqual(self.fake.host.writes, [(10, 0, True), (10, 333, False)])
+
+    def test_capability_error_writes_nothing(self):
+        @contextlib.contextmanager
+        def eperm():
+            raise PermissionError(errno.EPERM, "capset: Operation not permitted")
+            yield  # makes this a generator
+        self.fake.process(10, 0)
+        self.fake.host.without_floor = eperm
+        with self.assertRaises(PermissionError):
+            self.fake.host.write_oom_score_adj(10, 500, floor=False)
+        self.assertEqual(self.fake.host.writes, [])
+        self.assertEqual((self.fake.value(10), self.fake.host.minimum[10]), (0, 0))
+
+    def test_restore_error_propagates(self):
+        @contextlib.contextmanager
+        def restore_fails():
+            with self.fake.host.cap_dropped():
+                yield
+            raise PermissionError(errno.EPERM, "capset (restore): Operation not permitted")
+        self.fake.process(10, 0)
+        self.fake.host.without_floor = restore_fails
+        with self.assertRaises(PermissionError):
+            self.fake.host.write_oom_score_adj(10, 500, floor=False)
+        self.assertEqual(self.fake.host.writes, [(10, 500, False)])
 
     def test_esrch_is_gone(self):
         def esrch(*_args, **_kwargs):
@@ -548,11 +573,22 @@ class TestCheck(FakeRootTestCase):
         self.assertEqual(code, 1)
         self.assertIn("run `pve-oom-priority include 555`", out)
 
-    def test_process_below_target(self):
-        self.fake.process(1001, 300, nspid=[1001, 2])
+    def test_process_below_positive_target_is_allowed(self):
+        self.fake.process(1001, 0, nspid=[1001, 2])
+        code, out, _err = self.fake.run("check")
+        self.assertEqual(code, 0, out)
+        self.assertIn("ct:123     1000 running  ok     ok (3), 1 below target", out)
+        self.assertIn("  PID 1001 has 0: below target (allowed, no floor)", out)
+        self.assertEqual(out.splitlines()[-1], "problems: 0")
+
+    def test_process_below_negative_target(self):
+        self.fake.ct(101)
+        self.fake.run("sync")
+        self.fake.run("include", "101")
+        self.fake.running_ct(101, 2000, -750, [(2001, -900)])
         code, out, _err = self.fake.run("check")
         self.assertEqual(code, 1)
-        self.assertIn("PID 1001 has 300", out)
+        self.assertIn("PID 2001 has -900, run `pve-oom-priority apply`", out)
 
     def test_init_not_at_target(self):
         self.fake.process(1000, 0, nspid=[1000, 1])
