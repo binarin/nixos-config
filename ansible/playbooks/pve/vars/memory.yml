@@ -1,0 +1,10 @@
+---
+# ZFS ARC maximum, at boot (modprobe.d, initramfs) and live.
+pve_zfs_arc_max_bytes: 8589934592
+
+# OOMScoreAdjust per host unit. Below every guest (the most important
+# guest gets -750, see files/pve_oom_priority.py), above -1000.
+pve_host_oom_score_adjust:
+  ssh.service: -900
+  pve-cluster.service: -900
+  corosync.service: -900

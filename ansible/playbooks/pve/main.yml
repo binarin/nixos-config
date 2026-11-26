@@ -53,6 +53,8 @@
 
 - import_playbook: memguard.yml
 
+- import_playbook: memory.yml
+
 - hosts: pve
   vars_files:
     - vars/main.yml

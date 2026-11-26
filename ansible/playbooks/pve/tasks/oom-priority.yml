@@ -1,0 +1,44 @@
+---
+# Per-guest oom_score_adj, derived from pve-memguard's kill order. Adding the
+# lxc.include line to the CT configs (`pve-oom-priority include`) and the VM
+# hookscript (`qm set --hookscript`) are hand steps, not done here.
+- name: Check that pve-memguard is deployed (pve-oom-priority imports it)
+  ansible.builtin.stat:
+    path: /usr/local/sbin/pve-memguard
+  register: pve_oom_priority_memguard
+
+- name: Fail unless pve-memguard is deployed
+  ansible.builtin.assert:
+    that: pve_oom_priority_memguard.stat.exists
+    fail_msg: /usr/local/sbin/pve-memguard is missing, run memguard.yml first
+
+- name: Install pve-oom-priority
+  ansible.builtin.copy:
+    src: pve_oom_priority.py
+    dest: /usr/local/sbin/pve-oom-priority
+    mode: "0755"
+  register: pve_oom_priority_tool
+
+- name: Install the VM hookscript snippet
+  ansible.builtin.copy:
+    src: oom-priority-hook.sh
+    dest: /var/lib/vz/snippets/oom-priority-hook.sh
+    mode: "0755"
+
+# In check mode the tool runs with --check and changes nothing. It cannot run
+# when check mode has not installed its new version yet.
+- name: Write the oom_score_adj include file of every CT
+  when: not (ansible_check_mode and pve_oom_priority_tool.changed)
+  check_mode: false
+  ansible.builtin.command:
+    argv: "{{ ['/usr/bin/python3', '-I', '/usr/local/sbin/pve-oom-priority', 'sync'] + (['--check'] if ansible_check_mode else []) }}"
+  register: pve_oom_priority_sync
+  changed_when: "pve_oom_priority_sync.stdout_lines[-1:] != ['changed: 0']"
+
+- name: Set oom_score_adj on the processes of running guests
+  when: not (ansible_check_mode and pve_oom_priority_tool.changed)
+  check_mode: false
+  ansible.builtin.command:
+    argv: "{{ ['/usr/bin/python3', '-I', '/usr/local/sbin/pve-oom-priority', 'apply'] + (['--check'] if ansible_check_mode else []) }}"
+  register: pve_oom_priority_apply
+  changed_when: "pve_oom_priority_apply.stdout_lines[-1:] != ['changed: 0']"

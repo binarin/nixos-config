@@ -1,0 +1,24 @@
+---
+- name: Cap the ZFS ARC at boot
+  ansible.builtin.lineinfile:
+    path: /etc/modprobe.d/zfs.conf
+    regexp: "^options zfs zfs_arc_max="
+    line: "options zfs zfs_arc_max={{ pve_zfs_arc_max_bytes | int }}"
+    create: true
+    mode: "0644"
+  # Root is on ZFS: the module is loaded from the initramfs.
+  notify: update-initramfs
+
+- name: Read the live ZFS ARC cap
+  ansible.builtin.slurp:
+    src: /sys/module/zfs/parameters/zfs_arc_max
+  register: pve_zfs_arc_max_live
+
+- name: Set the live ZFS ARC cap
+  when: (pve_zfs_arc_max_live.content | b64decode | trim | int) != (pve_zfs_arc_max_bytes | int)
+  # A command is skipped in check mode; run it anyway so check mode reports
+  # the change, and write nothing then.
+  check_mode: false
+  changed_when: true
+  ansible.builtin.shell:
+    cmd: "{{ 'true' if ansible_check_mode else 'echo ' ~ (pve_zfs_arc_max_bytes | int) ~ ' > /sys/module/zfs/parameters/zfs_arc_max' }}"

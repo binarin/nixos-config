@@ -1,0 +1,64 @@
+---
+# OOMScoreAdjust for host services. The drop-ins apply on the next start;
+# the services are not restarted, their running processes get the value
+# written directly.
+- name: Create the drop-in directories
+  loop: "{{ pve_host_oom_score_adjust | dict2items }}"
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item.key }}.d"
+    state: directory
+    mode: "0755"
+
+- name: Set OOMScoreAdjust in drop-ins
+  loop: "{{ pve_host_oom_score_adjust | dict2items }}"
+  ansible.builtin.copy:
+    content: |
+      [Service]
+      OOMScoreAdjust={{ item.value }}
+    dest: "/etc/systemd/system/{{ item.key }}.d/50-oom-score-adjust.conf"
+    mode: "0644"
+  register: pve_host_oom_dropins
+
+- name: Reload systemd after a drop-in changed
+  when: pve_host_oom_dropins.changed
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+# Skips inactive units. In check mode writes nothing and reports what would
+# change.
+- name: Set oom_score_adj on the running processes of the units
+  loop: "{{ pve_host_oom_score_adjust | dict2items }}"
+  check_mode: false
+  ansible.builtin.command:
+    argv:
+      - /bin/bash
+      - -c
+      - |
+        set -eu
+        unit=$1 value=$2 check=$3 changed=0
+        if ! systemctl is-active --quiet "$unit"; then
+          echo "$unit: not active, skipped"
+          echo "changed: 0"
+          exit 0
+        fi
+        cgroup=$(systemctl show -P ControlGroup "$unit")
+        for pid in $(cat "/sys/fs/cgroup$cgroup/cgroup.procs"); do
+          current=$(cat "/proc/$pid/oom_score_adj" 2>/dev/null) || continue
+          [ "$current" = "$value" ] && continue
+          if [ "$check" != check ]; then
+            if ! echo "$value" 2>/dev/null >"/proc/$pid/oom_score_adj"; then
+              [ -e "/proc/$pid" ] || continue  # the process is gone
+              echo "$unit: PID $pid: cannot write oom_score_adj" >&2
+              exit 1
+            fi
+          fi
+          echo "$unit: PID $pid $current -> $value"
+          changed=$((changed + 1))
+        done
+        echo "changed: $changed"
+      - bash
+      - "{{ item.key }}"
+      - "{{ item.value }}"
+      - "{{ 'check' if ansible_check_mode else 'apply' }}"
+  register: pve_host_oom_live
+  changed_when: "pve_host_oom_live.stdout_lines[-1:] != ['changed: 0']"

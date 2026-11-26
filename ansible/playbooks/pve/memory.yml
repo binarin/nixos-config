@@ -1,0 +1,20 @@
+---
+# raum's memory priorities: ZFS ARC cap (SL-79), per-guest oom_score_adj
+# from pve-memguard's kill order (SL-80), OOMScoreAdjust of the host
+# services (SL-82). The guest values come from the kill order, which lists
+# raum's guests, so it applies to raum only. Run after memguard.yml.
+#
+# A playbook of its own so it can be run alone: with `--tags memory` on
+# main.yml, the always-tagged argument checks of the monitoring roles still
+# run, without facts, and fail.
+- hosts: raum
+  tags:
+    - memory
+  vars_files:
+    - vars/memory.yml
+  handlers:
+    - import_tasks: ../../handlers/update-initramfs.yaml
+  tasks:
+    - import_tasks: tasks/zfs-arc.yml
+    - import_tasks: tasks/oom-priority.yml
+    - import_tasks: tasks/host-oom-adjust.yml
