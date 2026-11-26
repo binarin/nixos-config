@@ -1,0 +1,243 @@
+#+title: SL-0080 memprio: guest oom_score_adj, ARC cap, host OOMScoreAdjust on raum
+#+filetags: :pve:raum:memory:
+
+* Inputs
+- Three tickets in one change, all for raum (PVE 9.1.9 / Debian 13,
+  kernel 7.0, root on ZFS, all CTs unprivileged; CTs 101 103 107 111 112
+  115 116 121 123 124 127 129, VMs 104 109):
+  - SL-80: per-guest =oom_score_adj= derived from pve-memguard's
+    =kill_order= (SL-81) as the single source.
+  - SL-79, ARC cap only: =zfs_arc_max= = 8 GiB.
+  - SL-82, OOMScoreAdjust only: -900 for ssh, pve-cluster, corosync.
+- Out of scope: zram, =MemoryMin=, any change of pve-memguard's
+  behaviour (=pve_memguard.py= is untouched).
+- Scout findings (kernel, lxc, pve-container, qemu-server) were the
+  starting point; the facts used are repeated under design choices.
+
+* Status
+- [X] =pve-oom-priority= tool + unit tests
+  (=ansible/playbooks/pve/files/pve_oom_priority.py=,
+  =test_pve_oom_priority.py=; =cd ansible/playbooks/pve/files && python3 -m unittest=)
+- [X] VM hookscript snippet =files/oom-priority-hook.sh=
+- [X] playbook =playbooks/pve/memory.yml= (=hosts: raum=, tag =memory=),
+  imported from =main.yml= after =memguard.yml=
+- [ ] deploy to raum (binarin, see the commands below)
+- [ ] hand steps on raum: =include= for every CT, hookscript for VMs 104 and 109
+- [ ] =pve-oom-priority check= on raum shows =problems: 0=
+
+* Design choices
+** SL-80 guest oom_score_adj
+- Single source: =/usr/local/sbin/pve-oom-priority= (run as =python3 -I=)
+  imports the deployed daemon =/usr/local/sbin/pve-memguard= with
+  =SourceFileLoader= (the import has no side effects: =mlockall=, the
+  writer thread and argv parsing only run from =main()=; bytecode writing
+  is off so no =__pycache__= appears in =/usr/local/sbin=). It builds the
+  effective config with the daemon's own =Config= from
+  =/etc/pve-memguard/config.json= (missing file: =Config({})=). The order
+  is not copied anywhere. Tests import the sibling =pve_memguard.py=.
+- Mapping: =kill_order= is least important first; =d= = index of the
+  default tier, =n_below= = number of tiers after it.
+  - tier =i < d=: =round(1000*(d-i)/d)= (first tier +1000)
+  - default tier and unlisted guests: 0
+  - tier =j > d=: =round(-750*(j-d)/n_below)= (last tier -750)
+  - default tier first: no positive values; default last: no negative
+    ones; only one tier: everything 0. Python =round()= (ties to even).
+  -750 stays above the -900 of the host services and never reaches -1000
+  (unkillable): postgres (CT 101) stays killable as a last resort
+  (binarin's decision).
+  With today's order: 123=1000, 111=667, 116=333, default 0, 124=-150,
+  vm109=-300, 112=-450, 115=-600, 101=-750.
+- CTs: =lxc.proc.*= keys are not allowed in a pct config, =lxc.include= is.
+  =sync= writes =/etc/lxc/oom-priority/<id>.conf= (comment header +
+  =lxc.proc.oom_score_adj = N=) for every CT config in =/etc/pve/lxc=,
+  listed or not, because a missing include file blocks the CT start. Files
+  of removed CTs are left alone. Atomic write (temp file + fsync + rename),
+  only when the content differs.
+- lxc writes =lxc.proc.oom_score_adj= as host root before the CT init
+  execs, so the value is also =oom_score_adj_min= for the whole CT: CT
+  processes can raise it, not lower it (EACCES; systemd inside the CT
+  ignores that for e.g. udevd's -1000).
+- =include <vmid>...= (hand step) adds =lxc.include: /etc/lxc/oom-priority/<id>.conf=
+  at the end of the main section, i.e. before the first line starting with
+  =[= (snapshot or =[pve:pending]=): a line below a section header belongs
+  to that snapshot and is ignored at start. Idempotent; refuses all CTs
+  (changes nothing) if any CT config or include file is missing; prints a
+  unified diff; holds pve-container's config lock
+  (=/run/lock/lxc/pve-config-<id>.lock=) and writes via =<file>.tmp.<pid>=
+  + rename like PVE's =file_set_contents= on pmxcfs. Not run by Ansible.
+- VMs: hookscript snippet =/var/lib/vz/snippets/oom-priority-hook.sh=
+  execs =pve-oom-priority hook <vmid> <phase>=; on =post-start= it writes
+  the value to the kvm PID (=/var/run/qemu-server/<id>.pid=, accepted
+  only if =/proc/<pid>/cgroup= is the VM's =qemu.slice/<id>.scope=). The
+  hook always exits 0 and logs problems to stderr (in the task log), so it
+  never breaks a VM start. Only one hookscript per guest: binarin sets it
+  by hand after checking none is set. CTs do not use a hookscript (CT 116
+  already has =pve-impermanence-hook.pl=).
+- =apply= (live, running guests): CT = every PID in =cgroup.procs= under
+  =/sys/fs/cgroup/lxc/<id>/= recursively (=lxc.monitor/<id>= is a separate
+  tree, not touched); VM = the kvm PID. Per process, emulating a restart
+  under the new floor: write the target if the current value is 0 or
+  below the target, otherwise keep it (Docker, chromium at 300). A host
+  root write also sets that process's =oom_score_adj_min=. Vanished PIDs
+  (ENOENT/ESRCH) are skipped.
+- =check= (read-only, exit 1 on any problem): include file content,
+  include line in each CT's main section, every running guest's processes
+  >= target, the CT init (the process with =NSpid= ending in 1) and the
+  kvm PID settled per the =apply= rule, VM =hookscript:= equals
+  =local:snippets/oom-priority-hook.sh=, and the snippet file is
+  executable when VMs exist (a VM whose hookscript file is missing fails
+  to start).
+- Output: =sync=, =include=, =apply= end with =changed: N= (with
+  =--check=: would change); Ansible's =changed_when= compares the last
+  line.
+** SL-79 ARC cap
+- =lineinfile= on =/etc/modprobe.d/zfs.conf= (created if missing, regexp
+  =^options zfs zfs_arc_max==) so other options survive; notifies the
+  shared =ansible/handlers/update-initramfs.yaml= handler (imported in the
+  play's =handlers:=, =update-initramfs -u -k all=; root is on ZFS).
+- Live: read =/sys/module/zfs/parameters/zfs_arc_max=; if it differs,
+  write the value. In check mode the task runs (=check_mode: false=) as
+  =true=, so it reports changed and writes nothing.
+- pve-memguard counts ARC above =c_min= as headroom, so the cap lowers its
+  headroom figure by whatever the ARC held above 8 GiB.
+** SL-82 host OOMScoreAdjust
+- Drop-ins =/etc/systemd/system/<unit>.d/50-oom-score-adjust.conf= with
+  =[Service] OOMScoreAdjust=-900=, =daemon-reload= when one changed.
+  Unit -> value map in =vars/memory.yml= (=pve_host_oom_score_adjust=).
+- No restart. Live: for each active unit, write -900 to every PID in its
+  =ControlGroup='s =cgroup.procs= whose value differs (check mode: only
+  report). Inactive units are skipped. Changed only when something was
+  (or in check mode would be) written.
+** Ansible
+- =playbooks/pve/memory.yml=: =hosts: raum=, tag =memory=,
+  =vars/memory.yml=, imports =tasks/zfs-arc.yml=, =tasks/oom-priority.yml=,
+  =tasks/host-oom-adjust.yml=. A playbook of its own for the same reason
+  as =memguard.yml= (=--tags= on =main.yml= runs the monitoring roles'
+  always-tagged checks without facts).
+- =tasks/oom-priority.yml=: assert =/usr/local/sbin/pve-memguard= exists,
+  install the tool and the snippet, run =sync= then =apply= (=check_mode:
+  false= on the command, =--check= passed from =ansible_check_mode=). In
+  check mode both are skipped when the tool itself would be installed or
+  updated, because the new version is not on the host yet.
+- A =kill_order= change through =memguard.yml= alone does not update the
+  include files or live values: run =memory.yml= after it.
+
+* Validation (agent, 2026-11-26)
+- Unit tests: =python3 -m unittest= in =ansible/playbooks/pve/files= runs
+  122 tests (42 new for pve-oom-priority), all pass; pyflakes clean on the
+  new files.
+- The deploy-style run (tool and daemon copied to a temp dir under their
+  installed names, =python3 -I pve-oom-priority values=) leaves no
+  =__pycache__= next to them.
+- =ansible-playbook --syntax-check playbooks/pve/memory.yml= passes;
+  =playbooks/pve/main.yml= passes with stub copies of the external roles
+  and collections (not installed in this checkout). =--list-tasks= shows
+  the 13 tasks of =memory.yml= on raum only.
+- Jinja expressions (ARC write command in normal and check mode, the
+  =--check= argv) rendered locally. The host unit live-apply script was
+  run locally against =systemd-journald.service= in check mode (reports
+  =-250 -> -900=, =changed: 1=), against inactive =corosync.service=
+  (skipped, =changed: 0=), and as non-root in apply mode (fails with
+  "cannot write", rc 1).
+- Not run against a PVE host: lxc start with the include, the qm
+  hookscript, pmxcfs write via temp file + rename, the real cgroup tree.
+
+* Open / risks
+- ssh at -900: new ssh sessions (and anything started from them) inherit
+  the listener's -900 and its floor, unless sshd restores the original
+  value in session children. =qm start= from an ssh shell would start kvm
+  at -900; the hookscript (post-start) and =apply= correct that. A
+  =pct exec= / =pct enter= process starts with the caller's value, not
+  the CT's: =check= reports it if below the target, =apply= fixes it.
+- A snapshot rollback restores the snapshot's raw lxc keys and drops the
+  include line if the snapshot predates it; =check= reports it, re-run
+  =include=.
+- Live values from =apply= are only a floor for the processes that exist;
+  CT processes forked later inherit from their parents, so that holds.
+
+* Commands for binarin on raum
+Deploy, from =ansible/= on the workstation (=memguard.yml= must have
+been deployed: =memory.yml= fails without =/usr/local/sbin/pve-memguard=):
+#+begin_src sh
+ansible-playbook playbooks/pve/memory.yml --check --diff
+ansible-playbook playbooks/pve/memory.yml
+#+end_src
+In the first check run the =sync= / =apply= tasks are skipped (the tool is
+not installed yet); a second check run after the deploy should show
+=changed=0=.
+
+Verify on raum, ARC (expect 8589934592):
+#+begin_src sh
+grep -w c_max /proc/spl/kstat/zfs/arcstats
+cat /sys/module/zfs/parameters/zfs_arc_max
+cat /etc/modprobe.d/zfs.conf
+lsinitramfs /boot/initrd.img-$(uname -r) | grep zfs.conf
+#+end_src
+
+Host units (expect -900):
+#+begin_src sh
+systemctl show -p OOMScoreAdjust ssh pve-cluster corosync
+for u in ssh pve-cluster corosync; do
+  f=/sys/fs/cgroup/system.slice/$u.service/cgroup.procs
+  [ -e $f ] || continue
+  for p in $(cat $f); do
+    echo $u $p $(cat /proc/$p/oom_score_adj)
+  done
+done
+#+end_src
+
+Guests (=check= reports the missing include lines and hookscripts until
+the hand steps below are done):
+#+begin_src sh
+pve-oom-priority values
+ls /etc/lxc/oom-priority/
+pve-oom-priority check
+#+end_src
+
+Hand step 1, CTs (compare with =pct list=; every CT needs it):
+#+begin_src sh
+pve-oom-priority include --check \
+  101 103 107 111 112 115 116 121 123 124 127 129
+pve-oom-priority include \
+  101 103 107 111 112 115 116 121 123 124 127 129
+#+end_src
+
+Hand step 2, VMs: set the hookscript only if the grep prints nothing.
+#+begin_src sh
+qm config 104 | grep hookscript
+qm config 109 | grep hookscript
+qm set 104 --hookscript local:snippets/oom-priority-hook.sh
+qm set 109 --hookscript local:snippets/oom-priority-hook.sh
+pve-oom-priority check
+#+end_src
+The include takes effect on each CT's next start, the hookscript on each
+VM's next start; =apply= in the deploy already set the live values of the
+running guests, so nothing needs a restart.
+
+Roll back:
+- Guests: first =qm set 104 --delete hookscript= (and 109); delete the
+  =lxc.include: /etc/lxc/oom-priority/<id>.conf= line from each
+  =/etc/pve/lxc/<id>.conf= by hand. Only then remove the files (a CT with
+  the include line but no file, or a VM whose hookscript file is gone,
+  fails to start):
+  #+begin_src sh
+  rm -r /etc/lxc/oom-priority
+  rm /usr/local/sbin/pve-oom-priority
+  rm /var/lib/vz/snippets/oom-priority-hook.sh
+  #+end_src
+  Live values stay until each guest restarts.
+- ARC: delete the =zfs_arc_max= line from =/etc/modprobe.d/zfs.conf=,
+  then (0 = ZFS default):
+  #+begin_src sh
+  update-initramfs -u -k all
+  echo 0 > /sys/module/zfs/parameters/zfs_arc_max
+  #+end_src
+- Host units: live values stay until the unit restarts.
+  #+begin_src sh
+  for u in ssh pve-cluster corosync; do
+    rm /etc/systemd/system/$u.service.d/50-oom-score-adjust.conf
+  done
+  systemctl daemon-reload
+  #+end_src
+- Remove =- import_playbook: memory.yml= from =main.yml= (or the
+  playbook) so the next deploy does not put it back.
